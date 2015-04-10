@@ -15,9 +15,10 @@
  */
 package android.databinding.testapp.vo;
 
+import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 
-public class BindableTestObject {
+public class BindableTestObject extends BaseObservable {
     @Bindable
     public int bindableField1;
 

@@ -43,6 +43,7 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.util.Types;
 
 // binding app info and library info are necessary to trigger this.
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
@@ -58,6 +59,9 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             mProperties = new IntermediateV1(buildInfo.modulePackage());
             mergeLayoutVariables();
             mLayoutVariables.clear();
+            TypeElement observableType = processingEnv.getElementUtils().
+                    getTypeElement("android.databinding.Observable");
+            Types typeUtils = processingEnv.getTypeUtils();
             for (Element element : AnnotationUtil
                     .getElementsAnnotatedWith(roundEnv, Bindable.class)) {
                 Element enclosingElement = element.getEnclosingElement();
@@ -67,6 +71,10 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                             enclosingElement.getKind());
                 }
                 TypeElement enclosing = (TypeElement) enclosingElement;
+                if (!typeUtils.isAssignable(enclosing.asType(), observableType.asType())) {
+                    L.e("Bindable must be on a member in an Observable class. %s is not Observable",
+                            enclosingElement.getSimpleName());
+                }
                 String name = getPropertyName(element);
                 if (name != null) {
                     Preconditions

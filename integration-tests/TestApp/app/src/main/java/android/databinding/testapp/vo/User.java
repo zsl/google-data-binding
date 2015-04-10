@@ -1,8 +1,10 @@
 package android.databinding.testapp.vo;
 
+import android.databinding.BaseObservable;
 import android.databinding.Bindable;
+import android.databinding.testapp.BR;
 
-public class User {
+public class User extends BaseObservable {
     @Bindable
     private User friend;
     @Bindable
@@ -16,6 +18,7 @@ public class User {
 
     public void setFriend(User friend) {
         this.friend = friend;
+        notifyPropertyChanged(BR.friend);
     }
 
     public String getName() {
@@ -24,6 +27,7 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+        notifyPropertyChanged(BR.name);
     }
 
     public String getFullName() {
@@ -32,5 +36,6 @@ public class User {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+        notifyPropertyChanged(BR.fullName);
     }
 }
