@@ -17,44 +17,79 @@ import android.databinding.tool.LayoutBinder
 
 class DataBinderWriter(val pkg: String, val projectPackage: String, val className: String,
         val layoutBinders : List<LayoutBinder>, val minSdk : kotlin.Int) {
-    fun write() =
-            kcode("") {
-                nl("package $pkg;")
-                nl("import $projectPackage.BR;")
-                nl("class $className {") {
-                    tab("public android.databinding.ViewDataBinding getDataBinder(android.view.View view, int layoutId) {") {
-                        tab("switch(layoutId) {") {
-                            layoutBinders.groupBy{it.getLayoutname()}.forEach {
-                                tab("case ${it.value.first!!.getModulePackage()}.R.layout.${it.value.first!!.getLayoutname()}:") {
-                                    if (it.value.size() == 1) {
-                                        tab("return ${it.value.first!!.getPackage()}.${it.value.first!!.getImplementationName()}.bind(view);")
-                                    } else {
-                                        // we should check the tag to decide which layout we need to inflate
-                                        tab("{") {
-                                            tab("final Object tag = view.getTag();")
-                                            tab("if(tag == null) throw new java.lang.RuntimeException(\"view must have a tag\");")
-                                            it.value.forEach {
-                                                tab("if (\"${it.getTag()}\".equals(tag)) {") {
-                                                    tab("return new ${it.getPackage()}.${it.getImplementationName()}(view);")
-                                                } tab("}")
-                                            }
-                                        }tab("}")
-                                    }
-
+    fun write() = kcode("") {
+        nl("package $pkg;")
+        nl("import $projectPackage.BR;")
+        nl("class $className {") {
+            tab("final static int TARGET_MIN_SDK = ${minSdk};")
+            nl("")
+            tab("public android.databinding.ViewDataBinding getDataBinder(android.view.View view, int layoutId) {") {
+                tab("switch(layoutId) {") {
+                    layoutBinders.groupBy{it.getLayoutname()}.forEach {
+                        val firstVal = it.value.get(0)
+                        tab("case ${firstVal.getModulePackage()}.R.layout.${firstVal.getLayoutname()}:") {
+                            if (it.value.size() == 1) {
+                                if (firstVal.isMerge()) {
+                                    tab("return new ${firstVal.getPackage()}.${firstVal.getImplementationName()}(new android.view.View[]{view});")
+                                } else {
+                                    tab("return ${firstVal.getPackage()}.${firstVal.getImplementationName()}.bind(view);")
                                 }
+                            } else {
+                                // we should check the tag to decide which layout we need to inflate
+                                tab("{") {
+                                    tab("final Object tag = view.getTag();")
+                                    tab("if(tag == null) throw new java.lang.RuntimeException(\"view must have a tag\");")
+                                    it.value.forEach {
+                                        tab("if (\"${it.getTag()}_0\".equals(tag)) {") {
+                                            if (it.isMerge()) {
+                                                tab("return new ${it.getPackage()}.${it.getImplementationName()}(new android.view.View[]{view});")
+                                            } else {
+                                                tab("return new ${it.getPackage()}.${it.getImplementationName()}(view);")
+                                            }
+                                        } tab("}")
+                                    }
+                                }tab("}")
+                            }
+
+                        }
+                    }
+                }
+                tab("}")
+                tab("return null;")
+            }
+            tab("}")
+
+            tab("android.databinding.ViewDataBinding getDataBinder(android.view.View[] views, int layoutId) {") {
+                tab("switch(layoutId) {") {
+                    layoutBinders.filter{it.isMerge()}.groupBy{it.getLayoutname()}.forEach {
+                        val firstVal = it.value.get(0)
+                        tab("case ${firstVal.getModulePackage()}.R.layout.${firstVal.getLayoutname()}:") {
+                            if (it.value.size() == 1) {
+                                tab("return new ${firstVal.getPackage()}.${firstVal.getImplementationName()}(views);")
+                            } else {
+                                // we should check the tag to decide which layout we need to inflate
+                                tab("{") {
+                                    tab("final Object tag = views[0].getTag();")
+                                    tab("if(tag == null) throw new java.lang.RuntimeException(\"view must have a tag\");")
+                                    it.value.forEach {
+                                        tab("if (\"${it.getTag()}_0\".equals(tag)) {") {
+                                            tab("return new ${it.getPackage()}.${it.getImplementationName()}(views);")
+                                        } tab("}")
+                                    }
+                                }tab("}")
                             }
                         }
-                        tab("}")
-                        tab("return null;")
                     }
-                    tab("}")
-
-                    tab("public int getId(String key) {") {
-                        tab("return BR.getId(key);")
-                    } tab("}")
-
-                    tab("final static int TARGET_MIN_SDK = ${minSdk};")
                 }
-                nl("}")
-            }.generate()
+                tab("}")
+                tab("return null;")
+            }
+            tab("}")
+
+            tab("public int getId(String key) {") {
+                tab("return BR.getId(key);")
+            } tab("}")
+        }
+        nl("}")
+    }.generate()
 }

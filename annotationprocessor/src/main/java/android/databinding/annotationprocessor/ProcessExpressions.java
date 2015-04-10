@@ -128,7 +128,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             compilerChef.writeViewBinderInterfaces(forLibraryModule);
             if (!forLibraryModule) {
                 compilerChef.writeDbrFile(minSdk);
-                compilerChef.writeViewBinders();
+                compilerChef.writeViewBinders(minSdk);
             }
         }
     }

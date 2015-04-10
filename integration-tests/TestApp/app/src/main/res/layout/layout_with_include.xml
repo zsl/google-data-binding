@@ -26,5 +26,21 @@
              bind:innerObject="@{outerObject}"
              bind:innerValue="@{`modified ` + outerObject.intValue}"
             />
+    <!-- stick something in the middle that may mess with the tag IDs -->
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+              android:text="@{`` + outerObject.intValue}"/>
     <include layout="@layout/plain_layout" android:id="@+id/plainLayout"/>
+    <include layout="@layout/merge_layout"
+            bind:innerObject="@{outerObject}"
+            bind:innerValue="@{`hello ` + outerObject.intValue}"/>
+    <include layout="@layout/merge_layout"
+             android:id="@+id/secondMerge"
+             bind:innerObject="@{outerObject}"
+             bind:innerValue="@{`goodbye ` + outerObject.intValue}"/>
+
+    <!-- now a merge within a merge -->
+    <include layout="@layout/merge_containing_merge"
+             android:id="@+id/thirdMerge"
+             bind:innerObject="@{outerObject}"
+             bind:innerValue="@{`third ` + outerObject.intValue}"/>
 </LinearLayout>

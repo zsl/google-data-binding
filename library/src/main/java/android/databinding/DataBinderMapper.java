@@ -27,6 +27,9 @@ class DataBinderMapper {
     public ViewDataBinding getDataBinder(View view, int layoutId) {
         return null;
     }
+    ViewDataBinding getDataBinder(View[] view, int layoutId) {
+        return null;
+    }
     public int getId(String key) {
         return 0;
     }

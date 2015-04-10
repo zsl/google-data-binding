@@ -44,7 +44,7 @@ public class SymbolExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return mText;
+        return mType.getSimpleName() + mText;
     }
 
     @Override

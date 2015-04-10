@@ -54,6 +54,7 @@ public class LayoutBinder {
     private final ExprModel mExprModel;
     private final ExpressionParser mExpressionParser;
     private final List<BindingTarget> mBindingTargets;
+    private final List<BindingTarget> mSortedBindingTargets;
     private String mPackage;
     private String mModulePackage;
     private String mProjectPackage;
@@ -88,7 +89,8 @@ public class LayoutBinder {
                 bindingTarget.addBinding(bindingBundle.getName(), parse(bindingBundle.getExpr()));
             }
         }
-        Collections.sort(mBindingTargets, COMPARE_FIELD_NAME);
+        mSortedBindingTargets = new ArrayList<BindingTarget>(mBindingTargets);
+        Collections.sort(mSortedBindingTargets, COMPARE_FIELD_NAME);
     }
 
     public void resolveWhichExpressionsAreUsed() {
@@ -141,6 +143,10 @@ public class LayoutBinder {
         return mBindingTargets;
     }
 
+    public List<BindingTarget> getSortedTargets() {
+        return mSortedBindingTargets;
+    }
+
     public boolean isEmpty() {
         return mExprModel.size() == 0;
     }
@@ -161,17 +167,21 @@ public class LayoutBinder {
     }
 
 
-    public String writeViewBinder() {
+    public String writeViewBinder(int minSdk) {
         mExprModel.seal();
         ensureWriter();
         Preconditions.checkNotNull(mPackage, "package cannot be null");
         Preconditions.checkNotNull(mProjectPackage, "project package cannot be null");
         Preconditions.checkNotNull(mBaseClassName, "base class name cannot be null");
-        return mWriter.write();
+        return mWriter.write(minSdk);
     }
 
     public String getPackage() {
         return mPackage;
+    }
+
+    public boolean isMerge() {
+        return mBundle.isMerge();
     }
 
     public String getModulePackage() {

@@ -84,9 +84,9 @@ public class CompilerChef {
         mDataBinder.writerBaseClasses(isLibrary);
     }
 
-    public void writeViewBinders() {
+    public void writeViewBinders(int minSdk) {
         ensureDataBinder();
-        mDataBinder.writeBinders();
+        mDataBinder.writeBinders(minSdk);
     }
 
     public interface BindableHolder {

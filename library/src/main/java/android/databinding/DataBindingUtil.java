@@ -38,4 +38,9 @@ public class DataBindingUtil {
     public static <T extends ViewDataBinding> T bindTo(View root, int layoutId) {
         return (T) sMapper.getDataBinder(root, layoutId);
     }
+
+    @SuppressWarnings("unchecked")
+    static <T extends ViewDataBinding> T bindTo(View[] roots, int layoutId) {
+        return (T) sMapper.getDataBinder(roots, layoutId);
+    }
 }

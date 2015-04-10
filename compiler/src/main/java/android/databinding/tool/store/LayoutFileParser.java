@@ -24,6 +24,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.XmlEditor;
@@ -31,6 +32,7 @@ import android.databinding.tool.util.XmlEditor;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -49,10 +51,11 @@ import javax.xml.xpath.XPathFactory;
  */
 public class LayoutFileParser {
     private static final String XPATH_VARIABLE_DEFINITIONS = "//variable";
-    private static final String XPATH_BINDING_ELEMENTS = "//*[@*[starts-with(., '@{') and substring(., string-length(.)) = '}']]";
+    private static final String XPATH_BINDING_ELEMENTS = "//*[include/.. or @*[starts-with(., '@{') and substring(., string-length(.)) = '}']]";
+    private static final String XPATH_EXPRESSION_ELEMENTS = "//*[@*[starts-with(., '@{') and substring(., string-length(.)) = '}']]";
     private static final String XPATH_ID_ELEMENTS = "//*[@*[local-name()='id']]";
     private static final String XPATH_IMPORT_DEFINITIONS = "//import";
-    private static final String XPATH_MERGE_TAG = "/merge";
+    private static final String XPATH_MERGE_ELEMENT = "/merge";
     final String LAYOUT_PREFIX = "@layout/";
 
     public ResourceBundle.LayoutFileBundle parseXml(File xml, String pkg)
@@ -67,9 +70,6 @@ public class LayoutFileParser {
         }
         L.d("parsing file %s", xml.getAbsolutePath());
 
-        ResourceBundle.LayoutFileBundle bundle = new ResourceBundle.LayoutFileBundle(
-                xmlNoExtension, xml.getParentFile().getName(), pkg);
-
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         final DocumentBuilder builder = factory.newDocumentBuilder();
         final Document doc = builder.parse(original);
@@ -78,6 +78,14 @@ public class LayoutFileParser {
         final XPath xPath = xPathFactory.newXPath();
 
         List<Node> variableNodes = getVariableNodes(doc, xPath);
+        final List<Node> imports = getImportNodes(doc, xPath);
+
+        if (variableNodes.isEmpty() && imports.isEmpty() && !hasBindingExpression(doc, xPath)) {
+            return null;
+        }
+
+        ResourceBundle.LayoutFileBundle bundle = new ResourceBundle.LayoutFileBundle(
+                xmlNoExtension, xml.getParentFile().getName(), pkg, isMerge(doc, xPath));
 
         L.d("number of variable nodes %d", variableNodes.size());
         for (Node item : variableNodes) {
@@ -89,7 +97,6 @@ public class LayoutFileParser {
             bundle.addVariable(variableName, variableType);
         }
 
-        final List<Node> imports = getImportNodes(doc, xPath);
         L.d("import node count %d", imports.size());
         for (Node item : imports) {
             NamedNodeMap attributes = item.getAttributes();
@@ -106,20 +113,18 @@ public class LayoutFileParser {
         }
 
         final List<Node> bindingNodes = getBindingNodes(doc, xPath);
+        final HashMap<Node, String> nodeTagMap = new HashMap<Node, String>();
         L.d("number of binding nodes %d", bindingNodes.size());
-        int tagNumber = 0;
+        int tagNumber = 1;
+        boolean rootDone = false;
         for (Node parent : bindingNodes) {
             NamedNodeMap attributes = parent.getAttributes();
             String nodeName = parent.getNodeName();
             String className;
             String includedLayoutName = null;
             final Node id = attributes.getNamedItem("android:id");
+            final String tag;
             if ("include".equals(nodeName)) {
-                if (id == null) {
-                    L.e("<include> must have android:id attribute with binding expressions.");
-                    throw new RuntimeException("<include> must have android:id attribute " +
-                            "with binding expressions.");
-                }
                 // get the layout attribute
                 final Node includedLayout = attributes.getNamedItem("layout");
                 Preconditions.checkNotNull(includedLayout, "must include a layout");
@@ -131,19 +136,23 @@ public class LayoutFileParser {
                 className = pkg + ".databinding." +
                         ParserHelper.INSTANCE$.toClassName(layoutName) + "Binding";
                 includedLayoutName = layoutName;
+                tag = nodeTagMap.get(parent.getParentNode());
             } else {
                 className = getFullViewClassName(parent);
+                if (doc.getDocumentElement() == parent || "merge".equals(parent.getParentNode().getNodeName())) {
+                    int index = rootDone ? tagNumber++ : 0;
+                    rootDone = true;
+                    tag = newTag + "_" + index;
+                } else {
+                    tag = "bindingTag" + tagNumber;
+                    tagNumber++;
+                }
             }
             final Node originalTag = attributes.getNamedItem("android:tag");
-            final String tag;
-            if (doc.getDocumentElement() == parent) {
-                tag = null;
-            } else {
-                tag = String.valueOf(tagNumber++);
-            }
             final ResourceBundle.BindingTargetBundle bindingTargetBundle =
                     bundle.createBindingTarget(id == null ? null : id.getNodeValue(),
                             className, true, tag, originalTag == null ? null : originalTag.getNodeValue());
+            nodeTagMap.put(parent, tag);
             bindingTargetBundle.setIncludedLayout(includedLayoutName);
 
             final int attrCount = attributes.getLength();
@@ -158,26 +167,20 @@ public class LayoutFileParser {
             }
         }
 
-        if (!bindingNodes.isEmpty() || !imports.isEmpty() || !variableNodes.isEmpty()) {
-            if (isMergeLayout(doc, xPath)) {
-                L.e("<merge> is not allowed with data binding.");
-                throw new RuntimeException("<merge> is not allowed with data binding.");
-            }
-            final List<Node> idNodes = getNakedIds(doc, xPath);
-            for (Node node : idNodes) {
-                if (!bindingNodes.contains(node) && !"include".equals(node.getNodeName())) {
-                    final Node id = node.getAttributes().getNamedItem("android:id");
-                    final String className = getFullViewClassName(node);
-                    bundle.createBindingTarget(id.getNodeValue(), className, true, null, null);
-                }
+        final List<Node> idNodes = getNakedIds(doc, xPath);
+        for (Node node : idNodes) {
+            if (!bindingNodes.contains(node) && !"include".equals(node.getNodeName())) {
+                final Node id = node.getAttributes().getNamedItem("android:id");
+                final String className = getFullViewClassName(node);
+                bundle.createBindingTarget(id.getNodeValue(), className, true, null, null);
             }
         }
 
         return bundle;
     }
 
-    private boolean isMergeLayout(Document doc, XPath xPath) throws XPathExpressionException {
-        return !get(doc, xPath, XPATH_MERGE_TAG).isEmpty();
+    private boolean hasBindingExpression(Document doc, XPath xPath) throws XPathExpressionException {
+        return !get(doc, xPath, XPATH_EXPRESSION_ELEMENTS).isEmpty();
     }
 
     private List<Node> getBindingNodes(Document doc, XPath xPath) throws XPathExpressionException {
@@ -194,6 +197,10 @@ public class LayoutFileParser {
 
     private List<Node> getNakedIds(Document doc, XPath xPath) throws XPathExpressionException {
         return get(doc, xPath, XPATH_ID_ELEMENTS);
+    }
+
+    private boolean isMerge(Document doc, XPath xPath) throws XPathExpressionException {
+        return !get(doc, xPath, XPATH_MERGE_ELEMENT).isEmpty();
     }
 
     private List<Node> get(Document doc, XPath xPath, String pattern)

@@ -22,6 +22,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.View;
@@ -150,10 +151,25 @@ public abstract class ViewDataBinding {
     protected ViewDataBinding(View root, int localFieldCount) {
         mLocalFieldObservers = new WeakListener[localFieldCount];
         this.mRoot = root;
+    }
+
+    protected void setRootTag(View view) {
         if (USE_TAG_ID) {
-            this.mRoot.setTag(R.id.dataBinding, this);
+            view.setTag(R.id.dataBinding, this);
         } else {
-            this.mRoot.setTag(this);
+            view.setTag(this);
+        }
+    }
+
+    protected void setRootTag(View[] views) {
+        if (USE_TAG_ID) {
+            for (View view : views) {
+                view.setTag(R.id.dataBinding, this);
+            }
+        } else {
+            for (View view : views) {
+                view.setTag(this);
+            }
         }
     }
 
@@ -287,77 +303,173 @@ public abstract class ViewDataBinding {
     }
 
     /**
-     * Walk all children of root and assign tagged Views to associated indices in views.
-     *
-     * @param root The base of the View hierarchy to walk.
-     * @param views An array of all Views with binding expressions and all Views with IDs. This
-     *              will start empty and will contain the found Views when this method completes.
-     * @param includes A mapping of include tag IDs to the index into the views array.
-     * @param viewsWithIds A mapping of views with IDs but without expressions to the index
-     *                     into the views array.
-     */
-    private static void mapTaggedChildViews(View root, View[] views, SparseIntArray includes,
-            SparseIntArray viewsWithIds) {
-        if (root instanceof ViewGroup) {
-            ViewGroup viewGroup = (ViewGroup) root;
-            for (int i = viewGroup.getChildCount() - 1; i >= 0; i--) {
-                mapTaggedViews(viewGroup.getChildAt(i), views, includes, viewsWithIds);
-            }
-        }
-    }
-
-    private static void mapTaggedViews(View view, View[] views, SparseIntArray includes,
-            SparseIntArray viewsWithIds) {
-        boolean visitChildren = true;
-        String tag = (String) view.getTag();
-        if (tag != null && tag.startsWith(BINDING_TAG_PREFIX)) {
-            int tagIndex = parseTagInt(tag);
-            views[tagIndex] = view;
-        } else {
-            visitChildren = addViewWithId(view, views, includes, viewsWithIds);
-        }
-        if (visitChildren) {
-            mapTaggedChildViews(view, views, includes, viewsWithIds);
-        }
-    }
-
-    /**
      * Walks the view hierarchy under root and pulls out tagged Views, includes, and views with
-     * IDs into a View[] that is returned. This is used to walk the view hierarchy once to find
+     * IDs into an Object[] that is returned. This is used to walk the view hierarchy once to find
      * all bound and ID'd views.
      *
      * @param root The root of the view hierarchy to walk.
-     * @param numViews The total number of ID'd views and views with expressions.
-     * @param includes Views that are considered includes and should be treated as separate
-     *                 binders.
-     * @param viewsWithIds Views that don't have tags, but have IDs.
-     * @return An array of size numViews containing all Views in the hierarchy that have IDs
-     * (with elements in viewsWithIds) or are tagged containing expressions.
+     * @param numBindings The total number of ID'd views, views with expressions, and includes
+     * @param includes The include layout information, indexed by their container's index.
+     * @param viewsWithIds Indexes of views that don't have tags, but have IDs.
+     * @return An array of size numBindings containing all Views in the hierarchy that have IDs
+     * (with elements in viewsWithIds), are tagged containing expressions, or the bindings for
+     * included layouts.
      */
-    protected static View[] mapChildViews(View root, int numViews, SparseIntArray includes,
-            SparseIntArray viewsWithIds) {
-        View[] views = new View[numViews];
-        boolean visitChildren = addViewWithId(root, views, includes, viewsWithIds);
-        if (visitChildren) {
-            mapTaggedChildViews(root, views, includes, viewsWithIds);
-        }
-        return views;
+    protected static Object[] mapBindings(View root, int numBindings,
+            IncludedLayoutIndex[][] includes, SparseIntArray viewsWithIds) {
+        Object[] bindings = new Object[numBindings];
+        mapBindings(root, bindings, includes, viewsWithIds, true);
+        return bindings;
     }
 
-    private static boolean addViewWithId(View view, View[] views, SparseIntArray includes,
-            SparseIntArray viewsWithIds) {
-        final int id = view.getId();
-        boolean visitChildren = true;
-        if (id > 0) {
-            int index;
-            if (viewsWithIds != null && (index = viewsWithIds.get(id, -1)) >= 0) {
-                views[index] = view;
-            } else if (includes != null && (index = includes.get(id, -1)) >= 0) {
-                views[index] = view;
-                visitChildren = false;
+    /**
+     * Walks the view hierarchy under roots and pulls out tagged Views, includes, and views with
+     * IDs into an Object[] that is returned. This is used to walk the view hierarchy once to find
+     * all bound and ID'd views.
+     *
+     * @param roots The root Views of the view hierarchy to walk. This is used with merge tags.
+     * @param numBindings The total number of ID'd views, views with expressions, and includes
+     * @param includes The include layout information, indexed by their container's index.
+     * @param viewsWithIds Indexes of views that don't have tags, but have IDs.
+     * @return An array of size numBindings containing all Views in the hierarchy that have IDs
+     * (with elements in viewsWithIds), are tagged containing expressions, or the bindings for
+     * included layouts.
+     */
+    protected static Object[] mapBindings(View[] roots, int numBindings,
+            IncludedLayoutIndex[][] includes, SparseIntArray viewsWithIds) {
+        Object[] bindings = new Object[numBindings];
+        for (int i = 0; i < roots.length; i++) {
+            mapBindings(roots[i], bindings, includes, viewsWithIds, true);
+        }
+        return bindings;
+    }
+
+    private static void mapBindings(View view, Object[] bindings,
+            IncludedLayoutIndex[][] includes, SparseIntArray viewsWithIds, boolean isRoot) {
+        final IncludedLayoutIndex[] includedLayoutIndexes;
+        final String tag = (String) view.getTag();
+        boolean isBound = false;
+        if (isRoot && tag != null && tag.startsWith("layout")) {
+            final int underscoreIndex = tag.lastIndexOf('_');
+            if (underscoreIndex > 0 && isNumeric(tag, underscoreIndex + 1)) {
+                final int index = parseTagInt(tag, underscoreIndex + 1);
+                bindings[index] = view;
+                includedLayoutIndexes = includes == null ? null : includes[index];
+                isBound = true;
+            } else {
+                includedLayoutIndexes = null;
+            }
+        } else if (tag != null && tag.startsWith(BINDING_TAG_PREFIX)) {
+            int tagIndex = parseTagInt(tag, BINDING_NUMBER_START);
+            bindings[tagIndex] = view;
+            isBound = true;
+            includedLayoutIndexes = includes == null ? null : includes[tagIndex];
+        } else {
+            // Not a bound view
+            includedLayoutIndexes = null;
+        }
+        if (!isBound) {
+            final int id = view.getId();
+            if (id > 0) {
+                int index;
+                if (viewsWithIds != null && (index = viewsWithIds.get(id, -1)) >= 0) {
+                    bindings[index] = view;
+                }
             }
         }
-        return visitChildren;
+
+        if (view instanceof  ViewGroup) {
+            final ViewGroup viewGroup = (ViewGroup) view;
+            final int count = viewGroup.getChildCount();
+            int minInclude = 0;
+            for (int i = 0; i < count; i++) {
+                final View child = viewGroup.getChildAt(i);
+                boolean isInclude = false;
+                if (includedLayoutIndexes != null) {
+                    String childTag = (String) child.getTag();
+                    if (childTag != null && childTag.endsWith("_0") &&
+                            childTag.startsWith("layout") && childTag.indexOf('/') > 0) {
+                        Log.d("ViewDataBinding", "Found potential include: " + childTag);
+                        // This *could* be an include. Test against the expected includes.
+                        int includeIndex = findIncludeIndex(childTag, minInclude,
+                                includedLayoutIndexes);
+                        Log.d("ViewDataBinding", "found index: " + includeIndex);
+                        if (includeIndex >= 0) {
+                            isInclude = true;
+                            minInclude = includeIndex + 1;
+                            IncludedLayoutIndex include = includedLayoutIndexes[includeIndex];
+                            int lastMatchingIndex = findLastMatching(viewGroup, i);
+                            Log.d("ViewDataBinding", "include index: " + include.index + ", first match = " + i + ", last match = " + lastMatchingIndex);
+                            if (lastMatchingIndex == i) {
+                                bindings[include.index] = DataBindingUtil.bindTo(child, include.layoutId);
+                            } else {
+                                final int includeCount =  lastMatchingIndex - i + 1;
+                                final View[] included = new View[includeCount];
+                                for (int j = 0; j < includeCount; j++) {
+                                    included[j] = viewGroup.getChildAt(i + j);
+                                }
+                                bindings[include.index] = DataBindingUtil.bindTo(included, include.layoutId);
+                                i += includeCount - 1;
+                            }
+                        }
+                    }
+                }
+                if (!isInclude) {
+                    mapBindings(child, bindings, includes, viewsWithIds, false);
+                }
+            }
+        }
+    }
+
+    private static int findIncludeIndex(String tag, int minInclude,
+            IncludedLayoutIndex[] layoutIndexes) {
+        final int slashIndex = tag.indexOf('/');
+        final CharSequence layoutName = tag.subSequence(slashIndex + 1, tag.length() - 2);
+
+        final int length = layoutIndexes.length;
+        for (int i = minInclude; i < length; i++) {
+            final IncludedLayoutIndex layoutIndex = layoutIndexes[i];
+            if (TextUtils.equals(layoutName, layoutIndex.layout)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private static int findLastMatching(ViewGroup viewGroup, int firstIncludedIndex) {
+        final View firstView = viewGroup.getChildAt(firstIncludedIndex);
+        final String firstViewTag = (String) firstView.getTag();
+        final String tagBase = firstViewTag.substring(0, firstViewTag.length() - 1); // don't include the "0"
+        final int tagSequenceIndex = tagBase.length();
+
+        final int count = viewGroup.getChildCount();
+        int max = firstIncludedIndex;
+        for (int i = firstIncludedIndex + 1; i < count; i++) {
+            final View view = viewGroup.getChildAt(i);
+            final String tag = (String) view.getTag();
+            if (tag != null && tag.startsWith(tagBase)) {
+                if (tag.length() == firstViewTag.length() && tag.charAt(tag.length() - 1) == '0') {
+                    return max; // Found another instance of the include
+                }
+                if (isNumeric(tag, tagSequenceIndex)) {
+                    max = i;
+                }
+            }
+        }
+        return max;
+    }
+
+    private static boolean isNumeric(String tag, int startIndex) {
+        int length = tag.length();
+        if (length == startIndex) {
+            return false; // no numerals
+        }
+        for (int i = startIndex; i < length; i++) {
+            if (!Character.isDigit(tag.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -366,10 +478,10 @@ public abstract class ViewDataBinding {
      * @param str The tag string.
      * @return The binding tag number parsed from the tag string.
      */
-    private static int parseTagInt(String str) {
+    private static int parseTagInt(String str, int startIndex) {
         final int end = str.length();
         int val = 0;
-        for (int i = BINDING_NUMBER_START; i < end; i++) {
+        for (int i = startIndex; i < end; i++) {
             val *= 10;
             char c = str.charAt(i);
             val += (c - '0');
@@ -530,5 +642,17 @@ public abstract class ViewDataBinding {
 
     private interface CreateWeakListener {
         WeakListener create(ViewDataBinding viewDataBinding, int localFieldId);
+    }
+
+    protected static class IncludedLayoutIndex {
+        public final String layout;
+        public final int index;
+        public final int layoutId;
+
+        public IncludedLayoutIndex(String layout, int index, int layoutId) {
+            this.layout = layout;
+            this.index = index;
+            this.layoutId = layoutId;
+        }
     }
 }

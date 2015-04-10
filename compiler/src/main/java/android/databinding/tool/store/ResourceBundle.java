@@ -140,34 +140,37 @@ public class ResourceBundle implements Serializable {
             L.d("validating ids for %s", bundles.getKey());
             for (LayoutFileBundle bundle : bundles.getValue()) {
                 for (BindingTargetBundle target : bundle.mBindingTargetBundles) {
-                    L.d("checking %s %s %s", target.getId(), target.mFullClassName, target.isBinder());
-                    if (target.isBinder()) {
-                        Preconditions.checkState(!viewBindingIds.contains(target.mFullClassName),
-                                "Cannot use the same id for a View and an include tag. Error in "
-                                        + "file %s / %s", bundle.mFileName, bundle.mConfigName);
-                        includeBindingIds.add(target.mFullClassName);
-                    } else {
-                        Preconditions.checkState(!includeBindingIds.contains(target.mFullClassName),
-                                "Cannot use the same id for a View and an include tag. Error in "
-                                        + "file %s / %s", bundle.mFileName, bundle.mConfigName);
-                        viewBindingIds.add(target.mFullClassName);
-                    }
-                    String existingType = viewTypes.get(target.mId);
-                    if (existingType == null) {
-                        L.d("assigning %s as %s", target.getId(), target.mFullClassName);
-                        viewTypes.put(target.mId, target.mFullClassName);
+                    L.d("checking %s %s %s", target.getId(), target.mFullClassName,
+                            target.isBinder());
+                    if (target.mId != null) {
                         if (target.isBinder()) {
-                            includes.put(target.mId, target.getIncludedLayout());
-                        }
-                    } else if (!existingType.equals(target.mFullClassName)) {
-                        if (target.isBinder()) {
-                            L.d("overriding %s as base binder", target.getId());
-                            viewTypes.put(target.mId,
-                                    "android.databinding.ViewDataBinding");
-                            includes.put(target.mId, target.getIncludedLayout());
+                            Preconditions.checkState(!viewBindingIds.contains(target.mFullClassName),
+                                    "Cannot use the same id for a View and an include tag. Error " +
+                                            "in file %s / %s", bundle.mFileName, bundle.mConfigName);
+                            includeBindingIds.add(target.mFullClassName);
                         } else {
-                            L.d("overriding %s as base view", target.getId());
-                            viewTypes.put(target.mId, "android.view.View");
+                            Preconditions.checkState(!includeBindingIds.contains(target.mFullClassName),
+                                    "Cannot use the same id for a View and an include tag. Error in "
+                                            + "file %s / %s", bundle.mFileName, bundle.mConfigName);
+                            viewBindingIds.add(target.mFullClassName);
+                        }
+                        String existingType = viewTypes.get(target.mId);
+                        if (existingType == null) {
+                            L.d("assigning %s as %s", target.getId(), target.mFullClassName);
+                            viewTypes.put(target.mId, target.mFullClassName);
+                            if (target.isBinder()) {
+                                includes.put(target.mId, target.getIncludedLayout());
+                            }
+                        } else if (!existingType.equals(target.mFullClassName)) {
+                            if (target.isBinder()) {
+                                L.d("overriding %s as base binder", target.getId());
+                                viewTypes.put(target.mId,
+                                        "android.databinding.ViewDataBinding");
+                                includes.put(target.mId, target.getIncludedLayout());
+                            } else {
+                                L.d("overriding %s as base view", target.getId());
+                                viewTypes.put(target.mId, "android.view.View");
+                            }
                         }
                     }
                 }
@@ -232,14 +235,19 @@ public class ResourceBundle implements Serializable {
         @XmlElement(name="Target")
         public List<BindingTargetBundle> mBindingTargetBundles = new ArrayList<BindingTargetBundle>();
 
+        @XmlAttribute(name="isMerge", required = true)
+        private boolean mIsMerge;
+
         // for XML binding
         public LayoutFileBundle() {
         }
 
-        public LayoutFileBundle(String fileName, String directory, String modulePackage) {
+        public LayoutFileBundle(String fileName, String directory, String modulePackage,
+                boolean isMerge) {
             mFileName = fileName;
             mDirectory = directory;
             mModulePackage = modulePackage;
+            mIsMerge = isMerge;
         }
 
         public void addVariable(String name, String type) {
@@ -293,6 +301,10 @@ public class ResourceBundle implements Serializable {
 
         public Map<String, String> getImports() {
             return mImports;
+        }
+
+        public boolean isMerge() {
+            return mIsMerge;
         }
 
         public List<BindingTargetBundle> getBindingTargetBundles() {

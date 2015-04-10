@@ -62,12 +62,12 @@ public class DataBinder {
         }
     }
     
-    public void writeBinders() {
+    public void writeBinders(int minSdk) {
         for (LayoutBinder layoutBinder : mLayoutBinders) {
             String className = layoutBinder.getImplementationName();
             L.d("writing data binder %s", className);
             mFileWriter.writeToFile(layoutBinder.getPackage() + "." + className,
-                    layoutBinder.writeViewBinder());
+                    layoutBinder.writeViewBinder(minSdk));
         }
     }
 
