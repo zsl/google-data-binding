@@ -55,25 +55,18 @@ public class LayoutBinder {
     private final ExpressionParser mExpressionParser;
     private final List<BindingTarget> mBindingTargets;
     private final List<BindingTarget> mSortedBindingTargets;
-    private String mPackage;
     private String mModulePackage;
-    private String mProjectPackage;
-    private String mBaseClassName;
     private final HashMap<String, String> mUserDefinedVariables = new HashMap<String, String>();
 
     private LayoutBinderWriter mWriter;
     private ResourceBundle.LayoutFileBundle mBundle;
 
-    public LayoutBinder(ResourceBundle resourceBundle,
-            ResourceBundle.LayoutFileBundle layoutBundle) {
+    public LayoutBinder(ResourceBundle.LayoutFileBundle layoutBundle) {
         mExprModel = new ExprModel();
         mExpressionParser = new ExpressionParser(mExprModel);
         mBindingTargets = new ArrayList<BindingTarget>();
         mBundle = layoutBundle;
-        mProjectPackage = resourceBundle.getAppPackage();
         mModulePackage = layoutBundle.getModulePackage();
-        mPackage = layoutBundle.getModulePackage() + ".databinding";
-        mBaseClassName = ParserHelper.INSTANCE$.toClassName(layoutBundle.getFileName()) + "Binding";
         // copy over data.
         for (Map.Entry<String, String> variable : mBundle.getVariables().entrySet()) {
             addVariable(variable.getKey(), variable.getValue());
@@ -170,14 +163,13 @@ public class LayoutBinder {
     public String writeViewBinder(int minSdk) {
         mExprModel.seal();
         ensureWriter();
-        Preconditions.checkNotNull(mPackage, "package cannot be null");
-        Preconditions.checkNotNull(mProjectPackage, "project package cannot be null");
-        Preconditions.checkNotNull(mBaseClassName, "base class name cannot be null");
+        Preconditions.checkNotNull(getPackage(), "package cannot be null");
+        Preconditions.checkNotNull(getClassName(), "base class name cannot be null");
         return mWriter.write(minSdk);
     }
 
     public String getPackage() {
-        return mPackage;
+        return mBundle.getBindingClassPackage();
     }
 
     public boolean isMerge() {
@@ -188,28 +180,20 @@ public class LayoutBinder {
         return mModulePackage;
     }
 
-    public void setPackage(String aPackage) {
-        mPackage = aPackage;
-    }
-
-    public String getProjectPackage() {
-        return mProjectPackage;
-    }
-
     public String getLayoutname() {
         return mBundle.getFileName();
     }
 
     public String getImplementationName() {
         if (hasVariations()) {
-            return mBaseClassName + mBundle.getConfigName() + "Impl";
+            return mBundle.getBindingClassName() + mBundle.getConfigName() + "Impl";
         } else {
-            return mBaseClassName;
+            return mBundle.getBindingClassName();
         }
     }
     
     public String getClassName() {
-        return mBaseClassName;
+        return mBundle.getBindingClassName();
     }
 
     public String getTag() {

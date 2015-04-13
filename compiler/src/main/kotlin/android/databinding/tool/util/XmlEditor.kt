@@ -204,7 +204,7 @@ object XmlEditor {
                         tag = ""
                     } else {
                         val index = bindingIndex++;
-                        tag = "android:tag=\"bindingTag${index}\"";
+                        tag = "android:tag=\"binding_${index}\"";
                     }
                     it.attributes?.forEach {
                         if (!replaced && tagWillFit(it.start, it.end, tag)) {

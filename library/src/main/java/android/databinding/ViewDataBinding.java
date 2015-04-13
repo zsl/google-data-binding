@@ -43,7 +43,7 @@ public abstract class ViewDataBinding {
      * Prefix for android:tag on Views with binding. The root View and include tags will not have
      * android:tag attributes and will use ids instead.
      */
-    public static final String BINDING_TAG_PREFIX = "bindingTag";
+    public static final String BINDING_TAG_PREFIX = "binding_";
 
     // The length of BINDING_TAG_PREFIX prevents calling length repeatedly.
     private static final int BINDING_NUMBER_START = BINDING_TAG_PREFIX.length();

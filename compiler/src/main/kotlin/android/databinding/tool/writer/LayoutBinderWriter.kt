@@ -316,8 +316,8 @@ fun <T> FlagSet.mapOr(other : FlagSet, cb : (suffix : String, index : Int) -> T)
 
 fun indexFromTag(tag : String) : kotlin.Int {
     val startIndex : kotlin.Int
-    if (tag.startsWith("bindingTag")) {
-        startIndex = "bindingTag".length();
+    if (tag.startsWith("binding_")) {
+        startIndex = "binding_".length();
     } else {
         startIndex = tag.lastIndexOf('_') + 1
     }
@@ -512,7 +512,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     tab("this.${it.fieldName}.setContainingBinding(this);")
                 }
                 if (it.supportsTag() && it.getTag() != null &&
-                        (rootTagsSupported || it.getTag().startsWith("bindingTag"))) {
+                        (rootTagsSupported || it.getTag().startsWith("binding_"))) {
                     val originalTag = it.getOriginalTag();
                     var tagValue = "null"
                     if (originalTag != null) {

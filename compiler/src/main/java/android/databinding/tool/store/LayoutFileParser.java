@@ -24,7 +24,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.XmlEditor;
@@ -120,7 +119,7 @@ public class LayoutFileParser {
         for (Node parent : bindingNodes) {
             NamedNodeMap attributes = parent.getAttributes();
             String nodeName = parent.getNodeName();
-            String className;
+            String viewName = null;
             String includedLayoutName = null;
             final Node id = attributes.getNamedItem("android:id");
             final String tag;
@@ -133,25 +132,23 @@ public class LayoutFileParser {
                 // if user is binding something there, there MUST be a layout file to be
                 // generated.
                 String layoutName = includeValue.substring(LAYOUT_PREFIX.length());
-                className = pkg + ".databinding." +
-                        ParserHelper.INSTANCE$.toClassName(layoutName) + "Binding";
                 includedLayoutName = layoutName;
                 tag = nodeTagMap.get(parent.getParentNode());
             } else {
-                className = getFullViewClassName(parent);
+                viewName = getViewName(parent);
                 if (doc.getDocumentElement() == parent || "merge".equals(parent.getParentNode().getNodeName())) {
                     int index = rootDone ? tagNumber++ : 0;
                     rootDone = true;
                     tag = newTag + "_" + index;
                 } else {
-                    tag = "bindingTag" + tagNumber;
+                    tag = "binding_" + tagNumber;
                     tagNumber++;
                 }
             }
             final Node originalTag = attributes.getNamedItem("android:tag");
             final ResourceBundle.BindingTargetBundle bindingTargetBundle =
                     bundle.createBindingTarget(id == null ? null : id.getNodeValue(),
-                            className, true, tag, originalTag == null ? null : originalTag.getNodeValue());
+                            viewName, true, tag, originalTag == null ? null : originalTag.getNodeValue());
             nodeTagMap.put(parent, tag);
             bindingTargetBundle.setIncludedLayout(includedLayoutName);
 
@@ -171,7 +168,7 @@ public class LayoutFileParser {
         for (Node node : idNodes) {
             if (!bindingNodes.contains(node) && !"include".equals(node.getNodeName())) {
                 final Node id = node.getAttributes().getNamedItem("android:id");
-                final String className = getFullViewClassName(node);
+                final String className = getViewName(node);
                 bundle.createBindingTarget(id.getNodeValue(), className, true, null, null);
             }
         }
@@ -217,7 +214,7 @@ public class LayoutFileParser {
         return result;
     }
 
-    private String getFullViewClassName(Node viewNode) {
+    private String getViewName(Node viewNode) {
         String viewName = viewNode.getNodeName();
         if ("view".equals(viewName)) {
             Node classNode = viewNode.getAttributes().getNamedItem("class");
@@ -226,13 +223,6 @@ public class LayoutFileParser {
             } else {
                 viewName = classNode.getNodeValue();
             }
-        }
-        if (viewName.indexOf('.') == -1) {
-            if (ObjectUtils.equals(viewName, "View") || ObjectUtils.equals(viewName, "ViewGroup") ||
-                    ObjectUtils.equals(viewName, "ViewStub")) {
-                return "android.view." + viewName;
-            }
-            return "android.widget." + viewName;
         }
         return viewName;
     }

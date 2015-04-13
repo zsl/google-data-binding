@@ -39,7 +39,7 @@ public class DataBinder {
         for (Map.Entry<String, List<ResourceBundle.LayoutFileBundle>> entry :
                 resourceBundle.getLayoutBundles().entrySet()) {
             for (ResourceBundle.LayoutFileBundle bundle : entry.getValue()) {
-                mLayoutBinders.add(new LayoutBinder(resourceBundle, bundle));
+                mLayoutBinders.add(new LayoutBinder(bundle));
             }
         }
     }

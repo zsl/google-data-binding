@@ -18,7 +18,6 @@ import android.databinding.tool.store.ResourceBundle;
 public class MockLayoutBinder extends LayoutBinder {
 
     public MockLayoutBinder() {
-        super(new ResourceBundle("com.test"),
-                new ResourceBundle.LayoutFileBundle("blah.xml", "layout", "com.test.submodule", false));
+        super(new ResourceBundle.LayoutFileBundle("blah.xml", "layout", "com.test.submodule", false));
     }
 }

@@ -17,8 +17,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
-import android.databinding.tool.reflection.ModelAnalyzer;
-import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 
@@ -78,6 +76,23 @@ public class ResourceBundle implements Serializable {
     }
 
     public void validateMultiResLayouts() {
+        for (List<LayoutFileBundle> layoutFileBundles : mLayoutBundles.values()) {
+            for (LayoutFileBundle layoutFileBundle : layoutFileBundles) {
+                for (BindingTargetBundle target : layoutFileBundle.getBindingTargetBundles()) {
+                    if (target.isBinder()) {
+                        List<LayoutFileBundle> boundTo =
+                                mLayoutBundles.get(target.getIncludedLayout());
+                        if (boundTo == null || boundTo.isEmpty()) {
+                            L.e("There is no binding for %s", target.getIncludedLayout());
+                        } else {
+                            String binding = boundTo.get(0).getFullBindingClass();
+                            target.setInterfaceType(binding);
+                        }
+                    }
+                }
+            }
+        }
+
         final Iterable<Map.Entry<String, List<LayoutFileBundle>>> multiResLayouts = Iterables
                 .filter(mLayoutBundles.entrySet(),
                         new Predicate<Map.Entry<String, List<LayoutFileBundle>>>() {
@@ -92,9 +107,20 @@ public class ResourceBundle implements Serializable {
             // and all variables have the same name
             Map<String, String> variableTypes = new HashMap<String, String>();
             Map<String, String> importTypes = new HashMap<String, String>();
+            String bindingClass = null;
 
             for (LayoutFileBundle bundle : bundles.getValue()) {
                 bundle.mHasVariations = true;
+                if (bindingClass == null) {
+                    bindingClass = bundle.getFullBindingClass();
+                } else {
+                    if (!bindingClass.equals(bundle.getFullBindingClass())) {
+                        L.e("Binding class names must match. Layout file for %s have " +
+                                        "different binding class names %s and %s",
+                                bundle.getFileName(),
+                                bindingClass, bundle.getFullBindingClass());
+                    }
+                }
                 for (Map.Entry<String, String> variable : bundle.mVariables.entrySet()) {
                     String existing = variableTypes.get(variable.getKey());
                     Preconditions
@@ -140,28 +166,28 @@ public class ResourceBundle implements Serializable {
             L.d("validating ids for %s", bundles.getKey());
             for (LayoutFileBundle bundle : bundles.getValue()) {
                 for (BindingTargetBundle target : bundle.mBindingTargetBundles) {
-                    L.d("checking %s %s %s", target.getId(), target.mFullClassName,
+                    L.d("checking %s %s %s", target.getId(), target.getFullClassName(),
                             target.isBinder());
                     if (target.mId != null) {
                         if (target.isBinder()) {
-                            Preconditions.checkState(!viewBindingIds.contains(target.mFullClassName),
+                            Preconditions.checkState(!viewBindingIds.contains(target.getFullClassName()),
                                     "Cannot use the same id for a View and an include tag. Error " +
                                             "in file %s / %s", bundle.mFileName, bundle.mConfigName);
-                            includeBindingIds.add(target.mFullClassName);
+                            includeBindingIds.add(target.getFullClassName());
                         } else {
-                            Preconditions.checkState(!includeBindingIds.contains(target.mFullClassName),
+                            Preconditions.checkState(!includeBindingIds.contains(target.getFullClassName()),
                                     "Cannot use the same id for a View and an include tag. Error in "
                                             + "file %s / %s", bundle.mFileName, bundle.mConfigName);
-                            viewBindingIds.add(target.mFullClassName);
+                            viewBindingIds.add(target.getFullClassName());
                         }
                         String existingType = viewTypes.get(target.mId);
                         if (existingType == null) {
-                            L.d("assigning %s as %s", target.getId(), target.mFullClassName);
-                            viewTypes.put(target.mId, target.mFullClassName);
+                            L.d("assigning %s as %s", target.getId(), target.getFullClassName());
+                            viewTypes.put(target.mId, target.getFullClassName());
                             if (target.isBinder()) {
                                 includes.put(target.mId, target.getIncludedLayout());
                             }
-                        } else if (!existingType.equals(target.mFullClassName)) {
+                        } else if (!existingType.equals(target.getFullClassName())) {
                             if (target.isBinder()) {
                                 L.d("overriding %s as base binder", target.getId());
                                 viewTypes.put(target.mId,
@@ -180,10 +206,18 @@ public class ResourceBundle implements Serializable {
                 for (Map.Entry<String, String> viewType : viewTypes.entrySet()) {
                     BindingTargetBundle target = bundle.getBindingTargetById(viewType.getKey());
                     if (target == null) {
-                        bundle.createBindingTarget(viewType.getKey(), viewType.getValue(), false,
-                                null, null).setIncludedLayout(includes.get(viewType.getKey()));
+                        String include = includes.get(viewType.getKey());
+                        if (include == null) {
+                            bundle.createBindingTarget(viewType.getKey(), viewType.getValue(),
+                                    false, null, null);
+                        } else {
+                            BindingTargetBundle bindingTargetBundle = bundle.createBindingTarget(
+                                    viewType.getKey(), null, false, null, null);
+                            bindingTargetBundle.setIncludedLayout(includes.get(viewType.getKey()));
+                            bindingTargetBundle.setInterfaceType(viewType.getValue());
+                        }
                     } else {
-                        L.d("setting interface type on %s (%s) as %s", target.mId, target.mFullClassName, viewType.getValue());
+                        L.d("setting interface type on %s (%s) as %s", target.mId, target.getFullClassName(), viewType.getValue());
                         target.setInterfaceType(viewType.getValue());
                     }
                 }
@@ -218,6 +252,19 @@ public class ResourceBundle implements Serializable {
         @XmlAttribute(name="modulePackage", required = true)
         public String mModulePackage;
         private String mConfigName;
+
+        // The binding class as given by the user
+        @XmlAttribute(name="bindingClass", required = false)
+        public String mBindingClass;
+
+        // The full package and class name as determined from mBindingClass and mModulePackage
+        private String mFullBindingClass;
+
+        // The simple binding class name as determined from mBindingClass and mModulePackage
+        private String mBindingClassName;
+
+        // The package of the binding class as determined from mBindingClass and mModulePackage
+        private String mBindingPackage;
 
         @XmlAttribute(name="directory", required = true)
         public String mDirectory;
@@ -258,9 +305,9 @@ public class ResourceBundle implements Serializable {
             mImports.put(alias, type);
         }
 
-        public BindingTargetBundle createBindingTarget(String id, String fullClassName,
+        public BindingTargetBundle createBindingTarget(String id, String viewName,
                 boolean used, String tag, String originalTag) {
-            BindingTargetBundle target = new BindingTargetBundle(id, fullClassName, used, tag,
+            BindingTargetBundle target = new BindingTargetBundle(id, viewName, used, tag,
                     originalTag);
             mBindingTargetBundles.add(target);
             return target;
@@ -305,6 +352,40 @@ public class ResourceBundle implements Serializable {
 
         public boolean isMerge() {
             return mIsMerge;
+        }
+
+        public String getBindingClassName() {
+            if (mBindingClassName == null) {
+                String fullClass = getFullBindingClass();
+                int dotIndex = fullClass.lastIndexOf('.');
+                mBindingClassName = fullClass.substring(dotIndex + 1);
+            }
+            return mBindingClassName;
+        }
+
+        public String getBindingClassPackage() {
+            if (mBindingPackage == null) {
+                String fullClass = getFullBindingClass();
+                int dotIndex = fullClass.lastIndexOf('.');
+                mBindingPackage = fullClass.substring(0, dotIndex);
+            }
+            return mBindingPackage;
+        }
+
+        private String getFullBindingClass() {
+            if (mFullBindingClass == null) {
+                if (mBindingClass == null) {
+                    mFullBindingClass = getModulePackage() + ".databinding." +
+                            ParserHelper.INSTANCE$.toClassName(getFileName()) + "Binding";
+                } else if (mBindingClass.startsWith(".")) {
+                    mFullBindingClass = getModulePackage() + mBindingClass;
+                } else if (mBindingClass.indexOf('.') < 0) {
+                    mFullBindingClass = getModulePackage() + ".databinding." + mBindingClass;
+                } else {
+                    mFullBindingClass = mBindingClass;
+                }
+            }
+            return mFullBindingClass;
         }
 
         public List<BindingTargetBundle> getBindingTargetBundles() {
@@ -385,8 +466,9 @@ public class ResourceBundle implements Serializable {
         public String mTag;
         @XmlAttribute(name="originalTag")
         public String mOriginalTag;
-        @XmlAttribute(name="boundClass", required = true)
-        public String mFullClassName;
+        @XmlAttribute(name="view", required = false)
+        public String mViewName;
+        private String mFullClassName;
         public boolean mUsed = true;
         @XmlElementWrapper(name="Expressions")
         @XmlElement(name="Expression")
@@ -398,10 +480,10 @@ public class ResourceBundle implements Serializable {
         // For XML serialization
         public BindingTargetBundle() {}
 
-        public BindingTargetBundle(String id, String fullClassName, boolean used,
+        public BindingTargetBundle(String id, String viewName, boolean used,
                 String tag, String originalTag) {
             mId = id;
-            mFullClassName = fullClassName;
+            mViewName = viewName;
             mUsed = used;
             mTag = tag;
             mOriginalTag = originalTag;
@@ -440,6 +522,24 @@ public class ResourceBundle implements Serializable {
         }
 
         public String getFullClassName() {
+            if (mFullClassName == null) {
+                if (isBinder()) {
+                    mFullClassName = mInterfaceType;
+                } else if (mViewName.indexOf('.') == -1) {
+                    if ("View".equals(mViewName) || "ViewGroup".equals(mViewName) ||
+                            "ViewStub".equals(mViewName)) {
+                        mFullClassName = "android.view." + mViewName;
+                    } else {
+                        mFullClassName = "android.widget." + mViewName;
+                    }
+                } else {
+                    mFullClassName = mViewName;
+                }
+            }
+            if (mFullClassName == null) {
+                L.e("Unexpected full class name = null. view = %s, interface = %s, layout = %s",
+                        mViewName, mInterfaceType, mIncludedLayout);
+            }
             return mFullClassName;
         }
 
