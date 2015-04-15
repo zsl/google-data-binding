@@ -12,16 +12,20 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/myContainer"
-              android:addChildrenForAccessibility="@{children}"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
-    <variable name="elevation" type="float"/>
-    <variable name="name" type="java.lang.String"/>
-    <variable name="children" type="java.util.ArrayList&lt;android.view.View>"/>
-    <TextView android:layout_width="wrap_content"
-              android:layout_height="wrap_content"
-              android:id="@+id/textView"
-              android:text="@{name}" android:elevation="@{elevation}"/>
-</LinearLayout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="elevation" type="float"/>
+        <variable name="name" type="java.lang.String"/>
+        <variable name="children" type="java.util.ArrayList&lt;android.view.View>"/>
+    </data>
+    <LinearLayout
+            android:id="@+id/myContainer"
+            android:addChildrenForAccessibility="@{children}"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:id="@+id/textView"
+                  android:text="@{name}" android:elevation="@{elevation}"/>
+    </LinearLayout>
+</layout>

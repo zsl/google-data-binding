@@ -49,12 +49,14 @@ import javax.xml.xpath.XPathFactory;
  * LayoutBinder.
  */
 public class LayoutFileParser {
-    private static final String XPATH_VARIABLE_DEFINITIONS = "//variable";
-    private static final String XPATH_BINDING_ELEMENTS = "//*[include/.. or @*[starts-with(., '@{') and substring(., string-length(.)) = '}']]";
+    private static final String XPATH_VARIABLE_DEFINITIONS = "/layout/data/variable";
+    private static final String XPATH_BINDING_ELEMENTS = "/layout/*[name() != 'data' and name() != 'merge'] | /layout/merge/* | //*[include/.. or @*[starts-with(., '@{') and substring(., string-length(.)) = '}']]";
     private static final String XPATH_EXPRESSION_ELEMENTS = "//*[@*[starts-with(., '@{') and substring(., string-length(.)) = '}']]";
     private static final String XPATH_ID_ELEMENTS = "//*[@*[local-name()='id']]";
-    private static final String XPATH_IMPORT_DEFINITIONS = "//import";
-    private static final String XPATH_MERGE_ELEMENT = "/merge";
+    private static final String XPATH_IMPORT_DEFINITIONS = "/layout/data/import";
+    private static final String XPATH_MERGE_ELEMENT = "/layout/merge";
+    private static final String XPATH_BINDING_LAYOUT = "/layout";
+    private static final String XPATH_BINDING_CLASS = "/layout/data/@class";
     final String LAYOUT_PREFIX = "@layout/";
 
     public ResourceBundle.LayoutFileBundle parseXml(File xml, String pkg)
@@ -75,6 +77,10 @@ public class LayoutFileParser {
 
         final XPathFactory xPathFactory = XPathFactory.newInstance();
         final XPath xPath = xPathFactory.newXPath();
+
+        if (!isBindingLayout(doc, xPath)) {
+            return null;
+        }
 
         List<Node> variableNodes = getVariableNodes(doc, xPath);
         final List<Node> imports = getImportNodes(doc, xPath);
@@ -111,11 +117,11 @@ public class LayoutFileParser {
             bundle.addImport(alias, type);
         }
 
+        final Node layoutParent = getLayoutParent(doc, xPath);
         final List<Node> bindingNodes = getBindingNodes(doc, xPath);
         final HashMap<Node, String> nodeTagMap = new HashMap<Node, String>();
         L.d("number of binding nodes %d", bindingNodes.size());
-        int tagNumber = 1;
-        boolean rootDone = false;
+        int tagNumber = 0;
         for (Node parent : bindingNodes) {
             NamedNodeMap attributes = parent.getAttributes();
             String nodeName = parent.getNodeName();
@@ -136,14 +142,12 @@ public class LayoutFileParser {
                 tag = nodeTagMap.get(parent.getParentNode());
             } else {
                 viewName = getViewName(parent);
-                if (doc.getDocumentElement() == parent || "merge".equals(parent.getParentNode().getNodeName())) {
-                    int index = rootDone ? tagNumber++ : 0;
-                    rootDone = true;
-                    tag = newTag + "_" + index;
+                if (layoutParent == parent.getParentNode()) {
+                    tag = newTag + "_" + tagNumber;
                 } else {
                     tag = "binding_" + tagNumber;
-                    tagNumber++;
                 }
+                tagNumber++;
             }
             final Node originalTag = attributes.getNamedItem("android:tag");
             final ResourceBundle.BindingTargetBundle bindingTargetBundle =
@@ -173,11 +177,37 @@ public class LayoutFileParser {
             }
         }
 
+        bundle.setBindingClass(getBindingClass(doc, xPath, original));
+
         return bundle;
+    }
+
+    private boolean isBindingLayout(Document doc, XPath xPath) throws XPathExpressionException {
+        return !get(doc, xPath, XPATH_BINDING_LAYOUT).isEmpty();
     }
 
     private boolean hasBindingExpression(Document doc, XPath xPath) throws XPathExpressionException {
         return !get(doc, xPath, XPATH_EXPRESSION_ELEMENTS).isEmpty();
+    }
+
+    private Node getLayoutParent(Document doc, XPath xPath) throws XPathExpressionException {
+        if (isMerge(doc, xPath)) {
+            return get(doc, xPath, XPATH_MERGE_ELEMENT).get(0);
+        } else {
+            return get(doc, xPath, XPATH_BINDING_LAYOUT).get(0);
+        }
+    }
+
+    private String getBindingClass(Document doc, XPath xPath, File file)
+            throws XPathExpressionException {
+        List<Node> nodes = get(doc, xPath, XPATH_BINDING_CLASS);
+        if (nodes.isEmpty()) {
+            return null;
+        }
+        if (nodes.size() > 1) {
+            L.e("More than one binding class declared in %s", file.getAbsolutePath());
+        }
+        return nodes.get(0).getNodeValue();
     }
 
     private List<Node> getBindingNodes(Document doc, XPath xPath) throws XPathExpressionException {
@@ -264,7 +294,7 @@ public class LayoutFileParser {
 
         // now if file has any binding expressions, find and delete them
         // TODO we should rely on namespace to avoid parsing file twice
-        boolean changed = getVariableNodes(doc, xPath).size() > 0 || getImportNodes(doc, xPath).size() > 0;
+        boolean changed = isBindingLayout(doc, xPath);
         if (changed) {
             stripBindingTags(xml, binderId);
         }

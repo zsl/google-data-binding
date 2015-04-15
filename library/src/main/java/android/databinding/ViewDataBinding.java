@@ -389,17 +389,14 @@ public abstract class ViewDataBinding {
                     String childTag = (String) child.getTag();
                     if (childTag != null && childTag.endsWith("_0") &&
                             childTag.startsWith("layout") && childTag.indexOf('/') > 0) {
-                        Log.d("ViewDataBinding", "Found potential include: " + childTag);
                         // This *could* be an include. Test against the expected includes.
                         int includeIndex = findIncludeIndex(childTag, minInclude,
                                 includedLayoutIndexes);
-                        Log.d("ViewDataBinding", "found index: " + includeIndex);
                         if (includeIndex >= 0) {
                             isInclude = true;
                             minInclude = includeIndex + 1;
                             IncludedLayoutIndex include = includedLayoutIndexes[includeIndex];
                             int lastMatchingIndex = findLastMatching(viewGroup, i);
-                            Log.d("ViewDataBinding", "include index: " + include.index + ", first match = " + i + ", last match = " + lastMatchingIndex);
                             if (lastMatchingIndex == i) {
                                 bindings[include.index] = DataBindingUtil.bindTo(child, include.layoutId);
                             } else {

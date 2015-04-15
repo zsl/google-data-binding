@@ -20,13 +20,13 @@ import android.app.Activity;
 import android.os.Bundle;
 
 import android.databinding.test.independentlibrary.vo.MyBindableObject;
-import android.databinding.test.independentlibrary.databinding.LibraryLayoutBinding;
+import android.databinding.test.independentlibrary.IndependentLibraryBinding;
 public class LibraryActivity extends Activity {
     public static final String FIELD_VALUE = "BAR";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LibraryLayoutBinding binding = LibraryLayoutBinding.inflate(this);
+        IndependentLibraryBinding binding = IndependentLibraryBinding.inflate(this);
         setContentView(binding.getRoot());
         MyBindableObject object = new MyBindableObject();
         object.setField(FIELD_VALUE);

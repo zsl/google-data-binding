@@ -12,15 +12,18 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:bind="http://schemas.android.com/apk/res-auto"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
-    <variable name="innerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
-    <variable name="innerValue" type="java.lang.String"/>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-              android:id="@+id/innerTextView"
-              android:text="@{innerValue + innerObject.stringValue}"
-            />
-</LinearLayout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="innerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
+        <variable name="innerValue" type="java.lang.String"/>
+    </data>
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:id="@+id/innerTextView"
+                  android:text="@{innerValue + innerObject.stringValue}"
+                />
+    </LinearLayout>
+</layout>

@@ -363,6 +363,10 @@ public class ResourceBundle implements Serializable {
             return mBindingClassName;
         }
 
+        public void setBindingClass(String bindingClass) {
+            mBindingClass = bindingClass;
+        }
+
         public String getBindingClassPackage() {
             if (mBindingPackage == null) {
                 String fullClass = getFullBindingClass();

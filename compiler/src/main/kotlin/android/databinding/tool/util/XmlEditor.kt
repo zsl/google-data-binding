@@ -36,234 +36,248 @@ import java.util.ArrayList
  * Band-aid solution to unblock development
  */
 object XmlEditor {
-    val reservedElementNames = arrayListOf("variable", "import")
-    var rootNodeContext: XMLParser.ElementContext? = null
-    var rootNodeHasTag = false
-    var isRootNode = false
-    data class LayoutXmlElements(val start: Position, val end: Position,
-                                 val insertionPoint: Position, val name : String,
-                                 val isTag: kotlin.Boolean, val isReserved: kotlin.Boolean,
-                                 val attributes: MutableList<LayoutXmlElements>?,
-                                 val children: MutableList<LayoutXmlElements>,
-                                 val isRoot: kotlin.Boolean)
+    fun XMLParser.ElementContext.nodeName() = this.elmName.getText()
 
-    val visitor = object : XMLParserBaseVisitor<MutableList<LayoutXmlElements>>() {
-
-        override fun visitAttribute(ctx: XMLParser.AttributeContext): MutableList<LayoutXmlElements>? {
-            log { "attr:${ctx.attrName.getText()} ${ctx.attrValue.getText()} . parent: ${ctx.getParent()}" }
-            if (ctx.getParent() == rootNodeContext && ctx.attrName.getText() == "android:tag") {
-                rootNodeHasTag = true
-            }
-            val isTag = ctx.attrName.getText().equals("android:tag")
-            if (isTag || ctx.attrName.getText().startsWith("bind:") ||
-                    (ctx.attrValue.getText().startsWith("\"@{") && ctx.attrValue.getText().endsWith("}\"")) ||
-                    (ctx.attrValue.getText().startsWith("'@{") && ctx.attrValue.getText().endsWith("}'"))) {
-                return arrayListOf(LayoutXmlElements(ctx.getStart().toPosition(),
-                    ctx.getStop().toEndPosition(), ctx.getStart().toPosition(),
-                        ctx.attrName.getText(), isTag, false, null, arrayListOf(), false))
-            }
-
-            //log{"visiting attr: ${ctx.getText()} at location ${ctx.getStart().toS()} ${ctx.getStop().toS()}"}
-            return super<XMLParserBaseVisitor>.visitAttribute(ctx)
-        }
-
-        override fun visitElement(ctx: XMLParser.ElementContext): MutableList<LayoutXmlElements>? {
-            log { "elm ${ctx.elmName.getText()} || ${ctx.Name()} paren : ${ctx.getParent()} isRoot : ${isRootNode}" }
-            var wasRoot = isRootNode
-            if (rootNodeContext == null) {
-                rootNodeContext = ctx
-                if ("merge".equals(ctx.elmName.getText())) {
-                    isRootNode = true
-                } else {
-                    wasRoot = true;
-                }
+    fun XMLParser.ElementContext.attributes() =
+            if (attribute() == null) {
+                arrayListOf<XMLParser.AttributeContext>()
             } else {
-                isRootNode = false
+                attribute()
             }
-            val insertionPoint : Position
-            if (ctx.content() == null) {
-                insertionPoint = ctx.getStop().toPosition()
-                insertionPoint.charIndex;
-            } else {
-                insertionPoint = ctx.content().getStart().toPosition()
-                insertionPoint.charIndex -= 1;
-            }
-            if (reservedElementNames.contains(ctx.elmName?.getText()) || ctx.elmName.getText().startsWith("bind:")) {
-                isRootNode = wasRoot
-                return arrayListOf(LayoutXmlElements(ctx.getStart().toPosition(),
-                        ctx.getStop().toEndPosition(), insertionPoint, ctx.elmName.getText(), false,
-                        true, arrayListOf(), arrayListOf(), false));
-            }
-            val children = arrayListOf<LayoutXmlElements>();
-            val attributes = arrayListOf<LayoutXmlElements>();
-            val element = LayoutXmlElements(ctx.getStart().toPosition(),
-                    ctx.getStop().toEndPosition(), insertionPoint, ctx.elmName.getText(), false,
-                    false, attributes, children, wasRoot)
-            val elements = super<XMLParserBaseVisitor>.visitElement(ctx);
-            isRootNode = wasRoot
-            if (elements != null && !elements.isEmpty()) {
-                elements.forEach {
-                    if (it.attributes == null) {
-                        attributes.add(it);
-                    } else {
-                        children.add(it);
-                    }
-                }
-                elements.removeAll(attributes);
-            }
-            elements.add(element)
-            return elements;
-        }
 
-        override fun defaultResult(): MutableList<LayoutXmlElements>? = arrayListOf()
-
-        override fun aggregateResult(aggregate: MutableList<LayoutXmlElements>?, nextResult: MutableList<LayoutXmlElements>?): MutableList<LayoutXmlElements>? =
-                if (aggregate == null) {
-                    nextResult
-                } else if (nextResult == null) {
-                    aggregate
-                } else {
-                    aggregate.addAll(nextResult)
-                    aggregate
-                }
+    fun XMLParser.ElementContext.hasExpressionAttributes() : kotlin.Boolean {
+        val expressions = expressionAttributes()
+        return expressions.size() > 1 || (expressions.size() == 1 &&
+                !expressions.get(0).attrName.getText().equals("android:tag"))
     }
 
-    fun containsInclude(node : LayoutXmlElements) =
-        node.children.firstOrNull(){ "include".equals(it.name) } != null
+    fun XMLParser.ElementContext.expressionAttributes() = attributes().filter {
+        val attrName = it.attrName.getText();
+        val value = it.attrValue.getText()
+        attrName.equals("android:tag") || attrName.startsWith("bind:") ||
+                (value.startsWith("\"@{") && value.endsWith("}\"")) ||
+                (value.startsWith("\'@{") && value.endsWith("}\'"))
+    }
+
+    fun XMLParser.ElementContext.endTagPosition(): Position {
+        if (content() == null) {
+            // no content, so just subtract from the "/>"
+            val endTag = getStop().toEndPosition()
+            Preconditions.checkState(endTag.charIndex > 0)
+            endTag.charIndex -= 2
+            return endTag
+        } else {
+            // tag with no attributes, but with content
+            val position = content().getStart().toPosition()
+            Preconditions.checkState(position.charIndex > 0)
+            position.charIndex--
+            return position
+        }
+    }
+
+    fun XMLParser.ElementContext.elements() : List<XMLParser.ElementContext> {
+        if (content() != null && content().element() != null) {
+            return content().element()
+        } else {
+            return arrayListOf<XMLParser.ElementContext>()
+        }
+    }
 
     fun strip(f: File, newTag: String? = null): String? {
-        rootNodeContext = null //clear it
-        rootNodeHasTag = false
-        isRootNode = false;
         val inputStream = ANTLRInputStream(FileReader(f))
         val lexer = XMLLexer(inputStream)
         val tokenStream = CommonTokenStream(lexer)
         val parser = XMLParser(tokenStream)
         val expr = parser.document()
-        val parsedExpr = expr.accept(visitor)
-        if (parsedExpr.isEmpty()) {
-            return null//nothing to strip
+        val root = expr.element()
+
+        if (root == null || !"layout".equals(root.nodeName())) {
+            return null; // not a binding layout
         }
-        Preconditions.checkNotNull(rootNodeContext, "Cannot find root node for ${f.getName()}")
-        Preconditions.checkState(rootNodeHasTag == false, """You cannot set a tag in the layout
-        root if you are using binding. Invalid file: ${f}""")
-        val rootNodeBounds = Pair(rootNodeContext!!.getStart().toPosition(),
-                rootNodeContext!!.getStop().toEndPosition())
 
-        log { "root node bounds: ${rootNodeBounds}" }
-        val out = StringBuilder()
-        val lines = f.readLines("utf-8")
+        val dataNodes = root.elements().filter { "data".equals(it.nodeName()) }
+        Preconditions.checkState(dataNodes.size() < 2,
+                "Multiple binding data tags. Expecting a maximum of one.");
 
-        lines.forEach { out.appendln(it) }
+        val lines = arrayListOf<String>()
+        lines.addAll(f.readLines("utf-8"))
 
-        // TODO we probably don't need to sort
-        val sorted = parsedExpr.sortBy(object : Comparator<LayoutXmlElements> {
-            override fun compare(o1: LayoutXmlElements, o2: LayoutXmlElements): Int {
-                val lineCmp = o1.start.line.compareTo(o2.start.charIndex)
+        dataNodes.forEach {
+            replace(lines, it.getStart().toPosition(), it.getStop().toEndPosition(), "")
+        }
+
+        val layoutNodes = root.elements().filter { !"data".equals(it.nodeName()) }
+        Preconditions.checkState(layoutNodes.size() == 1,
+                "Only one layout element and one data element are allowed")
+
+        val layoutNode = layoutNodes.get(0)
+
+        val noTag = arrayListOf<Pair<String, XMLParser.ElementContext>>()
+
+        recurseReplace(layoutNode, lines, noTag, newTag, 0)
+
+        // now remove the </layout>
+        val endLayoutPositions = findTerminalPositions(root, lines)
+        replace(lines, endLayoutPositions.first, endLayoutPositions.second, "")
+
+        noTag.sortBy(object : Comparator<Pair<String, XMLParser.ElementContext>> {
+            override fun compare(o1: Pair<String, XMLParser.ElementContext>,
+                    o2: Pair<String, XMLParser.ElementContext>): Int {
+                val start1 = o1.second.getStart().toPosition()
+                val start2 = o2.second.getStart().toPosition()
+                val lineCmp = start2.line.compareTo(start1.line)
                 if (lineCmp != 0) {
                     return lineCmp
                 }
-                return o1.start.line.compareTo(o2.start.charIndex)
-            }
-        })
-        var lineStarts = arrayListOf(0)
-        lines.withIndex().forEach {
-            if (it.index > 0) {
-                lineStarts.add(lineStarts[it.index - 1] + lines[it.index - 1].length() + 1)
-            }
-        }
-
-        val separator = System.lineSeparator().charAt(0)
-        val noTag : ArrayList<Pair<String, LayoutXmlElements>> = ArrayList()
-        var bindingIndex = 1
-        var rootDone = false
-        sorted.forEach {
-            if (it.isReserved) {
-                log {"Replacing reserved tag at ${it.start} to ${it.end}"}
-                replace(out, lineStarts, it, "", separator);
-            } else if ((it.attributes != null && !it.attributes.isEmpty()) || containsInclude(it) ||
-                    it.isRoot) {
-                log {"Found attribute for tag at ${it.start} to ${it.end}"}
-                if (it.attributes != null && it.attributes.size() == 1 &&
-                        it.attributes.get(0).isTag) {
-                    log {"only android:tag"}
-                    // no binding, just tag -- don't replace anything
-                } else {
-                    var replaced = false
-                    val tag : String
-                    if (it.isRoot) {
-                        val index : kotlin.Int
-                        if (rootDone) {
-                            index = bindingIndex++
-                        } else {
-                            index = 0
-                            rootDone = true
-                        }
-                        tag = "android:tag=\"${newTag}_${index}\""
-                    } else if ("include".equals(it.name)) {
-                        tag = ""
-                    } else {
-                        val index = bindingIndex++;
-                        tag = "android:tag=\"binding_${index}\"";
-                    }
-                    it.attributes?.forEach {
-                        if (!replaced && tagWillFit(it.start, it.end, tag)) {
-                            replace(out, lineStarts, it, tag, separator)
-                            replaced = true;
-                        } else {
-                            replace(out, lineStarts, it, "", separator)
-                        }
-                    }
-                    if (!replaced && !tag.isEmpty()) {
-                        log {"Could not find place for ${tag}"}
-                        noTag.add(Pair(tag, it))
-                    }
-                }
-            }
-        }
-
-        noTag.sortBy(object : Comparator<Pair<String, LayoutXmlElements>> {
-            override fun compare(o1: Pair<String, LayoutXmlElements>, o2: Pair<String, LayoutXmlElements>): Int {
-                val lineCmp = o2.second.start.line.compareTo(o1.second.start.charIndex)
-                if (lineCmp != 0) {
-                    return lineCmp
-                }
-                return o2.second.start.line.compareTo(o1.second.start.charIndex)
+                return start2.charIndex.compareTo(start2.charIndex)
             }
         }).forEach {
             val element = it.second
             val tag = it.first;
-
-            val insertionPoint = toIndex(lineStarts, element.insertionPoint)
-            log { "insert tag '${tag}' at ${insertionPoint} line : ${element.insertionPoint.line} column : ${element.insertionPoint.charIndex}"}
-            out.insert(insertionPoint, " ${tag}")
+            val endTagPosition = element.endTagPosition()
+            fixPosition(lines, endTagPosition)
+            val line = lines.get(endTagPosition.line)
+            val newLine = line.substring(0, endTagPosition.charIndex) +
+                " ${tag}" + line.substring(endTagPosition.charIndex)
+            lines.set(endTagPosition.line, newLine)
         }
 
-        return out.toString()
-    }
+        // Now replace the root "<layout>" with the real layout
+        val rootStart = root.getStart().toPosition()
+        rootStart.charIndex++
+        val layoutNameEnd = findNodeTextEnd(lines, layoutNode)
 
-    fun tagWillFit(start: Position, end: Position, tag: String) : kotlin.Boolean {
-        if (start.line != end.line) {
-            return end.charIndex >= tag.length();
+        val rootText = StringBuilder(layoutNode.nodeName())
+        root.attributes().fold(rootText) {
+            str : StringBuilder, attr -> str.append(' ').append(attr.getText())
         }
-        return (end.charIndex - start.charIndex >= tag.length());
+        replace(lines, rootStart, layoutNameEnd, rootText.toString())
+        val layoutNodeTag = layoutNode.attributes().firstOrNull {
+            "android:tag".equals(it.attrName.getText())
+        }
+        if (layoutNodeTag != null) {
+            replace(lines, layoutNodeTag.getStart().toPosition(),
+                    layoutNodeTag.getStop().toPosition(), "")
+        }
+        return lines.fold(StringBuilder()) { sb, line ->
+            sb.append(line).append(System.lineSeparator())
+        }.toString()
     }
 
-    fun replace(out : StringBuilder, lineStarts : ArrayList<kotlin.Int>, element : LayoutXmlElements,
-                tag : String, separator : kotlin.Char) {
-        val posStart = toIndex(lineStarts, element.start)
-        val posEnd = toIndex(lineStarts, element.end)
-        log {"replacing '${out.substring(posStart, posEnd)}' with '${tag}'"}
-        val spaceEnd = posEnd - tag.length();
-        for ( i in posStart..(spaceEnd - 1)) {
-            if (out.charAt(i) != separator) {
-                out.setCharAt(i, ' ')
+    fun findTerminalPositions(node : XMLParser.ElementContext, lines : ArrayList<String>) :
+            Pair<Position, Position> {
+        val endPosition = node.getStop().toEndPosition()
+        val startPosition = node.getStop().toPosition()
+        var index = -1
+        do {
+            index = lines.get(startPosition.line).lastIndexOf("</")
+            startPosition.line--
+        } while (index < 0)
+        startPosition.line++
+        startPosition.charIndex = index
+        return Pair(startPosition, endPosition)
+    }
+
+    fun findNodeTextEnd(lines : ArrayList<String>, node : XMLParser.ElementContext) : Position {
+        val nodeName = node.nodeName()
+        val position = node.getStart().toPosition()
+        fixPosition(lines, position)
+        var foundIndex = -1
+        while (position.line < lines.size() && foundIndex < 0) {
+            val line = lines.get(position.line)
+            foundIndex = line.indexOf(nodeName, position.charIndex)
+            position.charIndex = 0
+            position.line++
+        }
+
+        Preconditions.checkState(foundIndex != -1)
+        position.line--
+        position.charIndex = foundIndex + nodeName.length()
+        return position
+    }
+
+    fun recurseReplace(node : XMLParser.ElementContext, lines : ArrayList<String>,
+            noTag : ArrayList<Pair<String, XMLParser.ElementContext>>,
+            newTag : String?, bindingIndex : kotlin.Int) : kotlin.Int {
+        var nextBindingIndex = bindingIndex
+        val isMerge = "merge".equals(node.nodeName())
+        if (!isMerge && (node.hasExpressionAttributes() || newTag != null)) {
+            var tag = ""
+            if (newTag != null) {
+                tag = "android:tag=\"${newTag}_${bindingIndex}\""
+                nextBindingIndex++
+            } else if (!"include".equals(node.nodeName())) {
+                tag = "android:tag=\"binding_${bindingIndex}\""
+                nextBindingIndex++
+            }
+            node.expressionAttributes().forEach {
+                val start = it.getStart().toPosition()
+                val end = it.getStop().toEndPosition()
+                if (replace(lines, start, end, tag)) {
+                    tag = ""
+                }
+            }
+            if (tag.length() != 0) {
+                noTag.add(Pair(tag, node))
             }
         }
-        out.replace(spaceEnd, posEnd, tag);
+
+        val nextTag : String?
+        if (bindingIndex == 0 && isMerge) {
+            nextTag = newTag
+        } else {
+            nextTag = null
+        }
+        node.elements().forEach {
+            nextBindingIndex = recurseReplace(it, lines, noTag, nextTag, nextBindingIndex)
+        }
+        return nextBindingIndex
     }
 
-    fun toIndex(lineStarts : ArrayList<kotlin.Int>, pos : Position) : kotlin.Int {
-        return lineStarts[pos.line] + pos.charIndex;
+    fun replace(lines : ArrayList<String>, start: Position, end: Position, text: String) :
+            kotlin.Boolean {
+        fixPosition(lines, start)
+        fixPosition(lines, end)
+        if (start.line != end.line) {
+            val startLine = lines.get(start.line)
+            val newStartLine = startLine.substring(0, start.charIndex) +
+                    text;
+            lines.set(start.line, newStartLine)
+            for (i in start.line + 1 .. end.line - 1) {
+                val line = lines.get(i)
+                lines.set(i, replaceWithSpaces(line, 0, line.length() - 1))
+            }
+            val endLine = lines.get(end.line)
+            val newEndLine = replaceWithSpaces(endLine, 0, end.charIndex - 1)
+            lines.set(end.line, newEndLine)
+            return true
+        } else if (end.charIndex - start.charIndex >= text.length()) {
+            val line = lines.get(start.line)
+            val endTextIndex = start.charIndex + text.length()
+            val replacedText = line.replaceRange(start.charIndex, endTextIndex, text)
+            val spacedText = replaceWithSpaces(replacedText, endTextIndex, end.charIndex - 1)
+            lines.set(start.line, spacedText)
+            return true
+        } else {
+            val line = lines.get(start.line)
+            val newLine = replaceWithSpaces(line, start.charIndex, end.charIndex - 1)
+            lines.set(start.line, newLine)
+            return false;
+        }
+    }
+
+    fun replaceWithSpaces(line : String, start : kotlin.Int, end : kotlin.Int) : String {
+        val lineBuilder = StringBuilder(line)
+        for (i in start..end) {
+            lineBuilder.setCharAt(i, ' ')
+        }
+        return lineBuilder.toString()
+    }
+
+    fun fixPosition(lines : ArrayList<String>, pos : Position) {
+        val line = lines.get(pos.line)
+        while (pos.charIndex > line.length()) {
+            pos.charIndex--
+        }
     }
 }

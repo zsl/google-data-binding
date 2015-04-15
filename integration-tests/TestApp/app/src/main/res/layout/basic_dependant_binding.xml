@@ -12,37 +12,40 @@
   ~ limitations under the License.
   -->
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:bind="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent">
-    <variable name="obj1" type="android.databinding.testapp.vo.NotBindableVo"/>
-    <variable name="obj2" type="android.databinding.testapp.vo.NotBindableVo"/>
-    <TextView
-            android:id="@+id/textView1"
-            android:text="@{obj1.stringValue}"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    <TextView
-            android:id="@+id/textView2"
-            android:text="@{obj2.stringValue}"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    <TextView
-            android:id="@+id/mergedTextView1"
-            android:text="@{obj1.mergeStringFields(obj2)}"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-    <TextView
-            android:id="@+id/mergedTextView2"
-            android:text="@{obj2.mergeStringFields(obj1)}"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="obj1" type="android.databinding.testapp.vo.NotBindableVo"/>
+        <variable name="obj2" type="android.databinding.testapp.vo.NotBindableVo"/>
+    </data>
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+        <TextView
+                android:id="@+id/textView1"
+                android:text="@{obj1.stringValue}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <TextView
+                android:id="@+id/textView2"
+                android:text="@{obj2.stringValue}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <TextView
+                android:id="@+id/mergedTextView1"
+                android:text="@{obj1.mergeStringFields(obj2)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <TextView
+                android:id="@+id/mergedTextView2"
+                android:text="@{obj2.mergeStringFields(obj1)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
-    <TextView
-            android:id="@+id/rawStringMerge"
-            android:text="@{obj1.stringValue + obj2.stringValue}"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-</LinearLayout>
+        <TextView
+                android:id="@+id/rawStringMerge"
+                android:text="@{obj1.stringValue + obj2.stringValue}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+    </LinearLayout>
+</layout>

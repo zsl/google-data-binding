@@ -36,8 +36,16 @@ import com.android.build.gradle.internal.api.LibraryVariantImpl
 import com.android.build.gradle.api.TestVariant
 import com.android.build.gradle.internal.variant.TestVariantData
 import com.android.build.gradle.internal.api.TestVariantImpl
+import com.android.ide.common.res2.ResourceSet
+import java.io.FileFilter
+import java.io.FilenameFilter
+import java.util.ArrayList
+import javax.xml.xpath.XPathFactory
+import kotlin.dom.elements
+import kotlin.dom.parseXml
 
 class DataBinderPlugin : Plugin<Project> {
+    val XPATH_BINDING_CLASS = "/layout/data/@class"
 
     inner class GradleFileWriter(var outputBase: String) : JavaFileWriter() {
         override fun writeToFile(canonicalName: String, contents: String) {
@@ -178,6 +186,8 @@ class DataBinderPlugin : Plugin<Project> {
                 });
 
         if (isLibrary) {
+            val resourceSets = variantData.mergeResourcesTask.getInputResourceSets()
+            val customBindings = getCustomBindings(resourceSets, packageName)
             val packageJarTaskName = "package${fullName.capitalize()}Jar"
             val packageTask = project.getTasks().findByName(packageJarTaskName)
             if (packageTask !is org.gradle.api.tasks.bundling.Jar) {
@@ -189,7 +199,56 @@ class DataBinderPlugin : Plugin<Project> {
             packageTask.exclude("$appPkgAsClass/databinding/*")
             packageTask.exclude("$appPkgAsClass/BR.*")
             packageTask.exclude(xmlProcessor.getInfoClassFullName().replace('.', '/') + ".class")
+            customBindings.forEach {
+                packageTask.exclude("${it.replace('.', '/')}.class")
+            }
             log("excludes ${packageTask.getExcludes()}")
         }
+    }
+
+    fun getCustomBindings(resourceSets : List<ResourceSet>, packageName: String) : List<String> {
+        val xPathFactory = XPathFactory.newInstance()
+        val xPath = xPathFactory.newXPath()
+        val expr = xPath.compile(XPATH_BINDING_CLASS);
+        val customBindings = ArrayList<String>()
+
+        resourceSets.forEach { set ->
+            set.getSourceFiles().forEach { res ->
+                val layoutDirs = res.listFiles(object : FileFilter {
+                    override fun accept(file : File?) : Boolean {
+                        return file != null && file.isDirectory() &&
+                                file.getName().toLowerCase().startsWith("layout")
+                    }
+                })
+                if (layoutDirs != null) {
+                    layoutDirs.forEach { layoutDir ->
+                        val xmlFiles = layoutDir.listFiles(object : FileFilter {
+                            override fun accept(file: File?): Boolean {
+                                return file != null && !file.isDirectory() &&
+                                        file.getName().toLowerCase().endsWith(".xml")
+                            }
+                        })
+
+                        if (xmlFiles != null) {
+                            xmlFiles.forEach { xmlFile : File ->
+                                val document = parseXml(xmlFile)
+                                val bindingClass = expr.evaluate(document)
+                                if (bindingClass != null && !bindingClass.isEmpty()) {
+                                    if (bindingClass.startsWith('.')) {
+                                        customBindings.add("${packageName}${bindingClass}")
+                                    } else if (bindingClass.contains(".")) {
+                                        customBindings.add(bindingClass)
+                                    } else {
+                                        customBindings.add(
+                                                "${packageName}.databinding.${bindingClass}")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return customBindings
     }
 }

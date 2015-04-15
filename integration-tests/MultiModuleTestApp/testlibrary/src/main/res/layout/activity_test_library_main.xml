@@ -14,16 +14,22 @@
   ~ limitations under the License.
   -->
 
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".TestLibraryMainActivity">
-    <variable name="obj1" type="android.databinding.testlibrary.TestLibObject"/>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable name="obj1" type="android.databinding.testlibrary.TestLibObject"/>
+    </data>
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingRight="@dimen/activity_horizontal_margin"
+            android:paddingTop="@dimen/activity_vertical_margin"
+            android:paddingBottom="@dimen/activity_vertical_margin"
+            tools:context=".TestLibraryMainActivity">
 
-    <TextView android:text="@{obj1.field}" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        <TextView android:text="@{obj1.field}" android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"/>
 
-</RelativeLayout>
+    </RelativeLayout>
+</layout>

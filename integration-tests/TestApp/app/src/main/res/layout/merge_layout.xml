@@ -11,16 +11,19 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:bind="http://schemas.android.com/apk/res-auto">
-    <variable name="innerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
-    <variable name="innerValue" type="java.lang.String"/>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-              android:id="@+id/innerTextView1"
-              android:text="@{`a ` + innerValue + innerObject.stringValue}"
-            />
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-              android:id="@+id/innerTextView2"
-              android:text="@{`b ` + innerValue + innerObject.stringValue}"
-            />
-</merge>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <data>
+        <variable name="innerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
+        <variable name="innerValue" type="java.lang.String"/>
+    </data>
+    <merge>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:id="@+id/innerTextView1"
+                  android:text="@{`a ` + innerValue + innerObject.stringValue}"
+                />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                  android:id="@+id/innerTextView2"
+                  android:text="@{`b ` + innerValue + innerObject.stringValue}"
+                />
+    </merge>
+</layout>
