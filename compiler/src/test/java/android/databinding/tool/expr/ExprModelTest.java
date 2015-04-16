@@ -466,13 +466,6 @@ public class ExprModelTest {
         assertEquals(2, mExprModel.getInvalidateableFieldLimit());
     }
 
-    @Test
-    public void testPartialNeededRead() {
-        throw new NotImplementedException("create a test that has a variable which can be read for "
-                + "some flags and also may be read for some condition. Try both must match and"
-                + " partial match and none-match in conditionals");
-    }
-
     private void assertFlags(Expr a, int... flags) {
         BitSet bitset = new BitSet();
         for (int flag : flags) {

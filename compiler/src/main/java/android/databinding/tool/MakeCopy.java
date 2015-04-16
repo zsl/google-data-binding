@@ -40,11 +40,10 @@ import javax.xml.xpath.XPathFactory;
  */
 public class MakeCopy {
     private static final int MANIFEST_INDEX = 0;
-    private static final int ADK_INDEX = 1;
-    private static final int SRC_INDEX = 2;
-    private static final int XML_INDEX = 3;
-    private static final int RES_OUT_INDEX = 4;
-    private static final int RES_IN_INDEX = 5;
+    private static final int SRC_INDEX = 1;
+    private static final int XML_INDEX = 2;
+    private static final int RES_OUT_INDEX = 3;
+    private static final int RES_IN_INDEX = 4;
 
     private static final String APP_SUBPATH = LayoutXmlProcessor.RESOURCE_BUNDLE_PACKAGE
             .replace('.', File.separatorChar);
@@ -63,7 +62,7 @@ public class MakeCopy {
     };
 
     public static void main(String[] args) {
-        if (args.length < 6) {
+        if (args.length < 5) {
             System.out.println("required parameters: manifest adk-dir src-out-dir xml-out-dir " +
                             "res-out-dir res-in-dir...");
             System.out.println("Creates an android data binding class and copies resources from");
@@ -71,7 +70,6 @@ public class MakeCopy {
             System.out.println("in res-target. Binding data is extracted into XML files");
             System.out.println("and placed in xml-out-dir.");
             System.out.println("  manifest    path to AndroidManifest.xml file");
-            System.out.println("  adk-dir     path to Android SDK home");
             System.out.println("  src-out-dir path to where generated source goes");
             System.out.println("  xml-out-dir path to where generated binding XML goes");
             System.out.println("  res-out-dir path to the where modified resources should go");
@@ -113,11 +111,6 @@ public class MakeCopy {
             System.err.println("Could not create xml output directory: " + xmlDir);
             System.exit(5);
         }
-        final File adkDir = new File(args[ADK_INDEX]);
-        if (!adkDir.exists()) {
-            System.err.println("Could not find android SDK directory: " + adkDir);
-            System.exit(6);
-        }
         System.out.println("Application Package: " + applicationPackage);
         System.out.println("Minimum SDK: " + minSdk);
         System.out.println("Target Resources: " + resTarget.getAbsolutePath());
@@ -147,7 +140,7 @@ public class MakeCopy {
             System.err.println("No resource directories were found.");
             System.exit(7);
         }
-        processLayoutFiles(applicationPackage, resTarget, srcDir, xmlDir, adkDir, minSdk,
+        processLayoutFiles(applicationPackage, resTarget, srcDir, xmlDir, minSdk,
                 isLibrary);
     }
 
@@ -165,7 +158,7 @@ public class MakeCopy {
     }
 
     private static void processLayoutFiles(String applicationPackage, File resTarget, File srcDir,
-            File xmlDir, File adkDir, int minSdk, boolean isLibrary) {
+            File xmlDir, int minSdk, boolean isLibrary) {
         ArrayList<File> resourceFolders = new ArrayList<File>();
         resourceFolders.add(resTarget);
         MakeFileWriter makeFileWriter = new MakeFileWriter(srcDir);
@@ -173,7 +166,7 @@ public class MakeCopy {
                 resourceFolders, makeFileWriter, minSdk, isLibrary);
         try {
             xmlProcessor.processResources();
-            xmlProcessor.writeIntermediateFile(adkDir, xmlDir);
+            xmlProcessor.writeIntermediateFile(null, xmlDir);
             if (makeFileWriter.getErrorCount() > 0) {
                 System.exit(9);
             }

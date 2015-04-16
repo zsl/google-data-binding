@@ -94,3 +94,11 @@ uploadJarArchives {
 }
 
 uploadArchives.dependsOn uploadJarArchives
+task prebuild(type : Copy) {
+    dependsOn uploadArchives
+    from "$buildDir/outputs/aar/baseAdapters-release.aar"
+    into config.prebuildFolder
+    rename { String fileName ->
+        "databinding-adapters.aar"
+    }
+}

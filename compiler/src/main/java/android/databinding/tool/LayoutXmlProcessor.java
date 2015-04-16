@@ -161,15 +161,15 @@ public class LayoutXmlProcessor {
         return name.toString();
     }
 
-    private void writeInfoClass(File sdkDir, File xmlOutDir) {
-        final String sdkPath = StringEscapeUtils.escapeJava(sdkDir.getAbsolutePath());
+    private void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir) {
+        final String sdkPath = sdkDir == null ? null : StringEscapeUtils.escapeJava(sdkDir.getAbsolutePath());
         final Class annotation = BindingBuildInfo.class;
         final String layoutInfoPath = StringEscapeUtils.escapeJava(xmlOutDir.getAbsolutePath());
         String classString = "package " + RESOURCE_BUNDLE_PACKAGE + ";\n\n" +
                 "import " + annotation.getCanonicalName() + ";\n\n" +
                 "@" + annotation.getSimpleName() + "(buildId=\"" + mBuildId + "\", " +
                 "modulePackage=\"" + mResourceBundle.getAppPackage() + "\", " +
-                "sdkRoot=\"" + sdkPath + "\", " +
+                "sdkRoot=" + (sdkPath == null ? "null" : "\"" + sdkPath + "\"") + "," +
                 "layoutInfoDir=\"" + layoutInfoPath + "\"," +
                 "isLibrary=" + mIsLibrary + "," +
                 "minSdk=" + mMinSdk + ")\n" +

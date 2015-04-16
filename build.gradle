@@ -1,11 +1,17 @@
 Properties databindingProperties = new Properties()
 databindingProperties.load(new FileInputStream("${projectDir}/databinding.properties"))
 databindingProperties.mavenRepoDir = "${projectDir}/${databindingProperties.mavenRepoName}"
+databindingProperties.prebuildFolder = "${projectDir}/${databindingProperties.prebuildFolderName}" +
+        "/${databindingProperties.releaseVersion}"
+
 ext.config = databindingProperties
 
 println "local maven repo is ${ext.config.mavenRepoDir}."
+println "local pre-build folder is ${ext.config.prebuildFolder}."
 
 new File(ext.config.mavenRepoDir).mkdir()
+new File(ext.config.prebuildFolder).mkdir()
+
 subprojects {
     apply plugin: 'maven'
     group = config.group
@@ -29,12 +35,21 @@ task deleteRepo(type: Delete) {
     delete "${config.mavenRepoDir}"
 }
 
+task deletePrebuildFolder(type: Delete) {
+    delete "${config.prebuildFolder}"
+}
+
 def buildExtensionsTask = project.tasks.create "buildExtensionsTask", Exec
 buildExtensionsTask.workingDir file('extensions').getAbsolutePath()
-//on linux
 buildExtensionsTask.commandLine './gradlew'
 buildExtensionsTask.args 'clean', 'uploadArchives', '--info', '--stacktrace'
 buildExtensionsTask.dependsOn subprojects.uploadArchives
+
+def prepareExtensionPrebuilds = project.tasks.create "prepareExtensionPrebuilds", Exec
+prepareExtensionPrebuilds.workingDir file('extensions').getAbsolutePath()
+prepareExtensionPrebuilds.commandLine './gradlew'
+prepareExtensionPrebuilds.args 'clean', 'preparePrebuilds', '--info', '--stacktrace'
+prepareExtensionPrebuilds.dependsOn subprojects.uploadArchives
 
 file('integration-tests').listFiles().findAll { it.isDirectory() }.each {
     println("Creating run test task for  ${it.getAbsolutePath()}.")
@@ -55,10 +70,16 @@ task runAllTests {
     dependsOn runIntegrationTests
 }
 
+task preparePrebuilds() {
+    dependsOn deletePrebuildFolder
+    dependsOn prepareExtensionPrebuilds
+}
+
 allprojects {
     afterEvaluate { project ->
         runAllTests.dependsOn project.tasks.findAll {task -> task.name.equals('test')}
         runAllTests.dependsOn project.tasks.findAll {task -> task.name.equals('connectedCheck')}
+        preparePrebuilds.dependsOn project.tasks.findAll {task -> task.name.startsWith('prebuild')}
     }
 }
 
@@ -72,3 +93,4 @@ task rebuildRepo() {
     dependsOn subprojects.uploadArchives
     dependsOn buildExtensionsTask
 }
+

@@ -103,3 +103,21 @@ uploadJarArchives {
 }
 
 uploadArchives.dependsOn uploadJarArchives
+
+task prebuildAar(type : Copy) {
+    dependsOn uploadArchives
+    from "$buildDir/outputs/aar/library-release.aar"
+    into config.prebuildFolder
+    rename { String fileName ->
+        "databinding-library.aar"
+    }
+}
+
+task prebuildJar(type : Copy) {
+    dependsOn uploadJarArchives
+    from "$buildDir/libs/library-${version}.jar"
+    into config.prebuildFolder
+    rename { String fileName ->
+        "databinding-library.jar"
+    }
+}

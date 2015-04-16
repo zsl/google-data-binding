@@ -15,6 +15,8 @@ package android.databinding.tool.reflection;
 
 import com.google.common.base.Preconditions;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -22,6 +24,7 @@ import org.w3c.dom.NodeList;
 import android.databinding.tool.util.L;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,31 +41,28 @@ import javax.xml.xpath.XPathFactory;
  */
 public class SdkUtil {
 
-    static File mSdkPath;
+    static ApiChecker sApiChecker;
 
-    static ApiChecker mApiChecker;
-
-    static int mMinSdk;
+    static int sMinSdk;
 
     public static void initialize(int minSdk, File sdkPath) {
-        mSdkPath = sdkPath;
-        mMinSdk = minSdk;
-        mApiChecker = new ApiChecker(new File(sdkPath.getAbsolutePath()
+        sMinSdk = minSdk;
+        sApiChecker = new ApiChecker(new File(sdkPath.getAbsolutePath()
                 + "/platform-tools/api/api-versions.xml"));
         L.d("SdkUtil init, minSdk: %s", minSdk);
     }
 
     public static int getMinApi(ModelClass modelClass) {
-        return mApiChecker.getMinApi(modelClass.getJniDescription(), null);
+        return sApiChecker.getMinApi(modelClass.getJniDescription(), null);
     }
 
     public static int getMinApi(ModelMethod modelMethod) {
         ModelClass declaringClass = modelMethod.getDeclaringClass();
-        Preconditions.checkNotNull(mApiChecker, "should've initialized api checker");
+        Preconditions.checkNotNull(sApiChecker, "should've initialized api checker");
         while (declaringClass != null) {
             String classDesc = declaringClass.getJniDescription();
             String methodDesc = modelMethod.getJniDescription();
-            int result = mApiChecker.getMinApi(classDesc, methodDesc);
+            int result = sApiChecker.getMinApi(classDesc, methodDesc);
             L.d("checking method api for %s, class:%s method:%s. result: %d", modelMethod.getName(),
                     classDesc, methodDesc, result);
             if (result > 1) {
@@ -73,7 +73,7 @@ public class SdkUtil {
         return 1;
     }
 
-    private static class ApiChecker {
+    static class ApiChecker {
 
         private Map<String, Integer> mFullLookup = new HashMap<String, Integer>();
 
@@ -82,15 +82,23 @@ public class SdkUtil {
         private XPath mXPath;
 
         public ApiChecker(File apiFile) {
+            InputStream inputStream = null;
             try {
+                if (apiFile == null || !apiFile.exists()) {
+                    inputStream = getClass().getClassLoader().getResourceAsStream("api-versions.xml");
+                } else {
+                    inputStream = FileUtils.openInputStream(apiFile);
+                }
                 DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
                 DocumentBuilder builder = factory.newDocumentBuilder();
-                mDoc = builder.parse(apiFile);
+                mDoc = builder.parse(inputStream);
                 XPathFactory xPathFactory = XPathFactory.newInstance();
                 mXPath = xPathFactory.newXPath();
                 buildFullLookup();
             } catch (Throwable t) {
                 L.e(t, "cannot load api descriptions from %s", apiFile);
+            } finally {
+                IOUtils.closeQuietly(inputStream);
             }
         }
 
@@ -115,7 +123,7 @@ public class SdkUtil {
                     }
                     int methodSince = getSince(child);
                     int since = Math.max(classSince, methodSince);
-                    if (since > SdkUtil.mMinSdk) {
+                    if (since > SdkUtil.sMinSdk) {
                         String methodDesc = child.getAttributes().getNamedItem("name")
                                 .getNodeValue();
                         String key = cacheKey(classDesc, methodDesc);

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import android.databinding.LicenseCollector
 
 apply plugin: 'java'
 apply plugin: 'maven'
@@ -52,3 +53,29 @@ uploadArchives {
         }
     }
 }
+
+
+task fatJar(type: Jar) {
+    baseName = project.name + '-all'
+    doFirst {
+        def LicenseCollector allLicenses = new LicenseCollector();
+        configurations.compile.getResolvedConfiguration().getResolvedArtifacts().each {
+            allLicenses.add(it)
+        }
+        def notice = allLicenses.buildNotice()
+        def noticeFile = new File(project.buildDir,'NOTICE.txt')
+        println ("writing notice file to: ${noticeFile.getAbsolutePath()}")
+        noticeFile << notice
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from new File(project.buildDir,'NOTICE.txt')
+    archiveName "databinding-compiler-all.jar"
+    destinationDir = new File(config.prebuildFolder)
+    with jar
+}
+
+task prebuild() {
+    dependsOn fatJar
+}
+
+
