@@ -30,7 +30,6 @@ public class BindingTarget {
     List<Binding> mBindings = new ArrayList<Binding>();
     ExprModel mModel;
     ModelClass mResolvedClass;
-    String mFieldName;
 
     // if this target presents itself in multiple layout files with different view types,
     // it receives an interface type and should use it in the getter instead.
@@ -99,13 +98,5 @@ public class BindingTarget {
 
     public void setModel(ExprModel model) {
         mModel = model;
-    }
-
-    public void setFieldName(String fieldName) {
-        mFieldName = fieldName;
-    }
-
-    public String getFieldName() {
-        return mFieldName;
     }
 }

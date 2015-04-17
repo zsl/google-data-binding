@@ -19,7 +19,9 @@ import android.databinding.tool.util.L;
 
 import org.apache.commons.lang3.StringUtils;
 
-import android.databinding.tool.reflection.ModelAnalyzer;
+import static android.databinding.tool.reflection.Callable.STATIC;
+import static android.databinding.tool.reflection.Callable.DYNAMIC;
+import static android.databinding.tool.reflection.Callable.CAN_BE_INVALIDATED;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -318,25 +320,51 @@ public abstract class ModelClass {
                 "is" + capitalized,
                 name
         };
-        final ModelField backingField = getField(name, true, staticAccess);
+        ModelField backingField = getField(name, true, staticAccess);
         L.d("Finding getter or field for %s, field = %s", name, backingField == null ? null : backingField.getName());
         for (String methodName : methodNames) {
             ModelMethod[] methods = getMethods(methodName, 0);
             for (ModelMethod method : methods) {
-                if (method.isPublic() && method.isStatic() == staticAccess) {
+                if (method.isPublic() && (!staticAccess || method.isStatic())) {
+                    int flags = DYNAMIC;
+                    if (method.isStatic()) {
+                        flags |= STATIC;
+                    }
+                    if (method.isBindable() ||
+                            (backingField != null && backingField.isBindable()
+                                    && backingField.isStatic() == method.isStatic())) {
+                        flags |= CAN_BE_INVALIDATED;
+                    }
                     final Callable result = new Callable(Callable.Type.METHOD, methodName,
-                            method.getReturnType(null), true, method.isBindable() ||
-                            (backingField != null && backingField.isBindable()));
+                            method.getReturnType(null), flags);
                     L.d("backing field for %s is %s", result, backingField);
                     return result;
                 }
             }
         }
 
+        if (backingField == null && !staticAccess) {
+            // if we could not find an instance field, we should search for static fields since
+            // we are not accessing through an instance method
+            backingField = getField(name, false, true);
+        }
+
         if (backingField != null && backingField.isPublic()) {
             ModelClass fieldType = backingField.getFieldType();
-            return new Callable(Callable.Type.FIELD, name, fieldType,
-                    !backingField.isFinal() || fieldType.isObservable(), backingField.isBindable());
+            int flags = 0;
+            if (!backingField.isFinal()) {
+                flags |= DYNAMIC;
+            }
+            if (backingField.isBindable()) {
+                flags |= CAN_BE_INVALIDATED;
+            }
+            if (backingField.isStatic()) {
+                flags |= STATIC;
+            }
+            return new Callable(Callable.Type.FIELD, name, fieldType, flags);
+        }
+        if (staticAccess) {
+            // can be an inner class. allow it as well.
         }
         throw new IllegalArgumentException(
                 "cannot find " + name + " in " + toJavaCode());
@@ -347,7 +375,7 @@ public abstract class ModelClass {
         ModelField[] fields = getDeclaredFields();
         for (ModelField field : fields) {
             if (name.equals(stripFieldName(field.getName())) && field.isStatic() == staticAccess &&
-                    (allowPrivate || !field.isPublic())) {
+                    (allowPrivate || field.isPublic())) {
                 return field;
             }
         }

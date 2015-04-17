@@ -28,6 +28,10 @@ import android.databinding.tool.util.L;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import static android.databinding.tool.reflection.Callable.STATIC;
+import static android.databinding.tool.reflection.Callable.DYNAMIC;
+import static android.databinding.tool.reflection.Callable.CAN_BE_INVALIDATED;
+
 
 public class MethodCallExpr extends Expr {
     final String mName;
@@ -64,8 +68,11 @@ public class MethodCallExpr extends Expr {
                         target.getResolvedType().toJavaCode());
                 throw e;
             }
-            mGetter = new Callable(Type.METHOD, method.getName(), method.getReturnType(args), true,
-                    false);
+            int flags = DYNAMIC;
+            if (method.isStatic()) {
+                flags |= STATIC;
+            }
+            mGetter = new Callable(Type.METHOD, method.getName(), method.getReturnType(args), flags);
         }
         return mGetter.resolvedType;
     }

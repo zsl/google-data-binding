@@ -46,6 +46,11 @@ public class ExprModel {
     private static final String FALSE_KEY_SUFFIX = "== false";
 
     /**
+     * Any expression can be invalidated by invalidating this flag.
+     */
+    private BitSet mInvalidateAnyFlags;
+
+    /**
      * Used by code generation. Keeps the list of expressions that are waiting to be evaluated.
      */
     private List<Expr> mPendingExpressions;
@@ -257,7 +262,7 @@ public class ExprModel {
                 if (parent instanceof FieldAccessExpr) {
                     FieldAccessExpr fae = (FieldAccessExpr) parent;
                     L.d("checking field access expr %s. getter: %s", fae,fae.getGetter());
-                    if (fae.isDynamic() && fae.getGetter().canBeInvalidated) {
+                    if (fae.isDynamic() && fae.getGetter().canBeInvalidated()) {
                         flagMapping.add(parent.getUniqueKey());
                         parent.setId(counter++);
                         notifiableExpressions.add(parent);
@@ -295,7 +300,7 @@ public class ExprModel {
             expr.getDependencies();
         }
 
-        mInvalidateableFieldLimit = counter;
+        mInvalidateableFieldLimit = counter + 1;
         mInvalidateableFlags = new BitSet();
         for (int i = 0; i < mInvalidateableFieldLimit; i++) {
             mInvalidateableFlags.set(i, true);
@@ -324,8 +329,13 @@ public class ExprModel {
                 value.setId(counter++);
             }
         }
+        flagMapping.add("ALL");
         mFlagMapping = new String[flagMapping.size()];
         flagMapping.toArray(mFlagMapping);
+
+        mFlagBucketCount = 1 + (getTotalFlagCount() / FlagSet.sBucketSize);
+        mInvalidateAnyFlags = new BitSet();
+        mInvalidateAnyFlags.set(mInvalidateableFieldLimit - 1, true);
 
         for (Expr expr : mExprMap.values()) {
             expr.getShouldReadFlagsWithConditionals();
@@ -336,7 +346,7 @@ public class ExprModel {
             expr.getResolvedType();
         }
 
-        mFlagBucketCount = 1 + (getTotalFlagCount() / FlagSet.sBucketSize);
+
     }
 
     public int getFlagBucketCount() {
@@ -393,7 +403,6 @@ public class ExprModel {
     }
 
     public boolean markBitsRead() {
-        L.d("marking bits as done");
         // each has should read flags, we set them back on them
         for (Expr expr : filterShouldRead(getPendingExpressions())) {
             expr.markFlagsAsRead(expr.getShouldReadFlags());
@@ -461,19 +470,6 @@ public class ExprModel {
         }
     };
 
-    private static final  Predicate<Expr> sReadNowPred = new Predicate<Expr>() {
-        @Override
-        public boolean apply(Expr input) {
-            return !input.getShouldReadFlags().isEmpty() &&
-                    !Iterables.any(input.getDependencies(), new Predicate<Dependency>() {
-                        @Override
-                        public boolean apply(Dependency input) {
-                            return !input.getOther().isRead();
-                        }
-                    });
-        }
-    };
-
     public Expr findFlagExpression(int flag) {
         final String key = mFlagMapping[flag];
         if (mExprMap.containsKey(key)) {
@@ -491,5 +487,9 @@ public class ExprModel {
         }
         Preconditions.checkArgument(false, "cannot find expression for flag %d", flag);
         return null;
+    }
+
+    public BitSet getInvalidateAnyBitSet() {
+        return mInvalidateAnyFlags;
     }
 }

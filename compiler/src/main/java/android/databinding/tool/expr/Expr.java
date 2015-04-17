@@ -125,7 +125,7 @@ abstract public class Expr {
     }
 
     private BitSet resolveInvalidFlags() {
-        BitSet bitSet = new BitSet();
+        BitSet bitSet = (BitSet) mModel.getInvalidateAnyBitSet().clone();
         if (mCanBeInvalidated) {
             bitSet.set(getId(), true);
         }

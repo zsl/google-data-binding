@@ -27,6 +27,7 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import android.databinding.BaseObservable;
 import android.databinding.tool.LayoutBinder;
 import android.databinding.tool.MockLayoutBinder;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -34,6 +35,7 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.java.JavaAnalyzer;
 import android.databinding.tool.util.L;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -309,8 +311,8 @@ public class ExprModelTest {
 
         assertTrue(bTernary.getShouldReadFlags().get(aTernary.getRequirementFlagIndex(true)));
         assertEquals(1, bTernary.getShouldReadFlags().cardinality());
-
-        assertEquals(5, aTernary.getShouldReadFlags().cardinality());
+        // +1 for invalidate all flag
+        assertEquals(6, aTernary.getShouldReadFlags().cardinality());
         for (Expr expr : new Expr[]{a, b, c, d, e}) {
             assertTrue(aTernary.getShouldReadFlags().get(expr.getId()));
         }
@@ -446,9 +448,12 @@ public class ExprModelTest {
         lb.addVariable("a", int.class.getCanonicalName());
         final MathExpr parsed = parse(lb, "a * (3 + 2)", MathExpr.class);
         mExprModel.seal();
-        assertTrue(parsed.getRight().getInvalidFlags().isEmpty());
-        assertEquals(1, parsed.getLeft().getInvalidFlags().cardinality());
-        assertEquals(1, mExprModel.getInvalidateableFieldLimit());
+        // +1 for invalidate all flag
+        assertEquals(1, parsed.getRight().getInvalidFlags().cardinality());
+        // +1 for invalidate all flag
+        assertEquals(2, parsed.getLeft().getInvalidFlags().cardinality());
+        // +1 for invalidate all flag
+        assertEquals(2, mExprModel.getInvalidateableFieldLimit());
     }
 
     @Test
@@ -460,11 +465,112 @@ public class ExprModelTest {
         final MathExpr parsed = parse(lb, "a * (3 + 2)", MathExpr.class);
         mExprModel.seal();
         assertTrue(staticParsed.isBindingExpression());
-        assertEquals(1, staticParsed.getInvalidFlags().cardinality());
+        // +1 for invalidate all flag
+        assertEquals(2, staticParsed.getInvalidFlags().cardinality());
         assertEquals(parsed.getRight().getInvalidFlags(), staticParsed.getInvalidFlags());
-        assertEquals(1, parsed.getLeft().getInvalidFlags().cardinality());
-        assertEquals(2, mExprModel.getInvalidateableFieldLimit());
+        // +1 for invalidate all flag
+        assertEquals(2, parsed.getLeft().getInvalidFlags().cardinality());
+        // +1 for invalidate all flag
+        assertEquals(3, mExprModel.getInvalidateableFieldLimit());
     }
+
+    @Test
+    public void testFinalFieldOfAVariable() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        lb.addVariable("user", User.class.getCanonicalName());
+        Expr fieldGet = parse(lb, "user.finalField", FieldAccessExpr.class);
+        mExprModel.seal();
+        assertTrue(fieldGet.isDynamic());
+        // read user
+        assertSame(fieldGet.getChildren().get(0), Iterables.getFirst(getShouldRead(), null));
+        mExprModel.markBitsRead();
+        // no need to read user.finalField
+        assertEquals(0, Iterables.size(getShouldRead()));
+    }
+
+    @Test
+    public void testFinalFieldOfAField() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        lb.addVariable("user", User.class.getCanonicalName());
+        Expr finalFieldGet = parse(lb, "user.subObj.finalField", FieldAccessExpr.class);
+        mExprModel.seal();
+        assertTrue(finalFieldGet.isDynamic());
+        Expr userSubObjGet = finalFieldGet.getChildren().get(0);
+        // read user
+        Iterable<Expr> shouldRead = getShouldRead();
+        assertEquals(3, Iterables.size(shouldRead));
+        assertExactMatch(shouldRead, userSubObjGet.getChildren().get(0), userSubObjGet,
+                finalFieldGet);
+        mExprModel.markBitsRead();
+        // no need to read user.subObj.finalField because it is final
+        assertEquals(0, Iterables.size(getShouldRead()));
+    }
+
+    @Test
+    public void testFinalFieldOfAMethod() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        lb.addVariable("user", User.class.getCanonicalName());
+        Expr finalFieldGet = parse(lb, "user.anotherSubObj.finalField", FieldAccessExpr.class);
+        mExprModel.seal();
+        assertTrue(finalFieldGet.isDynamic());
+        Expr userSubObjGet = finalFieldGet.getChildren().get(0);
+        // read user
+        Iterable<Expr> shouldRead = getShouldRead();
+        assertEquals(3, Iterables.size(shouldRead));
+        assertExactMatch(shouldRead, userSubObjGet.getChildren().get(0), userSubObjGet,
+                finalFieldGet);
+        mExprModel.markBitsRead();
+        // no need to read user.subObj.finalField because it is final
+        assertEquals(0, Iterables.size(getShouldRead()));
+    }
+
+    @Test
+    public void testFinalOfAClass() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        mExprModel.addImport("View", "android.view.View");
+        FieldAccessExpr fieldAccess = parse(lb, "View.VISIBLE", FieldAccessExpr.class);
+        assertFalse(fieldAccess.isDynamic());
+        mExprModel.seal();
+        assertEquals(0, Iterables.size(getShouldRead()));
+    }
+
+    @Test
+    public void testFinalOfStaticField() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        mExprModel.addImport("UX", User.class.getCanonicalName());
+        FieldAccessExpr fieldAccess = parse(lb, "UX.innerStaticInstance.finalStaticField", FieldAccessExpr.class);
+        assertFalse(fieldAccess.isDynamic());
+        mExprModel.seal();
+        assertExactMatch(getShouldRead(), fieldAccess.getChild());
+    }
+
+    @Test
+    public void testFinalOfFinalStaticField() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        mExprModel.addImport("User", User.class.getCanonicalName());
+        FieldAccessExpr fieldAccess = parse(lb, "User.innerFinalStaticInstance.finalStaticField", FieldAccessExpr.class);
+        assertFalse(fieldAccess.isDynamic());
+        mExprModel.seal();
+        assertEquals(0, Iterables.size(getShouldRead()));
+    }
+
+//    TODO uncomment when we have inner static access
+//    @Test
+//    public void testFinalOfInnerStaticClass() {
+//        LayoutBinder lb = new MockLayoutBinder();
+//        mExprModel = lb.getModel();
+//        mExprModel.addImport("User", User.class.getCanonicalName());
+//        FieldAccessExpr fieldAccess = parse(lb, "User.InnerStaticClass.finalStaticField", FieldAccessExpr.class);
+//        assertFalse(fieldAccess.isDynamic());
+//        mExprModel.seal();
+//        assertEquals(0, Iterables.size(getShouldRead()));
+//    }
 
     private void assertFlags(Expr a, int... flags) {
         BitSet bitset = new BitSet();
@@ -536,11 +642,16 @@ public class ExprModelTest {
         return mExprModel.filterShouldRead(mExprModel.getPendingExpressions());
     }
 
-    public static class User {
+    public static class User extends BaseObservable {
 
         String name;
 
         String lastName;
+
+        public final int finalField = 5;
+        public static InnerStaticClass innerStaticInstance = new InnerStaticClass();
+        public static final InnerStaticClass innerFinalStaticInstance = new InnerStaticClass();
+        public SubObj subObj = new SubObj();
 
         public String getName() {
             return name;
@@ -553,5 +664,19 @@ public class ExprModelTest {
         public boolean getCond(int i) {
             return true;
         }
+
+        public SubObj getAnotherSubObj() {
+            return new SubObj();
+        }
+
+        public static class InnerStaticClass {
+            public static final int finalField = 3;
+            public static final int finalStaticField = 3;
+        }
     }
+
+    public static class SubObj {
+        public final int finalField = 5;
+    }
+
 }

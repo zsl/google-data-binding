@@ -53,14 +53,20 @@ public class FieldAccessExpr extends Expr {
 
     @Override
     public boolean isDynamic() {
-        if (!getChild().isDynamic()) {
-            return false;
-        }
         if (mGetter == null) {
             getResolvedType();
         }
-        // maybe this is just a final field in which case cannot be notified as changed
-        return mGetter.type != Callable.Type.FIELD || mGetter.isDynamic;
+        if (mGetter.type != Callable.Type.FIELD) {
+            return true;
+        }
+        // if it is static final, gone
+        if (getChild().isDynamic()) {
+            // if owner is dynamic, then we can be dynamic unless we are static final
+            return !mGetter.isStatic() || mGetter.isDynamic();
+        }
+
+        // if owner is NOT dynamic, we can be dynamic if an only if getter is dynamic
+        return mGetter.isDynamic();
     }
 
     @Override

@@ -19,6 +19,8 @@ package android.databinding.tool.expr;
 import org.junit.Before;
 import org.junit.Test;
 
+import android.databinding.tool.LayoutBinder;
+import android.databinding.tool.MockLayoutBinder;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.java.JavaAnalyzer;
@@ -81,17 +83,30 @@ public class ExprTest{
 
     @Test
     public void testBasicInvalidationFlag() {
+        LayoutBinder lb = new MockLayoutBinder();
+        ExprModel model = lb.getModel();
+        model.seal();
         DummyExpr d = new DummyExpr("a");
+        d.setModel(model);
         d.setId(3);
         d.enableDirectInvalidation();
         assertTrue(d.getInvalidFlags().get(3));
+        BitSet clone = (BitSet) model.getInvalidateAnyBitSet().clone();
+        clone.and(d.getInvalidFlags());
+        assertEquals(1, clone.cardinality());
     }
 
     @Test
     public void testCannotBeInvalidated() {
+        LayoutBinder lb = new MockLayoutBinder();
+        ExprModel model = lb.getModel();
+        model.seal();
         DummyExpr d = new DummyExpr("a");
+        d.setModel(model);
         d.setId(3);
-        assertTrue(d.getInvalidFlags().isEmpty());
+        // +1 for invalidate all flag
+        assertEquals(1, d.getInvalidFlags().cardinality());
+        assertEquals(model.getInvalidateAnyBitSet(), d.getInvalidFlags());
     }
 
     @Test

@@ -22,27 +22,39 @@ public class Callable {
         FIELD
     }
 
+    public static final int DYNAMIC = 1;
+    public static final int CAN_BE_INVALIDATED = 1 << 1;
+    public static final int STATIC = 1 << 2;
+
     public final Type type;
 
     public final String name;
 
     public final ModelClass resolvedType;
 
-    public final boolean isDynamic;
+    private final int mFlags;
 
-    public final boolean canBeInvalidated;
-
-    public Callable(Type type, String name, ModelClass resolvedType, boolean isDynamic,
-            boolean canBeInvalidated) {
+    public Callable(Type type, String name, ModelClass resolvedType, int flags) {
         this.type = type;
         this.name = name;
         this.resolvedType = resolvedType;
-        this.isDynamic = isDynamic;
-        this.canBeInvalidated = canBeInvalidated;
+        mFlags = flags;
     }
 
     public String getTypeCodeName() {
         return resolvedType.toJavaCode();
+    }
+
+    public boolean isDynamic() {
+        return (mFlags & DYNAMIC) != 0;
+    }
+
+    public boolean isStatic() {
+        return (mFlags & STATIC) != 0;
+    }
+
+    public boolean canBeInvalidated() {
+        return (mFlags & CAN_BE_INVALIDATED) != 0;
     }
 
     @Override
@@ -51,8 +63,9 @@ public class Callable {
                 "type=" + type +
                 ", name='" + name + '\'' +
                 ", resolvedType=" + resolvedType +
-                ", isDynamic=" + isDynamic +
-                ", canBeInvalidated=" + canBeInvalidated +
+                ", isDynamic=" + isDynamic() +
+                ", canBeInvalidated=" + canBeInvalidated() +
+                ", static=" + isStatic() +
                 '}';
     }
 }

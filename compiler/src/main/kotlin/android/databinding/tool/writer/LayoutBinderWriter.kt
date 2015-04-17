@@ -44,25 +44,36 @@ import java.util.HashMap
 
 fun String.stripNonJava() = this.split("[^a-zA-Z0-9]").map{ it.trim() }.joinToCamelCaseAsVar()
 
+enum class Scope {
+    FIELD
+    METHOD
+    FLAG
+    EXECUTE_PENDING_METHOD
+    CONSTRUCTOR_PARAM
+}
+
 class ExprModelExt {
-    val usedFieldNames = hashSetOf<String>()
+    val usedFieldNames = hashMapOf<Scope, MutableSet<String>>();
+    {
+        Scope.values().forEach { usedFieldNames[it] = hashSetOf<String>() }
+    }
     val localizedFlags = arrayListOf<FlagSet>()
 
     fun localizeFlag(set : FlagSet, name:String) : FlagSet {
         localizedFlags.add(set)
-        val result = getUniqueFieldName(name)
+        val result = getUniqueName(name, Scope.FLAG)
         set.setLocalName(result)
         return set
     }
 
-    fun getUniqueFieldName(base : String) : String {
+    fun getUniqueName(base : String, scope : Scope) : String {
         var candidate = base
         var i = 0
-        while (usedFieldNames.contains(candidate)) {
+        while (usedFieldNames[scope].contains(candidate)) {
             i ++
             candidate = base + i
         }
-        usedFieldNames.add(candidate)
+        usedFieldNames[scope].add(candidate)
         return candidate
     }
 }
@@ -71,18 +82,20 @@ val ExprModel.ext by Delegates.lazy { target : ExprModel ->
     ExprModelExt()
 }
 
-fun ExprModel.getUniqueFieldName(base : String) : String = ext.getUniqueFieldName(base)
+fun ExprModel.getUniqueFieldName(base : String) : String = ext.getUniqueName(base, Scope.FIELD)
+fun ExprModel.getUniqueMethodName(base : String) : String = ext.getUniqueName(base, Scope.METHOD)
+fun ExprModel.getUniqueFlagName(base : String) : String = ext.getUniqueName(base, Scope.FLAG)
+fun ExprModel.getConstructorParamName(base : String) : String = ext.getUniqueName(base, Scope.CONSTRUCTOR_PARAM)
 
 fun ExprModel.localizeFlag(set : FlagSet, base : String) : FlagSet = ext.localizeFlag(set, base)
 
-val BindingTarget.readableUniqueName by Delegates.lazy { target: BindingTarget ->
-    val variableName : String
+// not necessarily unique. Uniqueness is solved per scope
+val BindingTarget.readableName by Delegates.lazy { target: BindingTarget ->
     if (target.getId() == null) {
-        variableName = "boundView" + indexFromTag(target.getTag())
+        "boundView" + indexFromTag(target.getTag())
     } else {
-        variableName = target.getId().androidId().stripNonJava()
+        target.getId().androidId().stripNonJava()
     }
-    target.getModel().ext.getUniqueFieldName(variableName)
 }
 
 fun BindingTarget.superConversion(variable : String) : String {
@@ -93,20 +106,14 @@ fun BindingTarget.superConversion(variable : String) : String {
     }
 }
 
-val BindingTarget.fieldName by Delegates.lazy { target : BindingTarget ->
-    if (target.getFieldName() == null) {
-        if (target.getId() == null) {
-            target.setFieldName("m${target.readableUniqueName.capitalize()}")
-        } else {
-            target.androidId.stripNonJava();
-            target.setFieldName(target.readableUniqueName);
-        }
+val BindingTarget.fieldName : String by Delegates.lazy { target : BindingTarget ->
+    val name : String
+    if (target.getId() == null) {
+        name = "m${target.readableName}"
+    } else {
+        name = target.readableName
     }
-    target.getFieldName();
-}
-
-val BindingTarget.getterName by Delegates.lazy { target : BindingTarget ->
-    "get${target.readableUniqueName.capitalize()}"
+    target.getModel().getUniqueFieldName(name)
 }
 
 val BindingTarget.androidId by Delegates.lazy { target : BindingTarget ->
@@ -121,62 +128,46 @@ val BindingTarget.interfaceType by Delegates.lazy { target : BindingTarget ->
     }
 }
 
-val Expr.readableUniqueName by Delegates.lazy { expr : Expr ->
-    Log.d { "readableUniqueName for ${expr.getUniqueKey()}" }
-    val stripped = "${expr.getUniqueKey().stripNonJava()}"
-    expr.getModel().ext.getUniqueFieldName(stripped)
+val BindingTarget.constructorParamName by Delegates.lazy { target : BindingTarget ->
+    target.getModel().getConstructorParamName(target.readableName)
 }
 
+// not necessarily unique. Uniqueness is decided per scope
 val Expr.readableName by Delegates.lazy { expr : Expr ->
-    Log.d { "readableUniqueName for ${expr.getUniqueKey()}" }
-    "${expr.getUniqueKey().stripNonJava()}"
+    val stripped = "${expr.getUniqueKey().stripNonJava()}"
+    Log.d { "readableUniqueName for [${System.identityHashCode(expr)}] ${expr.getUniqueKey()} is $stripped" }
+    stripped
 }
 
 val Expr.fieldName by Delegates.lazy { expr : Expr ->
-    "m${expr.readableName.capitalize()}"
+    expr.getModel().getUniqueFieldName("m${expr.readableName.capitalize()}")
 }
 
-val Expr.hasFlag by Delegates.lazy { expr : Expr ->
-    expr.getId() < expr.getModel().getInvalidateableFieldLimit()
-}
-
-val Expr.localName by Delegates.lazy { expr : Expr ->
-    if(expr.isVariable()) expr.fieldName else "${expr.readableUniqueName}"
+val Expr.executePendingLocalName by Delegates.lazy { expr : Expr ->
+    if(expr.isVariable()) expr.fieldName else "${expr.getModel().ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD)}"
 }
 
 val Expr.setterName by Delegates.lazy { expr : Expr ->
-    "set${expr.readableName.capitalize()}"
+    expr.getModel().getUniqueMethodName("set${expr.readableName.capitalize()}")
 }
 
 val Expr.onChangeName by Delegates.lazy { expr : Expr ->
-    "onChange${expr.readableUniqueName.capitalize()}"
+    expr.getModel().getUniqueMethodName("onChange${expr.readableName.capitalize()}")
 }
 
 val Expr.getterName by Delegates.lazy { expr : Expr ->
-    "get${expr.readableName.capitalize()}"
+    expr.getModel().getUniqueMethodName("get${expr.readableName.capitalize()}")
 }
 
 val Expr.dirtyFlagName by Delegates.lazy { expr : Expr ->
-    "sFlag${expr.readableUniqueName.capitalize()}"
-}
-
-val Expr.shouldReadFlagName by Delegates.lazy { expr : Expr ->
-    "sFlagRead${expr.readableUniqueName.capitalize()}"
-}
-
-val Expr.invalidateFlagName by Delegates.lazy { expr : Expr ->
-    "sFlag${expr.readableUniqueName.capitalize()}Invalid"
-}
-
-val Expr.conditionalFlagPrefix by Delegates.lazy { expr : Expr ->
-    "sFlag${expr.readableUniqueName.capitalize()}Is"
+    expr.getModel().getUniqueFlagName("sFlag${expr.readableName.capitalize()}")
 }
 
 
 fun Expr.toCode(full : Boolean = false) : KCode {
     val it = this
     if (isDynamic() && !full) {
-        return kcode(localName)
+        return kcode(executePendingLocalName)
     }
     return when (it) {
         is ComparisonExpr -> kcode("") {
@@ -194,7 +185,7 @@ fun Expr.toCode(full : Boolean = false) : KCode {
         }
         is GroupExpr -> kcode("(").app("", it.getWrapped().toCode()).app(")")
         is StaticIdentifierExpr -> kcode(it.getResolvedType().toJavaCode())
-        is IdentifierExpr -> kcode(it.localName)
+        is IdentifierExpr -> kcode(it.executePendingLocalName)
         is MathExpr -> kcode("") {
             app("", it.getLeft().toCode())
             app(it.getOp())
@@ -283,11 +274,6 @@ fun FlagSet.notEmpty(cb : (suffix : String, value : Long) -> Unit) {
     }
 }
 
-fun FlagSet.getBitSuffix(bitIndex : Int) : String {
-    val word = bitIndex / FlagSet.sBucketSize
-    return getWordSuffix(word)
-}
-
 fun FlagSet.getWordSuffix(wordIndex : Int) : String {
     return if(wordIndex == 0) "" else "_${wordIndex}"
 }
@@ -337,10 +323,6 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     val dynamics by Delegates.lazy { model.getExprMap().values().filter { it.isDynamic() } }
     val className = layoutBinder.getImplementationName()
-
-    val identifiers by Delegates.lazy {
-        dynamics.filter { it is IdentifierExpr }
-    }
 
     val baseClassName = "${layoutBinder.getClassName()}"
 
@@ -551,9 +533,8 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     fun declareInvalidateAll() = kcode("") {
         nl("@Override")
         nl("public void invalidateAll() {") {
-            val bs = BitSet()
-            bs.set(0, model.getInvalidateableFieldLimit())
-            val fs = FlagSet(bs, mDirtyFlags.buckets.size())
+            val fs = FlagSet(layoutBinder.getModel().getInvalidateAnyBitSet(),
+                    layoutBinder.getModel().getFlagBucketCount());
             for (i in (0..(mDirtyFlags.buckets.size() - 1))) {
                 tab("${mDirtyFlags.localValue(i)} = ${fs.localValue(i)};")
             }
@@ -589,7 +570,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     fun variableSettersAndGetters() = kcode("") {
         variables.filterNot{it.isUsed()}.forEach {
-            nl("public void ${it.setterName}(${it.getResolvedType().toJavaCode()} ${it.readableUniqueName}) {") {
+            nl("public void ${it.setterName}(${it.getResolvedType().toJavaCode()} ${it.readableName}) {") {
                 tab("// not used, ignore")
             }
             nl("}")
@@ -601,11 +582,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         }
         usedVariables.forEach {
             if (it.getUserDefinedType() != null) {
-                nl("public void ${it.setterName}(${it.getResolvedType().toJavaCode()} ${it.readableUniqueName}) {") {
+                nl("public void ${it.setterName}(${it.getResolvedType().toJavaCode()} ${it.readableName}) {") {
                     if (it.isObservable()) {
-                        tab("updateRegistration(${it.getId()}, ${it.readableUniqueName});");
+                        tab("updateRegistration(${it.getId()}, ${it.readableName});");
                     }
-                    tab("this.${it.fieldName} = ${it.readableUniqueName};")
+                    tab("this.${it.fieldName} = ${it.readableName};")
                     // set dirty flags!
                     val flagSet = it.invalidateFlagSet
                     mDirtyFlags.mapOr(flagSet) { suffix, index ->
@@ -640,7 +621,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         nl("")
 
         model.getObservables().forEach {
-            nl("private boolean ${it.onChangeName}(${it.getResolvedType().toJavaCode()} ${it.readableUniqueName}, int fieldId) {") {
+            nl("private boolean ${it.onChangeName}(${it.getResolvedType().toJavaCode()} ${it.readableName}, int fieldId) {") {
                 tab("switch (fieldId) {", {
                     val accessedFields: List<FieldAccessExpr> = it.getParents().filterIsInstance(javaClass<FieldAccessExpr>())
                     accessedFields.filter { it.canBeInvalidated() }
@@ -721,11 +702,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab("${mDirtyFlags.localValue(i)} = 0;")
             }
             model.getPendingExpressions().filterNot {it.isVariable()}.forEach {
-                tab("${it.getResolvedType().toJavaCode()} ${it.localName} = ${it.getDefaultValue()};")
+                tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${it.getDefaultValue()};")
             }
-
+            Log.d {"writing executePendingBindings for $className"}
             do {
                 val batch = ExprModel.filterShouldRead(model.getPendingExpressions()).toArrayList()
+                Log.d {"batch: $batch"}
                 val mJustRead = arrayListOf<Expr>()
                 while (!batch.none()) {
                     val readNow = batch.filter { it.shouldReadNow(mJustRead) }
@@ -792,9 +774,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     fun readWithDependants(expr : Expr, mJustRead : MutableList<Expr>, batch : MutableList<Expr>,
             tmpDirtyFlags : FlagSet, inheritedFlags : FlagSet? = null) : KCode = kcode("") {
         mJustRead.add(expr)
-        Log.d { expr.getUniqueKey() }
+        Log.d { "$className / readWithDependants: ${expr.getUniqueKey()}" }
         val flagSet = expr.shouldReadFlagSet
         val needsIfWrapper = inheritedFlags == null || !flagSet.bitsEqual(inheritedFlags)
+        Log.d { "flag set:$flagSet . inherited flags: $inheritedFlags. need another if: $needsIfWrapper"}
         val ifClause = "if (${tmpDirtyFlags.mapOr(flagSet){ suffix, index ->
             "(${tmpDirtyFlags.localValue(index)} & ${flagSet.localValue(index)}) != 0"
         }.joinToString(" || ")
@@ -809,15 +792,15 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     it.isMandatory() && it.getOther().getResolvedType().isNullable()
                 }.map { it.getOther() }
                 if (!expr.isEqualityCheck() && nullables.isNotEmpty()) {
-                    tab ("if ( ${nullables.map { "${it.localName} != null" }.joinToString(" && ")}) {") {
-                        tab("${expr.localName}").app(" = ", expr.toCode(true)).app(";")
+                    tab ("if ( ${nullables.map { "${it.executePendingLocalName} != null" }.joinToString(" && ")}) {") {
+                        tab("${expr.executePendingLocalName}").app(" = ", expr.toCode(true)).app(";")
                     }
                     tab("}")
                 } else {
-                    tab("${expr.localName}").app(" = ", expr.toCode(true)).app(";")
+                    tab("${expr.executePendingLocalName}").app(" = ", expr.toCode(true)).app(";")
                 }
                 if (expr.isObservable()) {
-                    tab("updateRegistration(${expr.getId()}, ${expr.localName});")
+                    tab("updateRegistration(${expr.getId()}, ${expr.executePendingLocalName});")
                 }
             }
 
@@ -827,7 +810,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     .map { it.getDependant() }
             if (conditionals.isNotEmpty()) {
                 tab("// setting conditional flags")
-                tab("if (${expr.localName}) {") {
+                tab("if (${expr.executePendingLocalName}) {") {
                     conditionals.forEach {
                         val set = it.getRequirementFlagSet(true)
                         mDirtyFlags.mapOr(set) { suffix , index ->
@@ -902,13 +885,13 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             nl("")
             tab("protected ${baseClassName}(android.view.View root_, int localFieldCount") {
                 layoutBinder.getSortedTargets().filter{it.getId() != null}.forEach {
-                    tab(", ${it.interfaceType} ${it.readableUniqueName}")
+                    tab(", ${it.interfaceType} ${it.constructorParamName}")
                 }
             }
             tab(") {") {
                 tab("super(root_, localFieldCount);")
                 layoutBinder.getSortedTargets().filter{it.getId() != null}.forEach {
-                    tab("this.${it.fieldName} = ${it.readableUniqueName};")
+                    tab("this.${it.fieldName} = ${it.constructorParamName};")
                 }
             }
             tab("}")
@@ -917,7 +900,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 if (it.getUserDefinedType() != null) {
                     //it.getExpandedUserDefinedType(ModelAnalyzer.getInstance());
                     val type = ModelAnalyzer.getInstance().applyImports(it.getUserDefinedType(), model.getImports())
-                    tab("public abstract void ${it.setterName}(${type} ${it.readableUniqueName});")
+                    tab("public abstract void ${it.setterName}(${type} ${it.readableName});")
                 }
             }
             tab("public static ${baseClassName} inflate(android.view.ViewGroup root) {") {
