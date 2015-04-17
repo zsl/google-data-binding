@@ -51,6 +51,8 @@ public class FindMethodBindingObject extends FindMethodBindingObjectBase {
 
     public ArrayMap<String, String> getMap() { return null; }
 
+    public int[] getArray() { return new int[5]; }
+
     public List getList() {
         ArrayList<String> vals = new ArrayList<>();
         vals.add("hello");
