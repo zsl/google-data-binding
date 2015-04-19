@@ -104,6 +104,10 @@ public class ExprModel {
         return register(new ComparisonExpr(op, left, right));
     }
 
+    public InstanceOfExpr instanceOfOp(Expr expr, String type) {
+        return register(new InstanceOfExpr(expr, type));
+    }
+
     public FieldAccessExpr field(Expr parent, String name) {
         return register(new FieldAccessExpr(parent, name));
     }
@@ -134,6 +138,26 @@ public class ExprModel {
 
     public MathExpr math(Expr left, String op, Expr right) {
         return register(new MathExpr(left, op, right));
+    }
+
+    public TernaryExpr logical(Expr left, String op, Expr right) {
+        if ("&&".equals(op)) {
+            // left && right
+            // left ? right : left
+            return register(new TernaryExpr(left, right, left));
+        } else {
+            // left || right
+            // left ? left : right
+            return register(new TernaryExpr(left, left, right));
+        }
+    }
+
+    public BitShiftExpr bitshift(Expr left, String op, Expr right) {
+        return register(new BitShiftExpr(left, op, right));
+    }
+
+    public UnaryExpr unary(String op, Expr expr) {
+        return register(new UnaryExpr(op, expr));
     }
 
     public Expr group(Expr grouped) {

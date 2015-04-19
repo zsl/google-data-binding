@@ -23,14 +23,17 @@ import android.databinding.tool.util.Log
 import java.util.BitSet
 import android.databinding.tool.expr.ExprModel
 import java.util.Arrays
+import android.databinding.tool.expr.BitShiftExpr
 import android.databinding.tool.expr.TernaryExpr
 import android.databinding.tool.expr.FieldAccessExpr
 import android.databinding.tool.expr.ComparisonExpr
 import android.databinding.tool.expr.GroupExpr
+import android.databinding.tool.expr.InstanceOfExpr
 import android.databinding.tool.expr.MathExpr
 import android.databinding.tool.expr.MethodCallExpr
 import android.databinding.tool.expr.StaticIdentifierExpr
 import android.databinding.tool.expr.SymbolExpr
+import android.databinding.tool.expr.UnaryExpr
 import android.databinding.tool.ext.androidId
 import android.databinding.tool.ext.lazy
 import android.databinding.tool.ext.br
@@ -184,6 +187,11 @@ fun Expr.toCode(full : Boolean = false) : KCode {
             app(it.getOp())
             app("", it.getRight().toCode())
         }
+        is InstanceOfExpr -> kcode("") {
+            app("", it.getExpr().toCode())
+            app(" instanceof ")
+            app("", it.getType().toJavaCode())
+        }
         is FieldAccessExpr -> kcode("") {
             app("", it.getChild().toCode())
             if (it.getGetter().type == Callable.Type.FIELD) {
@@ -196,6 +204,14 @@ fun Expr.toCode(full : Boolean = false) : KCode {
         is StaticIdentifierExpr -> kcode(it.getResolvedType().toJavaCode())
         is IdentifierExpr -> kcode(it.localName)
         is MathExpr -> kcode("") {
+            app("", it.getLeft().toCode())
+            app(it.getOp())
+            app("", it.getRight().toCode())
+        }
+        is UnaryExpr -> kcode("") {
+            app(it.getOp(), it.getExpr().toCode())
+        }
+        is BitShiftExpr -> kcode("") {
             app("", it.getLeft().toCode())
             app(it.getOp())
             app("", it.getRight().toCode())

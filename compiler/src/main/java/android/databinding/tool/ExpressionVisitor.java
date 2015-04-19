@@ -25,6 +25,11 @@ import org.apache.commons.lang3.ObjectUtils;
 
 import android.databinding.parser.BindingExpressionBaseVisitor;
 import android.databinding.parser.BindingExpressionParser;
+import android.databinding.parser.BindingExpressionParser.AndOrOpContext;
+import android.databinding.parser.BindingExpressionParser.BinaryOpContext;
+import android.databinding.parser.BindingExpressionParser.BitShiftOpContext;
+import android.databinding.parser.BindingExpressionParser.InstanceOfOpContext;
+import android.databinding.parser.BindingExpressionParser.UnaryOpContext;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.StaticIdentifierExpr;
@@ -161,6 +166,31 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     @Override
     public Expr visitMathOp(@NotNull BindingExpressionParser.MathOpContext ctx) {
         return mModel.math(ctx.left.accept(this), ctx.op.getText(), ctx.right.accept(this));
+    }
+
+    @Override
+    public Expr visitAndOrOp(@NotNull AndOrOpContext ctx) {
+        return mModel.logical(ctx.left.accept(this), ctx.op.getText(), ctx.right.accept(this));
+    }
+
+    @Override
+    public Expr visitBinaryOp(@NotNull BinaryOpContext ctx) {
+        return mModel.math(ctx.left.accept(this), ctx.op.getText(), ctx.right.accept(this));
+    }
+
+    @Override
+    public Expr visitBitShiftOp(@NotNull BitShiftOpContext ctx) {
+        return mModel.bitshift(ctx.left.accept(this), ctx.op.getText(), ctx.right.accept(this));
+    }
+
+    @Override
+    public Expr visitInstanceOfOp(@NotNull InstanceOfOpContext ctx) {
+        return mModel.instanceOfOp(ctx.expression().accept(this), ctx.type().getText());
+    }
+
+    @Override
+    public Expr visitUnaryOp(@NotNull UnaryOpContext ctx) {
+        return mModel.unary(ctx.op.getText(), ctx.expression().accept(this));
     }
 
     @Override
