@@ -317,7 +317,7 @@ public abstract class ModelClass {
     public Callable findGetterOrField(String name, boolean staticAccess) {
         if ("length".equals(name) && isArray()) {
             return new Callable(Type.FIELD, name, ModelAnalyzer.getInstance().loadPrimitive("int"),
-                    false, false);
+                    0);
         }
         String capitalized = StringUtils.capitalize(name);
         String[] methodNames = {
