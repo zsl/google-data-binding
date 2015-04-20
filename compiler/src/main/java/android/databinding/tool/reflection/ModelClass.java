@@ -15,6 +15,7 @@
  */
 package android.databinding.tool.reflection;
 
+import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
 
 import org.apache.commons.lang3.StringUtils;
@@ -314,6 +315,10 @@ public abstract class ModelClass {
      * @throws IllegalArgumentException if there is no such method or field available.
      */
     public Callable findGetterOrField(String name, boolean staticAccess) {
+        if ("length".equals(name) && isArray()) {
+            return new Callable(Type.FIELD, name, ModelAnalyzer.getInstance().loadPrimitive("int"),
+                    false, false);
+        }
         String capitalized = StringUtils.capitalize(name);
         String[] methodNames = {
                 "get" + capitalized,
