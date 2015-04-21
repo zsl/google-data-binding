@@ -169,7 +169,7 @@ public class LayoutXmlProcessor {
                 "import " + annotation.getCanonicalName() + ";\n\n" +
                 "@" + annotation.getSimpleName() + "(buildId=\"" + mBuildId + "\", " +
                 "modulePackage=\"" + mResourceBundle.getAppPackage() + "\", " +
-                "sdkRoot=" + (sdkPath == null ? "null" : "\"" + sdkPath + "\"") + "," +
+                "sdkRoot=" + "\"" + (sdkPath == null ? "" : sdkPath) + "\"," +
                 "layoutInfoDir=\"" + layoutInfoPath + "\"," +
                 "isLibrary=" + mIsLibrary + "," +
                 "minSdk=" + mMinSdk + ")\n" +

@@ -112,12 +112,3 @@ task prebuildAar(type : Copy) {
         "databinding-library.aar"
     }
 }
-
-task prebuildJar(type : Copy) {
-    dependsOn uploadJarArchives
-    from "$buildDir/libs/library-${version}.jar"
-    into config.prebuildFolder
-    rename { String fileName ->
-        "databinding-library.jar"
-    }
-}
