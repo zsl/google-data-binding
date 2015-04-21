@@ -17,8 +17,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.android.databinding'
 
-def generatedSources = "$buildDir/generated/source/br"
-
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1.1"
@@ -45,27 +43,16 @@ android {
     }
 }
 
-android.applicationVariants.all { variant ->
-    variant.javaCompile.doFirst {
-        println "*** compile doFirst ${variant.name}"
-        new File(generatedSources).mkdirs()
-        variant.javaCompile.options.compilerArgs += [
-                '-s', generatedSources
-        ]
-    }
-}
-
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.+'
-    compile 'com.android.databinding:library:0.3-SNAPSHOT@aar'
     compile 'com.android.support:recyclerview-v7:21.0.2'
     compile 'com.android.support:gridlayout-v7:21.+'
     compile 'com.android.support:cardview-v7:21.+'
-    compile 'com.android.databinding:baseLibrary:0.3-SNAPSHOT'
-    compile 'com.android.databinding:adapters:0.3-SNAPSHOT'
-    provided 'com.android.databinding:annotationprocessor:0.3-SNAPSHOT'
-    provided fileTree(dir : 'build/databinder/src', include : ['*.java'])
+    compile "com.android.databinding:library:${config.snapshotVersion}"
+    compile "com.android.databinding:baseLibrary:${config.snapshotVersion}"
+    compile "com.android.databinding:adapters:${config.snapshotVersion}"
+    provided "com.android.databinding:annotationprocessor:${config.snapshotVersion}"
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.9.5'

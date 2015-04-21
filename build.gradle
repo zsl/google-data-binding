@@ -1,6 +1,7 @@
 Properties databindingProperties = new Properties()
 databindingProperties.load(new FileInputStream("${projectDir}/databinding.properties"))
 databindingProperties.mavenRepoDir = "${projectDir}/${databindingProperties.mavenRepoName}"
+databindingProperties.eapOutDir = "${projectDir}/${databindingProperties.eapOutFolderName}"
 databindingProperties.prebuildFolder = "${projectDir}/${databindingProperties.prebuildFolderName}" +
         "/${databindingProperties.releaseVersion}"
 
@@ -38,6 +39,11 @@ task deleteRepo(type: Delete) {
 task deletePrebuildFolder(type: Delete) {
     delete "${config.prebuildFolder}"
 }
+
+task deleteEap(type: Delete) {
+    delete "${config.eapOutDir}"
+}
+
 
 def buildExtensionsTask = project.tasks.create "buildExtensionsTask", Exec
 buildExtensionsTask.workingDir file('extensions').getAbsolutePath()
@@ -94,3 +100,35 @@ task rebuildRepo() {
     dependsOn buildExtensionsTask
 }
 
+task copySamplesToEap(type : Copy) {
+    mustRunAfter deleteEap
+    from ("$projectDir/samples") {
+        exclude "**/build"
+    }
+    into "${config.eapOutDir}/samples"
+}
+
+
+task copyMavenRepoToEap(type : Copy) {
+    mustRunAfter deleteEap
+    dependsOn rebuildRepo
+    from(config.mavenRepoDir)
+    into "${config.eapOutDir}/${config.mavenRepoName}"
+}
+
+tasks.create(name : 'createEapConfigFile') << {
+    def propsFile = new File("${config.eapOutDir}/databinding.properties")
+    Properties props = new Properties()
+    props.setProperty('snapshotVersion', config.snapshotVersion)
+    props.setProperty('mavenRepoName', config.mavenRepoName)
+    props.store(propsFile.newWriter(), null)
+}
+
+
+task batchEAP() {
+    dependsOn deleteEap
+    dependsOn copyMavenRepoToEap
+    dependsOn copySamplesToEap
+    dependsOn createEapConfigFile
+
+}
