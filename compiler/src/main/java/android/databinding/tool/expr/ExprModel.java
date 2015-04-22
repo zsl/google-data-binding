@@ -323,8 +323,9 @@ public class ExprModel {
         for (Expr expr : mExprMap.values()) {
             expr.getDependencies();
         }
+        final int invalidateAnyFlagIndex = counter ++;
 
-        mInvalidateableFieldLimit = counter + 1;
+        mInvalidateableFieldLimit = counter;
         mInvalidateableFlags = new BitSet();
         for (int i = 0; i < mInvalidateableFieldLimit; i++) {
             mInvalidateableFlags.set(i, true);
@@ -359,7 +360,7 @@ public class ExprModel {
 
         mFlagBucketCount = 1 + (getTotalFlagCount() / FlagSet.sBucketSize);
         mInvalidateAnyFlags = new BitSet();
-        mInvalidateAnyFlags.set(mInvalidateableFieldLimit - 1, true);
+        mInvalidateAnyFlags.set(invalidateAnyFlagIndex, true);
 
         for (Expr expr : mExprMap.values()) {
             expr.getShouldReadFlagsWithConditionals();

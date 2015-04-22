@@ -19,7 +19,7 @@ public class User extends BaseObservable {
     private int favoriteColor = Color.RED;
     @Bindable
     private int group;
-    public static final int TOOLKITTY = 1;
+    public static final int KITTEN = 1;
     public static final int ROBOT = 2;
 
     public User(String name, String lastName, int photoResource, int group) {

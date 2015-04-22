@@ -19,7 +19,7 @@ public class UnitTest {
 
     @Before
     public void setUp() throws Exception {
-        testUser = new User("Ted", "Tester", R.drawable.george, User.ROBOT);
+        testUser = new User("Ted", "Tester", R.drawable.george, User.ROBOTS);
     }
 
     @Test

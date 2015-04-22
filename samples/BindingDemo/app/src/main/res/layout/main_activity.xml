@@ -43,7 +43,7 @@
             android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{activity.getString(Strings.toolkitties, activity.tkAdapter.itemCount)}">
+            android:text="@{@plurals/kittens(activity.tkAdapter.itemCount, activity.tkAdapter.itemCount)}">
 
         </TextView>
 
@@ -57,11 +57,6 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="10dp" />
-
-        <TextView android:text="@{activity.selected2 == activity.selected ? `same` : `different`}"
-                  android:id="@+id/deleteme"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"/>
 
         <android.support.v7.widget.CardView
             android:id="@+id/selected_card"
@@ -110,7 +105,7 @@
                 <Button
                     android:id="@+id/edit_button"
                     bind:onClickListener="@{activity.onSave}"
-                    android:text="@{`Save changes to ` + activity.selected.name}"
+                    android:text='@{"Save changes to " + activity.selected.name}'
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
@@ -120,7 +115,7 @@
                 <Button
                     android:id="@+id/delete_button"
                     bind:onClickListener="@{activity.onDelete}"
-                    android:text="@{activity.getString(activity.selected.group == User.TOOLKITTY ? Strings.became_robot : Strings.became_kitten, activity.selected.name)}"
+                    android:text="@{activity.getString(activity.selected.group == User.KITTEN ? Strings.became_robot : Strings.became_kitten, activity.selected.name)}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_column="1"
@@ -133,10 +128,9 @@
             android:layout_width="match_parent"
             android:layout_height="10dp" />
         <TextView
-            android:id="@+id/robotsTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@{activity.robotAdapter.itemCount + &quot; Robots &quot;}" />
+            android:text='@{activity.robotAdapter.itemCount + " Robots "}' />
         <android.support.v7.widget.RecyclerView
             android:id="@+id/robotList"
             android:layout_width="match_parent" bind:adapter="@{activity.robotAdapter}"  android:layout_height="@dimen/list_height"

@@ -18,13 +18,13 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.android.databinding'
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion "21.1.1"
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
 
     defaultConfig {
         applicationId "com.android.bindingdemo"
         minSdkVersion 15
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
     }
@@ -45,10 +45,10 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:21.+'
-    compile 'com.android.support:recyclerview-v7:21.0.2'
-    compile 'com.android.support:gridlayout-v7:21.+'
-    compile 'com.android.support:cardview-v7:21.+'
+    compile 'com.android.support:appcompat-v7:22.1+'
+    compile 'com.android.support:recyclerview-v7:22.1+'
+    compile 'com.android.support:gridlayout-v7:22.1+'
+    compile 'com.android.support:cardview-v7:22.1+'
     compile "com.android.databinding:library:${config.snapshotVersion}"
     compile "com.android.databinding:baseLibrary:${config.snapshotVersion}"
     compile "com.android.databinding:adapters:${config.snapshotVersion}"

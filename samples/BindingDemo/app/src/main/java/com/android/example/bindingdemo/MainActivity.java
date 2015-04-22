@@ -12,7 +12,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.databinding.DataBindingUtil;
 import android.databinding.PropertyChangeRegistry;
 import com.android.example.bindingdemo.databinding.ListItemBinding;
 import com.android.example.bindingdemo.databinding.MainActivityBinding;
@@ -34,15 +33,7 @@ public class MainActivity extends ActionBarActivity implements Observable {
     @Bindable
     User selected;
 
-    @Bindable
-    User selected2;
-
    private final PropertyChangeRegistry mListeners = new PropertyChangeRegistry();
-
-    public User getSelected2() {
-        return selected2;
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,7 +97,7 @@ public class MainActivity extends ActionBarActivity implements Observable {
             if (selected == null) {
                 return;
             }
-            if (selected.getGroup() == User.TOOLKITTY) {
+            if (selected.getGroup() == User.KITTEN) {
                 tkAdapter.remove(selected);
                 selected.setGroup(User.ROBOT);
                 robotAdapter.add(selected);
@@ -114,7 +105,7 @@ public class MainActivity extends ActionBarActivity implements Observable {
             } else {
                 tkAdapter.add(selected);
                 dataBinder.toolkittyList.smoothScrollToPosition(tkAdapter.getItemCount() - 1);
-                selected.setGroup(User.TOOLKITTY);
+                selected.setGroup(User.KITTEN);
                 robotAdapter.remove(selected);
             }
         }
@@ -203,7 +194,7 @@ public class MainActivity extends ActionBarActivity implements Observable {
         @Override
         public void onClick(View v) {
             RecyclerView.LayoutParams lp = (RecyclerView.LayoutParams) v.getLayoutParams();
-            final int pos = lp.getViewPosition();
+            final int pos = lp.getViewAdapterPosition();
             if (pos > -1 && pos < userList.size()) {
                 v.requestFocus();
                 setSelected(userList.get(pos));

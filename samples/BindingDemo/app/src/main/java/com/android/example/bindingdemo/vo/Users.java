@@ -23,18 +23,18 @@ public class Users {
             R.drawable.emo_im_yelling,
     };
     public static final User[] robots = new User[]{
-            new User("romain", "guy", R.drawable.romain, User.ROBOT),
+            new User("romain", "guy", R.drawable.emo_im_yelling, User.ROBOT),
     };
     public static final User[] toolkities = new User[]{
-            new User("chet", "haase", R.drawable.chet, User.TOOLKITTY),
-            new User("adam", "powell", R.drawable.adam, User.TOOLKITTY),
-            new User("alan", "viverette", R.drawable.alan, User.TOOLKITTY),
-            new User("chris", "craik", R.drawable.chris, User.TOOLKITTY),
-            new User("george", "mount", R.drawable.george, User.TOOLKITTY),
-            new User("john", "reck", R.drawable.john, User.TOOLKITTY),
-            new User("rob", "tsuk", R.drawable.rob, User.TOOLKITTY),
-            new User("Teng-Hui", "Zhu", R.drawable.tenghui, User.TOOLKITTY),
-            new User("yigit", "boyar", R.drawable.yigit, User.TOOLKITTY),
+            new User("chet", "haase", R.drawable.emo_im_angel, User.KITTEN),
+            new User("adam", "powell", R.drawable.emo_im_cool, User.KITTEN),
+            new User("alan", "viverette", R.drawable.emo_im_crying, User.KITTEN),
+            new User("chris", "craik", R.drawable.emo_im_embarrassed, User.KITTEN),
+            new User("george", "mount", R.drawable.emo_im_foot_in_mouth, User.KITTEN),
+            new User("john", "reck", R.drawable.emo_im_happy, User.KITTEN),
+            new User("Doris", "liu", R.drawable.emo_im_winking, User.KITTEN),
+            new User("Teng-Hui", "Zhu", R.drawable.emo_im_laughing, User.KITTEN),
+            new User("yigit", "boyar", R.drawable.emo_im_wtf, User.KITTEN),
 
 
     };
