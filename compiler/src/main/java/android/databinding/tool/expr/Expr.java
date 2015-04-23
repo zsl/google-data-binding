@@ -451,7 +451,7 @@ abstract public class Expr {
 
             for (int i = clone.nextSetBit(0); i != -1; i = clone.nextSetBit(i + 1)) {
                 final Expr expr = mModel.findFlagExpression(i);
-                if (!expr.isConditional()) {
+                if (expr == null || !expr.isConditional()) {
                     continue;
                 }
                 final BitSet readForConditional = expr.findConditionalFlags();

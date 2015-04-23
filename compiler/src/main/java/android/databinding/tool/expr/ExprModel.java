@@ -324,7 +324,7 @@ public class ExprModel {
             expr.getDependencies();
         }
         final int invalidateAnyFlagIndex = counter ++;
-
+        flagMapping.add("INVALIDATE ANY");
         mInvalidateableFieldLimit = counter;
         mInvalidateableFlags = new BitSet();
         for (int i = 0; i < mInvalidateableFieldLimit; i++) {
@@ -354,7 +354,7 @@ public class ExprModel {
                 value.setId(counter++);
             }
         }
-        flagMapping.add("ALL");
+
         mFlagMapping = new String[flagMapping.size()];
         flagMapping.toArray(mFlagMapping);
 
@@ -495,7 +495,13 @@ public class ExprModel {
         }
     };
 
+    /**
+     * May return null if flag is equal to invalidate any flag.
+     */
     public Expr findFlagExpression(int flag) {
+        if (mInvalidateAnyFlags.get(flag)) {
+            return null;
+        }
         final String key = mFlagMapping[flag];
         if (mExprMap.containsKey(key)) {
             return mExprMap.get(key);
@@ -510,7 +516,13 @@ public class ExprModel {
             final String trimmed = key.substring(0, trueIndex);
             return mExprMap.get(trimmed);
         }
-        Preconditions.checkArgument(false, "cannot find expression for flag %d", flag);
+        // log everything we call
+        StringBuilder error = new StringBuilder();
+        error.append("cannot find flag:").append(flag).append("\n");
+        error.append("invalidate any flag:").append(mInvalidateAnyFlags).append("\n");
+        error.append("key:").append(key).append("\n");
+        error.append("flag mapping:").append(Arrays.toString(mFlagMapping));
+        Preconditions.checkArgument(false, error.toString());
         return null;
     }
 
