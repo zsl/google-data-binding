@@ -104,6 +104,7 @@ task copySamplesToEap(type : Copy) {
     mustRunAfter deleteEap
     from ("$projectDir/samples") {
         exclude "**/build"
+        exclude "**/local.properties"
     }
     into "${config.eapOutDir}/samples"
 }
