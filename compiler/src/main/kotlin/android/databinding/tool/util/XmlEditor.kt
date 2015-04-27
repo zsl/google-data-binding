@@ -116,9 +116,29 @@ object XmlEditor {
 
         recurseReplace(layoutNode, lines, noTag, newTag, 0)
 
-        // now remove the </layout>
+        // Remove the <layout>
+        val rootStartTag = root.getStart().toPosition()
+        val rootEndTag = root.content().getStart().toPosition();
+        replace(lines, rootStartTag, rootEndTag, "")
+
+        // Remove the </layout>
         val endLayoutPositions = findTerminalPositions(root, lines)
         replace(lines, endLayoutPositions.first, endLayoutPositions.second, "")
+
+        val rootAttributes = StringBuilder()
+        root.attributes().fold(rootAttributes) {
+            str : StringBuilder, attr -> str.append(' ').append(attr.getText())
+        }
+
+        val noTagRoot = noTag.firstOrNull() { it.second == layoutNode }
+        if (noTagRoot != null) {
+            val newRootTag = Pair(noTagRoot.first + rootAttributes.toString(), layoutNode)
+            val index = noTag.indexOf(noTagRoot)
+            noTag.set(index, newRootTag)
+        } else {
+            val newRootTag = Pair(rootAttributes.toString(), layoutNode)
+            noTag.add(newRootTag)
+        }
 
         noTag.sortBy(object : Comparator<Pair<String, XMLParser.ElementContext>> {
             override fun compare(o1: Pair<String, XMLParser.ElementContext>,
@@ -142,23 +162,6 @@ object XmlEditor {
             lines.set(endTagPosition.line, newLine)
         }
 
-        // Now replace the root "<layout>" with the real layout
-        val rootStart = root.getStart().toPosition()
-        rootStart.charIndex++
-        val layoutNameEnd = findNodeTextEnd(lines, layoutNode)
-
-        val rootText = StringBuilder(layoutNode.nodeName())
-        root.attributes().fold(rootText) {
-            str : StringBuilder, attr -> str.append(' ').append(attr.getText())
-        }
-        replace(lines, rootStart, layoutNameEnd, rootText.toString())
-        val layoutNodeTag = layoutNode.attributes().firstOrNull {
-            "android:tag".equals(it.attrName.getText())
-        }
-        if (layoutNodeTag != null) {
-            replace(lines, layoutNodeTag.getStart().toPosition(),
-                    layoutNodeTag.getStop().toPosition(), "")
-        }
         return lines.fold(StringBuilder()) { sb, line ->
             sb.append(line).append(System.lineSeparator())
         }.toString()
@@ -168,7 +171,7 @@ object XmlEditor {
             Pair<Position, Position> {
         val endPosition = node.getStop().toEndPosition()
         val startPosition = node.getStop().toPosition()
-        var index = -1
+        var index : kotlin.Int
         do {
             index = lines.get(startPosition.line).lastIndexOf("</")
             startPosition.line--
@@ -176,24 +179,6 @@ object XmlEditor {
         startPosition.line++
         startPosition.charIndex = index
         return Pair(startPosition, endPosition)
-    }
-
-    fun findNodeTextEnd(lines : ArrayList<String>, node : XMLParser.ElementContext) : Position {
-        val nodeName = node.nodeName()
-        val position = node.getStart().toPosition()
-        fixPosition(lines, position)
-        var foundIndex = -1
-        while (position.line < lines.size() && foundIndex < 0) {
-            val line = lines.get(position.line)
-            foundIndex = line.indexOf(nodeName, position.charIndex)
-            position.charIndex = 0
-            position.line++
-        }
-
-        Preconditions.checkState(foundIndex != -1)
-        position.line--
-        position.charIndex = foundIndex + nodeName.length()
-        return position
     }
 
     fun recurseReplace(node : XMLParser.ElementContext, lines : ArrayList<String>,
