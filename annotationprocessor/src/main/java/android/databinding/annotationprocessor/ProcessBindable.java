@@ -83,12 +83,10 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                     mProperties.addProperty(enclosing.getQualifiedName().toString(), name);
                 }
             }
-            if (mProperties.hasValues()) {
-                GenerationalClassUtil.writeIntermediateFile(processingEnv,
-                        mProperties.getPackage(),
-                        createIntermediateFileName(mProperties.getPackage()), mProperties);
-                generateBRClasses(!buildInfo.isLibrary(), mProperties.getPackage());
-            }
+            GenerationalClassUtil.writeIntermediateFile(processingEnv,
+                    mProperties.getPackage(),
+                    createIntermediateFileName(mProperties.getPackage()), mProperties);
+            generateBRClasses(!buildInfo.isLibrary(), mProperties.getPackage());
         }
         return false;
     }
