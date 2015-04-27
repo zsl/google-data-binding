@@ -19,11 +19,10 @@ package android.databinding;
 import com.android.databinding.library.R;
 
 import android.annotation.TargetApi;
-import android.os.Build;
+import android.databinding.CallbackRegistry.NotifierCallback;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
@@ -38,6 +37,10 @@ public abstract class ViewDataBinding {
      * we can test API dependent behavior.
      */
     static int SDK_INT = VERSION.SDK_INT;
+
+    private static final int REBIND = 1;
+    private static final int HALTED = 2;
+    private static final int REBOUND = 3;
 
     /**
      * Prefix for android:tag on Views with binding. The root View and include tags will not have
@@ -81,6 +84,27 @@ public abstract class ViewDataBinding {
         }
     };
 
+    private static final CallbackRegistry.NotifierCallback<OnRebindCallback, ViewDataBinding, Void>
+        REBIND_NOTIFIER = new NotifierCallback<OnRebindCallback, ViewDataBinding, Void>() {
+        @Override
+        public void onNotifyCallback(OnRebindCallback callback, ViewDataBinding sender, int mode,
+                Void arg2) {
+            switch (mode) {
+                case REBIND:
+                    if (!callback.onPreBind(sender)) {
+                        sender.mRebindHalted = true;
+                    }
+                    break;
+                case HALTED:
+                    callback.onCanceled(sender);
+                    break;
+                case REBOUND:
+                    callback.onBound(sender);
+                    break;
+            }
+        }
+    };
+
     private static final OnAttachStateChangeListener ROOT_REATTACHED_LISTENER;
 
     static {
@@ -115,21 +139,20 @@ public abstract class ViewDataBinding {
     private Runnable mRebindRunnable = new Runnable() {
         @Override
         public void run() {
-            if (mPendingRebind) {
-                boolean rebind = true;
-                if (VERSION.SDK_INT >= VERSION_CODES.KITKAT) {
-                    rebind = mRoot.isAttachedToWindow();
-                    if (!rebind) {
-                        // Don't execute the pending bindings until the View
-                        // is attached again.
-                        mRoot.addOnAttachStateChangeListener(ROOT_REATTACHED_LISTENER);
-                    }
-                }
-                if (rebind) {
-                    mPendingRebind = false;
-                    executePendingBindings();
+            synchronized (this) {
+                mPendingRebind = false;
+            }
+            if (VERSION.SDK_INT >= VERSION_CODES.KITKAT) {
+                // Nested so that we don't get a lint warning in IntelliJ
+                if (!mRoot.isAttachedToWindow()) {
+                    // Don't execute the pending bindings until the View
+                    // is attached again.
+                    mRoot.removeOnAttachStateChangeListener(ROOT_REATTACHED_LISTENER);
+                    mRoot.addOnAttachStateChangeListener(ROOT_REATTACHED_LISTENER);
+                    return;
                 }
             }
+            executePendingBindings();
         }
     };
 
@@ -137,6 +160,11 @@ public abstract class ViewDataBinding {
      * Flag indicates that there are pending bindings that need to be reevaluated.
      */
     private boolean mPendingRebind = false;
+
+    /**
+     * Indicates that a onPreBind has stopped the executePendingBindings call.
+     */
+    private boolean mRebindHalted = false;
 
     /**
      * The observed expressions.
@@ -147,6 +175,16 @@ public abstract class ViewDataBinding {
      * The root View that this Binding is associated with.
      */
     private final View mRoot;
+
+    /**
+     * The collection of OnRebindCallbacks.
+     */
+    private CallbackRegistry<OnRebindCallback, ViewDataBinding, Void> mRebindCallbacks;
+
+    /**
+     * Flag to prevent reentrant executePendingBinding calls.
+     */
+    private boolean mIsExecutingPendingBindings;
 
     protected ViewDataBinding(View root, int localFieldCount) {
         mLocalFieldObservers = new WeakListener[localFieldCount];
@@ -187,13 +225,80 @@ public abstract class ViewDataBinding {
      */
     protected abstract boolean onFieldChange(int localFieldId, Object object, int fieldId);
 
-    public abstract boolean setVariable(int variableId, Object variable);
+    /**
+     * Set a value value in the Binding class.
+     * <p>
+     * Typically, the developer will be able to call the subclass's set method directly. For
+     * example, if there is a variable <code>x</code> in the Binding, a <code>setX</code> method
+     * will be generated. However, there are times when the specific subclass of ViewDataBinding
+     * is unknown, so the generated method cannot be discovered without reflection. The
+     * setVariable call allows the values of variables to be set without reflection.
+     *
+     * @param variableId the BR id of the variable to be set. For example, if the variable is
+     *                   <code>x</code>, then variableId will be <code>BR.x</code>.
+     * @param value The new value of the variable to be set.
+     * @return <code>true</code> if the variable exists in the binding or <code>false</code>
+     * otherwise.
+     */
+    public abstract boolean setVariable(int variableId, Object value);
+
+    /**
+     * Add a listener to be called when reevaluating dirty fields. This also allows automatic
+     * updates to be halted, but does not stop explicit calls to {@link #executePendingBindings()}.
+     *
+     * @param listener The listener to add.
+     */
+    public void addOnRebindCallback(OnRebindCallback listener) {
+        if (mRebindCallbacks == null) {
+            mRebindCallbacks = new CallbackRegistry<OnRebindCallback, ViewDataBinding, Void>(REBIND_NOTIFIER);
+        }
+        mRebindCallbacks.add(listener);
+    }
+
+    /**
+     * Removes a listener that was added in {@link #addOnRebindCallback(OnRebindCallback)}.
+     *
+     * @param listener The listener to remove.
+     */
+    public void removeOnRebindCallback(OnRebindCallback listener) {
+        if (mRebindCallbacks != null) {
+            mRebindCallbacks.remove(listener);
+        }
+    }
 
     /**
      * Evaluates the pending bindings, updating any Views that have expressions bound to
      * modified variables. This <b>must</b> be run on the UI thread.
      */
-    public abstract void executePendingBindings();
+    public void executePendingBindings() {
+        if (mIsExecutingPendingBindings) {
+            requestRebind();
+            return;
+        }
+        mIsExecutingPendingBindings = true;
+        mRebindHalted = false;
+        if (mRebindCallbacks != null) {
+            mRebindCallbacks.notifyCallbacks(this, REBIND, null);
+
+            // The onRebindListeners will change mPendingHalted
+            if (mRebindHalted) {
+                mRebindCallbacks.notifyCallbacks(this, HALTED, null);
+            }
+        }
+        if (!mRebindHalted) {
+            executeBindings();
+            if (mRebindCallbacks != null) {
+                mRebindCallbacks.notifyCallbacks(this, REBOUND, null);
+            }
+        }
+        mIsExecutingPendingBindings = false;
+    }
+
+    void forceExecuteBindings() {
+        executeBindings();
+    }
+
+    protected abstract void executeBindings();
 
     /**
      * Used internally to invalidate flags of included layouts.
@@ -240,10 +345,12 @@ public abstract class ViewDataBinding {
     }
 
     protected void requestRebind() {
-        if (mPendingRebind) {
-            return;
+        synchronized (this) {
+            if (mPendingRebind) {
+                return;
+            }
+            mPendingRebind = true;
         }
-        mPendingRebind = true;
         if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN) {
             mRoot.postOnAnimation(mRebindRunnable);
         } else {

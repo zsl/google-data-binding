@@ -14,8 +14,10 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.databinding.OnRebindCallback;
 
 import android.test.UiThreadTest;
+import android.view.View;
 
 public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
     public BasicBindingTest() {
@@ -62,6 +64,49 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
         assertAB("x", null);
     }
 
+    public void testStopBinding() throws Throwable {
+        final NoRebind noRebind = new NoRebind();
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertAB("X", "Y");
+                mBinder.addOnRebindCallback(noRebind);
+            }
+        });
+        mBinder.setA("Q");
+        WaitForRun waitForRun = new WaitForRun();
+        View root = mBinder.getRoot();
+        root.postOnAnimation(waitForRun);
+        waitForRun.waitForRun();
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(1, noRebind.rebindAttempts);
+                assertEquals(1, noRebind.rebindHalted);
+                assertEquals(0, noRebind.rebindWillEvaluate);
+                assertEquals("XY", mBinder.textView.getText().toString());
+            }
+        });
+        mBinder.removeOnRebindCallback(noRebind);
+        final AllowRebind allowRebind = new AllowRebind();
+        mBinder.addOnRebindCallback(allowRebind);
+        mBinder.setB("R");
+        root.postOnAnimation(waitForRun);
+        waitForRun.waitForRun();
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(1, noRebind.rebindAttempts);
+                assertEquals(1, noRebind.rebindHalted);
+                assertEquals(0, noRebind.rebindWillEvaluate);
+                assertEquals(1, allowRebind.rebindAttempts);
+                assertEquals(0, allowRebind.rebindHalted);
+                assertEquals(1, allowRebind.rebindWillEvaluate);
+                assertEquals("QR", mBinder.textView.getText().toString());
+            }
+        });
+    }
+
     private void assertAB(String a, String b) {
         mBinder.setA(a);
         mBinder.setB(b);
@@ -71,5 +116,55 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
     private void rebindAndAssert(String text) {
         mBinder.executePendingBindings();
         assertEquals(text, mBinder.textView.getText().toString());
+    }
+
+    private class AllowRebind extends OnRebindCallback<BasicBindingBinding> {
+        public int rebindAttempts;
+        public int rebindHalted;
+        public int rebindWillEvaluate;
+
+        @Override
+        public boolean onPreBind(BasicBindingBinding binding) {
+            rebindAttempts++;
+            return true;
+        }
+
+        @Override
+        public void onCanceled(BasicBindingBinding binding) {
+            rebindHalted++;
+        }
+
+        @Override
+        public void onBound(BasicBindingBinding binding) {
+            rebindWillEvaluate++;
+        }
+    }
+
+    private class NoRebind extends AllowRebind {
+        @Override
+        public boolean onPreBind(BasicBindingBinding binding) {
+            super.onPreBind(binding);
+            return false;
+        }
+    }
+
+    private static class WaitForRun implements Runnable {
+
+        @Override
+        public void run() {
+            synchronized (this) {
+                this.notifyAll();
+            }
+        }
+
+        public void waitForRun() {
+            synchronized (this) {
+                try {
+                    this.wait(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

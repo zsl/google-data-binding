@@ -710,7 +710,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     fun executePendingBindings() = kcode("") {
         nl("@Override")
-        nl("public void executePendingBindings() {") {
+        nl("protected void executeBindings() {") {
             val tmpDirtyFlags = FlagSet(mDirtyFlags.buckets)
             tmpDirtyFlags.setLocalName("dirtyFlags");
             for (i in (0..mDirtyFlags.buckets.size() - 1)) {

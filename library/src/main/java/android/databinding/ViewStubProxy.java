@@ -43,7 +43,7 @@ public class ViewStubProxy {
                 mOnInflateListener = null;
             }
             mContainingBinding.invalidateAll();
-            mContainingBinding.executePendingBindings();
+            mContainingBinding.forceExecuteBindings();
         }
     };
 
