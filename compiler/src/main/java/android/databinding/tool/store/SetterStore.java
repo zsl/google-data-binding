@@ -15,6 +15,8 @@
  */
 package android.databinding.tool.store;
 
+import com.google.common.base.Preconditions;
+
 import org.apache.commons.lang3.StringUtils;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -27,11 +29,15 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
@@ -49,6 +55,93 @@ public class SetterStore {
 
     private final IntermediateV1 mStore;
     private final ModelAnalyzer mClassAnalyzer;
+
+    private Comparator<MultiAttributeSetter> COMPARE_MULTI_ATTRIBUTE_SETTERS =
+            new Comparator<MultiAttributeSetter>() {
+                @Override
+                public int compare(MultiAttributeSetter o1, MultiAttributeSetter o2) {
+                    if (o1.attributes.length != o2.attributes.length) {
+                        return o2.attributes.length - o1.attributes.length;
+                    }
+                    ModelClass view1 = mClassAnalyzer.findClass(o1.mKey.viewType, null);
+                    ModelClass view2 = mClassAnalyzer.findClass(o2.mKey.viewType, null);
+                    if (!view1.equals(view2)) {
+                        if (view1.isAssignableFrom(view2)) {
+                            return 1;
+                        } else {
+                            return -1;
+                        }
+                    }
+                    if (!o1.mKey.attributeIndices.keySet()
+                            .equals(o2.mKey.attributeIndices.keySet())) {
+                        // order by attribute name
+                        Iterator<String> o1Keys = o1.mKey.attributeIndices.keySet().iterator();
+                        Iterator<String> o2Keys = o2.mKey.attributeIndices.keySet().iterator();
+                        while (o1Keys.hasNext()) {
+                            String key1 = o1Keys.next();
+                            String key2 = o2Keys.next();
+                            int compare = key1.compareTo(key2);
+                            if (compare != 0) {
+                                return compare;
+                            }
+                        }
+                        Preconditions.checkState(false,
+                                "The sets don't match! That means the keys shouldn't match also");
+                    }
+                    // Same view type. Same attributes
+                    for (String attribute : o1.mKey.attributeIndices.keySet()) {
+                        final int index1 = o1.mKey.attributeIndices.get(attribute);
+                        final int index2 = o2.mKey.attributeIndices.get(attribute);
+                        ModelClass type1 = mClassAnalyzer
+                                .findClass(o1.mKey.parameterTypes[index1], null);
+                        ModelClass type2 = mClassAnalyzer
+                                .findClass(o2.mKey.parameterTypes[index2], null);
+                        if (type1.equals(type2)) {
+                            continue;
+                        }
+                        if (o1.mCasts[index1] != null) {
+                            if (o2.mCasts[index2] == null) {
+                                return 1; // o2 is better
+                            } else {
+                                continue; // both are casts
+                            }
+                        } else if (o2.mCasts[index2] != null) {
+                            return -1; // o1 is better
+                        }
+                        if (o1.mConverters[index1] != null) {
+                            if (o2.mConverters[index2] == null) {
+                                return 1; // o2 is better
+                            } else {
+                                continue; // both are conversions
+                            }
+                        } else if (o2.mConverters[index2] != null) {
+                            return -1; // o1 is better
+                        }
+
+                        if (type1.isPrimitive()) {
+                            if (type2.isPrimitive()) {
+                                int type1ConversionLevel = ModelMethod
+                                        .getImplicitConversionLevel(type1);
+                                int type2ConversionLevel = ModelMethod
+                                        .getImplicitConversionLevel(type2);
+                                return type2ConversionLevel - type1ConversionLevel;
+                            } else {
+                                // type1 is primitive and has higher priority
+                                return -1;
+                            }
+                        } else if (type2.isPrimitive()) {
+                            return 1;
+                        }
+                        if (type1.isAssignableFrom(type2)) {
+                            return 1;
+                        } else if (type2.isAssignableFrom(type1)) {
+                            return -1;
+                        }
+                    }
+                    // hmmm... same view type, same attributes, same parameter types... ?
+                    return 0;
+                }
+            };
 
     private SetterStore(ModelAnalyzer modelAnalyzer, IntermediateV1 store) {
         mClassAnalyzer = modelAnalyzer;
@@ -87,6 +180,7 @@ public class SetterStore {
     }
 
     public void addBindingAdapter(String attribute, ExecutableElement bindingMethod) {
+        attribute = stripNamespace(attribute);
         L.d("STORE addBindingAdapter %s %s", attribute, bindingMethod);
         HashMap<AccessorKey, MethodDescription> adapters = mStore.adapterMethods.get(attribute);
 
@@ -104,6 +198,21 @@ public class SetterStore {
         }
 
         adapters.put(key, new MethodDescription(bindingMethod));
+    }
+
+    public void addBindingAdapter(String[] attributes, ExecutableElement bindingMethod) {
+        L.d("STORE add multi-value BindingAdapter %d %s", attributes.length, bindingMethod);
+        MultiValueAdapterKey key = new MultiValueAdapterKey(bindingMethod, attributes);
+        MethodDescription methodDescription = new MethodDescription(bindingMethod);
+        mStore.multiValueAdapters.put(key, methodDescription);
+    }
+
+    private static String[] stripAttributes(String[] attributes) {
+        String[] strippedAttributes = new String[attributes.length];
+        for (int i = 0; i < attributes.length; i++) {
+            strippedAttributes[i] = stripNamespace(attributes[i]);
+        }
+        return strippedAttributes;
     }
 
     public void addUntaggableTypes(String[] typeNames, TypeElement declaredOn) {
@@ -205,14 +314,127 @@ public class SetterStore {
                 projectPackage, projectPackage + SETTER_STORE_FILE_EXT, mStore);
     }
 
-    public SetterCall getSetterCall(String attribute, ModelClass viewType,
-            ModelClass valueType, Map<String, String> imports) {
+    private static String stripNamespace(String attribute) {
         if (!attribute.startsWith("android:")) {
             int colon = attribute.indexOf(':');
             if (colon >= 0) {
                 attribute = attribute.substring(colon + 1);
             }
         }
+        return attribute;
+    }
+
+    public List<MultiAttributeSetter> getMultiAttributeSetterCalls(String[] attributes,
+            ModelClass viewType, ModelClass[] valueType) {
+        attributes = stripAttributes(attributes);
+        final ArrayList<MultiAttributeSetter> calls = new ArrayList<MultiAttributeSetter>();
+        ArrayList<MultiAttributeSetter> matching = getMatchingMultiAttributeSetters(attributes,
+                viewType, valueType);
+        Collections.sort(matching, COMPARE_MULTI_ATTRIBUTE_SETTERS);
+        while (!matching.isEmpty()) {
+            MultiAttributeSetter bestMatch = matching.get(0);
+            calls.add(bestMatch);
+            removeConsumedAttributes(matching, bestMatch.attributes);
+        }
+        return calls;
+    }
+
+    // Removes all MultiAttributeSetters that require any of the values in attributes
+    private static void removeConsumedAttributes(ArrayList<MultiAttributeSetter> matching,
+            String[] attributes) {
+        for (int i = matching.size() - 1; i >= 0; i--) {
+            final MultiAttributeSetter setter = matching.get(i);
+            boolean found = false;
+            for (String attribute : attributes) {
+                if (isInArray(attribute, setter.attributes)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                matching.remove(i);
+            }
+        }
+    }
+
+    // Linear search through the String array for a specific value.
+    private static boolean isInArray(String str, String[] array) {
+        for (String value : array) {
+            if (value.equals(str)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private ArrayList<MultiAttributeSetter> getMatchingMultiAttributeSetters(String[] attributes,
+            ModelClass viewType, ModelClass[] valueType) {
+        final ArrayList<MultiAttributeSetter> setters = new ArrayList<MultiAttributeSetter>();
+        for (MultiValueAdapterKey adapter : mStore.multiValueAdapters.keySet()) {
+            if (adapter.attributes.length > attributes.length) {
+                continue;
+            }
+            final ModelClass viewClass = mClassAnalyzer.findClass(adapter.viewType, null);
+            if (!viewClass.isAssignableFrom(viewType)) {
+                continue;
+            }
+            final MethodDescription method = mStore.multiValueAdapters.get(adapter);
+            final MultiAttributeSetter setter = createMultiAttributeSetter(method, attributes,
+                    valueType, adapter);
+            if (setter != null) {
+                setters.add(setter);
+            }
+        }
+        return setters;
+    }
+
+    private MultiAttributeSetter createMultiAttributeSetter(MethodDescription method,
+            String[] allAttributes, ModelClass[] attributeValues, MultiValueAdapterKey adapter) {
+        int matchingAttributes = 0;
+        String[] casts = new String[adapter.attributes.length];
+        MethodDescription[] conversions = new MethodDescription[adapter.attributes.length];
+
+        for (int i = 0; i < allAttributes.length; i++) {
+            Integer index = adapter.attributeIndices.get(allAttributes[i]);
+            if (index != null) {
+                matchingAttributes++;
+                final String parameterTypeStr = adapter.parameterTypes[index];
+                final ModelClass parameterType = mClassAnalyzer.findClass(parameterTypeStr, null);
+                final ModelClass attributeType = attributeValues[i];
+                if (!parameterType.isAssignableFrom(attributeType)) {
+                    if (ModelMethod.isBoxingConversion(parameterType, attributeType)) {
+                        // automatic boxing is ok
+                        continue;
+                    } else if (ModelMethod.isImplicitConversion(attributeType, parameterType)) {
+                        // implicit conversion is ok
+                        continue;
+                    }
+                    // Look for a converter
+                    conversions[index] = getConversionMethod(attributeType, parameterType, null);
+                    if (conversions[index] == null) {
+                        if (attributeType.isObject()) {
+                            // Cast is allowed also
+                            casts[index] = parameterTypeStr;
+                        } else {
+                            // Parameter type mismatch
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (matchingAttributes != adapter.attributes.length) {
+            return null;
+        } else {
+            return new MultiAttributeSetter(adapter, adapter.attributes, method, conversions,
+                    casts);
+        }
+    }
+
+    public SetterCall getSetterCall(String attribute, ModelClass viewType,
+            ModelClass valueType, Map<String, String> imports) {
+        attribute = stripNamespace(attribute);
         SetterCall setterCall = null;
         MethodDescription conversionMethod = null;
         if (viewType != null) {
@@ -406,6 +628,7 @@ public class SetterStore {
         merge(store.adapterMethods, intermediateV1.adapterMethods);
         merge(store.renamedMethods, intermediateV1.renamedMethods);
         merge(store.conversionMethods, intermediateV1.conversionMethods);
+        store.multiValueAdapters.putAll(intermediateV1.multiValueAdapters);
         store.untaggableTypes.putAll(intermediateV1.untaggableTypes);
     }
 
@@ -423,6 +646,57 @@ public class SetterStore {
                     }
                 }
             }
+        }
+    }
+
+    private static class MultiValueAdapterKey implements Serializable {
+        private static final long serialVersionUID = 1;
+
+        public final String viewType;
+
+        public final String[] attributes;
+
+        public final String[] parameterTypes;
+
+        public final TreeMap<String, Integer> attributeIndices = new TreeMap<String, Integer>();
+
+        public MultiValueAdapterKey(ExecutableElement method, String[] attributes) {
+            this.attributes = stripAttributes(attributes);
+            List<? extends VariableElement> parameters = method.getParameters();
+            this.viewType = getQualifiedName(parameters.get(0).asType());
+            this.parameterTypes = new String[parameters.size() - 1];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                this.parameterTypes[i] = getQualifiedName(parameters.get(i + 1).asType());
+                attributeIndices.put(this.attributes[i], i);
+            }
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof MultiValueAdapterKey)) {
+                return false;
+            }
+            final MultiValueAdapterKey that = (MultiValueAdapterKey) obj;
+            if (!this.viewType.equals(that.viewType) ||
+                    this.attributes.length != that.attributes.length ||
+                    !this.attributeIndices.keySet().equals(that.attributeIndices.keySet())) {
+                return false;
+            }
+
+            for (int i = 0; i < this.attributes.length; i++) {
+                final int thatIndex = that.attributeIndices.get(this.attributes[i]);
+                final String thisParameter = parameterTypes[i];
+                final String thatParameter = that.parameterTypes[thatIndex];
+                if (!thisParameter.equals(thatParameter)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(viewType, attributeIndices.keySet());
         }
     }
 
@@ -515,6 +789,8 @@ public class SetterStore {
         public final HashMap<String, HashMap<String, MethodDescription>> conversionMethods =
                 new HashMap<String, HashMap<String, MethodDescription>>();
         public final HashMap<String, String> untaggableTypes = new HashMap<String, String>();
+        public final HashMap<MultiValueAdapterKey, MethodDescription> multiValueAdapters =
+                new HashMap<MultiValueAdapterKey, MethodDescription>();
 
         public IntermediateV1() {
         }
@@ -607,6 +883,57 @@ public class SetterStore {
 
         public void setCast(ModelClass castTo) {
             mCastString = "(" + castTo.toJavaCode() + ") ";
+        }
+    }
+
+    public static class MultiAttributeSetter {
+        public final String[] attributes;
+        private final MethodDescription mAdapter;
+        private final MethodDescription[] mConverters;
+        private final String[] mCasts;
+        private final MultiValueAdapterKey mKey;
+
+        public MultiAttributeSetter(MultiValueAdapterKey key, String[] attributes,
+                MethodDescription adapter, MethodDescription[] converters, String[] casts) {
+            Preconditions.checkArgument(converters != null &&
+                    converters.length == attributes.length &&
+                    casts != null && casts.length == attributes.length);
+            this.attributes = attributes;
+            this.mAdapter = adapter;
+            this.mConverters = converters;
+            this.mCasts = casts;
+            this.mKey = key;
+        }
+
+        public String toJava(String viewExpression, String[] valueExpressions) {
+            Preconditions.checkArgument(valueExpressions.length == attributes.length);
+            StringBuilder sb = new StringBuilder();
+            sb.append(mAdapter.type)
+                    .append('.')
+                    .append(mAdapter.method)
+                    .append('(')
+                    .append(viewExpression);
+            for (int i = 0; i < valueExpressions.length; i++) {
+                sb.append(',');
+                if (mConverters[i] != null) {
+                    final MethodDescription converter = mConverters[i];
+                    sb.append(converter.type)
+                            .append('.')
+                            .append(converter.method)
+                            .append('(')
+                            .append(valueExpressions[i])
+                            .append(')');
+                } else {
+                    if (mCasts[i] != null) {
+                        sb.append('(')
+                                .append(mCasts[i])
+                                .append(')');
+                    }
+                    sb.append(valueExpressions[i]);
+                }
+            }
+            sb.append(')');
+            return sb.toString();
         }
     }
 }

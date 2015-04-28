@@ -100,4 +100,11 @@ public class ViewBindingAdapter {
         view.setVerticalFadingEdgeEnabled(vertical);
         view.setHorizontalFadingEdgeEnabled(horizontal);
     }
+
+    @BindingAdapter(attributes={"android:onClickListener", "android:clickable"})
+    public static void setClickListener(View view, View.OnClickListener clickListener,
+            boolean clickable) {
+        view.setOnClickListener(clickListener);
+        view.setClickable(clickable);
+    }
 }

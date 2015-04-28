@@ -89,13 +89,21 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
 
             ExecutableElement executableElement = (ExecutableElement) element;
             List<? extends VariableElement> parameters = executableElement.getParameters();
-            if (parameters.size() != 2) {
-                L.e("@BindingAdapter does not take two parameters: %s",element);
+            final int numAttributes = bindingAdapter.attributes().length == 0 ? 1 :
+                    bindingAdapter.attributes().length;
+            if (parameters.size() != numAttributes + 1) {
+                L.e("@BindingAdapter does not take %d parameters: %s",numAttributes + 1, element);
                 continue;
             }
             try {
-                L.d("------------------ @BindingAdapter for %s", element);
-                store.addBindingAdapter(bindingAdapter.value(), executableElement);
+                if (numAttributes == 1) {
+                    final String attribute = bindingAdapter.attributes().length == 0 ?
+                            bindingAdapter.value() : bindingAdapter.attributes()[0];
+                    L.d("------------------ @BindingAdapter for %s", element);
+                    store.addBindingAdapter(attribute, executableElement);
+                } else {
+                    store.addBindingAdapter(bindingAdapter.attributes(), executableElement);
+                }
             } catch (IllegalArgumentException e) {
                 L.e(e, "@BindingAdapter for duplicate View and parameter type: %s", element);
             }
@@ -152,7 +160,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private void clearIncrementalClasses(RoundEnvironment roundEnv, SetterStore store) {
-        HashSet<String> classes = new HashSet<>();
+        HashSet<String> classes = new HashSet<String>();
 
         for (Element element : AnnotationUtil
                 .getElementsAnnotatedWith(roundEnv, BindingAdapter.class)) {
