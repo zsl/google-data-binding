@@ -61,6 +61,7 @@ public class FindMethodBindingObject extends FindMethodBindingObjectBase {
 
     public static class Foo {
         public final String bar = "hello world";
+        public static final String baz = "hello world";
     }
 
     public static class Bar<T> {

@@ -126,7 +126,8 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
 
     private TypeElement getTypeElement(String className, Map<String, String> imports) {
         Elements elementUtils = getElementUtils();
-        if (className.indexOf('.') < 0 && imports != null) {
+        final boolean hasDot = className.indexOf('.') >= 0;
+        if (!hasDot && imports != null) {
             // try the imports
             String importedClass = imports.get(className);
             if (importedClass != null) {
@@ -146,7 +147,17 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
             }
         }
         try {
-            return elementUtils.getTypeElement(className);
+            TypeElement typeElement = elementUtils.getTypeElement(className);
+            if (typeElement == null && hasDot && imports != null) {
+                int lastDot = className.lastIndexOf('.');
+                TypeElement parent = getTypeElement(className.substring(0, lastDot), imports);
+                if (parent == null) {
+                    return null;
+                }
+                String name = parent.getQualifiedName() + "." + className.substring(lastDot + 1);
+                return getTypeElement(name, null);
+            }
+            return typeElement;
         } catch (Exception e) {
             return null;
         }
