@@ -321,6 +321,18 @@ public abstract class ViewDataBinding {
         unbind();
     }
 
+    static ViewDataBinding getBinding(View v) {
+        if (USE_TAG_ID) {
+            return (ViewDataBinding) v.getTag(R.id.dataBinding);
+        } else {
+            final Object tag = v.getTag();
+            if (tag instanceof ViewDataBinding) {
+                return (ViewDataBinding) tag;
+            }
+        }
+        return null;
+    }
+
     /**
      * Returns the outermost View in the layout file associated with the Binding.
      * @return the outermost View in the layout file associated with the Binding.
@@ -407,6 +419,10 @@ public abstract class ViewDataBinding {
             mLocalFieldObservers[localFieldId] = listener;
         }
         listener.setTarget(observable);
+    }
+
+    protected static ViewDataBinding bind(View view, int layoutId) {
+        return DataBindingUtil.bind(view, layoutId);
     }
 
     /**

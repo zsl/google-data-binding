@@ -13,11 +13,12 @@
 
 package android.databinding.testapp;
 
-import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.databinding.DataBindingUtil;
 import android.databinding.OnRebindCallback;
-
+import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.test.UiThreadTest;
 import android.view.View;
+import android.view.ViewGroup;
 
 public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
     public BasicBindingTest() {

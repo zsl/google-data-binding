@@ -23,6 +23,16 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
         nl("class $className {") {
             tab("final static int TARGET_MIN_SDK = ${minSdk};")
             nl("")
+            tab("private final java.util.HashMap<String, Integer> mLayoutIds;")
+            nl("")
+            tab("public $className() {") {
+                tab("mLayoutIds = new java.util.HashMap<String, Integer>();")
+                layoutBinders.forEach {
+                    tab("mLayoutIds.put(\"${it.getTag()}_0\", ${it.getModulePackage()}.R.layout.${it.getLayoutname()});")
+                }
+            }
+            tab("}")
+            nl("")
             tab("public android.databinding.ViewDataBinding getDataBinder(android.view.View view, int layoutId) {") {
                 tab("switch(layoutId) {") {
                     layoutBinders.groupBy{it.getLayoutname()}.forEach {
@@ -86,9 +96,20 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
             }
             tab("}")
 
+            tab("int getLayoutId(String tag) {") {
+                tab("Integer id = mLayoutIds.get(tag);")
+                tab("if (id == null) {") {
+                    tab("return 0;")
+                }
+                tab("}")
+                tab("return id;")
+            }
+            tab("}")
+
             tab("public int getId(String key) {") {
                 tab("return BR.getId(key);")
-            } tab("}")
+            }
+            tab("}")
         }
         nl("}")
     }.generate()

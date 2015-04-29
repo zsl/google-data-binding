@@ -941,7 +941,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             }
             tab("}")
             tab("public static ${baseClassName} bind(android.view.View view) {") {
-                tab("return (${baseClassName})DataBindingUtil.bind(view, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()});")
+                tab("return (${baseClassName})bind(view, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()});")
             }
             tab("}")
             nl("}")
