@@ -1,6 +1,7 @@
 package com.android.example.bindingdemo;
 
 import android.databinding.Bindable;
+import android.databinding.DataBindingUtil;
 import android.databinding.Observable;
 import android.databinding.OnPropertyChangedListener;
 import android.support.v7.app.ActionBarActivity;
@@ -37,8 +38,7 @@ public class MainActivity extends ActionBarActivity implements Observable {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dataBinder =  MainActivityBinding.inflate(getLayoutInflater());
-        setContentView(dataBinder.getRoot());
+        dataBinder =  DataBindingUtil.setContentView(this, R.layout.main_activity);
         dataBinder.robotList.setHasFixedSize(true);
         dataBinder.toolkittyList.setHasFixedSize(true);
         tkAdapter = new UserAdapter(Users.toolkities);

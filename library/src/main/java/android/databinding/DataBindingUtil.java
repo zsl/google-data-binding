@@ -18,6 +18,7 @@ package android.databinding;
 
 import android.app.Activity;
 import android.support.annotation.Nullable;
+import android.view.InflateException;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +42,9 @@ public class DataBindingUtil {
      * @param attachToParent Whether the inflated hierarchy should be attached to the
      *                       parent parameter. If false, parent is only used to create
      *                       the correct subclass of LayoutParams for the root view in the XML.
-     * @return The newly-created binding for the inflated layout.
+     * @return The newly-created binding for the inflated layout or <code>null</code> if
+     * the layoutId wasn't for a binding layout.
+     * @throws InflateException When a merge layout was used and attachToParent was false.
      */
     public static <T extends ViewDataBinding> T inflate(LayoutInflater inflater, int layoutId,
             @Nullable ViewGroup parent, boolean attachToParent) {
@@ -164,5 +167,23 @@ public class DataBindingUtil {
      */
     public static <T extends ViewDataBinding> T getBinding(View view) {
         return (T) ViewDataBinding.getBinding(view);
+    }
+
+    /**
+     * Set the Activity's content view to the given layout and return the associated binding.
+     * The given layout resource must not be a merge layout.
+     *
+     * @param activity The Activity whose content View should change.
+     * @param layoutId The resource ID of the layout to be inflated, bound, and set as the
+     *                 Activity's content.
+     * @return The binding associated with the inflated content view.
+     */
+    public static <T extends ViewDataBinding> T setContentView(Activity activity, int layoutId) {
+        // Force the content view to exist if it didn't already.
+        View decorView = activity.getWindow().getDecorView();
+        ViewGroup contentView = (ViewGroup) decorView.findViewById(android.R.id.content);
+        T binding = inflate(activity.getLayoutInflater(), layoutId, contentView, false);
+        activity.setContentView(binding.getRoot(), binding.getRoot().getLayoutParams());
+        return binding;
     }
 }
