@@ -90,6 +90,7 @@ allprojects {
 }
 
 subprojects.uploadArchives.each { it.shouldRunAfter deleteRepo  }
+subprojects.uploadArchives.each { it.shouldRunAfter deletePrebuildFolder  }
 buildExtensionsTask.shouldRunAfter deleteRepo
 tasks['runTestsOfMultiModuleTestApp'].dependsOn tasks['runTestsOfIndependentLibrary']
 

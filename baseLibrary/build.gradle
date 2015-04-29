@@ -56,3 +56,12 @@ uploadArchives {
         }
     }
 }
+
+task prebuildJar(type : Copy) {
+    dependsOn uploadArchives
+    from "$buildDir/libs/baseLibrary-${version}.jar"
+    into config.prebuildFolder
+    rename { String fileName ->
+        "databinding-baseLibrary.jar"
+    }
+}
