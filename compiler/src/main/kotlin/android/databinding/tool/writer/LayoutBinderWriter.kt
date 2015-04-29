@@ -551,9 +551,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         nl("public void invalidateAll() {") {
             val fs = FlagSet(layoutBinder.getModel().getInvalidateAnyBitSet(),
                     layoutBinder.getModel().getFlagBucketCount());
-            for (i in (0..(mDirtyFlags.buckets.size() - 1))) {
-                tab("${mDirtyFlags.localValue(i)} = ${fs.localValue(i)};")
-            }
+            tab("synchronized(this) {") {
+                for (i in (0..(mDirtyFlags.buckets.size() - 1))) {
+                    tab("${mDirtyFlags.localValue(i)} = ${fs.localValue(i)};")
+                }
+            } tab("}")
             includedBinders.filter{it.isUsed()}.forEach { binder ->
                 tab("${binder.fieldName}.invalidateAll();")
             }
@@ -605,9 +607,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     tab("this.${it.fieldName} = ${it.readableName};")
                     // set dirty flags!
                     val flagSet = it.invalidateFlagSet
-                    mDirtyFlags.mapOr(flagSet) { suffix, index ->
-                        tab("${mDirtyFlags.getLocalName()}$suffix |= ${flagSet.localValue(index)};")
-                    }
+                    tab("synchronized(this) {") {
+                        mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                            tab("${mDirtyFlags.getLocalName()}$suffix |= ${flagSet.localValue(index)};")
+                        }
+                    } tab ("}")
                     tab("super.requestRebind();")
                 }
                 nl("}")
@@ -645,18 +649,22 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             .forEach {
                                 tab("case ${it.key.br()}:") {
                                     val field = it.value.first()
-                                    mDirtyFlags.mapOr(field.invalidateFlagSet) { suffix, index ->
-                                        tab("${mDirtyFlags.localValue(index)} |= ${field.invalidateFlagSet.localValue(index)};")
-                                    }
+                                    tab("synchronized(this) {") {
+                                        mDirtyFlags.mapOr(field.invalidateFlagSet) { suffix, index ->
+                                            tab("${mDirtyFlags.localValue(index)} |= ${field.invalidateFlagSet.localValue(index)};")
+                                        }
+                                    } tab("}")
                                     tab("return true;")
                                 }
 
                             }
                     tab("case ${"".br()}:") {
                         val flagSet = it.invalidateFlagSet
-                        mDirtyFlags.mapOr(flagSet) { suffix, index ->
-                            tab("${mDirtyFlags.getLocalName()}$suffix |= ${flagSet.localValue(index)};")
-                        }
+                        tab("synchronized(this) {") {
+                            mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                                tab("${mDirtyFlags.getLocalName()}$suffix |= ${flagSet.localValue(index)};")
+                            }
+                        } tab("}")
                         tab("return true;")
                     }
 
@@ -714,9 +722,14 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             val tmpDirtyFlags = FlagSet(mDirtyFlags.buckets)
             tmpDirtyFlags.setLocalName("dirtyFlags");
             for (i in (0..mDirtyFlags.buckets.size() - 1)) {
-                tab("${tmpDirtyFlags.type} ${tmpDirtyFlags.localValue(i)} = ${mDirtyFlags.localValue(i)};")
-                tab("${mDirtyFlags.localValue(i)} = 0;")
+                tab("${tmpDirtyFlags.type} ${tmpDirtyFlags.localValue(i)} = 0;")
             }
+            tab("synchronized(this) {") {
+                for (i in (0..mDirtyFlags.buckets.size() - 1)) {
+                    tab("${tmpDirtyFlags.localValue(i)} = ${mDirtyFlags.localValue(i)};")
+                    tab("${mDirtyFlags.localValue(i)} = 0;")
+                }
+            } tab("}")
             model.getPendingExpressions().filterNot {it.isVariable()}.forEach {
                 tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${it.getDefaultValue()};")
             }
