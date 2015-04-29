@@ -21,9 +21,9 @@ import kotlin.properties.Delegates
 import android.databinding.tool.util.Log
 import java.io.File
 
-open class DataBindingProcessLayoutsTask : DefaultTask() {
+open class DataBindingExportInfoTask : DefaultTask() {
     {
-        Log.d {"created data binding process resources task"}
+        Log.d {"created data binding export info task"}
     }
     var xmlProcessor: LayoutXmlProcessor by Delegates.notNull()
     var sdkDir : File by Delegates.notNull()
@@ -31,10 +31,6 @@ open class DataBindingProcessLayoutsTask : DefaultTask() {
     [TaskAction]
     public fun doIt() {
         Log.d {"running process layouts task"}
-        xmlProcessor.processResources()
-    }
-
-    public fun writeLayoutXmls() {
-        xmlProcessor.writeLayoutInfoFiles(xmlOutFolder)
+        xmlProcessor.writeInfoClass(sdkDir, xmlOutFolder)
     }
 }

@@ -109,13 +109,13 @@ public class LayoutXmlProcessor {
         return true;
     }
 
-    public void writeIntermediateFile(File sdkDir, File xmlOutDir) throws JAXBException {
+    public void writeLayoutInfoFiles(File xmlOutDir) throws JAXBException {
         if (mWritten) {
             return;
         }
         JAXBContext context = JAXBContext.newInstance(ResourceBundle.LayoutFileBundle.class);
         Marshaller marshaller = context.createMarshaller();
-        writeInfoClass(sdkDir, xmlOutDir);
+
         for (List<ResourceBundle.LayoutFileBundle> layouts : mResourceBundle.getLayoutBundles()
                 .values()) {
             for (ResourceBundle.LayoutFileBundle layout : layouts) {
@@ -161,7 +161,7 @@ public class LayoutXmlProcessor {
         return name.toString();
     }
 
-    private void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir) {
+    public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir) {
         final String sdkPath = sdkDir == null ? null : StringEscapeUtils.escapeJava(sdkDir.getAbsolutePath());
         final Class annotation = BindingBuildInfo.class;
         final String layoutInfoPath = StringEscapeUtils.escapeJava(xmlOutDir.getAbsolutePath());
