@@ -20,6 +20,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Looper;
 import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
+import android.view.LayoutInflater;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -59,8 +60,8 @@ public class BaseDataBinderTest<T extends ViewDataBinding>
             public void run() {
                 Method method = null;
                 try {
-                    method = mBinderClass.getMethod("inflate", Context.class);
-                    mBinder = (T) method.invoke(null, getActivity());
+                    method = mBinderClass.getMethod("inflate", LayoutInflater.class);
+                    mBinder = (T) method.invoke(null, getActivity().getLayoutInflater());
                     getActivity().setContentView(mBinder.getRoot());
                 } catch (Exception e) {
                     StringWriter sw = new StringWriter();

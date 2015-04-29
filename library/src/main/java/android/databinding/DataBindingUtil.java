@@ -16,7 +16,6 @@
 
 package android.databinding;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,20 +26,19 @@ import android.view.ViewGroup;
 public class DataBindingUtil {
     private static DataBinderMapper sMapper = new DataBinderMapper();
 
-    public static <T extends ViewDataBinding> T inflate(Context context, int layoutId,
+    public static <T extends ViewDataBinding> T inflate(LayoutInflater inflater, int layoutId,
             ViewGroup parent, boolean attachToParent) {
-        final LayoutInflater inflater = LayoutInflater.from(context);
         final View view = inflater.inflate(layoutId, parent, attachToParent);
-        return bindTo(view, layoutId);
+        return bind(view, layoutId);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends ViewDataBinding> T bindTo(View root, int layoutId) {
+    public static <T extends ViewDataBinding> T bind(View root, int layoutId) {
         return (T) sMapper.getDataBinder(root, layoutId);
     }
 
     @SuppressWarnings("unchecked")
-    static <T extends ViewDataBinding> T bindTo(View[] roots, int layoutId) {
+    static <T extends ViewDataBinding> T bind(View[] roots, int layoutId) {
         return (T) sMapper.getDataBinder(roots, layoutId);
     }
 }

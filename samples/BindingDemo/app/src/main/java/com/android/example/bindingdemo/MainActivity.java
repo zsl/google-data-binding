@@ -37,7 +37,7 @@ public class MainActivity extends ActionBarActivity implements Observable {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dataBinder =  MainActivityBinding.inflate(this);
+        dataBinder =  MainActivityBinding.inflate(getLayoutInflater());
         setContentView(dataBinder.getRoot());
         dataBinder.robotList.setHasFixedSize(true);
         dataBinder.toolkittyList.setHasFixedSize(true);

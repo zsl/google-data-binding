@@ -36,7 +36,8 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
                 @Override
                 public void run() {
                     try {
-                        LeakTestBinding binding = LeakTestBinding.inflate(getActivity());
+                        LeakTestBinding binding = LeakTestBinding.inflate(
+                                getActivity().getLayoutInflater());
                         getActivity().setContentView(binding.getRoot());
                         mWeakReference = new WeakReference<LeakTestBinding>(binding);
                         binding.setName("hello world");

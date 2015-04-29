@@ -26,7 +26,8 @@ public class TestLibraryMainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityTestLibraryMainBinding binder = ActivityTestLibraryMainBinding.inflate(this);
+        ActivityTestLibraryMainBinding binder = ActivityTestLibraryMainBinding.inflate(
+                getLayoutInflater());
         setContentView(binder.getRoot());
 
     }

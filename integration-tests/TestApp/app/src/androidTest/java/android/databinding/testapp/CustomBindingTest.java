@@ -38,13 +38,14 @@ public class CustomBindingTest extends BaseDataBinderTest<CustomBinding> {
         assertEquals("hello world", mBinder.textView.getText().toString());
 
         android.databinding.testapp.mypackage.CustomBinding subPackaged =
-                android.databinding.testapp.mypackage.CustomBinding.inflate(getActivity());
+                android.databinding.testapp.mypackage.CustomBinding.inflate(
+                        getActivity().getLayoutInflater());
         subPackaged.executePendingBindings();
         assertEquals("goodbye world", subPackaged.textView.getText().toString());
 
 
         com.android.test.CustomBinding newPackage =
-                com.android.test.CustomBinding.inflate(getActivity());
+                com.android.test.CustomBinding.inflate(getActivity().getLayoutInflater());
         newPackage.executePendingBindings();
         assertEquals("hello android", newPackage.textView.getText().toString());
     }

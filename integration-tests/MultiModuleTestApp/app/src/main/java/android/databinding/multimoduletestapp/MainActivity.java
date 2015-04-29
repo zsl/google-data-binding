@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinder = ActivityMainBinding.inflate(this);
+        mBinder = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(mBinder.getRoot());
     }
 

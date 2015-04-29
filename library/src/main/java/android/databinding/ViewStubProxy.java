@@ -35,7 +35,7 @@ public class ViewStubProxy {
         @Override
         public void onInflate(ViewStub stub, View inflated) {
             mRoot = inflated;
-            mViewDataBinding = DataBindingUtil.bindTo(inflated, stub.getLayoutResource());
+            mViewDataBinding = DataBindingUtil.bind(inflated, stub.getLayoutResource());
             mViewStub = null;
 
             if (mOnInflateListener != null) {

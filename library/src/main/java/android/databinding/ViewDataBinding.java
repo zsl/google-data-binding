@@ -505,14 +505,16 @@ public abstract class ViewDataBinding {
                             IncludedLayoutIndex include = includedLayoutIndexes[includeIndex];
                             int lastMatchingIndex = findLastMatching(viewGroup, i);
                             if (lastMatchingIndex == i) {
-                                bindings[include.index] = DataBindingUtil.bindTo(child, include.layoutId);
+                                bindings[include.index] = DataBindingUtil.bind(child,
+                                        include.layoutId);
                             } else {
                                 final int includeCount =  lastMatchingIndex - i + 1;
                                 final View[] included = new View[includeCount];
                                 for (int j = 0; j < includeCount; j++) {
                                     included[j] = viewGroup.getChildAt(i + j);
                                 }
-                                bindings[include.index] = DataBindingUtil.bindTo(included, include.layoutId);
+                                bindings[include.index] = DataBindingUtil.bind(included,
+                                        include.layoutId);
                                 i += includeCount - 1;
                             }
                         }

@@ -1,6 +1,7 @@
 package com.android.example.bindingdemo;
 
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import android.databinding.DataBindingUtil;
@@ -16,8 +17,10 @@ abstract public class DataBoundAdapter<T extends ViewDataBinding>
     }
 
     @Override
-    public DataBoundAdapter.DataBoundViewHolder<T> onCreateViewHolder(ViewGroup viewGroup, int type) {
-        T binder = DataBindingUtil.inflate(viewGroup.getContext(), mLayoutId, viewGroup, false);
+    public DataBoundAdapter.DataBoundViewHolder<T> onCreateViewHolder(ViewGroup viewGroup,
+                                                                      int type) {
+        T binder = DataBindingUtil.inflate(LayoutInflater.from(viewGroup.getContext()), mLayoutId,
+                viewGroup, false);
         return new DataBoundViewHolder(binder);
     }
 

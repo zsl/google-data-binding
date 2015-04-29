@@ -883,12 +883,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     fun declareFactories() = kcode("") {
         if (!layoutBinder.isMerge()) {
-            nl("public static ${baseClassName} inflate(android.view.ViewGroup root) {") {
-                tab("return bind(android.view.LayoutInflater.from(root.getContext()).inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, true));")
+            tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
+                tab("return bind(inflater.inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, true));")
             }
             nl("}")
-            nl("public static ${baseClassName} inflate(android.content.Context context) {") {
-                tab("return bind(android.view.LayoutInflater.from(context).inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false));")
+            tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {
+                tab("return bind(inflater.inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false));")
             }
             nl("}")
             nl("public static ${baseClassName} bind(android.view.View view) {") {
@@ -932,16 +932,16 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     tab("public abstract void ${it.setterName}(${type} ${it.readableName});")
                 }
             }
-            tab("public static ${baseClassName} inflate(android.view.ViewGroup root) {") {
-                tab("return DataBindingUtil.<${baseClassName}>inflate(root.getContext(), ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, true);")
+            tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
+                tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, true);")
             }
             tab("}")
-            tab("public static ${baseClassName} inflate(android.content.Context context) {") {
-                tab("return DataBindingUtil.<${baseClassName}>inflate(context, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false);")
+            tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {
+                tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false);")
             }
             tab("}")
             tab("public static ${baseClassName} bind(android.view.View view) {") {
-                tab("return (${baseClassName})DataBindingUtil.bindTo(view, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()});")
+                tab("return (${baseClassName})DataBindingUtil.bind(view, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()});")
             }
             tab("}")
             nl("}")

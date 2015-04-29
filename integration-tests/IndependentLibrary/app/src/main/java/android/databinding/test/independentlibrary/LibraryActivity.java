@@ -26,7 +26,7 @@ public class LibraryActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        IndependentLibraryBinding binding = IndependentLibraryBinding.inflate(this);
+        IndependentLibraryBinding binding = IndependentLibraryBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         MyBindableObject object = new MyBindableObject();
         object.setField(FIELD_VALUE);
