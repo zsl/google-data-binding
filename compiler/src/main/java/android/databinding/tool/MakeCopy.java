@@ -166,7 +166,8 @@ public class MakeCopy {
                 resourceFolders, makeFileWriter, minSdk, isLibrary);
         try {
             xmlProcessor.processResources();
-            xmlProcessor.writeIntermediateFile(null, xmlDir);
+            xmlProcessor.writeLayoutInfoFiles(xmlDir);
+            xmlProcessor.writeInfoClass(null, xmlDir);
             if (makeFileWriter.getErrorCount() > 0) {
                 System.exit(9);
             }

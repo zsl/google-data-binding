@@ -72,9 +72,6 @@ class DataBinderPlugin : Plugin<Project> {
         if (androidExt !is BaseExtension) {
             return
         }
-        log("project build dir:${p.getBuildDir()}")
-        // TODO this will differ per flavor
-
         if (androidExt is AppExtension) {
             createXmlProcessorForApp(p, androidExt)
         } else if (androidExt is LibraryExtension) {
@@ -137,42 +134,29 @@ class DataBinderPlugin : Plugin<Project> {
         val minSdkVersion = configuration.getMinSdkVersion()
         val generateRTask = variantData.generateRClassTask
         val packageName = generateRTask.getPackageForR()
-        log("r task name $generateRTask . text symbols output dir: ${generateRTask.getTextSymbolOutputDir()}")
         val fullName = configuration.getFullName()
-        val sources = variantData.getJavaSources()
-        sources.forEach({
-            if (it is FileCollection) {
-                it.forEach {
-                    log("sources for ${variantData} ${it}}")
-                }
-            } else {
-                log("sources for ${variantData}: ${it}");
-            }
-        })
         val resourceFolders = arrayListOf(variantData.mergeResourcesTask.getOutputDir())
-        log("MERGE RES OUTPUT ${variantData.mergeResourcesTask.getOutputDir()}")
-        val codeGenTargetFolder = generateRTask.getSourceOutputDir()
-        // TODO unnecessary?
 
-        // TODO attach to test module as well!
-
-        variantData.addJavaSourceFoldersToModel(codeGenTargetFolder)
+        val codeGenTargetFolder = File("${project.getBuildDir()}/data-binding-info/${configuration.getDirName()}")
         val writerOutBase = codeGenTargetFolder.getAbsolutePath();
         val fileWriter = GradleFileWriter(writerOutBase)
         val xmlProcessor = LayoutXmlProcessor(packageName, resourceFolders, fileWriter,
                 minSdkVersion.getApiLevel(), isLibrary)
         val processResTask = generateRTask
-
-        val xmlOutDir = "${project.getBuildDir()}/layout-info/${configuration.getDirName()}";
+        val xmlOutDir = File("${project.getBuildDir()}/layout-info/${configuration.getDirName()}")
         log("xml output for ${variantData} is ${xmlOutDir}")
-        val dataBindingTaskName = "dataBinding${processResTask.getName().capitalize()}"
-        log("created task $dataBindingTaskName")
-        project.getTasks().create(dataBindingTaskName,
+        val layoutTaskName = "dataBindingLayouts${processResTask.getName().capitalize()}"
+        val infoClassTaskName = "dataBindingInfoClass${processResTask.getName().capitalize()}"
+
+        var processLayoutsTask : DataBindingProcessLayoutsTask? = null
+        project.getTasks().create(layoutTaskName,
                 javaClass<DataBindingProcessLayoutsTask>(),
                 object : Action<DataBindingProcessLayoutsTask> {
                     override fun execute(task: DataBindingProcessLayoutsTask) {
+                        processLayoutsTask = task
                         task.xmlProcessor = xmlProcessor
                         task.sdkDir = sdkDir
+                        task.xmlOutFolder = xmlOutDir
                         Log.d { "TASK adding dependency on ${task} for ${processResTask}" }
                         processResTask.dependsOn(task)
                         processResTask.getDependsOn().filterNot { it == task }.forEach {
@@ -180,10 +164,22 @@ class DataBinderPlugin : Plugin<Project> {
                             task.dependsOn(it)
                         }
                         processResTask.doLast {
-                            task.writeFiles(File(xmlOutDir))
+                            task.writeLayoutXmls()
                         }
                     }
-                });
+                })
+        project.getTasks().create(infoClassTaskName,
+                javaClass<DataBindingExportInfoTask>(),
+                object : Action<DataBindingExportInfoTask>{
+                    override fun execute(task: DataBindingExportInfoTask) {
+                        task.dependsOn(processLayoutsTask!!)
+                        task.dependsOn(processResTask)
+                        task.xmlProcessor = xmlProcessor
+                        task.sdkDir = sdkDir
+                        task.xmlOutFolder = xmlOutDir
+                        variantData.registerJavaGeneratingTask(task, codeGenTargetFolder)
+                    }
+                })
 
         if (isLibrary) {
             val resourceSets = variantData.mergeResourcesTask.getInputResourceSets()
@@ -213,41 +209,35 @@ class DataBinderPlugin : Plugin<Project> {
         val customBindings = ArrayList<String>()
 
         resourceSets.forEach { set ->
-            set.getSourceFiles().forEach { res ->
-                val layoutDirs = res.listFiles(object : FileFilter {
-                    override fun accept(file : File?) : Boolean {
+            set.getSourceFiles().forEach({ res ->
+                res.listFiles(object : FileFilter {
+                    override fun accept(file: File?): Boolean {
                         return file != null && file.isDirectory() &&
                                 file.getName().toLowerCase().startsWith("layout")
                     }
-                })
-                if (layoutDirs != null) {
-                    layoutDirs.forEach { layoutDir ->
-                        val xmlFiles = layoutDir.listFiles(object : FileFilter {
-                            override fun accept(file: File?): Boolean {
-                                return file != null && !file.isDirectory() &&
-                                        file.getName().toLowerCase().endsWith(".xml")
-                            }
-                        })
+                })?.forEach { layoutDir ->
 
-                        if (xmlFiles != null) {
-                            xmlFiles.forEach { xmlFile : File ->
-                                val document = parseXml(xmlFile)
-                                val bindingClass = expr.evaluate(document)
-                                if (bindingClass != null && !bindingClass.isEmpty()) {
-                                    if (bindingClass.startsWith('.')) {
-                                        customBindings.add("${packageName}${bindingClass}")
-                                    } else if (bindingClass.contains(".")) {
-                                        customBindings.add(bindingClass)
-                                    } else {
-                                        customBindings.add(
-                                                "${packageName}.databinding.${bindingClass}")
-                                    }
-                                }
+                    layoutDir.listFiles(object : FileFilter {
+                        override fun accept(file: File?): Boolean {
+                            return file != null && !file.isDirectory() &&
+                                    file.getName().toLowerCase().endsWith(".xml")
+                        }
+                    })?.forEach { xmlFile: File ->
+                        val document = parseXml(xmlFile)
+                        val bindingClass = expr.evaluate(document)
+                        if (bindingClass != null && !bindingClass.isEmpty()) {
+                            if (bindingClass.startsWith('.')) {
+                                customBindings.add("${packageName}${bindingClass}")
+                            } else if (bindingClass.contains(".")) {
+                                customBindings.add(bindingClass)
+                            } else {
+                                customBindings.add(
+                                        "${packageName}.databinding.${bindingClass}")
                             }
                         }
                     }
                 }
-            }
+            })
         }
         return customBindings
     }
