@@ -22,8 +22,10 @@ import android.databinding.tool.expr.Dependency;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.IdentifierExpr;
+import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
+import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.writer.LayoutBinderWriter;
 import android.databinding.tool.writer.WriterPackage;
@@ -81,6 +83,7 @@ public class LayoutBinder {
                     .getBindingBundleList()) {
                 bindingTarget.addBinding(bindingBundle.getName(), parse(bindingBundle.getExpr()));
             }
+            bindingTarget.resolveMultiSetters();
         }
         mSortedBindingTargets = new ArrayList<BindingTarget>(mBindingTargets);
         Collections.sort(mSortedBindingTargets, COMPARE_FIELD_NAME);

@@ -105,7 +105,7 @@ public class FieldAccessExpr extends Expr {
             child.resolveType(modelAnalyzer);
             boolean isStatic = child instanceof StaticIdentifierExpr;
             ModelClass resolvedType = child.getResolvedType();
-            L.d("resolving %s. Resolved type: %s", this, resolvedType);
+            L.d("resolving %s. Resolved class type: %s", this, resolvedType);
 
             mGetter = resolvedType.findGetterOrField(mName, isStatic);
             if (mGetter.resolvedType.isObservableField()) {

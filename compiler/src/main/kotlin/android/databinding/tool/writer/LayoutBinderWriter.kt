@@ -14,6 +14,8 @@
 package android.databinding.tool.writer
 
 import android.databinding.tool.LayoutBinder
+import kotlin.properties.Delegates
+import android.databinding.tool.BindingTarget
 import android.databinding.tool.expr.Expr
 import kotlin.properties.Delegates
 import android.databinding.tool.ext.joinToCamelCaseAsVar
@@ -39,8 +41,11 @@ import android.databinding.tool.ext.lazy
 import android.databinding.tool.ext.br
 import android.databinding.tool.expr.ResourceExpr
 import android.databinding.tool.expr.BracketExpr
+import android.databinding.tool.ext;
+import android.databinding.tool.util.Log
+import java.util.BitSet
+import java.util.Arrays
 import android.databinding.tool.reflection.Callable
-import android.databinding.tool.expr.CastExpr
 import android.databinding.tool.reflection.ModelAnalyzer
 import java.util.ArrayList
 import java.util.HashMap
@@ -167,96 +172,7 @@ val Expr.dirtyFlagName by Delegates.lazy { expr : Expr ->
 }
 
 
-fun Expr.toCode(full : Boolean = false) : KCode {
-    val it = this
-    if (isDynamic() && !full) {
-        return kcode(executePendingLocalName)
-    }
-    return when (it) {
-        is ComparisonExpr -> kcode("") {
-            app("", it.getLeft().toCode())
-            app(it.getOp())
-            app("", it.getRight().toCode())
-        }
-        is InstanceOfExpr -> kcode("") {
-            app("", it.getExpr().toCode())
-            app(" instanceof ")
-            app("", it.getType().toJavaCode())
-        }
-        is FieldAccessExpr -> kcode("") {
-            app("", it.getChild().toCode())
-            if (it.getGetter().type == Callable.Type.FIELD) {
-                app(".", it.getGetter().name)
-            } else {
-                app(".", it.getGetter().name).app("()")
-            }
-        }
-        is GroupExpr -> kcode("(").app("", it.getWrapped().toCode()).app(")")
-        is StaticIdentifierExpr -> kcode(it.getResolvedType().toJavaCode())
-        is IdentifierExpr -> kcode(it.executePendingLocalName)
-        is MathExpr -> kcode("") {
-            app("", it.getLeft().toCode())
-            app(it.getOp())
-            app("", it.getRight().toCode())
-        }
-        is UnaryExpr -> kcode("") {
-            app(it.getOp(), it.getExpr().toCode())
-        }
-        is BitShiftExpr -> kcode("") {
-            app("", it.getLeft().toCode())
-            app(it.getOp())
-            app("", it.getRight().toCode())
-        }
-        is MethodCallExpr -> kcode("") {
-            app("", it.getTarget().toCode())
-            app(".", it.getGetter().name)
-            app("(")
-            var first = true
-            it.getArgs().forEach {
-                apps(if (first) "" else ",", it.toCode())
-                first = false
-            }
-            app(")")
-        }
-        is SymbolExpr -> kcode(it.getText()) // TODO
-        is TernaryExpr -> kcode("") {
-            app("", it.getPred().toCode())
-            app("?", it.getIfTrue().toCode())
-            app(":", it.getIfFalse().toCode())
-        }
-        is ResourceExpr -> kcode("") {
-            app("", it.toJava())
-        }
-        is BracketExpr -> kcode("") {
-            app("", it.getTarget().toCode())
-            val bracketType = it.getAccessor();
-            when (bracketType) {
-                BracketExpr.BracketAccessor.ARRAY -> {
-                    app("[", it.getArg().toCode())
-                    app("]")
-                }
-                BracketExpr.BracketAccessor.LIST -> {
-                    app(".get(")
-                    if (it.argCastsInteger()) {
-                        app("(Integer)")
-                    }
-                    app("", it.getArg().toCode())
-                    app(")")
-                }
-                BracketExpr.BracketAccessor.MAP -> {
-                    app(".get(", it.getArg().toCode())
-                    app(")")
-                }
-            }
-        }
-        is CastExpr -> kcode("") {
-            app("(", it.getCastType())
-            app(") ", it.getCastExpr().toCode())
-        }
-        else -> kcode("//NOT IMPLEMENTED YET")
-    }
-
-}
+fun Expr.toCode(full : Boolean = false) : KCode = CodeGenUtil.toCode(this, full)
 
 fun Expr.isVariable() = this is IdentifierExpr && this.isDynamic()
 
@@ -730,7 +646,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     tab("${mDirtyFlags.localValue(i)} = 0;")
                 }
             } tab("}")
-            model.getPendingExpressions().filterNot {it.isVariable()}.forEach {
+            model.getPendingExpressions().filterNot {!it.canBeEvaluatedToAVariable() || it.isVariable()}.forEach {
                 tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${it.getDefaultValue()};")
             }
             Log.d {"writing executePendingBindings for $className"}
@@ -772,7 +688,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                 } else {
                                     fieldName = "((${binding.getTarget().getViewClass()}) this.${binding.getTarget().fieldName})"
                                 }
-                                val bindingCode = binding.toJavaCode(fieldName, binding.getExpr().toCode().generate())
+                                val bindingCode = binding.toJavaCode(fieldName)
                                 if (binding.getMinApi() > 1) {
                                     tab("if(getBuildSdkInt() >= ${binding.getMinApi()}) {") {
                                         tab("$bindingCode;")
@@ -813,7 +729,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         })"
 
         val readCode = kcode("") {
-            if (!expr.isVariable()) {
+            if (expr.canBeEvaluatedToAVariable() && !expr.isVariable()) {
                 // it is not a variable read it.
                 tab("// read ${expr.getUniqueKey()}")
                 // create an if case for all dependencies that might be null
