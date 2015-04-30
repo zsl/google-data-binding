@@ -21,6 +21,7 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.store.SetterStore.SetterCall;
+import android.databinding.tool.writer.CodeGenUtil;
 
 public class Binding {
 
@@ -35,7 +36,7 @@ public class Binding {
         mExpr = expr;
     }
 
-    private SetterStore.SetterCall getSetterCall() {
+    private SetterStore.BindingSetterCall getSetterCall() {
         if (mSetterCall == null) {
             ModelClass viewType = mTarget.getResolvedType();
             if (viewType != null && viewType.extendsViewStub()) {
@@ -56,8 +57,9 @@ public class Binding {
         return mTarget;
     }
 
-    public String toJavaCode(String targetViewName, String expressionCode) {
-        return getSetterCall().toJava(targetViewName, expressionCode);
+    public String toJavaCode(String targetViewName) {
+        String argCode = CodeGenUtil.Companion.toCode(getExpr(), false).generate();
+        return getSetterCall().toJava(targetViewName, argCode);
     }
 
     /**
@@ -69,15 +71,6 @@ public class Binding {
     public int getMinApi() {
         return getSetterCall().getMinApi();
     }
-
-//    private String resolveJavaCode(ModelAnalyzer modelAnalyzer) {
-//
-//    }
-////        return modelAnalyzer.findMethod(mTarget.getResolvedType(), mName,
-////                Arrays.asList(mExpr.getResolvedType()));
-//    //}
-//
-
 
     public String getName() {
         return mName;

@@ -42,6 +42,9 @@ public class ExprModel {
 
     private int mRequirementIdCount = 0;
 
+    // each arg list receives a unique id even if it is the same arguments and method.
+    private int mArgListIdCounter = 0;
+
     private static final String TRUE_KEY_SUFFIX = "== true";
     private static final String FALSE_KEY_SUFFIX = "== false";
 
@@ -67,6 +70,8 @@ public class ExprModel {
 
     private List<Expr> mObservables;
 
+    private boolean mSealed = false;
+
     private Map<String, String> mImports = new HashMap<String, String>();
 
     /**
@@ -77,6 +82,7 @@ public class ExprModel {
      * @return The expression itself or another one if the same thing was parsed before
      */
     public <T extends Expr> T register(T expr) {
+        Preconditions.checkState(!mSealed, "Cannot add expressions to a model after it is sealed");
         T existing = (T) mExprMap.get(expr.getUniqueKey());
         if (existing != null) {
             Preconditions.checkState(expr.getParents().isEmpty(),
@@ -371,7 +377,7 @@ public class ExprModel {
             expr.getResolvedType();
         }
 
-
+        mSealed = true;
     }
 
     public int getFlagBucketCount() {
@@ -528,5 +534,9 @@ public class ExprModel {
 
     public BitSet getInvalidateAnyBitSet() {
         return mInvalidateAnyFlags;
+    }
+
+    public Expr argListExpr(Iterable<Expr> expressions) {
+        return register(new ArgListExpr(mArgListIdCounter ++, expressions));
     }
 }

@@ -25,6 +25,7 @@ import com.google.common.collect.Lists;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.writer.KCode;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -144,6 +145,10 @@ abstract public class Expr {
         return mIsBindingExpression;
     }
 
+    public boolean canBeEvaluatedToAVariable() {
+        return true; // anything except arg expr can be evaluated to a variable
+    }
+
     public boolean isObservable() {
         return getResolvedType().isObservable();
     }
@@ -199,7 +204,7 @@ abstract public class Expr {
         for (Dependency dependency : getDependants()) {
             final boolean isElevated = unreadElevatedCheck.apply(dependency);
             if (dependency.isConditional()) {
-                continue; // TODO
+                continue; // will be resolved later when conditional is elevated
             }
             if (isElevated) {
                 // if i already have all flags that will require my dependant's predicate to

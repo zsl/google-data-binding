@@ -857,7 +857,13 @@ public class SetterStore {
         }
     }
 
-    public static abstract class SetterCall {
+    public static interface BindingSetterCall {
+        String toJava(String viewExpression, String... valueExpressions);
+
+        int getMinApi();
+    }
+
+    public static abstract class SetterCall implements BindingSetterCall {
         private MethodDescription mConverter;
         protected String mCastString = "";
 
@@ -870,8 +876,10 @@ public class SetterStore {
 
         protected abstract String toJavaInternal(String viewExpression, String converted);
 
-        public final String toJava(String viewExpression, String valueExpression) {
-            return toJavaInternal(viewExpression, convertValue(valueExpression));
+        @Override
+        public final String toJava(String viewExpression, String... valueExpression) {
+            Preconditions.checkArgument(valueExpression.length == 1);
+            return toJavaInternal(viewExpression, convertValue(valueExpression[0]));
         }
 
         protected String convertValue(String valueExpression) {
@@ -886,7 +894,7 @@ public class SetterStore {
         }
     }
 
-    public static class MultiAttributeSetter {
+    public static class MultiAttributeSetter implements BindingSetterCall {
         public final String[] attributes;
         private final MethodDescription mAdapter;
         private final MethodDescription[] mConverters;
@@ -905,8 +913,11 @@ public class SetterStore {
             this.mKey = key;
         }
 
-        public String toJava(String viewExpression, String[] valueExpressions) {
-            Preconditions.checkArgument(valueExpressions.length == attributes.length);
+        @Override
+        public final String toJava(String viewExpression, String[] valueExpressions) {
+            Preconditions.checkArgument(valueExpressions.length == attributes.length,
+                    "MultiAttributeSetter needs %s items, received %s",
+                    Arrays.toString(attributes), Arrays.toString(valueExpressions));
             StringBuilder sb = new StringBuilder();
             sb.append(mAdapter.type)
                     .append('.')
@@ -934,6 +945,22 @@ public class SetterStore {
             }
             sb.append(')');
             return sb.toString();
+        }
+
+        @Override
+        public int getMinApi() {
+            return 1;
+        }
+
+        @Override
+        public String toString() {
+            return "MultiAttributeSetter{" +
+                    "attributes=" + Arrays.toString(attributes) +
+                    ", mAdapter=" + mAdapter +
+                    ", mConverters=" + Arrays.toString(mConverters) +
+                    ", mCasts=" + Arrays.toString(mCasts) +
+                    ", mKey=" + mKey +
+                    '}';
         }
     }
 }
