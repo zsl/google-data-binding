@@ -147,7 +147,7 @@ public class LayoutXmlProcessor {
      * Generates a string identifier that can uniquely identify the given layout bundle.
      * This identifier can be used when we need to export data about this layout bundle.
      */
-    private String generateExportFileName(ResourceBundle.LayoutFileBundle layout) {
+    public String generateExportFileName(ResourceBundle.LayoutFileBundle layout) {
         StringBuilder name = new StringBuilder(layout.getFileName());
         name.append('-').append(layout.getDirectory());
         for (int i = name.length() - 1; i >= 0; i--) {

@@ -19,6 +19,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 
+import android.databinding.tool.store.ResourceBundle.LayoutFileBundle;
+import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.io.File;
@@ -26,6 +28,9 @@ import java.io.FileWriter;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -63,12 +68,13 @@ public class MakeCopy {
 
     public static void main(String[] args) {
         if (args.length < 5) {
-            System.out.println("required parameters: manifest adk-dir src-out-dir xml-out-dir " +
+            System.out.println("required parameters: [-l] manifest adk-dir src-out-dir xml-out-dir " +
                             "res-out-dir res-in-dir...");
             System.out.println("Creates an android data binding class and copies resources from");
             System.out.println("res-source to res-target and modifies binding layout files");
             System.out.println("in res-target. Binding data is extracted into XML files");
             System.out.println("and placed in xml-out-dir.");
+            System.out.println("  -l          indicates that this is a library");
             System.out.println("  manifest    path to AndroidManifest.xml file");
             System.out.println("  src-out-dir path to where generated source goes");
             System.out.println("  xml-out-dir path to where generated binding XML goes");
@@ -77,15 +83,15 @@ public class MakeCopy {
                     " or more are allowed.");
             System.exit(1);
         }
-        final boolean isLibrary;
+        final boolean isLibrary = args[0].equals("-l");
+        final int indexOffset = isLibrary ? 1 : 0;
         final String applicationPackage;
         final int minSdk;
-        final Document androidManifest = readAndroidManifest(new File(args[MANIFEST_INDEX]));
+        final Document androidManifest = readAndroidManifest(
+                new File(args[MANIFEST_INDEX + indexOffset]));
         try {
             final XPathFactory xPathFactory = XPathFactory.newInstance();
             final XPath xPath = xPathFactory.newXPath();
-            isLibrary = (Boolean) xPath.evaluate("boolean(/manifest/application)", androidManifest,
-                    XPathConstants.BOOLEAN);
             applicationPackage = xPath.evaluate("string(/manifest/@package)", androidManifest);
             final Double minSdkNumber = (Double) xPath.evaluate(
                     "number(/manifest/uses-sdk/@android:minSdkVersion)", androidManifest,
@@ -96,17 +102,17 @@ public class MakeCopy {
             System.exit(6);
             return;
         }
-        final File srcDir = new File(args[SRC_INDEX], APP_SUBPATH);
+        final File srcDir = new File(args[SRC_INDEX + indexOffset], APP_SUBPATH);
         if (!makeTargetDir(srcDir)) {
             System.err.println("Could not create source directory " + srcDir);
             System.exit(2);
         }
-        final File resTarget = new File(args[RES_OUT_INDEX]);
+        final File resTarget = new File(args[RES_OUT_INDEX + indexOffset]);
         if (!makeTargetDir(resTarget)) {
             System.err.println("Could not create resource directory: " + resTarget);
             System.exit(4);
         }
-        final File xmlDir = new File(args[XML_INDEX]);
+        final File xmlDir = new File(args[XML_INDEX + indexOffset]);
         if (!makeTargetDir(xmlDir)) {
             System.err.println("Could not create xml output directory: " + xmlDir);
             System.exit(5);
@@ -116,12 +122,13 @@ public class MakeCopy {
         System.out.println("Target Resources: " + resTarget.getAbsolutePath());
         System.out.println("Target Source Dir: " + srcDir.getAbsolutePath());
         System.out.println("Target XML Dir: " + xmlDir.getAbsolutePath());
+        System.out.println("Library? " + isLibrary);
 
         boolean foundSomeResources = false;
-        for (int i = RES_IN_INDEX; i < args.length; i++) {
+        for (int i = RES_IN_INDEX + indexOffset; i < args.length; i++) {
             final File resDir = new File(args[i]);
             if (!resDir.exists()) {
-                System.err.println("Could not find resource directory: " + resDir);
+                System.out.println("Could not find resource directory: " + resDir);
             } else {
                 System.out.println("Source Resources: " + resDir.getAbsolutePath());
                 try {
@@ -168,6 +175,16 @@ public class MakeCopy {
             xmlProcessor.processResources();
             xmlProcessor.writeLayoutInfoFiles(xmlDir);
             xmlProcessor.writeInfoClass(null, xmlDir);
+            Map<String, List<LayoutFileBundle>> bundles =
+                    xmlProcessor.getResourceBundle().getLayoutBundles();
+            if (isLibrary) {
+                for (String name : bundles.keySet()) {
+                    LayoutFileBundle layoutFileBundle = bundles.get(name).get(0);
+                    String pkgName = layoutFileBundle.getBindingClassPackage().replace('.', '/');
+                    System.err.println(pkgName + '/' + layoutFileBundle.getBindingClassName() +
+                        ".class");
+                }
+            }
             if (makeFileWriter.getErrorCount() > 0) {
                 System.exit(9);
             }
