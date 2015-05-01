@@ -33,13 +33,17 @@ import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.MirroredTypeException;
+import javax.lang.model.type.ReferenceType;
 import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 
 public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
@@ -115,9 +119,17 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
         for (Element element : AnnotationUtil
                 .getElementsAnnotatedWith(roundEnv, BindingMethods.class)) {
             BindingMethods bindingMethods = element.getAnnotation(BindingMethods.class);
+
             for (BindingMethod bindingMethod : bindingMethods.value()) {
-                store.addRenamedMethod(bindingMethod.attribute(),
-                        bindingMethod.type(), bindingMethod.method(), (TypeElement) element);
+                final String attribute = bindingMethod.attribute();
+                final String method = bindingMethod.method();
+                String type;
+                try {
+                    type = bindingMethod.type().getCanonicalName();
+                } catch (MirroredTypeException e) {
+                    type = e.getTypeMirror().toString();
+                }
+                store.addRenamedMethod(attribute, type, method, (TypeElement) element);
             }
         }
     }

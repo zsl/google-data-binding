@@ -19,9 +19,9 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.ImageView", attribute = "android:src", method = "setImageDrawable"),
-        @BindingMethod(type = "android.widget.ImageView", attribute = "android:tint", method = "setImageTintList"),
-        @BindingMethod(type = "android.widget.ImageView", attribute = "android:tintMode", method = "setImageTintMode"),
+        @BindingMethod(type = android.widget.ImageView.class, attribute = "android:src", method = "setImageDrawable"),
+        @BindingMethod(type = android.widget.ImageView.class, attribute = "android:tint", method = "setImageTintList"),
+        @BindingMethod(type = android.widget.ImageView.class, attribute = "android:tintMode", method = "setImageTintMode"),
 })
 public class ImageViewBindingAdapter {
 

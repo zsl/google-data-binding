@@ -19,10 +19,10 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.TabWidget", attribute = "android:divider", method = "setDividerDrawable"),
-        @BindingMethod(type = "android.widget.TabWidget", attribute = "android:tabStripEnabled", method = "setStripEnabled"),
-        @BindingMethod(type = "android.widget.TabWidget", attribute = "android:tabStripLeft", method = "setLeftStripDrawable"),
-        @BindingMethod(type = "android.widget.TabWidget", attribute = "android:tabStripRight", method = "setRightStripDrawable"),
+        @BindingMethod(type = android.widget.TabWidget.class, attribute = "android:divider", method = "setDividerDrawable"),
+        @BindingMethod(type = android.widget.TabWidget.class, attribute = "android:tabStripEnabled", method = "setStripEnabled"),
+        @BindingMethod(type = android.widget.TabWidget.class, attribute = "android:tabStripLeft", method = "setLeftStripDrawable"),
+        @BindingMethod(type = android.widget.TabWidget.class, attribute = "android:tabStripRight", method = "setRightStripDrawable"),
 })
 public class TabWidgetBindingAdapter {
 

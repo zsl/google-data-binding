@@ -19,8 +19,8 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.AutoCompleteTextView", attribute = "android:completionThreshold", method = "setThreshold"),
-        @BindingMethod(type = "android.widget.AutoCompleteTextView", attribute = "android:popupBackground", method = "setDropDownBackgroundDrawable"),
+        @BindingMethod(type = android.widget.AutoCompleteTextView.class, attribute = "android:completionThreshold", method = "setThreshold"),
+        @BindingMethod(type = android.widget.AutoCompleteTextView.class, attribute = "android:popupBackground", method = "setDropDownBackgroundDrawable"),
 })
 public class AutoCompleteTextViewBindingAdapter {
 

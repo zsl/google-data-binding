@@ -19,8 +19,8 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.LinearLayout", attribute = "android:divider", method = "setDividerDrawable"),
-        @BindingMethod(type = "android.widget.LinearLayout", attribute = "android:measureWithLargestChild", method = "setMeasureWithLargestChildEnabled"),
+        @BindingMethod(type = android.widget.LinearLayout.class, attribute = "android:divider", method = "setDividerDrawable"),
+        @BindingMethod(type = android.widget.LinearLayout.class, attribute = "android:measureWithLargestChild", method = "setMeasureWithLargestChildEnabled"),
 })
 public class LinearLayoutBindingAdapter {
 

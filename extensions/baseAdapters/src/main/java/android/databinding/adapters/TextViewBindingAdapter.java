@@ -32,15 +32,15 @@ import android.util.TypedValue;
 import android.widget.TextView;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:autoLink", method = "setAutoLinkMask"),
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:drawablePadding", method = "setCompoundDrawablePadding"),
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:editorExtras", method = "setInputExtras"),
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:inputType", method = "setRawInputType"),
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:scrollHorizontally", method = "setHorizontallyScrolling"),
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:textAllCaps", method = "setAllCaps"),
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:textColorHighlight", method = "setHighlightColor"),
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:textColorHint", method = "setHintTextColor"),
-        @BindingMethod(type = "android.widget.TextView", attribute = "android:textColorLink", method = "setLinkTextColor"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:autoLink", method = "setAutoLinkMask"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:drawablePadding", method = "setCompoundDrawablePadding"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:editorExtras", method = "setInputExtras"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:inputType", method = "setRawInputType"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:scrollHorizontally", method = "setHorizontallyScrolling"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:textAllCaps", method = "setAllCaps"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:textColorHighlight", method = "setHighlightColor"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:textColorHint", method = "setHintTextColor"),
+        @BindingMethod(type = android.widget.TextView.class, attribute = "android:textColorLink", method = "setLinkTextColor"),
 })
 public class TextViewBindingAdapter {
 

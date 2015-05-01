@@ -19,9 +19,9 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.ProgressBar", attribute = "android:indeterminateTint", method = "setIndeterminateTintList"),
-        @BindingMethod(type = "android.widget.ProgressBar", attribute = "android:progressTint", method = "setProgressTintList"),
-        @BindingMethod(type = "android.widget.ProgressBar", attribute = "android:secondaryProgressTint", method = "setSecondaryProgressTintList"),
+        @BindingMethod(type = android.widget.ProgressBar.class, attribute = "android:indeterminateTint", method = "setIndeterminateTintList"),
+        @BindingMethod(type = android.widget.ProgressBar.class, attribute = "android:progressTint", method = "setProgressTintList"),
+        @BindingMethod(type = android.widget.ProgressBar.class, attribute = "android:secondaryProgressTint", method = "setSecondaryProgressTintList"),
 })
 public class ProgressBarBindingAdapter {
 

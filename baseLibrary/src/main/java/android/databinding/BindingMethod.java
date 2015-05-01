@@ -16,7 +16,7 @@
 package android.databinding;
 
 public @interface BindingMethod {
-    String type();
+    Class type();
     String attribute();
     String method();
 }

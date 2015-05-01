@@ -19,9 +19,9 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.AbsListView", attribute = "android:listSelector", method = "setSelector"),
-        @BindingMethod(type = "android.widget.AbsListView", attribute = "android:scrollingCache", method = "setScrollingCacheEnabled"),
-        @BindingMethod(type = "android.widget.AbsListView", attribute = "android:smoothScrollbar", method = "setSmoothScrollbarEnabled"),
+        @BindingMethod(type = android.widget.AbsListView.class, attribute = "android:listSelector", method = "setSelector"),
+        @BindingMethod(type = android.widget.AbsListView.class, attribute = "android:scrollingCache", method = "setScrollingCacheEnabled"),
+        @BindingMethod(type = android.widget.AbsListView.class, attribute = "android:smoothScrollbar", method = "setSmoothScrollbarEnabled"),
 })
 public class AbsListViewBindingAdapter {
 

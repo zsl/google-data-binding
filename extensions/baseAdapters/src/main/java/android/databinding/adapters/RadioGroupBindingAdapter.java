@@ -19,7 +19,7 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.RadioGroup", attribute = "android:checkedButton", method = "check"),
+        @BindingMethod(type = android.widget.RadioGroup.class, attribute = "android:checkedButton", method = "check"),
 })
 public class RadioGroupBindingAdapter {
 

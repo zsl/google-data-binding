@@ -19,8 +19,8 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.CheckedTextView", attribute = "android:checkMark", method = "setCheckMarkDrawable"),
-        @BindingMethod(type = "android.widget.CheckedTextView", attribute = "android:checkMarkTint", method = "setCheckMarkTintList"),
+        @BindingMethod(type = android.widget.CheckedTextView.class, attribute = "android:checkMark", method = "setCheckMarkDrawable"),
+        @BindingMethod(type = android.widget.CheckedTextView.class, attribute = "android:checkMarkTint", method = "setCheckMarkTintList"),
 })
 public class CheckedTextViewBindingAdapter {
 

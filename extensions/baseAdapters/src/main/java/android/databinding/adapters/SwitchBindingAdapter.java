@@ -23,8 +23,8 @@ import android.os.Build;
 import android.widget.Switch;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.Switch", attribute = "android:thumb", method = "setThumbDrawable"),
-        @BindingMethod(type = "android.widget.Switch", attribute = "android:track", method = "setTrackDrawable"),
+        @BindingMethod(type = android.widget.Switch.class, attribute = "android:thumb", method = "setThumbDrawable"),
+        @BindingMethod(type = android.widget.Switch.class, attribute = "android:track", method = "setTrackDrawable"),
 })
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class SwitchBindingAdapter {

@@ -21,8 +21,8 @@ import android.databinding.BindingMethods;
 import android.support.v7.widget.SwitchCompat;
 
 @BindingMethods({
-        @BindingMethod(type = "android.support.v7.widget.SwitchCompat", attribute = "android:thumb", method = "setThumbDrawable"),
-        @BindingMethod(type = "android.support.v7.widget.SwitchCompat", attribute = "android:track", method = "setTrackDrawable"),
+        @BindingMethod(type = android.support.v7.widget.SwitchCompat.class, attribute = "android:thumb", method = "setThumbDrawable"),
+        @BindingMethod(type = android.support.v7.widget.SwitchCompat.class, attribute = "android:track", method = "setTrackDrawable"),
 })
 public class SwitchCompatBindingAdapter {
 

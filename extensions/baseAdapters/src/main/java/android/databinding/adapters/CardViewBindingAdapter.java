@@ -21,10 +21,10 @@ import android.databinding.BindingMethods;
 import android.support.v7.widget.CardView;
 
 @BindingMethods({
-        @BindingMethod(type = "android.support.v7.widget.CardView", attribute = "cardCornerRadius", method = "setRadius"),
-        @BindingMethod(type = "android.support.v7.widget.CardView", attribute = "cardMaxElevation", method = "setMaxCardElevation"),
-        @BindingMethod(type = "android.support.v7.widget.CardView", attribute = "cardPreventCornerOverlap", method = "setPreventCornerOverlap"),
-        @BindingMethod(type = "android.support.v7.widget.CardView", attribute = "cardUseCompatPadding", method = "setUseCompatPadding"),
+        @BindingMethod(type = android.support.v7.widget.CardView.class, attribute = "cardCornerRadius", method = "setRadius"),
+        @BindingMethod(type = android.support.v7.widget.CardView.class, attribute = "cardMaxElevation", method = "setMaxCardElevation"),
+        @BindingMethod(type = android.support.v7.widget.CardView.class, attribute = "cardPreventCornerOverlap", method = "setPreventCornerOverlap"),
+        @BindingMethod(type = android.support.v7.widget.CardView.class, attribute = "cardUseCompatPadding", method = "setUseCompatPadding"),
 })
 public class CardViewBindingAdapter {
 

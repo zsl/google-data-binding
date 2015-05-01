@@ -19,7 +19,7 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.CompoundButton", attribute = "android:buttonTint", method = "setButtonTintList"),
+        @BindingMethod(type = android.widget.CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
 })
 public class CompoundButtonBindingAdapter {
 

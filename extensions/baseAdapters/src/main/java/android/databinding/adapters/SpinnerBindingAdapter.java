@@ -19,7 +19,7 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.Spinner", attribute = "android:popupBackground", method = "setPopupBackgroundDrawable"),
+        @BindingMethod(type = android.widget.Spinner.class, attribute = "android:popupBackground", method = "setPopupBackgroundDrawable"),
 })
 public class SpinnerBindingAdapter {
 

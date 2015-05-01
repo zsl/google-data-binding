@@ -453,7 +453,7 @@ public class SetterStore {
                     try {
                         ModelClass adapterViewType = mClassAnalyzer
                                 .findClass(key.viewType, imports);
-                        if (adapterViewType.isAssignableFrom(viewType)) {
+                        if (adapterViewType != null && adapterViewType.isAssignableFrom(viewType)) {
                             try {
                                 ModelClass adapterValueType = mClassAnalyzer
                                         .findClass(key.valueType, imports);

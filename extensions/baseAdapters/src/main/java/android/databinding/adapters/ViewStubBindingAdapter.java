@@ -21,7 +21,7 @@ import android.databinding.Untaggable;
 
 @Untaggable({"android.view.ViewStub"})
 @BindingMethods({
-        @BindingMethod(type = "android.view.ViewStub", attribute = "android:layout", method = "setLayoutResource")
+        @BindingMethod(type = android.view.ViewStub.class, attribute = "android:layout", method = "setLayoutResource")
 })
 public class ViewStubBindingAdapter {
 

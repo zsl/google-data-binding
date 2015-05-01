@@ -19,7 +19,7 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 
 @BindingMethods({
-        @BindingMethod(type = "android.widget.FrameLayout", attribute = "android:foregroundTint", method = "setForegroundTintList"),
+        @BindingMethod(type = android.widget.FrameLayout.class, attribute = "android:foregroundTint", method = "setForegroundTintList"),
 })
 public class FrameLayoutBindingAdapter {
 

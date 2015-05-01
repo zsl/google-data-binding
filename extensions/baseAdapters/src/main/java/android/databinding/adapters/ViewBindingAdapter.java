@@ -22,20 +22,20 @@ import android.os.Build;
 import android.view.View;
 
 @BindingMethods({
-        @BindingMethod(type = "android.view.View", attribute = "android:backgroundTint", method = "setBackgroundTintList"),
-        @BindingMethod(type = "android.view.View", attribute = "android:fadeScrollbars", method = "setScrollbarFadingEnabled"),
-        @BindingMethod(type = "android.view.View", attribute = "android:nextFocusForward", method = "setNextFocusForwardId"),
-        @BindingMethod(type = "android.view.View", attribute = "android:nextFocusLeft", method = "setNextFocusLeftId"),
-        @BindingMethod(type = "android.view.View", attribute = "android:nextFocusRight", method = "setNextFocusRightId"),
-        @BindingMethod(type = "android.view.View", attribute = "android:nextFocusUp", method = "setNextFocusUpId"),
-        @BindingMethod(type = "android.view.View", attribute = "android:nextFocusDown", method = "setNextFocusDownId"),
-        @BindingMethod(type = "android.view.View", attribute = "android:requiresFadingEdge", method = "setVerticalFadingEdgeEnabled"),
-        @BindingMethod(type = "android.view.View", attribute = "android:scrollbarDefaultDelayBeforeFade", method = "setScrollBarDefaultDelayBeforeFade"),
-        @BindingMethod(type = "android.view.View", attribute = "android:scrollbarFadeDuration", method = "setScrollBarFadeDuration"),
-        @BindingMethod(type = "android.view.View", attribute = "android:scrollbarSize", method = "setScrollBarSize"),
-        @BindingMethod(type = "android.view.View", attribute = "android:scrollbarStyle", method = "setScrollBarStyle"),
-        @BindingMethod(type = "android.view.View", attribute = "android:transformPivotX", method = "setPivotX"),
-        @BindingMethod(type = "android.view.View", attribute = "android:transformPivotY", method = "setPivotY"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:backgroundTint", method = "setBackgroundTintList"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:fadeScrollbars", method = "setScrollbarFadingEnabled"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:nextFocusForward", method = "setNextFocusForwardId"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:nextFocusLeft", method = "setNextFocusLeftId"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:nextFocusRight", method = "setNextFocusRightId"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:nextFocusUp", method = "setNextFocusUpId"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:nextFocusDown", method = "setNextFocusDownId"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:requiresFadingEdge", method = "setVerticalFadingEdgeEnabled"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:scrollbarDefaultDelayBeforeFade", method = "setScrollBarDefaultDelayBeforeFade"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:scrollbarFadeDuration", method = "setScrollBarFadeDuration"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:scrollbarSize", method = "setScrollBarSize"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:scrollbarStyle", method = "setScrollBarStyle"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:transformPivotX", method = "setPivotX"),
+        @BindingMethod(type = android.view.View.class, attribute = "android:transformPivotY", method = "setPivotY"),
 })
 public class ViewBindingAdapter {
     public static int FADING_EDGE_NONE = 0;

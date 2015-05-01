@@ -24,9 +24,9 @@ import android.os.Build;
 import android.view.ViewGroup;
 
 @BindingMethods({
-        @BindingMethod(type = "android.view.ViewGroup", attribute = "android:alwaysDrawnWithCache", method = "setAlwaysDrawnWithCacheEnabled"),
-        @BindingMethod(type = "android.view.ViewGroup", attribute = "android:animationCache", method = "setAnimationCacheEnabled"),
-        @BindingMethod(type = "android.view.ViewGroup", attribute = "android:splitMotionEvents", method = "setMotionEventSplittingEnabled"),
+        @BindingMethod(type = android.view.ViewGroup.class, attribute = "android:alwaysDrawnWithCache", method = "setAlwaysDrawnWithCacheEnabled"),
+        @BindingMethod(type = android.view.ViewGroup.class, attribute = "android:animationCache", method = "setAnimationCacheEnabled"),
+        @BindingMethod(type = android.view.ViewGroup.class, attribute = "android:splitMotionEvents", method = "setMotionEventSplittingEnabled"),
 })
 public class ViewGroupBindingAdapter {
 
