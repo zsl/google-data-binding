@@ -85,10 +85,6 @@ public class LayoutFileParser {
         List<Node> variableNodes = getVariableNodes(doc, xPath);
         final List<Node> imports = getImportNodes(doc, xPath);
 
-        if (variableNodes.isEmpty() && imports.isEmpty() && !hasBindingExpression(doc, xPath)) {
-            return null;
-        }
-
         ResourceBundle.LayoutFileBundle bundle = new ResourceBundle.LayoutFileBundle(
                 xmlNoExtension, xml.getParentFile().getName(), pkg, isMerge(doc, xPath));
 
