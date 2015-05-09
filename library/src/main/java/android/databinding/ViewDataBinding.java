@@ -275,6 +275,9 @@ public abstract class ViewDataBinding {
             requestRebind();
             return;
         }
+        if (!hasPendingBindings()) {
+            return;
+        }
         mIsExecutingPendingBindings = true;
         mRebindHalted = false;
         if (mRebindCallbacks != null) {
@@ -302,8 +305,15 @@ public abstract class ViewDataBinding {
 
     /**
      * Used internally to invalidate flags of included layouts.
+     * @hide
      */
     public abstract void invalidateAll();
+
+    /**
+     * @return true if any field has changed and the binding should be evaluated.
+     * @hide
+     */
+    public abstract boolean hasPendingBindings();
 
     /**
      * Removes binding listeners to expression variables.
