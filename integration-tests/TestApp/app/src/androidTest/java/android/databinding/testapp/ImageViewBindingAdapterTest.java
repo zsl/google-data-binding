@@ -15,9 +15,12 @@
  */
 package android.databinding.testapp;
 
+import android.content.ContentResolver;
 import android.databinding.testapp.databinding.ImageViewAdapterTestBinding;
 import android.databinding.testapp.vo.ImageViewBindingObject;
 
+import android.net.Uri;
+import android.test.UiThreadTest;
 import android.widget.ImageView;
 
 public class ImageViewBindingAdapterTest
@@ -46,5 +49,21 @@ public class ImageViewBindingAdapterTest
         assertEquals(mBindingObject.getSrc(), mView.getDrawable());
         assertEquals(mBindingObject.getTint(), mView.getImageTintList().getDefaultColor());
         assertEquals(mBindingObject.getTintMode(), mView.getImageTintMode());
+    }
+
+    @UiThreadTest
+    public void testImageSource() throws Throwable {
+        assertNull(mBinder.view2.getDrawable());
+        assertNull(mBinder.view3.getDrawable());
+
+        String uriString = ContentResolver.SCHEME_ANDROID_RESOURCE + "://" +
+                getActivity().getResources().getResourcePackageName(R.drawable.ic_launcher) + "/" +
+                R.drawable.ic_launcher;
+        mBinder.setUriString(uriString);
+        mBinder.setUri(Uri.parse(uriString));
+        mBinder.executePendingBindings();
+
+        assertNotNull(mBinder.view2.getDrawable());
+        assertNotNull(mBinder.view3.getDrawable());
     }
 }

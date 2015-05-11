@@ -14,6 +14,8 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
         <variable name="obj" type="android.databinding.testapp.vo.ImageViewBindingObject"/>
+        <variable name="uriString" type="String"/>
+        <variable name="uri" type="android.net.Uri"/>
     </data>
     <LinearLayout
             android:orientation="vertical"
@@ -25,6 +27,16 @@
                 android:src="@{obj.src}"
                 android:tint="@{obj.tint}"
                 android:tintMode="@{obj.tintMode}"
+                />
+        <ImageView
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:id="@+id/view2"
+                android:src="@{uri}"
+                />
+        <ImageView
+                android:layout_width="match_parent" android:layout_height="match_parent"
+                android:id="@+id/view3"
+                android:src="@{uriString}"
                 />
     </LinearLayout>
 </layout>
