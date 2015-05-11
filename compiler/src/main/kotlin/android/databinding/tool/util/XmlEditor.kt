@@ -54,7 +54,7 @@ object XmlEditor {
     fun XMLParser.ElementContext.expressionAttributes() = attributes().filter {
         val attrName = it.attrName.getText();
         val value = it.attrValue.getText()
-        attrName.equals("android:tag") || attrName.startsWith("bind:") ||
+        attrName.equals("android:tag") ||
                 (value.startsWith("\"@{") && value.endsWith("}\"")) ||
                 (value.startsWith("\'@{") && value.endsWith("}\'"))
     }
