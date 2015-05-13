@@ -26,7 +26,7 @@ import android.support.v7.widget.SwitchCompat;
 })
 public class SwitchCompatBindingAdapter {
 
-    @BindingAdapter("android:switchTextAppearance")
+    @BindingAdapter({"android:switchTextAppearance"})
     public static void setSwitchTextAppearance(SwitchCompat view, int value) {
         view.setSwitchTextAppearance(null, value);
     }

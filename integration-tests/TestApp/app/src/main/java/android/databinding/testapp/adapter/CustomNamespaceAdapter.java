@@ -19,12 +19,12 @@ import android.databinding.BindingAdapter;
 import android.widget.TextView;
 
 public class CustomNamespaceAdapter {
-    @BindingAdapter("android:set1")
+    @BindingAdapter({"android:set1"})
     public static void setOne(TextView view, String value) {
         view.setText(value);
     }
 
-    @BindingAdapter("bind:set2")
+    @BindingAdapter({"bind:set2"})
     public static void setTwo(TextView view, String value) {
         view.setText(value);
     }

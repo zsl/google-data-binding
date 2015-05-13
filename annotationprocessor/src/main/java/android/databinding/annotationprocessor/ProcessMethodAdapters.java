@@ -93,20 +93,22 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
 
             ExecutableElement executableElement = (ExecutableElement) element;
             List<? extends VariableElement> parameters = executableElement.getParameters();
-            final int numAttributes = bindingAdapter.attributes().length == 0 ? 1 :
-                    bindingAdapter.attributes().length;
+            if (bindingAdapter.value().length == 0) {
+                L.e("@BindingAdapter requires at least one attribute. %s", element);
+                continue;
+            }
+            final int numAttributes = bindingAdapter.value().length;
             if (parameters.size() != numAttributes + 1) {
                 L.e("@BindingAdapter does not take %d parameters: %s",numAttributes + 1, element);
                 continue;
             }
             try {
                 if (numAttributes == 1) {
-                    final String attribute = bindingAdapter.attributes().length == 0 ?
-                            bindingAdapter.value() : bindingAdapter.attributes()[0];
+                    final String attribute = bindingAdapter.value()[0];
                     L.d("------------------ @BindingAdapter for %s", element);
                     store.addBindingAdapter(attribute, executableElement);
                 } else {
-                    store.addBindingAdapter(bindingAdapter.attributes(), executableElement);
+                    store.addBindingAdapter(bindingAdapter.value(), executableElement);
                 }
             } catch (IllegalArgumentException e) {
                 L.e(e, "@BindingAdapter for duplicate View and parameter type: %s", element);
