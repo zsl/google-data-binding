@@ -22,8 +22,11 @@ import android.annotation.TargetApi;
 import android.databinding.CallbackRegistry.NotifierCallback;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
+import android.view.Choreographer;
 import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewGroup;
@@ -53,6 +56,8 @@ public abstract class ViewDataBinding {
 
     // ICS (v 14) fixes a leak when using setTag(int, Object)
     private static final boolean USE_TAG_ID = DataBinderMapper.TARGET_MIN_SDK >= 14;
+
+    private static final boolean USE_CHOREOGRAPHER = SDK_INT >= 16;
 
     /**
      * Method object extracted out to attach a listener to a bound Observable object.
@@ -122,7 +127,7 @@ public abstract class ViewDataBinding {
                     } else {
                         binding = (ViewDataBinding) v.getTag();
                     }
-                    v.post(binding.mRebindRunnable);
+                    binding.mRebindRunnable.run();
                     v.removeOnAttachStateChangeListener(this);
                 }
 
@@ -136,7 +141,7 @@ public abstract class ViewDataBinding {
     /**
      * Runnable executed on animation heartbeat to rebind the dirty Views.
      */
-    private Runnable mRebindRunnable = new Runnable() {
+    private final Runnable mRebindRunnable = new Runnable() {
         @Override
         public void run() {
             synchronized (this) {
@@ -186,9 +191,33 @@ public abstract class ViewDataBinding {
      */
     private boolean mIsExecutingPendingBindings;
 
+    // null api < 16
+    private Choreographer mChoreographer;
+
+    private final Choreographer.FrameCallback mFrameCallback;
+
+    // null api >= 16
+    private Handler mUIThreadHandler;
+
     protected ViewDataBinding(View root, int localFieldCount) {
         mLocalFieldObservers = new WeakListener[localFieldCount];
         this.mRoot = root;
+        if (Looper.myLooper() == null) {
+            throw new IllegalStateException("DataBinding must be created in view's UI Thread");
+        }
+        if (USE_CHOREOGRAPHER) {
+            mChoreographer = Choreographer.getInstance();
+            mFrameCallback = new Choreographer.FrameCallback() {
+                @Override
+                public void doFrame(long frameTimeNanos) {
+                    mRebindRunnable.run();
+                }
+            };
+        } else {
+            mFrameCallback = null;
+            mUIThreadHandler = new Handler(Looper.myLooper());
+        }
+        requestRebind();
     }
 
     protected void setRootTag(View view) {
@@ -363,11 +392,12 @@ public abstract class ViewDataBinding {
             }
             mPendingRebind = true;
         }
-        if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN) {
-            mRoot.postOnAnimation(mRebindRunnable);
+        if (USE_CHOREOGRAPHER) {
+            mChoreographer.postFrameCallback(mFrameCallback);
         } else {
-            mRoot.post(mRebindRunnable);
+            mUIThreadHandler.post(mRebindRunnable);
         }
+
     }
 
     protected Object getObservedField(int localFieldId) {
