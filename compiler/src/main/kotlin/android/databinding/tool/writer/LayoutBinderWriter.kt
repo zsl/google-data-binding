@@ -827,7 +827,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     fun declareFactories() = kcode("") {
         if (!layoutBinder.isMerge()) {
             tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
-                tab("return bind(inflater.inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, true));")
+                tab("return bind(inflater.inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot));")
             }
             nl("}")
             tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {
@@ -836,7 +836,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             nl("}")
             nl("public static ${baseClassName} bind(android.view.View view) {") {
                 tab("if (!\"${layoutBinder.getTag()}_0\".equals(view.getTag())) {") {
-                    tab("throw new RuntimeException(\"view tag isn't correct on view\");")
+                    tab("throw new RuntimeException(\"view tag isn't correct on view:\" + view.getTag());")
                 }
                 tab("}")
                 tab("return new ${baseClassName}(view);")
