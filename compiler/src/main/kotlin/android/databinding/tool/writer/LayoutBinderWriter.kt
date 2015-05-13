@@ -289,6 +289,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab(declareVariables())
                 tab(declareConstructor(minSdk))
                 tab(declareInvalidateAll())
+                tab(declareHasPendingBindings())
                 tab(declareLog())
                 tab(declareSetVariable())
                 tab(variableSettersAndGetters())
@@ -475,6 +476,32 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             includedBinders.filter{it.isUsed()}.forEach { binder ->
                 tab("${binder.fieldName}.invalidateAll();")
             }
+        }
+        nl("}")
+    }
+
+    fun declareHasPendingBindings()  = kcode("") {
+        nl("@Override")
+        nl("public boolean hasPendingBindings() {") {
+            if (mDirtyFlags.buckets.size() > 0) {
+                tab("synchronized(this) {") {
+                    val flagCheck = 0.rangeTo(mDirtyFlags.buckets.size() - 1).map {
+                            "${mDirtyFlags.localValue(it)} != 0"
+                    }.joinToString(" || ")
+                    tab("if (${flagCheck}) {") {
+                        tab("return true;")
+                    }
+                    tab("}")
+                }
+                tab("}")
+            }
+            includedBinders.filter{it.isUsed()}.forEach { binder ->
+                tab("if (${binder.fieldName}.hasPendingBindings()) {") {
+                    tab("return true;")
+                }
+                tab("}")
+            }
+            tab("return false;")
         }
         nl("}")
     }
