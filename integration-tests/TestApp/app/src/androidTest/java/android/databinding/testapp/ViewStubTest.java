@@ -34,21 +34,15 @@ public class ViewStubTest extends BaseDataBinderTest<ViewStubBinding> {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        mBinder.setViewStubVisibility(View.GONE);
-        mBinder.setFirstName("Hello");
-        mBinder.setLastName("World");
-        try {
-            runTestOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mBinder.executePendingBindings();
-                }
-            });
-        } catch (Exception e) {
-            throw e;
-        } catch (Throwable t) {
-            throw new Exception(t);
-        }
+        initBinder(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.setViewStubVisibility(View.GONE);
+                mBinder.setFirstName("Hello");
+                mBinder.setLastName("World");
+                mBinder.executePendingBindings();
+            }
+        });
     }
 
     @UiThreadTest

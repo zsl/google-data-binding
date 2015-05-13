@@ -31,6 +31,7 @@ public class InnerCannotReadDependencyTest extends
 
     @UiThreadTest
     public void testBinding() {
+        initBinder();
         BasicObject object = new BasicObject();
         object.setField1("a");
         mBinder.setObj(object);

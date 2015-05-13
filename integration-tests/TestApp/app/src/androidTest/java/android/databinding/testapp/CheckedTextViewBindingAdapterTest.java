@@ -25,32 +25,24 @@ import android.widget.CheckedTextView;
 public class CheckedTextViewBindingAdapterTest extends
         BindingAdapterTestBase<CheckedTextViewAdapterTestBinding, CheckedTextViewBindingObject> {
 
-    CheckedTextView mView;
-
     public CheckedTextViewBindingAdapterTest() {
         super(CheckedTextViewAdapterTestBinding.class, CheckedTextViewBindingObject.class,
                 R.layout.checked_text_view_adapter_test);
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        mView = mBinder.view;
-    }
-
     public void testView() throws Throwable {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             assertEquals(mBindingObject.getCheckMark().getColor(),
-                    ((ColorDrawable) mView.getCheckMarkDrawable()).getColor());
+                    ((ColorDrawable) mBinder.view.getCheckMarkDrawable()).getColor());
             assertEquals(mBindingObject.getCheckMarkTint(),
-                    mView.getCheckMarkTintList().getDefaultColor());
+                    mBinder.view.getCheckMarkTintList().getDefaultColor());
 
             changeValues();
 
             assertEquals(mBindingObject.getCheckMark().getColor(),
-                    ((ColorDrawable) mView.getCheckMarkDrawable()).getColor());
+                    ((ColorDrawable) mBinder.view.getCheckMarkDrawable()).getColor());
             assertEquals(mBindingObject.getCheckMarkTint(),
-                    mView.getCheckMarkTintList().getDefaultColor());
+                    mBinder.view.getCheckMarkTintList().getDefaultColor());
         }
     }
 }

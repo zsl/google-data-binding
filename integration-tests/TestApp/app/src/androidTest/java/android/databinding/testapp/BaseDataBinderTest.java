@@ -15,11 +15,9 @@ package android.databinding.testapp;
 
 import android.databinding.ViewDataBinding;
 
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.os.Looper;
 import android.test.ActivityInstrumentationTestCase2;
-import android.util.Log;
 import android.view.LayoutInflater;
 
 import java.io.PrintWriter;
@@ -46,35 +44,71 @@ public class BaseDataBinderTest<T extends ViewDataBinding>
     protected void setUp() throws Exception {
         super.setUp();
         getActivity().setRequestedOrientation(mOrientation);
-        createBinder();
     }
 
     public boolean isMainThread() {
         return Looper.myLooper() == Looper.getMainLooper();
     }
 
-    protected void createBinder() {
-        mBinder = null;
-        getActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Method method = null;
-                try {
-                    method = mBinderClass.getMethod("inflate", LayoutInflater.class);
-                    mBinder = (T) method.invoke(null, getActivity().getLayoutInflater());
-                    getActivity().setContentView(mBinder.getRoot());
-                } catch (Exception e) {
-                    StringWriter sw = new StringWriter();
-                    PrintWriter pw = new PrintWriter(sw);
-                    e.printStackTrace(pw);
-                    fail("Error creating binder: " + sw.toString());
-                }
-            }
-        });
-        if (!isMainThread()) {
+    protected T getBinder() {
+        return mBinder;
+    }
+
+    protected T initBinder() {
+        return initBinder(null);
+    }
+
+    @Override
+    public void runTestOnUiThread(Runnable r) throws Throwable {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            r.run();
+        } else {
+            // ensure activity is created
+            getActivity();
+            super.runTestOnUiThread(r);
+        }
+
+    }
+
+    protected T initBinder(final Runnable init) {
+        assertNull("should not initialize binder twice", mBinder);
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            getActivity();// ensure activity is created
             getInstrumentation().waitForIdleSync();
         }
+
+        final Method[] method = {null};
+        Throwable[] initError = new Throwable[1];
+        try {
+            runTestOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        method[0] = mBinderClass.getMethod("inflate", LayoutInflater.class);
+                        mBinder = (T) method[0].invoke(null, getActivity().getLayoutInflater());
+                        getActivity().setContentView(mBinder.getRoot());
+                        if (init != null) {
+                            init.run();
+                        }
+                    } catch (Exception e) {
+                        StringWriter sw = new StringWriter();
+                        PrintWriter pw = new PrintWriter(sw);
+                        e.printStackTrace(pw);
+                        fail("Error creating binder: " + sw.toString());
+                    }
+                }
+            });
+        } catch (Throwable throwable) {
+            initError[0] = throwable;
+        }
+        assertNull(initError[0]);
         assertNotNull(mBinder);
+        return mBinder;
+    }
+
+    protected void reCreateBinder(Runnable init) {
+        mBinder = null;
+        initBinder(init);
     }
 
     protected void assertMethod(Class<?> klass, String methodName) throws NoSuchMethodException {

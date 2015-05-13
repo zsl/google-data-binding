@@ -34,6 +34,7 @@ public class LandscapeConfigTest extends BaseLandDataBinderTest<MultiResLayoutBi
 
     public void testSharedViewIdAndVariableInheritance()
             throws InterruptedException, NoSuchMethodException, NoSuchFieldException {
+        initBinder();
         assertEquals("MultiResLayoutBindingLandImpl", mBinder.getClass().getSimpleName());
         assertPublicField(TextView.class, "objectInLandTextView");
         assertPublicField(TextView.class, "objectInDefaultTextView");

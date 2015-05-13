@@ -29,18 +29,14 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        try {
-            runTestOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mObj = new ObservableFieldBindingObject();
-                    mBinder.setObj(mObj);
-                    mBinder.executePendingBindings();
-                }
-            });
-        } catch (Throwable throwable) {
-            throw new Exception(throwable);
-        }
+        initBinder(new Runnable() {
+            @Override
+            public void run() {
+                mObj = new ObservableFieldBindingObject();
+                mBinder.setObj(mObj);
+                mBinder.executePendingBindings();
+            }
+        });
     }
 
     @UiThreadTest

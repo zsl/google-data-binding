@@ -26,6 +26,7 @@ public class NoVariablesTest extends BaseDataBinderTest<NoVariablesBinding> {
 
     @UiThreadTest
     public void testAssign() throws Throwable {
+        initBinder();
         mBinder.executePendingBindings();
         String expectedValue = getActivity().getResources().getString(R.string.app_name);
         assertEquals(expectedValue, mBinder.textView.getText().toString());

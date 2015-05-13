@@ -27,6 +27,12 @@ public class BasicDependantBindingTest extends BaseDataBinderTest<BasicDependant
         super(BasicDependantBindingBinding.class);
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        initBinder();
+    }
+
     public List<NotBindableVo> permutations(String value) {
         List<NotBindableVo> result = new ArrayList<>();
         result.add(null);
@@ -41,9 +47,9 @@ public class BasicDependantBindingTest extends BaseDataBinderTest<BasicDependant
         List<NotBindableVo> obj2s = permutations("b");
         for (NotBindableVo obj1 : obj1s) {
             for (NotBindableVo obj2 : obj2s) {
-                createBinder(); //get a new one
+                reCreateBinder(null); //get a new one
                 testWith(obj1, obj2);
-                createBinder();
+                reCreateBinder(null);
                 mBinder.executePendingBindings();
                 testWith(obj1, obj2);
             }

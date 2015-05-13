@@ -28,8 +28,14 @@ public class NewApiTest extends BaseDataBinderTest<NewApiLayoutBinding> {
         super(NewApiLayoutBinding.class);
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+    }
+
     @UiThreadTest
     public void testSetElevation() {
+        initBinder();
         mBinder.setElevation(3);
         mBinder.setName("foo");
         mBinder.setChildren(new ArrayList<View>());
@@ -40,6 +46,7 @@ public class NewApiTest extends BaseDataBinderTest<NewApiLayoutBinding> {
 
     @UiThreadTest
     public void testSetElevationOlderAPI() {
+        initBinder();
         DataBinderTrojan.setBuildSdkInt(1);
         try {
             TextView textView = mBinder.textView;
@@ -56,6 +63,7 @@ public class NewApiTest extends BaseDataBinderTest<NewApiLayoutBinding> {
 
     @UiThreadTest
     public void testGeneric() {
+        initBinder();
         ArrayList<View> views = new ArrayList<>();
         mBinder.setChildren(views);
         mBinder.executePendingBindings();
@@ -65,6 +73,7 @@ public class NewApiTest extends BaseDataBinderTest<NewApiLayoutBinding> {
 
     @UiThreadTest
     public void testGenericOlderApi() {
+        initBinder();
         DataBinderTrojan.setBuildSdkInt(1);
         try {
             ArrayList<View> views = new ArrayList<>();
