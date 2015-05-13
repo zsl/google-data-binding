@@ -483,10 +483,11 @@ public class SetterStore {
             }
         }
         if (setterCall == null) {
+            if (viewType != null && !viewType.isViewDataBinding()) {
+                L.e("Cannot find the setter for attribute '%s' on %s.", attribute,
+                        viewType.getCanonicalName());
+            }
             setterCall = new DummySetter(getDefaultSetter(attribute));
-            // might be an include tag etc. just note it and continue.
-            L.d("Cannot find the setter for attribute " + attribute + ". might be an include file,"
-                    + " moving on.");
         }
         setterCall.setConverter(conversionMethod);
         return setterCall;

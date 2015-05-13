@@ -131,6 +131,13 @@ public abstract class ModelClass {
     }
 
     /**
+     * @return whether or not his is a ViewDataBinding subclass.
+     */
+    public boolean isViewDataBinding() {
+        return ModelAnalyzer.getInstance().getViewDataBindingType().isAssignableFrom(this);
+    }
+
+    /**
      * @return whether or not this ModelClass type extends ViewStub.
      */
     public boolean extendsViewStub() {
