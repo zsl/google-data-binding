@@ -163,7 +163,7 @@ object XmlEditor {
         }
 
         return lines.fold(StringBuilder()) { sb, line ->
-            sb.append(line).append(System.lineSeparator())
+            sb.append(line).append(System.getProperty("line.separator"))
         }.toString()
     }
 

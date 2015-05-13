@@ -17,6 +17,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 
@@ -41,7 +43,8 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  * This is a serializable class that can keep the result of parsing layout files.
  */
 public class ResourceBundle implements Serializable {
-
+    private static final String[] ANDROID_VIEW_PACKAGE_VIEWS = new String[]
+            {"View", "ViewGroup", "ViewStub", "TextureView", "SurfaceView"};
     private String mAppPackage;
 
     private HashMap<String, List<LayoutFileBundle>> mLayoutBundles
@@ -530,9 +533,10 @@ public class ResourceBundle implements Serializable {
                 if (isBinder()) {
                     mFullClassName = mInterfaceType;
                 } else if (mViewName.indexOf('.') == -1) {
-                    if ("View".equals(mViewName) || "ViewGroup".equals(mViewName) ||
-                            "ViewStub".equals(mViewName)) {
+                    if (ArrayUtils.contains(ANDROID_VIEW_PACKAGE_VIEWS, mViewName)) {
                         mFullClassName = "android.view." + mViewName;
+                    } else if("WebView".equals(mViewName)) {
+                        mFullClassName = "android.webkit." + mViewName;
                     } else {
                         mFullClassName = "android.widget." + mViewName;
                     }
