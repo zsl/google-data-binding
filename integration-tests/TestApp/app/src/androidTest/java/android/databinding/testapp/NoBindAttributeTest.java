@@ -24,7 +24,8 @@ public class NoBindAttributeTest extends BaseDataBinderTest<NotBindAttributeBind
 
     @UiThreadTest
     public void testNoBind() throws Throwable {
-        assertNotNull(mBinder.view);
-        assertEquals("", mBinder.view.getText().toString());
+        initBinder();
+        assertNotNull(getBinder().view);
+        assertEquals("", getBinder().view.getText().toString());
     }
 }
