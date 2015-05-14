@@ -27,18 +27,14 @@ public class NoIdTest extends BaseDataBinderTest<NoIdTestBinding> {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        try {
-            runTestOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mBinder.setName("hello");
-                    mBinder.setOrientation(LinearLayout.VERTICAL);
-                    mBinder.executePendingBindings();
-                }
-            });
-        } catch (Throwable throwable) {
-            throw new Exception(throwable);
-        }
+        initBinder(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.setName("hello");
+                mBinder.setOrientation(LinearLayout.VERTICAL);
+                mBinder.executePendingBindings();
+            }
+        });
     }
 
     @UiThreadTest

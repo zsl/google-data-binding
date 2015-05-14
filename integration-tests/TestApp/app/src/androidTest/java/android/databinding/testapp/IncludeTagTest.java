@@ -29,6 +29,7 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
 
     @UiThreadTest
     public void testIncludeTag() {
+        initBinder();
         NotBindableVo vo = new NotBindableVo(3, "a");
         mBinder.setOuterObject(vo);
         mBinder.executePendingBindings();

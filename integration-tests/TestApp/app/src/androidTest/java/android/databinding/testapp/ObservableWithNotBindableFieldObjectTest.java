@@ -29,6 +29,7 @@ public class ObservableWithNotBindableFieldObjectTest extends BaseDataBinderTest
 
     @UiThreadTest
     public void testSimple() {
+        initBinder();
         ObservableWithNotBindableFieldObject obj = new ObservableWithNotBindableFieldObject();
         mBinder.setObj(obj);
         mBinder.executePendingBindings();

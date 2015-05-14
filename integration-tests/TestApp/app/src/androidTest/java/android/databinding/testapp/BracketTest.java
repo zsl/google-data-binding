@@ -45,23 +45,19 @@ public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        try {
-            runTestOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mBinder.setArray(mArray);
-                    mBinder.setSparseArray(mSparseArray);
-                    mBinder.setSparseIntArray(mSparseIntArray);
-                    mBinder.setSparseBooleanArray(mSparseBooleanArray);
-                    mBinder.setSparseLongArray(mSparseLongArray);
-                    mBinder.setLongSparseArray(mLongSparseArray);
+        initBinder(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.setArray(mArray);
+                mBinder.setSparseArray(mSparseArray);
+                mBinder.setSparseIntArray(mSparseIntArray);
+                mBinder.setSparseBooleanArray(mSparseBooleanArray);
+                mBinder.setSparseLongArray(mSparseLongArray);
+                mBinder.setLongSparseArray(mLongSparseArray);
 
-                    mBinder.executePendingBindings();
-                }
-            });
-        } catch (Throwable throwable) {
-            throw new Exception(throwable);
-        }
+                mBinder.executePendingBindings();
+            }
+        });
     }
 
     @UiThreadTest

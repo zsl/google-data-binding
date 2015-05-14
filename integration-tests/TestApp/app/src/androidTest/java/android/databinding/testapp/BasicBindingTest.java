@@ -25,6 +25,12 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
         super(BasicBindingBinding.class);
     }
 
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        initBinder();
+    }
+
     @UiThreadTest
     public void testTextViewContentInInitialization() {
         assertAB("X", "Y");

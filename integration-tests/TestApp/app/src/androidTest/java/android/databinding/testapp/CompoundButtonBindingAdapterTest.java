@@ -23,8 +23,6 @@ import android.widget.CompoundButton;
 public class CompoundButtonBindingAdapterTest extends
         BindingAdapterTestBase<CompoundButtonAdapterTestBinding, CompoundButtonBindingObject> {
 
-    CompoundButton mView;
-
     public CompoundButtonBindingAdapterTest() {
         super(CompoundButtonAdapterTestBinding.class, CompoundButtonBindingObject.class,
                 R.layout.compound_button_adapter_test);
@@ -33,14 +31,13 @@ public class CompoundButtonBindingAdapterTest extends
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        mView = mBinder.view;
     }
 
     public void testCompoundButton() throws Throwable {
-        assertEquals(mBindingObject.getButtonTint(), mView.getButtonTintList().getDefaultColor());
+        assertEquals(mBindingObject.getButtonTint(), mBinder.view.getButtonTintList().getDefaultColor());
 
         changeValues();
 
-        assertEquals(mBindingObject.getButtonTint(), mView.getButtonTintList().getDefaultColor());
+        assertEquals(mBindingObject.getButtonTint(), mBinder.view.getButtonTintList().getDefaultColor());
     }
 }

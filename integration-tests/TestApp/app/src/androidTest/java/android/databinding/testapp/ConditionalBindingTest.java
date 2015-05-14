@@ -13,6 +13,7 @@ public class ConditionalBindingTest extends BaseDataBinderTest<ConditionalBindin
 
     @UiThreadTest
     public void test1() {
+        initBinder();
         testCorrectness(true, true);
     }
 

@@ -10,6 +10,7 @@ public class CustomNamespaceAdapterTest extends BaseDataBinderTest<CustomNsAdapt
 
     @UiThreadTest
     public void testAndroidNs() {
+        initBinder();
         mBinder.setStr1("a");
         mBinder.setStr2("b");
         mBinder.executePendingBindings();
@@ -18,6 +19,7 @@ public class CustomNamespaceAdapterTest extends BaseDataBinderTest<CustomNsAdapt
 
     @UiThreadTest
     public void testCustomNs() {
+        initBinder();
         mBinder.setStr1("a");
         mBinder.setStr2("b");
         mBinder.executePendingBindings();

@@ -12,6 +12,7 @@ public class ReadComplexTernaryTest extends BaseDataBinderTest<ReadComplexTernar
 
     @UiThreadTest
     public void testWhenNull() {
+        initBinder();
         User user = new User();
         user.setName("a");
         user.setFullName("a b");

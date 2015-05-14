@@ -36,7 +36,7 @@ public class AbsListViewBindingAdapterTest
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        mView = mBinder.view;
+        mView = getBinder().view;
     }
 
     public void testListSelector() throws Throwable {

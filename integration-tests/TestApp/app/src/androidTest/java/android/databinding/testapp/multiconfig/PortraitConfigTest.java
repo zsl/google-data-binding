@@ -33,6 +33,7 @@ public class PortraitConfigTest extends BaseDataBinderTest<MultiResLayoutBinding
 
     public void testSharedViewIdAndVariableInheritance()
             throws InterruptedException, NoSuchMethodException, NoSuchFieldException {
+        initBinder();
         assertEquals("MultiResLayoutBindingImpl", mBinder.getClass().getSimpleName());
         assertPublicField(TextView.class, "objectInLandTextView");
         assertPublicField(TextView.class, "objectInDefaultTextView");

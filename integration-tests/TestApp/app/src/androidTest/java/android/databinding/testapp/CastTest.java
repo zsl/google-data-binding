@@ -30,32 +30,19 @@ public class CastTest extends BaseDataBinderTest<CastTestBinding> {
         super(CastTestBinding.class);
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        try {
-            runTestOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mValues.clear();
-                    mValues.add("hello");
-                    mValues.add("world");
-                    mValues.add("not seen");
-                    mMap.clear();
-                    mMap.put("hello", "world");
-                    mMap.put("world", "hello");
-                    mBinder.setList(mValues);
-                    mBinder.setMap(mMap);
-                    mBinder.executePendingBindings();
-                }
-            });
-        } catch (Throwable throwable) {
-            throw new Exception(throwable);
-        }
-    }
-
     @UiThreadTest
     public void testCast() throws Throwable {
+        initBinder();
+        mValues.clear();
+        mValues.add("hello");
+        mValues.add("world");
+        mValues.add("not seen");
+        mMap.clear();
+        mMap.put("hello", "world");
+        mMap.put("world", "hello");
+        mBinder.setList(mValues);
+        mBinder.setMap(mMap);
+        mBinder.executePendingBindings();
         assertEquals("hello", mBinder.textView0.getText().toString());
         assertEquals("world", mBinder.textView1.getText().toString());
     }

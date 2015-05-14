@@ -28,6 +28,7 @@ public class MultiArgAdapterTest extends BaseDataBinderTest<MultiArgAdapterTestB
 
     @UiThreadTest
     public void testMultiArgIsCalled() {
+        initBinder();
         MultiBindingClass1 obj1 = new MultiBindingClass1();
         MultiBindingClass2 obj2 = new MultiBindingClass2();
         MultiBindingClass1 obj3 = new MultiBindingClass1();
@@ -66,9 +67,5 @@ public class MultiArgAdapterTest extends BaseDataBinderTest<MultiArgAdapterTestB
         // make sure 3 and 4 are not invalidated
         assertEquals("obj3 should not be re-evaluated", prev3, mBinder.view3.getText().toString());
         assertEquals("obj4 should not be re-evaluated", prev4, mBinder.view4.getText().toString());
-
-
     }
-
-
 }

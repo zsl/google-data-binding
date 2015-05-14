@@ -42,26 +42,23 @@ public class BindingAdapterTestBase<T extends ViewDataBinding, V extends Binding
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        try {
-            runTestOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        mBindingObject = mBindingObjectClass.newInstance();
-                        mSetMethod.invoke(mBinder, mBindingObject);
-                        mBinder.executePendingBindings();
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    } catch (InstantiationException e) {
-                        throw new RuntimeException(e);
-                    }
+        initBinder(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mBindingObject = mBindingObjectClass.newInstance();
+                    mSetMethod.invoke(getBinder(), mBindingObject);
+                    getBinder().executePendingBindings();
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                } catch (InstantiationException e) {
+                    throw new RuntimeException(e);
                 }
-            });
-        } catch (Throwable throwable) {
-            throw new Exception(throwable);
-        }
+
+            }
+        });
     }
 
     protected void changeValues() throws Throwable {
@@ -69,7 +66,7 @@ public class BindingAdapterTestBase<T extends ViewDataBinding, V extends Binding
             @Override
             public void run() {
                 mBindingObject.changeValues();
-                mBinder.executePendingBindings();
+                getBinder().executePendingBindings();
             }
         });
     }

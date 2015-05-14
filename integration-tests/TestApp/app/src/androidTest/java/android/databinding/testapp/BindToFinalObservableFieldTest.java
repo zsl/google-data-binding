@@ -27,6 +27,7 @@ public class BindToFinalObservableFieldTest extends BaseDataBinderTest<BindToFin
 
     @UiThreadTest
     public void testSimple() {
+        initBinder();
         final PublicFinalWithObservableTestVo vo = new PublicFinalWithObservableTestVo(R.string.app_name);
         mBinder.setObj(vo);
         mBinder.executePendingBindings();

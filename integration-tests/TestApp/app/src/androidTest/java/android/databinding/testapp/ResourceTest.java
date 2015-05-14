@@ -29,21 +29,17 @@ public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        mBinder.setCount(0);
-        mBinder.setTitle("Mrs.");
-        mBinder.setLastName("Doubtfire");
-        mBinder.setBase(2);
-        mBinder.setPbase(3);
-        try {
-            runTestOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mBinder.executePendingBindings();
-                }
-            });
-        } catch (Throwable throwable) {
-            throw new Exception(throwable);
-        }
+        initBinder(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.setCount(0);
+                mBinder.setTitle("Mrs.");
+                mBinder.setLastName("Doubtfire");
+                mBinder.setBase(2);
+                mBinder.setPbase(3);
+                mBinder.executePendingBindings();
+            }
+        });
     }
 
     @UiThreadTest

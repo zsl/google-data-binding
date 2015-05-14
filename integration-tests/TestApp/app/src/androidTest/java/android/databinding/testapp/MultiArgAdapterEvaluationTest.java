@@ -30,6 +30,7 @@ public class MultiArgAdapterEvaluationTest extends BaseDataBinderTest<MultiArgAd
 
     @UiThreadTest
     public void testMultiArgIsCalled() {
+        initBinder();
         MultiBindingClass1 obj1 = new MultiBindingClass1();
         MultiBindingClass2 obj2 = new MultiBindingClass2();
         obj1.setValue("a", false);

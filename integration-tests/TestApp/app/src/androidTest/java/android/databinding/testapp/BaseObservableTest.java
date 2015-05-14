@@ -42,6 +42,7 @@ public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> 
     protected void setUp() throws Exception {
         mNotifications.clear();
         mObservable = new BaseObservable();
+        initBinder(null);
     }
 
     public void testAddListener() {

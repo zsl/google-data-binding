@@ -27,13 +27,9 @@ public class CustomBindingTest extends BaseDataBinderTest<CustomBinding> {
         super(CustomBinding.class);
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
     @UiThreadTest
     public void testCustomBindings() {
+        initBinder();
         mBinder.executePendingBindings();
         assertEquals("hello world", mBinder.textView.getText().toString());
 

@@ -29,6 +29,7 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        initBinder();
     }
 
     @UiThreadTest
