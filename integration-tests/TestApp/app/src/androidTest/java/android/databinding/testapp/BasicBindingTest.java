@@ -16,6 +16,9 @@ package android.databinding.testapp;
 import android.databinding.DataBindingUtil;
 import android.databinding.OnRebindCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.databinding.testapp.databinding.NoExpressionsBinding;
+import android.databinding.testapp.databinding.NoDataElementBinding;
+import android.databinding.testapp.databinding.JustIdBinding;
 import android.test.UiThreadTest;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,6 +115,31 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
                 assertEquals("QR", mBinder.textView.getText().toString());
             }
         });
+    }
+
+    @UiThreadTest
+    public void testNoExpressionBinding() throws Throwable {
+        NoExpressionsBinding binding = NoExpressionsBinding.inflate(getActivity().getLayoutInflater());
+        assertNotNull(binding);
+    }
+
+    @UiThreadTest
+    public void testNoDataElement() throws Throwable {
+        NoDataElementBinding binding = NoDataElementBinding.inflate(getActivity().getLayoutInflater());
+        assertNotNull(binding);
+    }
+
+    @UiThreadTest
+    public void testJustIds() throws Throwable {
+        JustIdBinding binding = JustIdBinding.inflate(getActivity().getLayoutInflater());
+        assertNotNull(binding);
+        assertNotNull(binding.textView);
+    }
+
+    @UiThreadTest
+    public void testNoBinding() throws Throwable {
+        assertNull(DataBindingUtil.inflate(getActivity().getLayoutInflater(), R.layout.plain_layout,
+                null, false));
     }
 
     private void assertAB(String a, String b) {
