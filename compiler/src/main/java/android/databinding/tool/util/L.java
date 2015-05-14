@@ -22,6 +22,7 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.annotation.AnnotationAnalyzer;
 
 import javax.tools.Diagnostic;
+import javax.tools.Diagnostic.Kind;
 
 public class L {
 
@@ -31,6 +32,15 @@ public class L {
 
     public static void d(Throwable t, String msg, Object... args) {
         printMessage(Diagnostic.Kind.NOTE,
+                String.format(msg, args) + " " + ExceptionUtils.getStackTrace(t));
+    }
+
+    public static void w(String msg, Object... args) {
+        printMessage(Kind.WARNING, String.format(msg, args));
+    }
+
+    public static void w(Throwable t, String msg, Object... args) {
+        printMessage(Kind.WARNING,
                 String.format(msg, args) + " " + ExceptionUtils.getStackTrace(t));
     }
 

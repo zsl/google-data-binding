@@ -102,6 +102,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 L.e("@BindingAdapter does not take %d parameters: %s",numAttributes + 1, element);
                 continue;
             }
+            warnAttributeNamespaces(bindingAdapter.value());
             try {
                 if (numAttributes == 1) {
                     final String attribute = bindingAdapter.value()[0];
@@ -116,6 +117,18 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
         }
     }
 
+    private static void warnAttributeNamespace(String attribute) {
+        if (attribute.contains(":") && !attribute.startsWith("android:")) {
+            L.w("Application namespace for attribute %s will be ignored.", attribute);
+        }
+    }
+
+    private static void warnAttributeNamespaces(String[] attributes) {
+        for (String attribute : attributes) {
+            warnAttributeNamespace(attribute);
+        }
+    }
+
     private void addRenamed(RoundEnvironment roundEnv, ProcessingEnvironment processingEnv,
             SetterStore store) {
         for (Element element : AnnotationUtil
@@ -125,6 +138,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
             for (BindingMethod bindingMethod : bindingMethods.value()) {
                 final String attribute = bindingMethod.attribute();
                 final String method = bindingMethod.method();
+                warnAttributeNamespace(attribute);
                 String type;
                 try {
                     type = bindingMethod.type().getCanonicalName();

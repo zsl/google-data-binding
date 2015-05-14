@@ -168,6 +168,7 @@ public class SetterStore {
 
     public void addRenamedMethod(String attribute, String declaringClass, String method,
             TypeElement declaredOn) {
+        attribute = stripNamespace(attribute);
         HashMap<String, MethodDescription> renamed = mStore.renamedMethods.get(attribute);
         if (renamed == null) {
             renamed = new HashMap<String, MethodDescription>();
