@@ -29,7 +29,7 @@ import android.widget.Switch;
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class SwitchBindingAdapter {
 
-    @BindingAdapter("android:switchTextAppearance")
+    @BindingAdapter({"android:switchTextAppearance"})
     public static void setSwitchTextAppearance(Switch view, int value) {
         view.setSwitchTextAppearance(null, value);
     }

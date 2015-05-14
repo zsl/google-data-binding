@@ -42,18 +42,18 @@ public class ViewBindingAdapter {
     public static int FADING_EDGE_HORIZONTAL = 1;
     public static int FADING_EDGE_VERTICAL = 2;
 
-    @BindingAdapter("android:padding")
+    @BindingAdapter({"android:padding"})
     public static void setPadding(View view, int padding) {
         view.setPadding(padding, padding, padding, padding);
     }
 
-    @BindingAdapter("android:paddingBottom")
+    @BindingAdapter({"android:paddingBottom"})
     public static void setPaddingBottom(View view, int padding) {
         view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(),
                 padding);
     }
 
-    @BindingAdapter("android:paddingEnd")
+    @BindingAdapter({"android:paddingEnd"})
     public static void setPaddingEnd(View view, int padding) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             view.setPaddingRelative(view.getPaddingStart(), view.getPaddingTop(), padding,
@@ -64,19 +64,19 @@ public class ViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:paddingLeft")
+    @BindingAdapter({"android:paddingLeft"})
     public static void setPaddingLeft(View view, int padding) {
         view.setPadding(padding, view.getPaddingTop(), view.getPaddingRight(),
                 view.getPaddingBottom());
     }
 
-    @BindingAdapter("android:paddingRight")
+    @BindingAdapter({"android:paddingRight"})
     public static void setPaddingRight(View view, int padding) {
         view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), padding,
                 view.getPaddingBottom());
     }
 
-    @BindingAdapter("android:paddingStart")
+    @BindingAdapter({"android:paddingStart"})
     public static void setPaddingStart(View view, int padding) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             view.setPaddingRelative(padding, view.getPaddingTop(), view.getPaddingEnd(),
@@ -87,13 +87,13 @@ public class ViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:paddingTop")
+    @BindingAdapter({"android:paddingTop"})
     public static void setPaddingTop(View view, int padding) {
         view.setPadding(view.getPaddingLeft(), padding, view.getPaddingRight(),
                 view.getPaddingBottom());
     }
 
-    @BindingAdapter("android:requiresFadingEdge")
+    @BindingAdapter({"android:requiresFadingEdge"})
     public static void setRequiresFadingEdge(View view, int value) {
         final boolean vertical = (value & FADING_EDGE_VERTICAL) != 0;
         final boolean horizontal = (value & FADING_EDGE_HORIZONTAL) != 0;
@@ -101,7 +101,7 @@ public class ViewBindingAdapter {
         view.setHorizontalFadingEdgeEnabled(horizontal);
     }
 
-    @BindingAdapter(attributes={"android:onClickListener", "android:clickable"})
+    @BindingAdapter({"android:onClickListener", "android:clickable"})
     public static void setClickListener(View view, View.OnClickListener clickListener,
             boolean clickable) {
         view.setOnClickListener(clickListener);

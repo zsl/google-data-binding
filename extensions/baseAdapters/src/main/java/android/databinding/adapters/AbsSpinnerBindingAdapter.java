@@ -22,7 +22,7 @@ import android.widget.SpinnerAdapter;
 
 public class AbsSpinnerBindingAdapter {
 
-    @BindingAdapter("android:entries")
+    @BindingAdapter({"android:entries"})
     public static void setEntries(AbsSpinner view, CharSequence[] entries) {
         if (entries != null) {
             SpinnerAdapter oldAdapter = view.getAdapter();

@@ -52,7 +52,7 @@ public class TextViewBindingAdapter {
 
     public static final int DECIMAL = 0x05;
 
-    @BindingAdapter("android:autoText")
+    @BindingAdapter({"android:autoText"})
     public static void setAutoText(TextView view, boolean autoText) {
         KeyListener listener = view.getKeyListener();
 
@@ -69,7 +69,7 @@ public class TextViewBindingAdapter {
         view.setKeyListener(TextKeyListener.getInstance(autoText, capitalize));
     }
 
-    @BindingAdapter("android:capitalize")
+    @BindingAdapter({"android:capitalize"})
     public static void setCapitalize(TextView view, TextKeyListener.Capitalize capitalize) {
         KeyListener listener = view.getKeyListener();
 
@@ -78,12 +78,12 @@ public class TextViewBindingAdapter {
         view.setKeyListener(TextKeyListener.getInstance(autoText, capitalize));
     }
 
-    @BindingAdapter("android:bufferType")
+    @BindingAdapter({"android:bufferType"})
     public static void setBufferType(TextView view, TextView.BufferType bufferType) {
         view.setText(view.getText(), bufferType);
     }
 
-    @BindingAdapter("android:digits")
+    @BindingAdapter({"android:digits"})
     public static void setDigits(TextView view, CharSequence digits) {
         if (digits != null) {
             view.setKeyListener(DigitsKeyListener.getInstance(digits.toString()));
@@ -92,13 +92,13 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:numeric")
+    @BindingAdapter({"android:numeric"})
     public static void setNumeric(TextView view, int numeric) {
         view.setKeyListener(DigitsKeyListener.getInstance((numeric & SIGNED) != 0,
                 (numeric & DECIMAL) != 0));
     }
 
-    @BindingAdapter("android:phoneNumber")
+    @BindingAdapter({"android:phoneNumber"})
     public static void setPhoneNumber(TextView view, boolean phoneNumber) {
         if (phoneNumber) {
             view.setKeyListener(DialerKeyListener.getInstance());
@@ -107,31 +107,31 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:drawableBottom")
+    @BindingAdapter({"android:drawableBottom"})
     public static void setDrawableBottom(TextView view, Drawable drawable) {
         Drawable[] drawables = view.getCompoundDrawables();
         view.setCompoundDrawables(drawables[0], drawables[1], drawables[2], drawable);
     }
 
-    @BindingAdapter("android:drawableLeft")
+    @BindingAdapter({"android:drawableLeft"})
     public static void setDrawableLeft(TextView view, Drawable drawable) {
         Drawable[] drawables = view.getCompoundDrawables();
         view.setCompoundDrawables(drawable, drawables[1], drawables[2], drawables[3]);
     }
 
-    @BindingAdapter("android:drawableRight")
+    @BindingAdapter({"android:drawableRight"})
     public static void setDrawableRight(TextView view, Drawable drawable) {
         Drawable[] drawables = view.getCompoundDrawables();
         view.setCompoundDrawables(drawables[0], drawables[1], drawable, drawables[3]);
     }
 
-    @BindingAdapter("android:drawableTop")
+    @BindingAdapter({"android:drawableTop"})
     public static void setDrawableTop(TextView view, Drawable drawable) {
         Drawable[] drawables = view.getCompoundDrawables();
         view.setCompoundDrawables(drawables[0], drawable, drawables[2], drawables[3]);
     }
 
-    @BindingAdapter("android:drawableStart")
+    @BindingAdapter({"android:drawableStart"})
     public static void setDrawableStart(TextView view, Drawable drawable) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
             setDrawableLeft(view, drawable);
@@ -141,7 +141,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:drawableEnd")
+    @BindingAdapter({"android:drawableEnd"})
     public static void setDrawableEnd(TextView view, Drawable drawable) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
             setDrawableRight(view, drawable);
@@ -151,17 +151,17 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:imeActionLabel")
+    @BindingAdapter({"android:imeActionLabel"})
     public static void setImeActionLabel(TextView view, CharSequence value) {
         view.setImeActionLabel(value, view.getImeActionId());
     }
 
-    @BindingAdapter("android:imeActionId")
+    @BindingAdapter({"android:imeActionId"})
     public static void setImeActionLabel(TextView view, int value) {
         view.setImeActionLabel(view.getImeActionLabel(), value);
     }
 
-    @BindingAdapter("android:inputMethod")
+    @BindingAdapter({"android:inputMethod"})
     public static void setInputMethod(TextView view, CharSequence inputMethod) {
         try {
             Class<?> c = Class.forName(inputMethod.toString());
@@ -175,7 +175,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:lineSpacingExtra")
+    @BindingAdapter({"android:lineSpacingExtra"})
     public static void setLineSpacingExtra(TextView view, float value) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             view.setLineSpacing(value, view.getLineSpacingMultiplier());
@@ -184,7 +184,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:lineSpacingMultiplier")
+    @BindingAdapter({"android:lineSpacingMultiplier"})
     public static void setLineSpacingMultiplier(TextView view, float value) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             view.setLineSpacing(view.getLineSpacingExtra(), value);
@@ -193,7 +193,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:maxLength")
+    @BindingAdapter({"android:maxLength"})
     public static void setMaxLength(TextView view, int value) {
         InputFilter[] filters = view.getFilters();
         if (filters == null) {
@@ -227,7 +227,7 @@ public class TextViewBindingAdapter {
         view.setFilters(filters);
     }
 
-    @BindingAdapter("android:password")
+    @BindingAdapter({"android:password"})
     public static void setPassword(TextView view, boolean password) {
         if (password) {
             view.setTransformationMethod(PasswordTransformationMethod.getInstance());
@@ -236,7 +236,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:shadowColor")
+    @BindingAdapter({"android:shadowColor"})
     public static void setShadowColor(TextView view, int color) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             float dx = view.getShadowDx();
@@ -246,7 +246,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:shadowDx")
+    @BindingAdapter({"android:shadowDx"})
     public static void setShadowDx(TextView view, float dx) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             int color = view.getShadowColor();
@@ -256,7 +256,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:shadowDy")
+    @BindingAdapter({"android:shadowDy"})
     public static void setShadowDy(TextView view, float dy) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             int color = view.getShadowColor();
@@ -266,7 +266,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:shadowRadius")
+    @BindingAdapter({"android:shadowRadius"})
     public static void setShadowRadius(TextView view, float r) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             int color = view.getShadowColor();
@@ -276,7 +276,7 @@ public class TextViewBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:textSize")
+    @BindingAdapter({"android:textSize"})
     public static void setTextSize(TextView view, float size) {
         view.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
     }

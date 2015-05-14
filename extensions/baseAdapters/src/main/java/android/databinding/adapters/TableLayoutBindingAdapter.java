@@ -27,7 +27,7 @@ public class TableLayoutBindingAdapter {
 
     private static final int MAX_COLUMNS = 20;
 
-    @BindingAdapter("android:collapseColumns")
+    @BindingAdapter({"android:collapseColumns"})
     public static void setCollapseColumns(TableLayout view, CharSequence columnsStr) {
         SparseBooleanArray columns = parseColumns(columnsStr);
         for (int i = 0; i < MAX_COLUMNS; i++) {
@@ -38,7 +38,7 @@ public class TableLayoutBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:shrinkColumns")
+    @BindingAdapter({"android:shrinkColumns"})
     public static void setShrinkColumns(TableLayout view, CharSequence columnsStr) {
         if (columnsStr != null && columnsStr.length() > 0 && columnsStr.charAt(0) == '*') {
             view.setShrinkAllColumns(true);
@@ -56,7 +56,7 @@ public class TableLayoutBindingAdapter {
         }
     }
 
-    @BindingAdapter("android:stretchColumns")
+    @BindingAdapter({"android:stretchColumns"})
     public static void setStretchColumns(TableLayout view, CharSequence columnsStr) {
         if (columnsStr != null && columnsStr.length() > 0 && columnsStr.charAt(0) == '*') {
             view.setStretchAllColumns(true);

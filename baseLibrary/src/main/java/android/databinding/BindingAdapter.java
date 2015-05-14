@@ -20,6 +20,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 public @interface BindingAdapter {
-    String value() default "";
-    String[] attributes() default {};
+    String[] value();
 }

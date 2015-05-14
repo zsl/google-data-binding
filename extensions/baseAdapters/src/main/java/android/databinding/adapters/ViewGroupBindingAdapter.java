@@ -31,7 +31,7 @@ import android.view.ViewGroup;
 public class ViewGroupBindingAdapter {
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    @BindingAdapter("android:animateLayoutChanges")
+    @BindingAdapter({"android:animateLayoutChanges"})
     public static void setAnimateLayoutChanges(ViewGroup view, boolean animate) {
         if (animate) {
             view.setLayoutTransition(new LayoutTransition());

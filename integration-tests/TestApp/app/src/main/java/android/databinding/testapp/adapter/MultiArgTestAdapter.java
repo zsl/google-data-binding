@@ -42,29 +42,29 @@ public class MultiArgTestAdapter {
 
     }
 
-    @BindingAdapter(attributes={"android:class1", "android:class2"})
+    @BindingAdapter({"android:class1", "android:class2"})
     public static void setBoth(TextView view, MultiBindingClass1 class1,
                                         MultiBindingClass2 class2) {
         view.setText(join(class1, class2));
     }
 
-    @BindingAdapter(attributes={"android:class1str", "android:class2str"})
+    @BindingAdapter({"android:class1str", "android:class2str"})
     public static void setBoth(TextView view, String str1,
                                String str2) {
         view.setText(join(str1, str2));
     }
 
-    @BindingAdapter(attributes={"android:class1"})
+    @BindingAdapter({"android:class1"})
     public static void setClass1(TextView view, MultiBindingClass1 class1) {
         view.setText(class1.getValue());
     }
 
-    @BindingAdapter(attributes={"android:classStr"})
+    @BindingAdapter({"android:classStr"})
     public static void setClassStr(TextView view, String str) {
         view.setText(str);
     }
 
-    @BindingAdapter(attributes={"android:class2"})
+    @BindingAdapter({"android:class2"})
     public static void setClass2(TextView view, MultiBindingClass2 class2) {
         view.setText(class2.getValue());
     }
