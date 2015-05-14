@@ -16,20 +16,22 @@
 
 package android.databinding.tool.util
 
+import android.databinding.parser.BindingExpressionLexer
+import android.databinding.parser.BindingExpressionParser
+import android.databinding.parser.Position
+import android.databinding.parser.XMLParser
+import android.databinding.parser.toEndPosition
+import android.databinding.parser.toPosition
+import android.databinding.parser.XMLLexer
 import java.io.File
 import org.antlr.v4.runtime.ANTLRInputStream
 import java.io.FileReader
-import android.databinding.parser.XMLLexer
 import org.antlr.v4.runtime.CommonTokenStream
-import android.databinding.parser.XMLParser
-import android.databinding.parser.log
-import android.databinding.parser.XMLParserBaseVisitor
-import android.databinding.parser.Position
-import android.databinding.parser.toPosition
-import android.databinding.parser.toEndPosition
 import java.util.Comparator
 import com.google.common.base.Preconditions
+import org.apache.commons.lang3.StringEscapeUtils
 import java.util.ArrayList
+import java.util.regex.Pattern
 
 /**
  * Ugly inefficient class to strip unwanted tags from XML.
@@ -198,7 +200,10 @@ object XmlEditor {
             node.expressionAttributes().forEach {
                 val start = it.getStart().toPosition()
                 val end = it.getStop().toEndPosition()
-                if (replace(lines, start, end, tag)) {
+                val defaultVal = defaultReplacement(it)
+                if (defaultVal != null) {
+                    replace(lines, start, end, "${it.attrName.getText()}=\"${defaultVal}\"")
+                } else if (replace(lines, start, end, tag)) {
                     tag = ""
                 }
             }
@@ -217,6 +222,43 @@ object XmlEditor {
             nextBindingIndex = recurseReplace(it, lines, noTag, nextTag, nextBindingIndex)
         }
         return nextBindingIndex
+    }
+
+    fun defaultReplacement(attr : XMLParser.AttributeContext) : String? {
+        val textWithQuotes = attr.attrValue.getText()
+        val escapedText = textWithQuotes.substring(1, textWithQuotes.length() - 1)
+        if (!escapedText.startsWith("@{") || !escapedText.endsWith("}")) {
+            return null;
+        }
+        val text = StringEscapeUtils.unescapeXml(escapedText.substring(2, escapedText.length() - 1))
+        val inputStream = ANTLRInputStream(text)
+        val lexer = BindingExpressionLexer(inputStream)
+        val tokenStream = CommonTokenStream(lexer)
+        val parser = BindingExpressionParser(tokenStream)
+        val root = parser.bindingSyntax()
+        val defaults = root.defaults()
+        if (defaults != null) {
+            val constantValue = defaults.constantValue()
+            val literal = constantValue.literal()
+            if (literal != null) {
+                val stringLiteral = literal.stringLiteral()
+                if (stringLiteral != null) {
+                    val doubleQuote = stringLiteral.DoubleQuoteString()
+                    if (doubleQuote != null) {
+                        val quotedStr = doubleQuote.getText()
+                        val unquoted = quotedStr.substring(1, quotedStr.length() - 1)
+                        return StringEscapeUtils.escapeXml10(unquoted)
+                    } else {
+                        val quotedStr = stringLiteral.SingleQuoteString().getText()
+                        val unquoted = quotedStr.substring(1, quotedStr.length() - 1)
+                        val unescaped = unquoted.replace("\"", "\\\"").replace("\\`", "`")
+                        return StringEscapeUtils.escapeXml10(unescaped)
+                    }
+                }
+            }
+            return constantValue.getText()
+        }
+        return null
     }
 
     fun replace(lines : ArrayList<String>, start: Position, end: Position, text: String) :
