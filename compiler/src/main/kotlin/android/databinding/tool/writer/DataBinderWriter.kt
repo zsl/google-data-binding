@@ -105,11 +105,6 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
                 tab("return id;")
             }
             tab("}")
-
-            tab("public int getId(String key) {") {
-                tab("return BR.getId(key);")
-            }
-            tab("}")
         }
         nl("}")
     }.generate()
