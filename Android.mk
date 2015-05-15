@@ -14,10 +14,12 @@
 
 LOCAL_PATH := $(call my-dir)
 
+my_prebuilt_version := 0.3
+
 #######################################
 include $(CLEAR_VARS)
 LOCAL_MODULE := databinding-compiler
-LOCAL_SRC_FILES := prebuilds/0.3/databinding-compiler-all.jar
+LOCAL_SRC_FILES := prebuilds/$(my_prebuilt_version)/databinding-compiler-all.jar
 LOCAL_MODULE_CLASS := JAVA_LIBRARIES
 LOCAL_MODULE_SUFFIX := $(COMMON_JAVA_PACKAGE_SUFFIX)
 LOCAL_BUILT_MODULE_STEM := javalib.jar
@@ -27,20 +29,35 @@ include $(BUILD_PREBUILT)
 
 #######################################
 include $(CLEAR_VARS)
-LOCAL_MODULE := databinding-library
-LOCAL_SRC_FILES := prebuilds/0.3/databinding-library.aar
+LOCAL_MODULE := databinding-baselibrary
+LOCAL_SRC_FILES := prebuilds/$(my_prebuilt_version)/databinding-baseLibrary.jar
 LOCAL_MODULE_CLASS := JAVA_LIBRARIES
 LOCAL_MODULE_SUFFIX := $(COMMON_JAVA_PACKAGE_SUFFIX)
 LOCAL_BUILT_MODULE_STEM := javalib.jar
+LOCAL_UNINSTALLABLE_MODULE := true
+
+include $(BUILD_PREBUILT)
+
+#######################################
+include $(CLEAR_VARS)
+LOCAL_MODULE := databinding-library
+LOCAL_SRC_FILES := prebuilds/$(my_prebuilt_version)/databinding-library.aar
+LOCAL_MODULE_CLASS := JAVA_LIBRARIES
+LOCAL_MODULE_SUFFIX := $(COMMON_JAVA_PACKAGE_SUFFIX)
+LOCAL_BUILT_MODULE_STEM := javalib.jar
+LOCAL_UNINSTALLABLE_MODULE := true
 
 include $(BUILD_PREBUILT)
 
 #######################################
 include $(CLEAR_VARS)
 LOCAL_MODULE := databinding-adapters
-LOCAL_SRC_FILES := prebuilds/0.3/databinding-adapters.aar
+LOCAL_SRC_FILES := prebuilds/$(my_prebuilt_version)/databinding-adapters.aar
 LOCAL_MODULE_CLASS := JAVA_LIBRARIES
 LOCAL_MODULE_SUFFIX := $(COMMON_JAVA_PACKAGE_SUFFIX)
 LOCAL_BUILT_MODULE_STEM := javalib.jar
+LOCAL_UNINSTALLABLE_MODULE := true
 
 include $(BUILD_PREBUILT)
+
+my_prebuilt_version :=
