@@ -500,6 +500,10 @@ public class SetterStore {
 
     private ModelMethod getBestSetter(ModelClass viewType, ModelClass argumentType,
             String attribute, Map<String, String> imports) {
+        if (viewType.isGeneric()) {
+            viewType = viewType.erasure();
+            argumentType = argumentType.erasure();
+        }
         List<String> setterCandidates = new ArrayList<String>();
         HashMap<String, MethodDescription> renamed = mStore.renamedMethods.get(attribute);
         if (renamed != null) {

@@ -15,6 +15,8 @@
  */
 package android.databinding.tool.reflection.annotation;
 
+import org.antlr.v4.codegen.model.decl.Decl;
+
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelField;
@@ -186,6 +188,17 @@ class AnnotationClass extends ModelClass {
     @Override
     public boolean isDouble() {
         return mTypeMirror.getKind() == TypeKind.DOUBLE;
+    }
+
+    @Override
+    public boolean isGeneric() {
+        boolean isGeneric = false;
+        if (mTypeMirror.getKind() == TypeKind.DECLARED) {
+            DeclaredType declaredType = (DeclaredType) mTypeMirror;
+            List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+            isGeneric = typeArguments != null && !typeArguments.isEmpty();
+        }
+        return isGeneric;
     }
 
     @Override

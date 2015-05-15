@@ -109,6 +109,11 @@ public class JavaClass extends ModelClass {
     }
 
     @Override
+    public boolean isGeneric() {
+        return false;
+    }
+
+    @Override
     public boolean isVoid() {
         return void.class.equals(mClass);
     }

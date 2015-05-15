@@ -124,6 +124,11 @@ public abstract class ModelClass {
     public abstract boolean isDouble();
 
     /**
+     * @return whether or not this has type parameters
+     */
+    public abstract boolean isGeneric();
+
+    /**
      * @return whether or not this ModelClass is java.lang.Object and not a primitive or subclass.
      */
     public boolean isObject() {
