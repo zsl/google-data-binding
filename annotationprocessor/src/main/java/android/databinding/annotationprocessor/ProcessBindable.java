@@ -143,16 +143,6 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             id++;
             out.append("    " + modifier + property + " = " + id + ";\n");
         }
-        out.append("    public static int getId(String key) {\n");
-        out.append("        switch(key) {\n");
-        id = 0;
-        for (String property : sortedProperties) {
-            id++;
-            out.append("            case \"" + property + "\": return " + id + ";\n");
-        }
-        out.append("        }\n");
-        out.append("        return -1;\n");
-        out.append("    }");
         out.append("}\n");
 
         getWriter().writeToFile(pkg + ".BR", out.toString() );
