@@ -16,7 +16,7 @@ new File(ext.config.prebuildFolder).mkdir()
 subprojects {
     apply plugin: 'maven'
     group = config.group
-    version = config.snapshotVersion
+    version = config.version
     repositories {
         mavenCentral()
         maven {
@@ -121,7 +121,7 @@ task copyMavenRepoToEap(type : Copy) {
 tasks.create(name : 'createEapConfigFile') << {
     def propsFile = new File("${config.eapOutDir}/databinding.properties")
     Properties props = new Properties()
-    props.setProperty('snapshotVersion', config.snapshotVersion)
+    props.setProperty('version', config.version)
     props.setProperty('mavenRepoName', config.mavenRepoName)
     props.store(propsFile.newWriter(), null)
 }

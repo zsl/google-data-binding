@@ -43,6 +43,4 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.databinding:library:${config.snapshotVersion}"
-    provided "com.android.databinding:annotationprocessor:${config.snapshotVersion}"
 }

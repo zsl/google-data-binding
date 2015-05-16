@@ -16,6 +16,8 @@
 
 package android.databinding.tool
 
+import android.databinding.parser.log
+import android.databinding.tool.expr.Dependency
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import com.android.build.gradle.AppExtension
@@ -37,34 +39,78 @@ import com.android.build.gradle.api.TestVariant
 import com.android.build.gradle.internal.variant.TestVariantData
 import com.android.build.gradle.internal.api.TestVariantImpl
 import com.android.ide.common.res2.ResourceSet
+import org.apache.commons.io.IOUtils
+import org.gradle.api.artifacts
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.logging.LogLevel
 import java.io.FileFilter
 import java.io.FilenameFilter
 import java.util.ArrayList
+import javax.inject.Inject
 import javax.xml.xpath.XPathFactory
 import kotlin.dom.elements
 import kotlin.dom.parseXml
+import kotlin.properties.Delegates
+import org.gradle.api.logging.Logger
+import org.gradle.api.plugins.ExtraPropertiesExtension
 
-class DataBinderPlugin : Plugin<Project> {
+
+open class DataBinderPlugin : Plugin<Project> {
     val XPATH_BINDING_CLASS = "/layout/data/@class"
+    var logger : Logger by Delegates.notNull()
 
     inner class GradleFileWriter(var outputBase: String) : JavaFileWriter() {
         override fun writeToFile(canonicalName: String, contents: String) {
             val f = File("$outputBase/${canonicalName.replaceAll("\\.", "/")}.java")
-            log("Asked to write to ${canonicalName}. outputting to:${f.getAbsolutePath()}")
+            logD("Asked to write to ${canonicalName}. outputting to:${f.getAbsolutePath()}")
             f.getParentFile().mkdirs()
             f.writeText(contents, "utf-8")
         }
     }
 
+    fun readMyVersion() : String {
+        val stream = javaClass.getResourceAsStream("/data_binding_build_info")
+        return IOUtils.toString(stream, "utf-8").trim()
+    }
+
     override fun apply(project: Project?) {
         if (project == null) return
+
+        logger = project.getLogger()
+
+        var myVersion = readMyVersion()
+        logD("data binding plugin version is ${myVersion}")
+        if (myVersion == "") {
+            throw IllegalStateException("cannot read version of the plugin :/")
+        }
+
+        project.getDependencies().add("compile", "com.android.databinding:library:$myVersion")
+        var addAdapters = true
+        if (project.hasProperty("ext")) {
+            val ext = project.getProperties().get("ext")
+            if (ext is ExtraPropertiesExtension) {
+                if (ext.has("addDataBindingAdapters")) {
+                    addAdapters = ext.get("addDataBindingAdapters") as Boolean
+                }
+            }
+        }
+        if (addAdapters) {
+            project.getDependencies().add("compile", "com.android.databinding:adapters:$myVersion")
+        }
+        project.getDependencies().add("provided", "com.android.databinding:annotationprocessor:$myVersion")
         project.afterEvaluate {
             createXmlProcessor(project)
         }
     }
 
-    fun log(s: String) {
-        System.out.println("[qwqw data binding]: $s")
+    fun logD(s: String) {
+        log(LogLevel.DEBUG, s)
+    }
+    fun logE(s: String) {
+        log(LogLevel.ERROR, s)
+    }
+    fun log(level : LogLevel, s: String) {
+        logger.log(level, "[data binding plugin]: $s")
     }
 
     fun createXmlProcessor(p: Project) {
@@ -77,19 +123,20 @@ class DataBinderPlugin : Plugin<Project> {
         } else if (androidExt is LibraryExtension) {
             createXmlProcessorForLibrary(p, androidExt)
         } else {
-            throw RuntimeException("cannot understand android extension. What is it? ${androidExt}")
+            logE("unsupported android extension. What is it? ${androidExt}")
+            throw RuntimeException("unsupported android extension. What is it? ${androidExt}")
         }
     }
 
     fun createXmlProcessorForLibrary(project : Project, lib : LibraryExtension) {
         val sdkDir = lib.getSdkDirectory()
         lib.getTestVariants().forEach { variant ->
-            log("test variant $variant. dir name ${variant.getDirName()}")
+            logD("test variant $variant. dir name ${variant.getDirName()}")
             val variantData = getVariantData(variant)
             attachXmlProcessor(project, variantData, sdkDir, false)//tests extend apk variant
         }
         lib.getLibraryVariants().forEach { variant ->
-            log("lib variant $variant . dir name ${variant.getDirName()}")
+            logD("lib variant $variant . dir name ${variant.getDirName()}")
             val variantData = getVariantData(variant)
             attachXmlProcessor(project, variantData, sdkDir, true)
         }
@@ -144,7 +191,7 @@ class DataBinderPlugin : Plugin<Project> {
                 minSdkVersion.getApiLevel(), isLibrary)
         val processResTask = generateRTask
         val xmlOutDir = File("${project.getBuildDir()}/layout-info/${configuration.getDirName()}")
-        log("xml output for ${variantData} is ${xmlOutDir}")
+        logD("xml output for ${variantData} is ${xmlOutDir}")
         val layoutTaskName = "dataBindingLayouts${processResTask.getName().capitalize()}"
         val infoClassTaskName = "dataBindingInfoClass${processResTask.getName().capitalize()}"
 
@@ -157,10 +204,10 @@ class DataBinderPlugin : Plugin<Project> {
                         task.xmlProcessor = xmlProcessor
                         task.sdkDir = sdkDir
                         task.xmlOutFolder = xmlOutDir
-                        Log.d { "TASK adding dependency on ${task} for ${processResTask}" }
+                        logD("TASK adding dependency on ${task} for ${processResTask}")
                         processResTask.dependsOn(task)
                         processResTask.getDependsOn().filterNot { it == task }.forEach {
-                            Log.d { "adding dependency on ${it} for ${task}" }
+                            logD("adding dependency on ${it} for ${task}")
                             task.dependsOn(it)
                         }
                         processResTask.doLast {
@@ -198,7 +245,7 @@ class DataBinderPlugin : Plugin<Project> {
             customBindings.forEach {
                 packageTask.exclude("${it.replace('.', '/')}.class")
             }
-            log("excludes ${packageTask.getExcludes()}")
+            logD("excludes ${packageTask.getExcludes()}")
         }
     }
 

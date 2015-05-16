@@ -69,6 +69,7 @@ task fatJar(type: Jar) {
         }
         def notice = allLicenses.buildNotice()
         def noticeFile = new File(project.buildDir,'NOTICE.txt')
+        noticeFile.delete()
         println ("writing notice file to: ${noticeFile.getAbsolutePath()}")
         noticeFile << notice
     }

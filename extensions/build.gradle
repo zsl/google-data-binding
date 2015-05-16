@@ -29,15 +29,15 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.1.3'
-        classpath "com.android.databinding:dataBinder:${config.snapshotVersion}"
+        classpath "com.android.tools.build:gradle:${config.androidPluginVersion}"
+        classpath "com.android.databinding:dataBinder:${config.version}"
     }
 }
 
 subprojects {
     apply plugin: 'maven'
     group = config.group
-    version = config.snapshotVersion
+    version = config.version
     repositories {
         mavenCentral()
         maven {

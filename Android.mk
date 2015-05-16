@@ -14,7 +14,7 @@
 
 LOCAL_PATH := $(call my-dir)
 
-my_prebuilt_version := 0.3
+my_prebuilt_version := 0.9
 
 #######################################
 include $(CLEAR_VARS)

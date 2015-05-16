@@ -42,8 +42,6 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.databinding:library:${config.snapshotVersion}"
-    provided "com.android.databinding:annotationprocessor:${config.snapshotVersion}"
 }
 
 uploadArchives {
@@ -51,7 +49,7 @@ uploadArchives {
         mavenDeployer {
             repository(url: "file://${config.mavenRepoDir}")
             pom.artifactId = 'independent-library'
-            pom.version = config.snapshotVersion
+            pom.version = config.version
             pom.groupId = config.testGroup
         }
     }
