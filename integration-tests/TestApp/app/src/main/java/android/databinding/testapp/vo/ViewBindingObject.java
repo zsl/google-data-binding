@@ -24,7 +24,7 @@ public class ViewBindingObject extends BindingAdapterBindingObject {
     @Bindable
     private int mBackgroundTint = 0xFF00FF00;
     @Bindable
-    private boolean mFadeScrollbars = false;
+    private boolean mFadeScrollbars = true;
     @Bindable
     private int mNextFocusForward = R.id.padding;
     @Bindable
@@ -150,7 +150,7 @@ public class ViewBindingObject extends BindingAdapterBindingObject {
 
     public void changeValues() {
         mBackgroundTint = 0xFFFF0000;
-        mFadeScrollbars = true;
+        mFadeScrollbars = false;
         mNextFocusForward = R.id.paddingStartEnd;
         mNextFocusLeft = R.id.paddingTopBottom;
         mNextFocusRight = R.id.backgroundTint;
