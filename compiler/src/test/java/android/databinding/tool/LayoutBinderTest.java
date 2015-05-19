@@ -44,9 +44,10 @@ public class LayoutBinderTest {
 
     @Test
     public void testRegisterId() {
+        int originalSize = mExprModel.size();
         mLayoutBinder.addVariable("test", "java.lang.String");
-        assertEquals(1, mExprModel.size());
-        final Map.Entry<String, Expr> entry = mExprModel.getExprMap().entrySet().iterator().next();
+        assertEquals(originalSize + 1, mExprModel.size());
+        final Map.Entry<String, Expr> entry = findIdentifier("test");
         final Expr value = entry.getValue();
         assertEquals(value.getClass(), IdentifierExpr.class);
         final IdentifierExpr id = (IdentifierExpr) value;
@@ -57,9 +58,10 @@ public class LayoutBinderTest {
 
     @Test
     public void testRegisterImport() {
+        int originalSize = mExprModel.size();
         mExprModel.addImport("test", "java.lang.String");
-        assertEquals(1, mExprModel.size());
-        final Map.Entry<String, Expr> entry = mExprModel.getExprMap().entrySet().iterator().next();
+        assertEquals(originalSize + 1, mExprModel.size());
+        final Map.Entry<String, Expr> entry = findIdentifier("test");
         final Expr value = entry.getValue();
         assertEquals(value.getClass(), StaticIdentifierExpr.class);
         final IdentifierExpr id = (IdentifierExpr) value;
@@ -70,10 +72,11 @@ public class LayoutBinderTest {
 
     @Test
     public void testParse() {
+        int originalSize = mExprModel.size();
         mLayoutBinder.addVariable("user", "android.databinding.tool2.LayoutBinderTest.TestUser");
         mLayoutBinder.parse("user.name");
         mLayoutBinder.parse("user.lastName");
-        assertEquals(3, mExprModel.size());
+        assertEquals(originalSize + 3, mExprModel.size());
         final List<Expr> bindingExprs = mExprModel.getBindingExpressions();
         assertEquals(2, bindingExprs.size());
         IdentifierExpr id = mExprModel.identifier("user");
@@ -97,6 +100,18 @@ public class LayoutBinderTest {
         assertTrue(getter.type == Callable.Type.METHOD);
         assertSame(id, fa.getChild());
         assertTrue(fa.isDynamic());
+    }
+
+    private Map.Entry<String, Expr> findIdentifier(String name) {
+        for (Map.Entry<String, Expr> entry : mExprModel.getExprMap().entrySet()) {
+            if (entry.getValue() instanceof IdentifierExpr) {
+                IdentifierExpr expr = (IdentifierExpr) entry.getValue();
+                if (name.equals(expr.getName())) {
+                    return entry;
+                }
+            }
+        }
+        return null;
     }
 
     static class TestUser {

@@ -309,7 +309,7 @@ public class ExprModel {
         // non-dynamic binding expressions receive some ids so that they can be invalidated
         L.d("list of binding expressions");
         for (int i = 0; i < mBindingExpressions.size(); i++) {
-            L.d("[" + i + "] " + mBindingExpressions.get(i));
+            L.d("[%d] %s", i, mBindingExpressions.get(i));
         }
         // we don't assign ids to constant binding expressions because now invalidateAll has its own
         // flag.

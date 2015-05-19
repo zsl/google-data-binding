@@ -122,5 +122,9 @@
                 android:id="@+id/textView23"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="@{FMBO.Foo.baz}"/>
+        <TextView
+                android:id="@+id/textView24"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@{String.format(`%s`, `Hello World`}"/>
     </LinearLayout>
 </layout>

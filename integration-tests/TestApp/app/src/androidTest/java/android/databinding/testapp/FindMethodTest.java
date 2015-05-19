@@ -115,4 +115,9 @@ public class FindMethodTest
     public void testArrayLength() throws Throwable {
         assertEquals("5", mBinder.textView22.getText().toString());
     }
+
+    @UiThreadTest
+    public void testJavaLangMethod() throws Throwable {
+        assertEquals("Hello World", mBinder.textView24.getText().toString());
+    }
 }

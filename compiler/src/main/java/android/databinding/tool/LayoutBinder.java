@@ -22,11 +22,8 @@ import android.databinding.tool.expr.Dependency;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.IdentifierExpr;
-import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
-import android.databinding.tool.store.SetterStore;
-import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.writer.LayoutBinderWriter;
 import android.databinding.tool.writer.WriterPackage;
 
@@ -62,6 +59,106 @@ public class LayoutBinder {
 
     private LayoutBinderWriter mWriter;
     private ResourceBundle.LayoutFileBundle mBundle;
+    private static final String[] sJavaLangClasses = {
+            "Deprecated",
+            "Override",
+            "SafeVarargs",
+            "SuppressWarnings",
+            "Appendable",
+            "AutoCloseable",
+            "CharSequence",
+            "Cloneable",
+            "Comparable",
+            "Iterable",
+            "Readable",
+            "Runnable",
+            "Thread.UncaughtExceptionHandler",
+            "Boolean",
+            "Byte",
+            "Character",
+            "Character.Subset",
+            "Character.UnicodeBlock",
+            "Class",
+            "ClassLoader",
+            "Compiler",
+            "Double",
+            "Enum",
+            "Float",
+            "InheritableThreadLocal",
+            "Integer",
+            "Long",
+            "Math",
+            "Number",
+            "Object",
+            "Package",
+            "Process",
+            "ProcessBuilder",
+            "Runtime",
+            "RuntimePermission",
+            "SecurityManager",
+            "Short",
+            "StackTraceElement",
+            "StrictMath",
+            "String",
+            "StringBuffer",
+            "StringBuilder",
+            "System",
+            "Thread",
+            "ThreadGroup",
+            "ThreadLocal",
+            "Throwable",
+            "Void",
+            "Thread.State",
+            "ArithmeticException",
+            "ArrayIndexOutOfBoundsException",
+            "ArrayStoreException",
+            "ClassCastException",
+            "ClassNotFoundException",
+            "CloneNotSupportedException",
+            "EnumConstantNotPresentException",
+            "Exception",
+            "IllegalAccessException",
+            "IllegalArgumentException",
+            "IllegalMonitorStateException",
+            "IllegalStateException",
+            "IllegalThreadStateException",
+            "IndexOutOfBoundsException",
+            "InstantiationException",
+            "InterruptedException",
+            "NegativeArraySizeException",
+            "NoSuchFieldException",
+            "NoSuchMethodException",
+            "NullPointerException",
+            "NumberFormatException",
+            "ReflectiveOperationException",
+            "RuntimeException",
+            "SecurityException",
+            "StringIndexOutOfBoundsException",
+            "TypeNotPresentException",
+            "UnsupportedOperationException",
+            "AbstractMethodError",
+            "AssertionError",
+            "ClassCircularityError",
+            "ClassFormatError",
+            "Error",
+            "ExceptionInInitializerError",
+            "IllegalAccessError",
+            "IncompatibleClassChangeError",
+            "InstantiationError",
+            "InternalError",
+            "LinkageError",
+            "NoClassDefFoundError",
+            "NoSuchFieldError",
+            "NoSuchMethodError",
+            "OutOfMemoryError",
+            "StackOverflowError",
+            "ThreadDeath",
+            "UnknownError",
+            "UnsatisfiedLinkError",
+            "UnsupportedClassVersionError",
+            "VerifyError",
+            "VirtualMachineError",
+    };
 
     public LayoutBinder(ResourceBundle.LayoutFileBundle layoutBundle) {
         mExprModel = new ExprModel();
@@ -76,6 +173,9 @@ public class LayoutBinder {
 
         for (Map.Entry<String, String> userImport : mBundle.getImports().entrySet()) {
             mExprModel.addImport(userImport.getKey(), userImport.getValue());
+        }
+        for (String javaLangClass : sJavaLangClasses) {
+            mExprModel.addImport(javaLangClass, "java.lang." + javaLangClass);
         }
         for (BindingTargetBundle targetBundle : mBundle.getBindingTargetBundles()) {
             final BindingTarget bindingTarget = createBindingTarget(targetBundle);

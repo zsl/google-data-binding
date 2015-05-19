@@ -494,12 +494,12 @@ public class ExprModelTest {
     public void testFinalFieldOfAVariable() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        lb.addVariable("user", User.class.getCanonicalName());
+        IdentifierExpr user = lb.addVariable("user", User.class.getCanonicalName());
         Expr fieldGet = parse(lb, "user.finalField", FieldAccessExpr.class);
         mExprModel.seal();
         assertTrue(fieldGet.isDynamic());
         // read user
-        assertSame(fieldGet.getChildren().get(0), Iterables.getFirst(getShouldRead(), null));
+        assertExactMatch(getShouldRead(), user, fieldGet);
         mExprModel.markBitsRead();
         // no need to read user.finalField
         assertEquals(0, Iterables.size(getShouldRead()));
