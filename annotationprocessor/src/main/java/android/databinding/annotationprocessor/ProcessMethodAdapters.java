@@ -107,9 +107,10 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 if (numAttributes == 1) {
                     final String attribute = bindingAdapter.value()[0];
                     L.d("------------------ @BindingAdapter for %s", element);
-                    store.addBindingAdapter(attribute, executableElement);
+                    store.addBindingAdapter(processingEnv, attribute, executableElement);
                 } else {
-                    store.addBindingAdapter(bindingAdapter.value(), executableElement);
+                    store.addBindingAdapter(processingEnv, bindingAdapter.value(),
+                            executableElement);
                 }
             } catch (IllegalArgumentException e) {
                 L.e(e, "@BindingAdapter for duplicate View and parameter type: %s", element);

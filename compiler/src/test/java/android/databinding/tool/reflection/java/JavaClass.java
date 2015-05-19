@@ -20,6 +20,7 @@ import android.databinding.tool.reflection.TypeUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.List;
 
 public class JavaClass extends ModelClass {
     public final Class mClass;
@@ -110,6 +111,16 @@ public class JavaClass extends ModelClass {
 
     @Override
     public boolean isGeneric() {
+        return false;
+    }
+
+    @Override
+    public List<ModelClass> getTypeArguments() {
+        return null;
+    }
+
+    @Override
+    public boolean isTypeVar() {
         return false;
     }
 

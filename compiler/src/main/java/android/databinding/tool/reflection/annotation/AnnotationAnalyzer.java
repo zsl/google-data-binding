@@ -103,12 +103,13 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
             ArrayList<String> templateParameters = splitTemplateParameters(paramStr);
             TypeMirror[] typeArgs = new TypeMirror[templateParameters.size()];
             for (int i = 0; i < typeArgs.length; i++) {
-                typeArgs[i] = findClass(templateParameters.get(i), imports).mTypeMirror;
-                if (typeArgs[i] == null) {
+                final AnnotationClass clazz = findClass(templateParameters.get(i), imports);
+                if (clazz == null) {
                     L.e("cannot find type argument for %s in %s", templateParameters.get(i),
                             baseClassName);
                     return null;
                 }
+                typeArgs[i] = clazz.mTypeMirror;
             }
             Types typeUtils = getTypeUtils();
             declaredType = typeUtils.getDeclaredType(typeElement, typeArgs);

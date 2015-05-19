@@ -42,9 +42,11 @@ import java.util.TreeMap;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 public class SetterStore {
@@ -180,7 +182,8 @@ public class SetterStore {
         renamed.put(declaringClass, methodDescription);
     }
 
-    public void addBindingAdapter(String attribute, ExecutableElement bindingMethod) {
+    public void addBindingAdapter(ProcessingEnvironment processingEnv, String attribute,
+            ExecutableElement bindingMethod) {
         attribute = stripNamespace(attribute);
         L.d("STORE addBindingAdapter %s %s", attribute, bindingMethod);
         HashMap<AccessorKey, MethodDescription> adapters = mStore.adapterMethods.get(attribute);
@@ -190,8 +193,10 @@ public class SetterStore {
             mStore.adapterMethods.put(attribute, adapters);
         }
         List<? extends VariableElement> parameters = bindingMethod.getParameters();
-        String view = getQualifiedName(parameters.get(0).asType());
-        String value = getQualifiedName(parameters.get(1).asType());
+        TypeMirror viewType = eraseType(processingEnv, parameters.get(0).asType());
+        String view = getQualifiedName(viewType);
+        TypeMirror parameterType = eraseType(processingEnv, parameters.get(1).asType());
+        String value = getQualifiedName(parameterType);
 
         AccessorKey key = new AccessorKey(view, value);
         if (adapters.containsKey(key)) {
@@ -201,9 +206,70 @@ public class SetterStore {
         adapters.put(key, new MethodDescription(bindingMethod));
     }
 
-    public void addBindingAdapter(String[] attributes, ExecutableElement bindingMethod) {
+    private static TypeMirror eraseType(ProcessingEnvironment processingEnv,
+            TypeMirror typeMirror) {
+        if (hasTypeVar(typeMirror)) {
+            return processingEnv.getTypeUtils().erasure(typeMirror);
+        } else {
+            return typeMirror;
+        }
+    }
+
+    private static ModelClass eraseType(ModelClass modelClass) {
+        if (hasTypeVar(modelClass)) {
+            return modelClass.erasure();
+        } else {
+            return modelClass;
+        }
+    }
+
+    private static boolean hasTypeVar(TypeMirror typeMirror) {
+        TypeKind kind = typeMirror.getKind();
+        if (kind == TypeKind.TYPEVAR) {
+            return true;
+        } else if (kind == TypeKind.ARRAY) {
+            return hasTypeVar(((ArrayType) typeMirror).getComponentType());
+        } else if (kind == TypeKind.DECLARED) {
+            DeclaredType declaredType = (DeclaredType) typeMirror;
+            List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+            if (typeArguments == null || typeArguments.isEmpty()) {
+                return false;
+            }
+            for (TypeMirror arg : typeArguments) {
+                if (hasTypeVar(arg)) {
+                    return true;
+                }
+            }
+            return false;
+        } else {
+            return false;
+        }
+    }
+
+    private static boolean hasTypeVar(ModelClass type) {
+        if (type.isTypeVar()) {
+            return true;
+        } else if (type.isArray()) {
+            return hasTypeVar(type.getComponentType());
+        } else {
+            List<ModelClass> typeArguments = type.getTypeArguments();
+            if (typeArguments == null) {
+                return false;
+            }
+            for (ModelClass arg : typeArguments) {
+                if (hasTypeVar(arg)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public void addBindingAdapter(ProcessingEnvironment processingEnv, String[] attributes,
+            ExecutableElement bindingMethod) {
         L.d("STORE add multi-value BindingAdapter %d %s", attributes.length, bindingMethod);
-        MultiValueAdapterKey key = new MultiValueAdapterKey(bindingMethod, attributes);
+        MultiValueAdapterKey key = new MultiValueAdapterKey(processingEnv, bindingMethod,
+                attributes);
         MethodDescription methodDescription = new MethodDescription(bindingMethod);
         mStore.multiValueAdapters.put(key, methodDescription);
     }
@@ -239,8 +305,7 @@ public class SetterStore {
             case ARRAY:
                 return getQualifiedName(((ArrayType) type).getComponentType()) + "[]";
             case DECLARED:
-                return ((TypeElement) ((DeclaredType) type).asElement()).getQualifiedName()
-                        .toString();
+                return type.toString();
             default:
                 return "-- no type --";
         }
@@ -329,6 +394,13 @@ public class SetterStore {
             ModelClass viewType, ModelClass[] valueType) {
         attributes = stripAttributes(attributes);
         final ArrayList<MultiAttributeSetter> calls = new ArrayList<MultiAttributeSetter>();
+        if (viewType != null && viewType.isGeneric()) {
+            List<ModelClass> viewGenerics = viewType.getTypeArguments();
+            for (int i = 0; i < valueType.length; i++) {
+                valueType[i] = eraseType(valueType[i], viewGenerics);
+            }
+            viewType = viewType.erasure();
+        }
         ArrayList<MultiAttributeSetter> matching = getMatchingMultiAttributeSetters(attributes,
                 viewType, valueType);
         Collections.sort(matching, COMPARE_MULTI_ATTRIBUTE_SETTERS);
@@ -375,7 +447,10 @@ public class SetterStore {
             if (adapter.attributes.length > attributes.length) {
                 continue;
             }
-            final ModelClass viewClass = mClassAnalyzer.findClass(adapter.viewType, null);
+            ModelClass viewClass = mClassAnalyzer.findClass(adapter.viewType, null);
+            if (viewClass.isGeneric()) {
+                viewClass = viewClass.erasure();
+            }
             if (!viewClass.isAssignableFrom(viewType)) {
                 continue;
             }
@@ -400,7 +475,8 @@ public class SetterStore {
             if (index != null) {
                 matchingAttributes++;
                 final String parameterTypeStr = adapter.parameterTypes[index];
-                final ModelClass parameterType = mClassAnalyzer.findClass(parameterTypeStr, null);
+                final ModelClass parameterType = eraseType(
+                        mClassAnalyzer.findClass(parameterTypeStr, null));
                 final ModelClass attributeType = attributeValues[i];
                 if (!parameterType.isAssignableFrom(attributeType)) {
                     if (ModelMethod.isBoxingConversion(parameterType, attributeType)) {
@@ -456,8 +532,12 @@ public class SetterStore {
                                 .findClass(key.viewType, imports);
                         if (adapterViewType != null && adapterViewType.isAssignableFrom(viewType)) {
                             try {
-                                ModelClass adapterValueType = mClassAnalyzer
-                                        .findClass(key.valueType, imports);
+                                L.d("setter parameter type is %s", key.valueType);
+                                final ModelClass adapterValueType = eraseType(mClassAnalyzer
+                                        .findClass(key.valueType, imports));
+                                L.d("setter %s takes type %s, compared to %s",
+                                        adapters.get(key).method, adapterValueType.toJavaCode(),
+                                        valueType.toJavaCode());
                                 boolean isBetterView = bestViewType == null ||
                                         bestValueType.isAssignableFrom(adapterValueType);
                                 if (isBetterParameter(valueType, adapterValueType, bestValueType,
@@ -485,8 +565,8 @@ public class SetterStore {
         }
         if (setterCall == null) {
             if (viewType != null && !viewType.isViewDataBinding()) {
-                L.e("Cannot find the setter for attribute '%s' on %s.", attribute,
-                        viewType.getCanonicalName());
+                L.e("Cannot find the setter for attribute '%s' on %s with parameter type %s.",
+                        attribute, viewType.getCanonicalName(), valueType.toJavaCode());
             }
             setterCall = new DummySetter(getDefaultSetter(attribute));
         }
@@ -501,8 +581,8 @@ public class SetterStore {
     private ModelMethod getBestSetter(ModelClass viewType, ModelClass argumentType,
             String attribute, Map<String, String> imports) {
         if (viewType.isGeneric()) {
+            argumentType = eraseType(argumentType, viewType.getTypeArguments());
             viewType = viewType.erasure();
-            argumentType = argumentType.erasure();
         }
         List<String> setterCandidates = new ArrayList<String>();
         HashMap<String, MethodDescription> renamed = mStore.renamedMethods.get(attribute);
@@ -540,7 +620,19 @@ public class SetterStore {
             }
         }
         return bestMethod;
+    }
 
+    private static ModelClass eraseType(ModelClass type, List<ModelClass> typeParameters) {
+        List<ModelClass> typeArguments = type.getTypeArguments();
+        if (typeArguments == null || typeParameters == null) {
+            return type;
+        }
+        for (ModelClass arg : typeArguments) {
+            if (typeParameters.contains(arg)) {
+                return type.erasure();
+            }
+        }
+        return type;
     }
 
     private static String trimAttributeNamespace(String attribute) {
@@ -666,13 +758,15 @@ public class SetterStore {
 
         public final TreeMap<String, Integer> attributeIndices = new TreeMap<String, Integer>();
 
-        public MultiValueAdapterKey(ExecutableElement method, String[] attributes) {
+        public MultiValueAdapterKey(ProcessingEnvironment processingEnv,
+                ExecutableElement method, String[] attributes) {
             this.attributes = stripAttributes(attributes);
             List<? extends VariableElement> parameters = method.getParameters();
-            this.viewType = getQualifiedName(parameters.get(0).asType());
+            this.viewType = getQualifiedName(eraseType(processingEnv, parameters.get(0).asType()));
             this.parameterTypes = new String[parameters.size() - 1];
             for (int i = 0; i < parameterTypes.length; i++) {
-                this.parameterTypes[i] = getQualifiedName(parameters.get(i + 1).asType());
+                TypeMirror typeMirror = eraseType(processingEnv, parameters.get(i + 1).asType());
+                this.parameterTypes[i] = getQualifiedName(typeMirror);
                 attributeIndices.put(this.attributes[i], i);
             }
         }

@@ -22,6 +22,7 @@ import android.view.View;
 import java.util.List;
 
 public class GenericView<T> extends View {
+    private List<T> mList;
 
     public GenericView(Context context) {
         super(context);
@@ -39,5 +40,11 @@ public class GenericView<T> extends View {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public void setList(List<T> list) {}
+    public void setList(List<T> list) {
+        mList = list;
+    }
+
+    public List<T> getList() {
+        return mList;
+    }
 }

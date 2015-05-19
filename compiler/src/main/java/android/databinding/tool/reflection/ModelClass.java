@@ -129,6 +129,19 @@ public abstract class ModelClass {
     public abstract boolean isGeneric();
 
     /**
+     * @return a list of Generic type paramters for the class. For example, if the class
+     * is List&lt;T>, then the return value will be a list containing T. null is returned
+     * if this is not a generic type
+     */
+    public abstract List<ModelClass> getTypeArguments();
+
+    /**
+     * @return whether this is a type variable. For example, in List&lt;T>, T is a type variable.
+     * However, List&lt;String>, String is not a type variable.
+     */
+    public abstract boolean isTypeVar();
+
+    /**
      * @return whether or not this ModelClass is java.lang.Object and not a primitive or subclass.
      */
     public boolean isObject() {

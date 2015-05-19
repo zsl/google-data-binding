@@ -202,6 +202,27 @@ class AnnotationClass extends ModelClass {
     }
 
     @Override
+    public List<ModelClass> getTypeArguments() {
+        List<ModelClass> types = null;
+        if (mTypeMirror.getKind() == TypeKind.DECLARED) {
+            DeclaredType declaredType = (DeclaredType) mTypeMirror;
+            List<? extends TypeMirror> typeArguments = declaredType.getTypeArguments();
+            if (typeArguments != null && !typeArguments.isEmpty()) {
+                types = new ArrayList<ModelClass>();
+                for (TypeMirror typeMirror : typeArguments) {
+                    types.add(new AnnotationClass(typeMirror));
+                }
+            }
+        }
+        return types;
+    }
+
+    @Override
+    public boolean isTypeVar() {
+        return mTypeMirror.getKind() == TypeKind.TYPEVAR;
+    }
+
+    @Override
     public boolean isVoid() {
         return mTypeMirror.getKind() == TypeKind.VOID;
     }
