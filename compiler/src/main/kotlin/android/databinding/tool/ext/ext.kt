@@ -13,6 +13,7 @@
 
 package android.databinding.tool.ext
 
+import android.databinding.tool.expr.VersionProvider
 import kotlin.properties.ReadOnlyProperty
 import kotlin.properties.Delegates
 import android.databinding.tool.ext.joinToCamelCase
@@ -34,7 +35,24 @@ private class LazyExt<K, T>(private val initializer: (k : K) -> T) : ReadOnlyPro
     }
 }
 
+private class VersionedLazyExt<K, T>(private val initializer: (k : K) -> T) : ReadOnlyProperty<K, T> {
+    private val mapping = hashMapOf<K, VersionedResult<T>>()
+    override fun get(thisRef: K, desc: PropertyMetadata): T {
+        val t = mapping.get(thisRef)
+        val version = if(thisRef is VersionProvider) thisRef.getVersion() else 1
+        if (t != null && version == t.version) {
+            return t.result
+        }
+        val result = initializer(thisRef)
+        mapping.put(thisRef, VersionedResult(version, result))
+        return result
+    }
+}
+
+data class VersionedResult<T>(val version : Int, val result : T)
+
 fun Delegates.lazy<K, T>(initializer: (k : K) -> T): ReadOnlyProperty<K, T> = LazyExt(initializer)
+fun Delegates.versionedLazy<K, T>(initializer: (k : K) -> T): ReadOnlyProperty<K, T> = VersionedLazyExt(initializer)
 
 public fun Class<*>.toJavaCode() : String {
     val name = getName();

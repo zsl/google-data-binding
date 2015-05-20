@@ -18,7 +18,6 @@ import kotlin.properties.Delegates
 import android.databinding.tool.BindingTarget
 import android.databinding.tool.expr.Expr
 import kotlin.properties.Delegates
-import android.databinding.tool.ext.joinToCamelCaseAsVar
 import android.databinding.tool.BindingTarget
 import android.databinding.tool.expr.IdentifierExpr
 import android.databinding.tool.util.Log
@@ -36,17 +35,21 @@ import android.databinding.tool.expr.MethodCallExpr
 import android.databinding.tool.expr.StaticIdentifierExpr
 import android.databinding.tool.expr.SymbolExpr
 import android.databinding.tool.expr.UnaryExpr
-import android.databinding.tool.ext.androidId
-import android.databinding.tool.ext.lazy
-import android.databinding.tool.ext.br
 import android.databinding.tool.expr.ResourceExpr
 import android.databinding.tool.expr.BracketExpr
 import android.databinding.tool.ext;
+import android.databinding.tool.ext.androidId
+import android.databinding.tool.ext.lazy
+import android.databinding.tool.ext.versionedLazy
+import android.databinding.tool.ext.br
+import android.databinding.tool.ext.joinToCamelCaseAsVar
 import android.databinding.tool.util.Log
 import java.util.BitSet
 import java.util.Arrays
 import android.databinding.tool.reflection.Callable
 import android.databinding.tool.reflection.ModelAnalyzer
+import android.databinding.tool.util.L
+import com.google.common.collect.Iterables
 import java.util.ArrayList
 import java.util.HashMap
 
@@ -187,7 +190,7 @@ val Expr.invalidateFlagSet by Delegates.lazy { expr : Expr ->
     FlagSet(expr.getId())
 }
 
-val Expr.shouldReadFlagSet by Delegates.lazy { expr : Expr ->
+val Expr.shouldReadFlagSet by Delegates.versionedLazy { expr : Expr ->
     FlagSet(expr.getShouldReadFlags(), expr.getModel().getFlagBucketCount())
 }
 
@@ -695,7 +698,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
                 tab("// batch finished")
             } while(model.markBitsRead())
-
+            // verify everything is read.
+            val batch = ExprModel.filterShouldRead(model.getPendingExpressions()).toArrayList()
+            if (batch.isNotEmpty()) {
+                L.e("could not generate code for %s. This might be caused by circular dependencies."
+                        + "Please report on b.android.com", layoutBinder.getLayoutname())
+            }
             //
             layoutBinder.getSortedTargets().filter { it.isUsed() }
                     .flatMap { it.getBindings() }

@@ -428,13 +428,15 @@ public class ExprModel {
 
     public boolean markBitsRead() {
         // each has should read flags, we set them back on them
+        List<Expr> markedSomeFlagsRead = Lists.newArrayList();
         for (Expr expr : filterShouldRead(getPendingExpressions())) {
             expr.markFlagsAsRead(expr.getShouldReadFlags());
+            markedSomeFlagsRead.add(expr);
         }
-        return pruneDone();
+        return pruneDone(markedSomeFlagsRead);
     }
 
-    private boolean pruneDone() {
+    private boolean pruneDone(List<Expr> markedSomeFlagsAsRead) {
         boolean marked = true;
         List<Expr> markedAsReadList = Lists.newArrayList();
         while (marked) {
@@ -447,14 +449,26 @@ public class ExprModel {
                     L.d("marked %s as read ", expr.getUniqueKey());
                     marked = true;
                     markedAsReadList.add(expr);
+                    markedSomeFlagsAsRead.remove(expr);
                 }
-
             }
         }
         boolean elevated = false;
         for (Expr markedAsRead : markedAsReadList) {
             for (Dependency dependency : markedAsRead.getDependants()) {
                 if (dependency.getDependant().considerElevatingConditionals(markedAsRead)) {
+                    elevated = true;
+                }
+            }
+        }
+        for (Expr partialRead : markedSomeFlagsAsRead) {
+            boolean allPathsAreSatisfied = partialRead.getAllCalculationPaths()
+                    .areAllPathsSatisfied(partialRead.mReadSoFar);
+            if (!allPathsAreSatisfied) {
+                continue;
+            }
+            for (Dependency dependency : partialRead.getDependants()) {
+                if (dependency.getDependant().considerElevatingConditionals(partialRead)) {
                     elevated = true;
                 }
             }

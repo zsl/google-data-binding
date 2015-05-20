@@ -39,6 +39,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -455,6 +456,125 @@ public class ExprModelTest {
         assertTrue(mExprModel.markBitsRead());
         shouldRead = getShouldRead();
         assertExactMatch(shouldRead, abTernary, abTernary2);
+    }
+
+    @Test
+    public void testInterExprCircularDependency2() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName());
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName());
+        final TernaryExpr abTernary = parse(lb, "a ? b : true", TernaryExpr.class);
+        final TernaryExpr baTernary = parse(lb, "b ? a : false", TernaryExpr.class);
+        mExprModel.seal();
+        Iterable<Expr> shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, a, b);
+        Iterable<Expr> readFirst = getReadFirst(shouldRead);
+        assertExactMatch(readFirst, a, b);
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        // read a and b again, this time for their dependencies and also the rest since everything
+        // is ready to be read
+        assertExactMatch(shouldRead, a, b, abTernary, baTernary);
+        List<Expr> justRead = new ArrayList<Expr>();
+        readFirst = getReadFirst(shouldRead);
+        assertExactMatch(readFirst, a, b);
+        Collections.addAll(justRead, a, b);
+        readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
+        assertExactMatch(readFirst, abTernary, baTernary);
+
+
+        assertFalse(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        assertEquals(0, Iterables.size(shouldRead));
+    }
+
+    @Test
+    public void testInterExprCircularDependency3() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName());
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName());
+        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName());
+        final TernaryExpr abTernary = parse(lb, "a ? b : c", TernaryExpr.class);
+        final TernaryExpr abTernary2 = parse(lb, "b ? a : c", TernaryExpr.class);
+        mExprModel.seal();
+        Iterable<Expr> shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, a, b);
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        // read a and b again, this time for their dependencies and also the rest since everything
+        // is ready to be read
+        assertExactMatch(shouldRead, a, b, c, abTernary, abTernary2);
+        mExprModel.markBitsRead();
+        shouldRead = getShouldRead();
+        assertEquals(0, Iterables.size(shouldRead));
+    }
+
+    @Test
+    public void testInterExprCircularDependency4() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName());
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName());
+        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName());
+        IdentifierExpr d = lb.addVariable("d", boolean.class.getCanonicalName());
+        final TernaryExpr cTernary = parse(lb, "c ? (a ? d : false) : false", TernaryExpr.class);
+        final TernaryExpr abTernary = parse(lb, "a ? b : true", TernaryExpr.class);
+        final TernaryExpr baTernary = parse(lb, "b ? a : false", TernaryExpr.class);
+        mExprModel.seal();
+        Iterable<Expr> shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, c, a, b);
+
+        List<Expr> justRead = new ArrayList<Expr>();
+        Iterable<Expr> readFirst = getReadFirst(shouldRead);
+        assertExactMatch(readFirst, c, a, b);
+        Collections.addAll(justRead, a, b, c);
+        assertEquals(Iterables.size(filterOut(getReadFirst(shouldRead, justRead), justRead)), 0);
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, a, b, d, cTernary.getIfTrue(), cTernary, abTernary, baTernary);
+        justRead.clear();
+
+        readFirst = getReadFirst(shouldRead);
+        assertExactMatch(readFirst, a, b, d);
+        Collections.addAll(justRead, a, b, d);
+
+        readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
+        assertExactMatch(readFirst, cTernary.getIfTrue(), abTernary, baTernary);
+        Collections.addAll(justRead, cTernary.getIfTrue(), abTernary, baTernary);
+
+        readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
+        assertExactMatch(readFirst, cTernary);
+        Collections.addAll(justRead, cTernary);
+
+        assertEquals(0, Iterables.size(filterOut(getReadFirst(shouldRead, justRead), justRead)));
+
+        assertFalse(mExprModel.markBitsRead());
+    }
+
+    @Test
+    public void testInterExprDependencyNotReadyYet() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName());
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName());
+        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName());
+        IdentifierExpr d = lb.addVariable("d", boolean.class.getCanonicalName());
+        IdentifierExpr e = lb.addVariable("e", boolean.class.getCanonicalName());
+        final TernaryExpr cTernary = parse(lb, "c ? (a ? d : false) : false", TernaryExpr.class);
+        final TernaryExpr baTernary = parse(lb, "b ? a : false", TernaryExpr.class);
+        final TernaryExpr eaTernary = parse(lb, "e ? a : false", TernaryExpr.class);
+        mExprModel.seal();
+        Iterable<Expr> shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, b, c, e);
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, a, baTernary, eaTernary);
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, d, cTernary.getIfTrue(), cTernary);
+        assertFalse(mExprModel.markBitsRead());
     }
 
     @Test
