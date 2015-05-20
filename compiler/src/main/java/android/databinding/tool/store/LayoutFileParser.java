@@ -30,6 +30,9 @@ import android.databinding.tool.util.XmlEditor;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -280,9 +283,9 @@ public class LayoutFileParser {
             return null;
         }
         final Node first = commentElementNodes.item(0);
-        String actualFilePath = first.getNodeValue().substring(" From: file:".length()).trim();
+        String actualFilePath = first.getNodeValue().substring(" From:".length()).trim();
         L.d("actual file to parse: %s", actualFilePath);
-        File actualFile = new File(actualFilePath);
+        File actualFile = urlToFile(new java.net.URL(actualFilePath));
         if (!actualFile.canRead()) {
             L.d("cannot find original, skipping. %s", actualFile.getAbsolutePath());
             return null;
@@ -295,5 +298,23 @@ public class LayoutFileParser {
             stripBindingTags(xml, binderId);
         }
         return actualFile;
+    }
+
+    public static File urlToFile(String url) throws MalformedURLException {
+        return urlToFile(new URL(url));
+    }
+
+    public static File urlToFile(URL url) throws MalformedURLException {
+        try {
+            return new File(url.toURI());
+        }
+        catch (IllegalArgumentException e) {
+            MalformedURLException ex = new MalformedURLException(e.getLocalizedMessage());
+            ex.initCause(e);
+            throw ex;
+        }
+        catch (URISyntaxException e) {
+            return new File(url.getPath());
+        }
     }
 }
