@@ -17,7 +17,45 @@ package android.databinding;
 
 import java.util.Map;
 
+/**
+ * A {@link Map} that notifies when items change. This kind of Map may be data bound
+ * and have the UI update as the map changes.
+ * <p>
+ * Implementers must call {@link OnMapChangedCallback#onMapChanged(ObservableMap, Object)} whenever
+ * an item is added, changed, or removed.
+ * <p>
+ * ObservableArrayMap is a convenient implementation of ObservableMap.
+ * MapChangeRegistry may help other implementations manage the callbacks.
+ * @see Observable
+ * @see ObservableList
+ */
 public interface ObservableMap<K, V> extends Map<K, V> {
-    void addOnMapChangedListener(OnMapChangedListener<? extends ObservableMap<K, V>, K> listener);
-    void removeOnMapChangedListener(OnMapChangedListener<? extends ObservableMap<K, V>, K> listener);
+
+    /**
+     * Adds a callback to listen for changes to the ObservableMap.
+     * @param callback The callback to start listening for events.
+     */
+    void addOnMapChangedCallback(
+            OnMapChangedCallback<? extends ObservableMap<K, V>, K, V> callback);
+
+    /**
+     * Removes a previously added callback.
+     * @param callback The callback that no longer needs to be notified of map changes.
+     */
+    void removeOnMapChangedCallback(
+            OnMapChangedCallback<? extends ObservableMap<K, V>, K, V> callback);
+
+    /**
+     * A callback receiving notifications when an ObservableMap changes.
+     */
+    abstract class OnMapChangedCallback<T extends ObservableMap<K, V>, K, V> {
+
+        /**
+         * Called whenever an ObservableMap changes, including values inserted, deleted,
+         * and changed.
+         * @param sender The changing map.
+         * @param key The key of the value inserted, removed, or changed.
+         */
+        public abstract void onMapChanged(T sender, K key);
+    }
 }

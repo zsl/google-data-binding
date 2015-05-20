@@ -19,7 +19,8 @@ import android.support.v4.util.Pools;
 
 public class ListChangeRegistry
         extends
-        CallbackRegistry<OnListChangedListener, ObservableList, ListChangeRegistry.ListChanges> {
+        CallbackRegistry<ObservableList.OnListChangedCallback, ObservableList,
+                ListChangeRegistry.ListChanges> {
     private static final Pools.SynchronizedPool<ListChanges> sListChanges =
             new Pools.SynchronizedPool<>(10);
 
@@ -29,25 +30,28 @@ public class ListChangeRegistry
     private static final int MOVED = 3;
     private static final int REMOVED = 4;
 
-    private static final CallbackRegistry.NotifierCallback<OnListChangedListener, ObservableList, ListChanges> NOTIFIER_CALLBACK = new CallbackRegistry.NotifierCallback<OnListChangedListener, ObservableList, ListChanges>() {
+    private static final CallbackRegistry.NotifierCallback<ObservableList.OnListChangedCallback,
+            ObservableList, ListChanges> NOTIFIER_CALLBACK = new CallbackRegistry.NotifierCallback<
+            ObservableList.OnListChangedCallback, ObservableList, ListChanges>() {
         @Override
-        public void onNotifyCallback(OnListChangedListener callback, ObservableList sender,
-                int notificationType, ListChanges listChanges) {
+        public void onNotifyCallback(ObservableList.OnListChangedCallback callback,
+                ObservableList sender, int notificationType, ListChanges listChanges) {
             switch (notificationType) {
                 case CHANGED:
-                    callback.onItemRangeChanged(listChanges.start, listChanges.count);
+                    callback.onItemRangeChanged(sender, listChanges.start, listChanges.count);
                     break;
                 case INSERTED:
-                    callback.onItemRangeInserted(listChanges.start, listChanges.count);
+                    callback.onItemRangeInserted(sender, listChanges.start, listChanges.count);
                     break;
                 case MOVED:
-                    callback.onItemRangeMoved(listChanges.start, listChanges.to, listChanges.count);
+                    callback.onItemRangeMoved(sender, listChanges.start, listChanges.to,
+                            listChanges.count);
                     break;
                 case REMOVED:
-                    callback.onItemRangeRemoved(listChanges.start, listChanges.count);
+                    callback.onItemRangeRemoved(sender, listChanges.start, listChanges.count);
                     break;
                 default:
-                    callback.onChanged();
+                    callback.onChanged(sender);
                     break;
             }
         }

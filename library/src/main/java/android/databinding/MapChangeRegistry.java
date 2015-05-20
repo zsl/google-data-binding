@@ -16,12 +16,12 @@
 package android.databinding;
 
 public class MapChangeRegistry
-        extends CallbackRegistry<OnMapChangedListener, ObservableMap, Object> {
+        extends CallbackRegistry<ObservableMap.OnMapChangedCallback, ObservableMap, Object> {
 
-    private static NotifierCallback<OnMapChangedListener, ObservableMap, Object> NOTIFIER_CALLBACK =
-            new NotifierCallback<OnMapChangedListener, ObservableMap, Object>() {
+    private static NotifierCallback<ObservableMap.OnMapChangedCallback, ObservableMap, Object> NOTIFIER_CALLBACK =
+            new NotifierCallback<ObservableMap.OnMapChangedCallback, ObservableMap, Object>() {
                 @Override
-                public void onNotifyCallback(OnMapChangedListener callback, ObservableMap sender,
+                public void onNotifyCallback(ObservableMap.OnMapChangedCallback callback, ObservableMap sender,
                         int arg, Object arg2) {
                     callback.onMapChanged(sender, arg2);
                 }

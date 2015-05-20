@@ -16,11 +16,11 @@
 package android.databinding;
 
 public class PropertyChangeRegistry extends
-        CallbackRegistry<OnPropertyChangedListener, Observable, Void> {
+        CallbackRegistry<Observable.OnPropertyChangedCallback, Observable, Void> {
 
-    private static final CallbackRegistry.NotifierCallback<OnPropertyChangedListener, Observable, Void> NOTIFIER_CALLBACK = new CallbackRegistry.NotifierCallback<OnPropertyChangedListener, Observable, Void>() {
+    private static final CallbackRegistry.NotifierCallback<Observable.OnPropertyChangedCallback, Observable, Void> NOTIFIER_CALLBACK = new CallbackRegistry.NotifierCallback<Observable.OnPropertyChangedCallback, Observable, Void>() {
         @Override
-        public void onNotifyCallback(OnPropertyChangedListener callback, Observable sender,
+        public void onNotifyCallback(Observable.OnPropertyChangedCallback callback, Observable sender,
                 int arg, Void notUsed) {
             callback.onPropertyChanged(sender, arg);
         }

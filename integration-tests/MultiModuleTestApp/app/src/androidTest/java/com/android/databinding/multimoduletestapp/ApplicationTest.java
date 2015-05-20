@@ -20,7 +20,6 @@ import android.databinding.testlibrary.ObservableInLibrary;
 
 import android.app.Application;
 import android.databinding.Observable;
-import android.databinding.OnPropertyChangedListener;
 import android.test.ApplicationTestCase;
 
 import java.beans.PropertyChangeEvent;

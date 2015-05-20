@@ -3,7 +3,7 @@ package com.android.example.bindingdemo;
 import android.databinding.Bindable;
 import android.databinding.DataBindingUtil;
 import android.databinding.Observable;
-import android.databinding.OnPropertyChangedListener;
+import android.databinding.Observable.OnPropertyChangedListener;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;

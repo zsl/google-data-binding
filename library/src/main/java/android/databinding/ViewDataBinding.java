@@ -65,7 +65,7 @@ public abstract class ViewDataBinding {
     private static final CreateWeakListener CREATE_PROPERTY_LISTENER = new CreateWeakListener() {
         @Override
         public WeakListener create(ViewDataBinding viewDataBinding, int localFieldId) {
-            return new WeakPropertyListener(viewDataBinding, localFieldId);
+            return new WeakPropertyListener(viewDataBinding, localFieldId).getListener();
         }
     };
 
@@ -75,7 +75,7 @@ public abstract class ViewDataBinding {
     private static final CreateWeakListener CREATE_LIST_LISTENER = new CreateWeakListener() {
         @Override
         public WeakListener create(ViewDataBinding viewDataBinding, int localFieldId) {
-            return new WeakListListener(viewDataBinding, localFieldId);
+            return new WeakListListener(viewDataBinding, localFieldId).getListener();
         }
     };
 
@@ -85,7 +85,7 @@ public abstract class ViewDataBinding {
     private static final CreateWeakListener CREATE_MAP_LISTENER = new CreateWeakListener() {
         @Override
         public WeakListener create(ViewDataBinding viewDataBinding, int localFieldId) {
-            return new WeakMapListener(viewDataBinding, localFieldId);
+            return new WeakMapListener(viewDataBinding, localFieldId).getListener();
         }
     };
 
@@ -651,28 +651,36 @@ public abstract class ViewDataBinding {
         return val;
     }
 
-    private static abstract class WeakListener<T> {
-        private final WeakReference<ViewDataBinding> mBinder;
+    private interface ObservableReference<T> {
+        WeakListener<T> getListener();
+        void addListener(T target);
+        void removeListener(T target);
+    }
+
+    private static class WeakListener<T> extends WeakReference<ViewDataBinding> {
+        private final ObservableReference<T> mObservable;
         protected final int mLocalFieldId;
         private T mTarget;
 
-        public WeakListener(ViewDataBinding binder, int localFieldId) {
-            mBinder = new WeakReference<ViewDataBinding>(binder);
+        public WeakListener(ViewDataBinding binder, int localFieldId,
+                ObservableReference<T> observable) {
+            super(binder);
             mLocalFieldId = localFieldId;
+            mObservable = observable;
         }
 
         public void setTarget(T object) {
             unregister();
             mTarget = object;
             if (mTarget != null) {
-                addListener(mTarget);
+                mObservable.addListener(mTarget);
             }
         }
 
         public boolean unregister() {
             boolean unregistered = false;
             if (mTarget != null) {
-                removeListener(mTarget);
+                mObservable.removeListener(mTarget);
                 unregistered = true;
             }
             mTarget = null;
@@ -684,121 +692,139 @@ public abstract class ViewDataBinding {
         }
 
         protected ViewDataBinding getBinder() {
-            ViewDataBinding binder = mBinder.get();
+            ViewDataBinding binder = get();
             if (binder == null) {
                 unregister(); // The binder is dead
             }
             return binder;
         }
-
-        protected abstract void addListener(T target);
-        protected abstract void removeListener(T target);
     }
 
-    private static class WeakPropertyListener extends WeakListener<Observable>
-            implements OnPropertyChangedListener {
+    private static class WeakPropertyListener extends Observable.OnPropertyChangedCallback
+            implements ObservableReference<Observable> {
+        final WeakListener<Observable> mListener;
+
         public WeakPropertyListener(ViewDataBinding binder, int localFieldId) {
-            super(binder, localFieldId);
+            mListener = new WeakListener<Observable>(binder, localFieldId, this);
         }
 
         @Override
-        protected void addListener(Observable target) {
-            target.addOnPropertyChangedListener(this);
+        public WeakListener<Observable> getListener() {
+            return mListener;
         }
 
         @Override
-        protected void removeListener(Observable target) {
-            target.removeOnPropertyChangedListener(this);
+        public void addListener(Observable target) {
+            target.addOnPropertyChangedCallback(this);
         }
 
         @Override
-        public void onPropertyChanged(Observable sender, int fieldId) {
-            ViewDataBinding binder = getBinder();
+        public void removeListener(Observable target) {
+            target.removeOnPropertyChangedCallback(this);
+        }
+
+        @Override
+        public void onPropertyChanged(Observable sender, int propertyId) {
+            ViewDataBinding binder = mListener.getBinder();
             if (binder == null) {
                 return;
             }
-            Observable obj = getTarget();
+            Observable obj = mListener.getTarget();
             if (obj != sender) {
                 return; // notification from the wrong object?
             }
-            binder.handleFieldChange(mLocalFieldId, sender, fieldId);
+            binder.handleFieldChange(mListener.mLocalFieldId, sender, propertyId);
         }
     }
 
-    private static class WeakListListener extends WeakListener<ObservableList>
-            implements OnListChangedListener {
+    private static class WeakListListener extends ObservableList.OnListChangedCallback
+            implements ObservableReference<ObservableList> {
+        final WeakListener<ObservableList> mListener;
 
         public WeakListListener(ViewDataBinding binder, int localFieldId) {
-            super(binder, localFieldId);
+            mListener = new WeakListener<ObservableList>(binder, localFieldId, this);
         }
 
         @Override
-        public void onChanged() {
-            ViewDataBinding binder = getBinder();
+        public WeakListener<ObservableList> getListener() {
+            return mListener;
+        }
+
+        @Override
+        public void addListener(ObservableList target) {
+            target.addOnListChangedCallback(this);
+        }
+
+        @Override
+        public void removeListener(ObservableList target) {
+            target.removeOnListChangedCallback(this);
+        }
+
+        @Override
+        public void onChanged(ObservableList sender) {
+            ViewDataBinding binder = mListener.getBinder();
             if (binder == null) {
                 return;
             }
-            ObservableList target = getTarget();
-            if (target == null) {
-                return; // We don't expect any notifications from null targets
+            ObservableList target = mListener.getTarget();
+            if (target != sender) {
+                return; // We expect notifications only from sender
             }
-            binder.handleFieldChange(mLocalFieldId, target, 0);
+            binder.handleFieldChange(mListener.mLocalFieldId, target, 0);
         }
 
         @Override
-        public void onItemRangeChanged(int positionStart, int itemCount) {
-            onChanged();
+        public void onItemRangeChanged(ObservableList sender, int positionStart, int itemCount) {
+            onChanged(sender);
         }
 
         @Override
-        public void onItemRangeInserted(int positionStart, int itemCount) {
-            onChanged();
+        public void onItemRangeInserted(ObservableList sender, int positionStart, int itemCount) {
+            onChanged(sender);
         }
 
         @Override
-        public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
-            onChanged();
+        public void onItemRangeMoved(ObservableList sender, int fromPosition, int toPosition,
+                int itemCount) {
+            onChanged(sender);
         }
 
         @Override
-        public void onItemRangeRemoved(int positionStart, int itemCount) {
-            onChanged();
-        }
-
-        @Override
-        protected void addListener(ObservableList target) {
-            target.addOnListChangedListener(this);
-        }
-
-        @Override
-        protected void removeListener(ObservableList target) {
-            target.removeOnListChangedListener(this);
+        public void onItemRangeRemoved(ObservableList sender, int positionStart, int itemCount) {
+            onChanged(sender);
         }
     }
 
-    private static class WeakMapListener extends WeakListener<ObservableMap>
-            implements OnMapChangedListener {
+    private static class WeakMapListener extends ObservableMap.OnMapChangedCallback
+            implements ObservableReference<ObservableMap> {
+        final WeakListener<ObservableMap> mListener;
+
         public WeakMapListener(ViewDataBinding binder, int localFieldId) {
-            super(binder, localFieldId);
+            mListener = new WeakListener<ObservableMap>(binder, localFieldId, this);
         }
 
         @Override
-        protected void addListener(ObservableMap target) {
-            target.addOnMapChangedListener(this);
+        public WeakListener<ObservableMap> getListener() {
+            return mListener;
         }
 
         @Override
-        protected void removeListener(ObservableMap target) {
-            target.removeOnMapChangedListener(this);
+        public void addListener(ObservableMap target) {
+            target.addOnMapChangedCallback(this);
+        }
+
+        @Override
+        public void removeListener(ObservableMap target) {
+            target.removeOnMapChangedCallback(this);
         }
 
         @Override
         public void onMapChanged(ObservableMap sender, Object key) {
-            ViewDataBinding binder = getBinder();
-            if (binder == null || sender != getTarget()) {
+            ViewDataBinding binder = mListener.getBinder();
+            if (binder == null || sender != mListener.getTarget()) {
                 return;
             }
-            binder.handleFieldChange(mLocalFieldId, sender, 0);
+            binder.handleFieldChange(mListener.mLocalFieldId, sender, 0);
         }
     }
 

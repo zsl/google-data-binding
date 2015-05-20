@@ -19,7 +19,7 @@ import android.databinding.ObservableArrayMap;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 
 import android.databinding.ObservableMap;
-import android.databinding.OnMapChangedListener;
+import android.databinding.ObservableMap.OnMapChangedCallback;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.util.SimpleArrayMap;
 
@@ -32,7 +32,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
 
     private ArrayList<String> mNotifications = new ArrayList<>();
 
-    private OnMapChangedListener mListener = new OnMapChangedListener() {
+    private OnMapChangedCallback mListener = new OnMapChangedCallback() {
         @Override
         public void onMapChanged(ObservableMap observableMap, Object o) {
             assertEquals(mObservable, observableMap);
@@ -53,30 +53,30 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
     public void testAddListener() {
         mObservable.put("Hello", "World");
         assertTrue(mNotifications.isEmpty());
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         mObservable.put("Hello", "Goodbye");
         assertFalse(mNotifications.isEmpty());
     }
 
     public void testRemoveListener() {
         // test there is no exception when the listener isn't there
-        mObservable.removeOnMapChangedListener(mListener);
+        mObservable.removeOnMapChangedCallback(mListener);
 
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         mObservable.put("Hello", "World");
         mNotifications.clear();
-        mObservable.removeOnMapChangedListener(mListener);
+        mObservable.removeOnMapChangedCallback(mListener);
         mObservable.put("World", "Hello");
         assertTrue(mNotifications.isEmpty());
 
         // test there is no exception when the listener isn't there
-        mObservable.removeOnMapChangedListener(mListener);
+        mObservable.removeOnMapChangedCallback(mListener);
     }
 
     public void testClear() {
         mObservable.put("Hello", "World");
         mObservable.put("World", "Hello");
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         mObservable.clear();
         assertEquals(1, mNotifications.size());
         assertNull(mNotifications.get(0));
@@ -89,7 +89,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
     }
 
     public void testPut() {
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         mObservable.put("Hello", "World");
         assertEquals(1, mNotifications.size());
         assertEquals("Hello", mNotifications.get(0));
@@ -111,7 +111,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         toAdd.put("Hello", "World");
         toAdd.put("Goodbye", "Cruel World");
         mObservable.put("Cruel", "World");
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         mObservable.putAll(toAdd);
         assertEquals(3, mObservable.size());
         assertEquals("World", mObservable.get("Hello"));
@@ -127,7 +127,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         toAdd.put("Hello", "World");
         toAdd.put("Goodbye", "Cruel World");
         mObservable.put("Cruel", "World");
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         mObservable.putAll(toAdd);
         assertEquals(3, mObservable.size());
         assertEquals("World", mObservable.get("Hello"));
@@ -141,7 +141,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
     public void testRemove() {
         mObservable.put("Hello", "World");
         mObservable.put("Goodbye", "Cruel World");
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         assertEquals("World", mObservable.remove("Hello"));
         assertEquals(1, mNotifications.size());
         assertEquals("Hello", mNotifications.get(0));
@@ -158,7 +158,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         mObservable.put("Hello", "World");
         mObservable.put("Goodbye", "Cruel World");
         mObservable.put("Cruel", "World");
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         assertTrue(mObservable.removeAll(toRemove));
         assertEquals(2, mNotifications.size());
         // order is not guaranteed
@@ -179,7 +179,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         mObservable.put("Hello", "World");
         mObservable.put("Goodbye", "Cruel World");
         mObservable.put("Cruel", "World");
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         assertTrue(mObservable.retainAll(toRetain));
         assertEquals(1, mNotifications.size());
         assertEquals("Cruel", mNotifications.get(0));
@@ -194,7 +194,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
     public void testRemoveAt() {
         mObservable.put("Hello", "World");
         mObservable.put("Goodbye", "Cruel World");
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         String key = mObservable.keyAt(0);
         String value = mObservable.valueAt(0);
         assertTrue("Hello".equals(key) || "Goodbye".equals(key));
@@ -205,7 +205,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
 
     public void testSetValueAt() {
         mObservable.put("Hello", "World");
-        mObservable.addOnMapChangedListener(mListener);
+        mObservable.addOnMapChangedCallback(mListener);
         assertEquals("World", mObservable.setValueAt(0, "Cruel World"));
         assertEquals(1, mNotifications.size());
         assertEquals("Hello", mNotifications.get(0));

@@ -16,9 +16,9 @@
 package android.databinding.testapp;
 
 import android.databinding.ListChangeRegistry;
+import android.databinding.ObservableList;
+import android.databinding.ObservableList.OnListChangedCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
-
-import android.databinding.OnListChangedListener;
 
 public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBinding> {
 
@@ -44,34 +44,34 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
     }
 
     public void testNotifyChangedAll() {
-        OnListChangedListener listChangedListener = new OnListChangedListener() {
+        OnListChangedCallback listChangedCallback = new OnListChangedCallback() {
             @Override
-            public void onChanged() {
+            public void onChanged(ObservableList sender) {
                 mCallCount++;
             }
 
             @Override
-            public void onItemRangeChanged(int start, int count) {
+            public void onItemRangeChanged(ObservableList sender, int start, int count) {
                 fail("onItemRangeChanged should not be called");
             }
 
             @Override
-            public void onItemRangeInserted(int start, int count) {
+            public void onItemRangeInserted(ObservableList sender, int start, int count) {
                 fail("onItemRangeInserted should not be called");
             }
 
             @Override
-            public void onItemRangeMoved(int from, int to, int count) {
+            public void onItemRangeMoved(ObservableList sender, int from, int to, int count) {
                 fail("onItemRangeMoved should not be called");
             }
 
             @Override
-            public void onItemRangeRemoved(int start, int count) {
+            public void onItemRangeRemoved(ObservableList sender, int start, int count) {
                 fail("onItemRangeRemoved should not be called");
             }
         };
 
-        mListChangeRegistry.add(listChangedListener);
+        mListChangeRegistry.add(listChangedCallback);
         assertEquals(0, mCallCount);
         mListChangeRegistry.notifyChanged(null);
         assertEquals(1, mCallCount);
@@ -81,36 +81,36 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
         final int expectedStart = 10;
         final int expectedCount = 3;
 
-        OnListChangedListener listChangedListener = new OnListChangedListener() {
+        OnListChangedCallback listChangedCallback = new OnListChangedCallback() {
             @Override
-            public void onChanged() {
+            public void onChanged(ObservableList sender) {
                 fail("onChanged should not be called");
             }
 
             @Override
-            public void onItemRangeChanged(int start, int count) {
+            public void onItemRangeChanged(ObservableList sender, int start, int count) {
                 assertEquals(expectedStart, start);
                 assertEquals(expectedCount, count);
                 mCallCount++;
             }
 
             @Override
-            public void onItemRangeInserted(int start, int count) {
+            public void onItemRangeInserted(ObservableList sender, int start, int count) {
                 fail("onItemRangeInserted should not be called");
             }
 
             @Override
-            public void onItemRangeMoved(int from, int to, int count) {
+            public void onItemRangeMoved(ObservableList sender, int from, int to, int count) {
                 fail("onItemRangeMoved should not be called");
             }
 
             @Override
-            public void onItemRangeRemoved(int start, int count) {
+            public void onItemRangeRemoved(ObservableList sender, int start, int count) {
                 fail("onItemRangeRemoved should not be called");
             }
         };
 
-        mListChangeRegistry.add(listChangedListener);
+        mListChangeRegistry.add(listChangedCallback);
         assertEquals(0, mCallCount);
         mListChangeRegistry.notifyChanged(null, expectedStart, expectedCount);
         assertEquals(1, mCallCount);
@@ -120,36 +120,36 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
         final int expectedStart = 10;
         final int expectedCount = 3;
 
-        OnListChangedListener listChangedListener = new OnListChangedListener() {
+        OnListChangedCallback listChangedCallback = new OnListChangedCallback() {
             @Override
-            public void onChanged() {
+            public void onChanged(ObservableList sender) {
                 fail("onChanged should not be called");
             }
 
             @Override
-            public void onItemRangeChanged(int start, int count) {
+            public void onItemRangeChanged(ObservableList sender, int start, int count) {
                 fail("onItemRangeChanged should not be called");
             }
 
             @Override
-            public void onItemRangeInserted(int start, int count) {
+            public void onItemRangeInserted(ObservableList sender, int start, int count) {
                 assertEquals(expectedStart, start);
                 assertEquals(expectedCount, count);
                 mCallCount++;
             }
 
             @Override
-            public void onItemRangeMoved(int from, int to, int count) {
+            public void onItemRangeMoved(ObservableList sender, int from, int to, int count) {
                 fail("onItemRangeMoved should not be called");
             }
 
             @Override
-            public void onItemRangeRemoved(int start, int count) {
+            public void onItemRangeRemoved(ObservableList sender, int start, int count) {
                 fail("onItemRangeRemoved should not be called");
             }
         };
 
-        mListChangeRegistry.add(listChangedListener);
+        mListChangeRegistry.add(listChangedCallback);
         assertEquals(0, mCallCount);
         mListChangeRegistry.notifyInserted(null, expectedStart, expectedCount);
         assertEquals(1, mCallCount);
@@ -160,24 +160,24 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
         final int expectedTo = 100;
         final int expectedCount = 3;
 
-        OnListChangedListener listChangedListener = new OnListChangedListener() {
+        OnListChangedCallback listChangedCallback = new OnListChangedCallback() {
             @Override
-            public void onChanged() {
+            public void onChanged(ObservableList sender) {
                 fail("onChanged should not be called");
             }
 
             @Override
-            public void onItemRangeChanged(int start, int count) {
+            public void onItemRangeChanged(ObservableList sender, int start, int count) {
                 fail("onItemRangeChanged should not be called");
             }
 
             @Override
-            public void onItemRangeInserted(int start, int count) {
+            public void onItemRangeInserted(ObservableList sender, int start, int count) {
                 fail("onItemRangeInserted should not be called");
             }
 
             @Override
-            public void onItemRangeMoved(int from, int to, int count) {
+            public void onItemRangeMoved(ObservableList sender, int from, int to, int count) {
                 assertEquals(expectedFrom, from);
                 assertEquals(expectedTo, to);
                 assertEquals(expectedCount, count);
@@ -185,12 +185,12 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
             }
 
             @Override
-            public void onItemRangeRemoved(int start, int count) {
+            public void onItemRangeRemoved(ObservableList sender, int start, int count) {
                 fail("onItemRangeRemoved should not be called");
             }
         };
 
-        mListChangeRegistry.add(listChangedListener);
+        mListChangeRegistry.add(listChangedCallback);
         assertEquals(0, mCallCount);
         mListChangeRegistry.notifyMoved(null, expectedFrom, expectedTo, expectedCount);
         assertEquals(1, mCallCount);
@@ -200,36 +200,36 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
         final int expectedStart = 10;
         final int expectedCount = 3;
 
-        OnListChangedListener listChangedListener = new OnListChangedListener() {
+        OnListChangedCallback listChangedCallback = new OnListChangedCallback() {
             @Override
-            public void onChanged() {
+            public void onChanged(ObservableList sender) {
                 fail("onChanged should not be called");
             }
 
             @Override
-            public void onItemRangeChanged(int start, int count) {
+            public void onItemRangeChanged(ObservableList sender, int start, int count) {
                 fail("onItemRangeChanged should not be called");
             }
 
             @Override
-            public void onItemRangeInserted(int start, int count) {
+            public void onItemRangeInserted(ObservableList sender, int start, int count) {
                 fail("onItemRangeInserted should not be called");
             }
 
             @Override
-            public void onItemRangeMoved(int from, int to, int count) {
+            public void onItemRangeMoved(ObservableList sender, int from, int to, int count) {
                 fail("onItemRangeMoved should not be called");
             }
 
             @Override
-            public void onItemRangeRemoved(int start, int count) {
+            public void onItemRangeRemoved(ObservableList sender, int start, int count) {
                 assertEquals(expectedStart, start);
                 assertEquals(expectedCount, count);
                 mCallCount++;
             }
         };
 
-        mListChangeRegistry.add(listChangedListener);
+        mListChangeRegistry.add(listChangedCallback);
         assertEquals(0, mCallCount);
         mListChangeRegistry.notifyRemoved(null, expectedStart, expectedCount);
         assertEquals(1, mCallCount);

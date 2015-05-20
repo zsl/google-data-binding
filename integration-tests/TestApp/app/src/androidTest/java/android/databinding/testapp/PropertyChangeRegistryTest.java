@@ -19,7 +19,7 @@ import android.databinding.PropertyChangeRegistry;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 
 import android.databinding.Observable;
-import android.databinding.OnPropertyChangedListener;
+import android.databinding.Observable.OnPropertyChangedCallback;
 
 public class PropertyChangeRegistryTest extends BaseDataBinderTest<BasicBindingBinding> {
 
@@ -34,18 +34,18 @@ public class PropertyChangeRegistryTest extends BaseDataBinderTest<BasicBindingB
 
         final Observable observableObj = new Observable() {
             @Override
-            public void addOnPropertyChangedListener(
-                    OnPropertyChangedListener onPropertyChangedListener) {
+            public void addOnPropertyChangedCallback(
+                    OnPropertyChangedCallback OnPropertyChangedCallback) {
             }
 
             @Override
-            public void removeOnPropertyChangedListener(
-                    OnPropertyChangedListener onPropertyChangedListener) {
+            public void removeOnPropertyChangedCallback(
+                    OnPropertyChangedCallback OnPropertyChangedCallback) {
             }
         };
 
         final int expectedId = 100;
-        OnPropertyChangedListener listener = new OnPropertyChangedListener() {
+        OnPropertyChangedCallback listener = new OnPropertyChangedCallback() {
             @Override
             public void onPropertyChanged(Observable observable, int id) {
                 notificationCount++;

@@ -17,10 +17,10 @@ package android.databinding.testapp;
 
 import android.databinding.MapChangeRegistry;
 import android.databinding.ObservableArrayMap;
+import android.databinding.ObservableMap.OnMapChangedCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 
 import android.databinding.ObservableMap;
-import android.databinding.OnMapChangedListener;
 
 public class MapChangeRegistryTest extends BaseDataBinderTest<BasicBindingBinding> {
 
@@ -36,7 +36,8 @@ public class MapChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindin
         final ObservableMap<String, Integer> observableObj = new ObservableArrayMap<>();
 
         final String expectedKey = "key";
-        OnMapChangedListener listener = new OnMapChangedListener<ObservableMap<String, Integer>, String>() {
+        OnMapChangedCallback listener = new OnMapChangedCallback<ObservableMap<String, Integer>,
+                String, Integer>() {
             @Override
             public void onMapChanged(ObservableMap sender, String key) {
                 notificationCount++;

@@ -16,9 +16,46 @@
 
 package android.databinding;
 
+/**
+ * Observable classes provide a way in which data bound UI can be notified of changes.
+ * {@link ObservableList} and {@link ObservableMap} also provide the ability to notify when
+ * changes occur. ObservableField, ObservableBoolean, ObservableByte, ObservableShort,
+ * ObservableInt, ObservableLong, ObservableFloat, and ObservableDouble provide
+ * a means by which properties may be notified without implementing Observable.
+ * <p>
+ * An Observable object should notify the {@link OnPropertyChangedCallback} whenever
+ * an observed property of the class changes.
+ * <p>
+ * The getter for an observable property should be annotated with {@link Bindable}.
+ * <p>
+ * Convenience class BaseObservable implements this interface and PropertyChangeRegistry
+ * can help classes that don't extend BaseObservable to implement the listener registry.
+ */
 public interface Observable {
 
-    public void addOnPropertyChangedListener(OnPropertyChangedListener listener);
+    /**
+     * Adds a callback to listen for changes to the Observable.
+     * @param callback The callback to start listening.
+     */
+    void addOnPropertyChangedCallback(OnPropertyChangedCallback callback);
 
-    public void removeOnPropertyChangedListener(OnPropertyChangedListener listener);
+    /**
+     * Removes a callback from those listening for changes.
+     * @param callback The callback that should stop listening.
+     */
+    void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback);
+
+    /**
+     * The callback that is called by Observable when an observable property has changed.
+     */
+    abstract class OnPropertyChangedCallback {
+
+        /**
+         * Called by an Observable whenever an observable property changes.
+         * @param sender The Observable that is changing.
+         * @param propertyId The BR identifier of the property that has changed. The getter
+         *                   for this property should be annotated with {@link Bindable}.
+         */
+        public abstract void onPropertyChanged(Observable sender, int propertyId);
+    }
 }

@@ -19,14 +19,14 @@ import android.databinding.BaseObservable;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 
 import android.databinding.Observable;
-import android.databinding.OnPropertyChangedListener;
+import android.databinding.Observable.OnPropertyChangedCallback;
 
 import java.util.ArrayList;
 
 public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> {
     private BaseObservable mObservable;
     private ArrayList<Integer> mNotifications = new ArrayList<>();
-    private OnPropertyChangedListener mListener = new OnPropertyChangedListener() {
+    private OnPropertyChangedCallback mCallback = new OnPropertyChangedCallback() {
         @Override
         public void onPropertyChanged(Observable observable, int i) {
             assertEquals(mObservable, observable);
@@ -45,31 +45,31 @@ public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> 
         initBinder(null);
     }
 
-    public void testAddListener() {
+    public void testAddCallback() {
         mObservable.notifyChange();
         assertTrue(mNotifications.isEmpty());
-        mObservable.addOnPropertyChangedListener(mListener);
+        mObservable.addOnPropertyChangedCallback(mCallback);
         mObservable.notifyChange();
         assertFalse(mNotifications.isEmpty());
     }
 
-    public void testRemoveListener() {
-        // test there is no exception when the listener isn't there
-        mObservable.removeOnPropertyChangedListener(mListener);
+    public void testRemoveCallback() {
+        // test there is no exception when the Callback isn't there
+        mObservable.removeOnPropertyChangedCallback(mCallback);
 
-        mObservable.addOnPropertyChangedListener(mListener);
+        mObservable.addOnPropertyChangedCallback(mCallback);
         mObservable.notifyChange();
         mNotifications.clear();
-        mObservable.removeOnPropertyChangedListener(mListener);
+        mObservable.removeOnPropertyChangedCallback(mCallback);
         mObservable.notifyChange();
         assertTrue(mNotifications.isEmpty());
 
-        // test there is no exception when the listener isn't there
-        mObservable.removeOnPropertyChangedListener(mListener);
+        // test there is no exception when the Callback isn't there
+        mObservable.removeOnPropertyChangedCallback(mCallback);
     }
 
     public void testNotifyChange() {
-        mObservable.addOnPropertyChangedListener(mListener);
+        mObservable.addOnPropertyChangedCallback(mCallback);
         mObservable.notifyChange();
         assertEquals(1, mNotifications.size());
         assertEquals(0, (int) mNotifications.get(0));
@@ -77,7 +77,7 @@ public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> 
 
     public void testNotifyPropertyChanged() {
         final int expectedId = 100;
-        mObservable.addOnPropertyChangedListener(mListener);
+        mObservable.addOnPropertyChangedCallback(mCallback);
         mObservable.notifyPropertyChanged(expectedId);
         assertEquals(1, mNotifications.size());
         assertEquals(expectedId, (int) mNotifications.get(0));

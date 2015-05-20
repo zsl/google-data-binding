@@ -19,7 +19,7 @@ import android.databinding.ObservableArrayList;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 
 import android.databinding.ObservableList;
-import android.databinding.OnListChangedListener;
+import android.databinding.ObservableList.OnListChangedCallback;
 
 import java.util.ArrayList;
 
@@ -39,29 +39,29 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
 
     private ArrayList<ListChange> mNotifications = new ArrayList<>();
 
-    private OnListChangedListener mListener = new OnListChangedListener() {
+    private OnListChangedCallback mListener = new OnListChangedCallback() {
         @Override
-        public void onChanged() {
+        public void onChanged(ObservableList sender) {
             mNotifications.add(new ListChange(ALL, 0, 0));
         }
 
         @Override
-        public void onItemRangeChanged(int start, int count) {
+        public void onItemRangeChanged(ObservableList sender, int start, int count) {
             mNotifications.add(new ListChange(CHANGE, start, count));
         }
 
         @Override
-        public void onItemRangeInserted(int start, int count) {
+        public void onItemRangeInserted(ObservableList sender, int start, int count) {
             mNotifications.add(new ListChange(INSERT, start, count));
         }
 
         @Override
-        public void onItemRangeMoved(int from, int to, int count) {
+        public void onItemRangeMoved(ObservableList sender, int from, int to, int count) {
             mNotifications.add(new ListChange(MOVE, from, to, count));
         }
 
         @Override
-        public void onItemRangeRemoved(int start, int count) {
+        public void onItemRangeRemoved(ObservableList sender, int start, int count) {
             mNotifications.add(new ListChange(REMOVE, start, count));
         }
     };
@@ -108,54 +108,53 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
     public void testAddListener() {
         mObservable.add("Hello");
         assertTrue(mNotifications.isEmpty());
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         mObservable.add("World");
         assertFalse(mNotifications.isEmpty());
     }
 
     public void testRemoveListener() {
         // test there is no exception when the listener isn't there
-        mObservable.removeOnListChangedListener(mListener);
+        mObservable.removeOnListChangedCallback(mListener);
 
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         mObservable.add("Hello");
         mNotifications.clear();
-        mObservable.removeOnListChangedListener(mListener);
+        mObservable.removeOnListChangedCallback(mListener);
         mObservable.add("World");
         assertTrue(mNotifications.isEmpty());
 
         // test there is no exception when the listener isn't there
-        mObservable.removeOnListChangedListener(mListener);
+        mObservable.removeOnListChangedCallback(mListener);
     }
 
     public void testAdd() {
-        OnListChangedListener listChangedListener = new OnListChangedListener() {
+        OnListChangedCallback listChangedListener = new OnListChangedCallback() {
             @Override
-            public void onChanged() {
+            public void onChanged(ObservableList sender) {
             }
 
             @Override
-            public void onItemRangeChanged(int i, int i1) {
-
-            }
-
-            @Override
-            public void onItemRangeInserted(int i, int i1) {
+            public void onItemRangeChanged(ObservableList sender, int i, int i1) {
 
             }
 
             @Override
-            public void onItemRangeMoved(int i, int i1, int i2) {
+            public void onItemRangeInserted(ObservableList sender, int i, int i1) {
 
             }
 
             @Override
-            public void onItemRangeRemoved(int i, int i1) {
+            public void onItemRangeMoved(ObservableList sender, int i, int i1, int i2) {
 
+            }
+
+            @Override
+            public void onItemRangeRemoved(ObservableList sender, int i, int i1) {
             }
         };
-        mObservable.addOnListChangedListener(mListener);
-        mObservable.addOnListChangedListener(listChangedListener);
+        mObservable.addOnListChangedCallback(mListener);
+        mObservable.addOnListChangedCallback(listChangedListener);
         mObservable.add("Hello");
         assertEquals(1, mNotifications.size());
         ListChange change = mNotifications.get(0);
@@ -166,7 +165,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
     }
 
     public void testInsert() {
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         mObservable.add("Hello");
         mObservable.add(0, "World");
         mObservable.add(1, "Dang");
@@ -188,7 +187,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         toAdd.add("Hello");
         toAdd.add("World");
         mObservable.add("First");
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         mObservable.addAll(toAdd);
         assertEquals(3, mObservable.size());
         assertEquals("Hello", mObservable.get(1));
@@ -205,7 +204,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         toAdd.add("Hello");
         toAdd.add("World");
         mObservable.add("First");
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         mObservable.addAll(0, toAdd);
         assertEquals(3, mObservable.size());
         assertEquals("Hello", mObservable.get(0));
@@ -220,7 +219,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
     public void testClear() {
         mObservable.add("Hello");
         mObservable.add("World");
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         mObservable.clear();
         assertEquals(1, mNotifications.size());
         ListChange change = mNotifications.get(0);
@@ -236,7 +235,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
     public void testRemoveIndex() {
         mObservable.add("Hello");
         mObservable.add("World");
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         assertEquals("Hello", mObservable.remove(0));
         assertEquals(1, mNotifications.size());
         ListChange change = mNotifications.get(0);
@@ -248,7 +247,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
     public void testRemoveObject() {
         mObservable.add("Hello");
         mObservable.add("World");
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         assertTrue(mObservable.remove("Hello"));
         assertEquals(1, mNotifications.size());
         ListChange change = mNotifications.get(0);
@@ -264,7 +263,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
     public void testSet() {
         mObservable.add("Hello");
         mObservable.add("World");
-        mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedCallback(mListener);
         assertEquals("Hello", mObservable.set(0, "Goodbye"));
         assertEquals("Goodbye", mObservable.get(0));
         assertEquals(2, mObservable.size());

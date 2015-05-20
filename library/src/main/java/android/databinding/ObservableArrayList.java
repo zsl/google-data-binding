@@ -22,7 +22,7 @@ public class ObservableArrayList<T> extends ArrayList<T> implements ObservableLi
     private ListChangeRegistry mListeners = new ListChangeRegistry();
 
     @Override
-    public void addOnListChangedListener(OnListChangedListener listener) {
+    public void addOnListChangedCallback(OnListChangedCallback listener) {
         if (mListeners == null) {
             mListeners = new ListChangeRegistry();
         }
@@ -30,7 +30,7 @@ public class ObservableArrayList<T> extends ArrayList<T> implements ObservableLi
     }
 
     @Override
-    public void removeOnListChangedListener(OnListChangedListener listener) {
+    public void removeOnListChangedCallback(OnListChangedCallback listener) {
         if (mListeners != null) {
             mListeners.remove(listener);
         }

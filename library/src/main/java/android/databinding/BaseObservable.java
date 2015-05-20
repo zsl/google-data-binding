@@ -23,7 +23,7 @@ public class BaseObservable implements Observable {
     }
 
     @Override
-    public synchronized void addOnPropertyChangedListener(OnPropertyChangedListener listener) {
+    public synchronized void addOnPropertyChangedCallback(OnPropertyChangedCallback listener) {
         if (mCallbacks == null) {
             mCallbacks = new PropertyChangeRegistry();
         }
@@ -31,7 +31,7 @@ public class BaseObservable implements Observable {
     }
 
     @Override
-    public synchronized void removeOnPropertyChangedListener(OnPropertyChangedListener listener) {
+    public synchronized void removeOnPropertyChangedCallback(OnPropertyChangedCallback listener) {
         if (mCallbacks != null) {
             mCallbacks.remove(listener);
         }

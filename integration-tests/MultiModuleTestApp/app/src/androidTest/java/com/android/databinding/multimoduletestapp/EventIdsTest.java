@@ -19,7 +19,7 @@ package android.databinding.multimoduletestapp;
 import android.databinding.testlibrary.ObservableInLibrary;
 
 import android.databinding.Observable;
-import android.databinding.OnPropertyChangedListener;
+import android.databinding.Observable.OnPropertyChangedCallback;
 import android.os.Debug;
 import android.test.AndroidTestCase;
 
@@ -32,7 +32,7 @@ public class EventIdsTest extends AndroidTestCase {
     public void testLibraryObservable() {
         ObservableInLibrary observableInLibrary = new ObservableInLibrary();
         EventCounter ec = new EventCounter();
-        observableInLibrary.addOnPropertyChangedListener(ec);
+        observableInLibrary.addOnPropertyChangedCallback(ec);
         ec.assertProperty(BR.libField1, 0);
         ec.assertProperty(BR.libField2, 0);
         ec.assertProperty(BR.sharedField, 0);
@@ -56,7 +56,7 @@ public class EventIdsTest extends AndroidTestCase {
     public void testAppObservable() {
         ObservableInMainApp observableInMainApp = new ObservableInMainApp();
         EventCounter ec = new EventCounter();
-        observableInMainApp.addOnPropertyChangedListener(ec);
+        observableInMainApp.addOnPropertyChangedCallback(ec);
         ec.assertProperty(BR.appField1, 0);
         ec.assertProperty(BR.appField2, 0);
         ec.assertProperty(BR.sharedField, 0);
@@ -80,7 +80,7 @@ public class EventIdsTest extends AndroidTestCase {
     public void testExtendingObservable() {
         ObservableExtendingLib observable = new ObservableExtendingLib();
         EventCounter ec = new EventCounter();
-        observable.addOnPropertyChangedListener(ec);
+        observable.addOnPropertyChangedCallback(ec);
 
         ec.assertProperty(BR.childClassField, 0);
         ec.assertProperty(BR.libField1, 0);
@@ -112,7 +112,7 @@ public class EventIdsTest extends AndroidTestCase {
         ec.assertProperty(BR.sharedField, 1);
     }
 
-    private static class EventCounter implements OnPropertyChangedListener {
+    private static class EventCounter extends OnPropertyChangedCallback {
         Map<Integer, Integer> mCounter = new HashMap<>();
 
         @Override

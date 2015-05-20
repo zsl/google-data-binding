@@ -24,8 +24,8 @@ public class ObservableArrayMap<K, V> extends ArrayMap<K, V> implements Observab
     private MapChangeRegistry mListeners;
 
     @Override
-    public void addOnMapChangedListener(
-            OnMapChangedListener<? extends ObservableMap<K, V>, K> listener) {
+    public void addOnMapChangedCallback(
+            OnMapChangedCallback<? extends ObservableMap<K, V>, K, V> listener) {
         if (mListeners == null) {
             mListeners = new MapChangeRegistry();
         }
@@ -33,8 +33,8 @@ public class ObservableArrayMap<K, V> extends ArrayMap<K, V> implements Observab
     }
 
     @Override
-    public void removeOnMapChangedListener(
-            OnMapChangedListener<? extends ObservableMap<K, V>, K> listener) {
+    public void removeOnMapChangedCallback(
+            OnMapChangedCallback<? extends ObservableMap<K, V>, K, V> listener) {
         if (mListeners != null) {
             mListeners.remove(listener);
         }
