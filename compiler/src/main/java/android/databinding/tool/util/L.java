@@ -25,14 +25,18 @@ import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 
 public class L {
-
+    static boolean sEnableDebug = false;
     public static void d(String msg, Object... args) {
-        printMessage(Diagnostic.Kind.NOTE, String.format(msg, args));
+        if (sEnableDebug) {
+            printMessage(Diagnostic.Kind.NOTE, String.format(msg, args));
+        }
     }
 
     public static void d(Throwable t, String msg, Object... args) {
-        printMessage(Diagnostic.Kind.NOTE,
-                String.format(msg, args) + " " + ExceptionUtils.getStackTrace(t));
+        if (sEnableDebug) {
+            printMessage(Diagnostic.Kind.NOTE,
+                    String.format(msg, args) + " " + ExceptionUtils.getStackTrace(t));
+        }
     }
 
     public static void w(String msg, Object... args) {
