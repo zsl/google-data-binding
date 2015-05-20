@@ -31,7 +31,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
-abstract public class Expr {
+abstract public class Expr implements VersionProvider {
 
     public static final int NO_ID = -1;
     protected List<Expr> mChildren = new ArrayList<Expr>();
@@ -52,6 +52,8 @@ abstract public class Expr {
     private int mId = NO_ID;
 
     private int mRequirementId = NO_ID;
+
+    private int mVersion = 0;
 
     // means this expression can directly be invalidated by the user
     private boolean mCanBeInvalidated = false;
@@ -201,26 +203,19 @@ abstract public class Expr {
             bitSet.or(getInvalidFlags());
         }
         for (Dependency dependency : getDependants()) {
-            final boolean isElevated = unreadElevatedCheck.apply(dependency);
+            final boolean isUnreadElevated = unreadElevatedCheck.apply(dependency);
             if (dependency.isConditional()) {
                 continue; // will be resolved later when conditional is elevated
             }
-            if (isElevated) {
-                // if i already have all flags that will require my dependant's predicate to
-                // be read, that means i'm already read thus can avoid adding its conditional
-                // dependency
-                if (!dependency.getDependant().getAllCalculationPaths().areAllPathsSatisfied(
-                        mReadSoFar)) {
-                    bitSet.set(dependency.getDependant()
-                            .getRequirementFlagIndex(dependency.getExpectedOutput()));
-                }
+            if (isUnreadElevated) {
+                bitSet.set(dependency.getDependant()
+                        .getRequirementFlagIndex(dependency.getExpectedOutput()));
             } else {
                 bitSet.or(dependency.getDependant().getShouldReadFlags());
             }
         }
-        bitSet.andNot(mReadSoFar);
-        // should read w/ conditionals does eleminate for unnecessary re-reads
         bitSet.and(mShouldReadWithConditionals);
+        bitSet.andNot(mReadSoFar);
         return bitSet;
     }
 
@@ -417,6 +412,12 @@ abstract public class Expr {
 
     public void invalidateReadFlags() {
         mShouldReadFlags = null;
+        mVersion ++;
+    }
+
+    @Override
+    public int getVersion() {
+        return mVersion;
     }
 
     public boolean hasNestedCannotRead() {
@@ -596,15 +597,15 @@ abstract public class Expr {
                         .areAllPathsSatisfied(readSoFar);
             } else {
                 final BitSet clone = (BitSet) readSoFar.clone();
-                readSoFar.and(mBitSet);
-                if (!readSoFar.isEmpty()) {
+                clone.and(mBitSet);
+                if (!clone.isEmpty()) {
                     return true;
                 }
                 if (mParents.isEmpty()) {
                     return false;
                 }
                 for (Node parent : mParents) {
-                    if (!parent.areAllPathsSatisfied(readSoFar)) {
+                    if (!parent.areAllPathsSatisfied(clone)) {
                         return false;
                     }
                 }
