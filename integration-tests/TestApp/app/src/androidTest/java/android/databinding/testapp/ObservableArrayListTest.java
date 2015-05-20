@@ -129,7 +129,33 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
     }
 
     public void testAdd() {
+        OnListChangedListener listChangedListener = new OnListChangedListener() {
+            @Override
+            public void onChanged() {
+            }
+
+            @Override
+            public void onItemRangeChanged(int i, int i1) {
+
+            }
+
+            @Override
+            public void onItemRangeInserted(int i, int i1) {
+
+            }
+
+            @Override
+            public void onItemRangeMoved(int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onItemRangeRemoved(int i, int i1) {
+
+            }
+        };
         mObservable.addOnListChangedListener(mListener);
+        mObservable.addOnListChangedListener(listChangedListener);
         mObservable.add("Hello");
         assertEquals(1, mNotifications.size());
         ListChange change = mNotifications.get(0);

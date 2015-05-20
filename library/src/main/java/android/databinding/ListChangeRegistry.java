@@ -50,9 +50,6 @@ public class ListChangeRegistry
                     callback.onChanged();
                     break;
             }
-            if (listChanges != null) {
-                sListChanges.release(listChanges);
-            }
         }
     };
 
@@ -89,6 +86,15 @@ public class ListChangeRegistry
         listChanges.to = to;
         listChanges.count = count;
         return listChanges;
+    }
+
+    @Override
+    public synchronized void notifyCallbacks(ObservableList sender, int notificationType,
+            ListChanges listChanges) {
+        super.notifyCallbacks(sender, notificationType, listChanges);
+        if (listChanges != null) {
+            sListChanges.release(listChanges);
+        }
     }
 
     /**
