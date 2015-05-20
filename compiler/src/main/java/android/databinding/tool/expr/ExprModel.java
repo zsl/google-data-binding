@@ -154,12 +154,12 @@ public class ExprModel {
     public TernaryExpr logical(Expr left, String op, Expr right) {
         if ("&&".equals(op)) {
             // left && right
-            // left ? right : left
-            return register(new TernaryExpr(left, right, left));
+            // left ? right : false
+            return register(new TernaryExpr(left, right, symbol("false", boolean.class)));
         } else {
             // left || right
-            // left ? left : right
-            return register(new TernaryExpr(left, left, right));
+            // left ? true : right
+            return register(new TernaryExpr(left, symbol("true", boolean.class), right));
         }
     }
 
@@ -251,6 +251,7 @@ public class ExprModel {
      * Give id to each expression. Will be useful if we serialize.
      */
     public void seal() {
+        L.d("sealing model");
         List<Expr> notifiableExpressions = new ArrayList<Expr>();
         //ensure class analyzer. We need to know observables at this point
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
@@ -306,20 +307,12 @@ public class ExprModel {
         }
 
         // non-dynamic binding expressions receive some ids so that they can be invalidated
+        L.d("list of binding expressions");
         for (int i = 0; i < mBindingExpressions.size(); i++) {
             L.d("[" + i + "] " + mBindingExpressions.get(i));
         }
-        for (Expr expr : mBindingExpressions) {
-            if (!(expr.isDynamic() || !expr.hasId())) {
-                L.d("Expr " + expr + " is dynamic? " + expr.isDynamic() + ", has ID? " + expr.hasId());
-            }
-            Preconditions.checkState(expr.isDynamic() || !expr.hasId());
-            if (!expr.isDynamic()) {
-                // give it an id for invalidateAll
-                expr.setId(counter ++);
-                notifiableExpressions.add(expr);
-            }
-        }
+        // we don't assign ids to constant binding expressions because now invalidateAll has its own
+        // flag.
 
         for (Expr expr : notifiableExpressions) {
             expr.enableDirectInvalidation();
@@ -340,6 +333,7 @@ public class ExprModel {
         // make sure all dependencies are resolved to avoid future race conditions
         for (Expr expr : mExprMap.values()) {
             if (expr.isConditional()) {
+                L.d("requirement id for %s is %d", expr, counter);
                 expr.setRequirementId(counter);
                 flagMapping.add(expr.getUniqueKey() + FALSE_KEY_SUFFIX);
                 flagMapping.add(expr.getUniqueKey() + TRUE_KEY_SUFFIX);
@@ -350,7 +344,6 @@ public class ExprModel {
         for (int i = mInvalidateableFieldLimit; i < counter; i++) {
             mConditionalFlags.set(i, true);
         }
-
         mRequirementIdCount = (counter - mInvalidateableFieldLimit) / 2;
 
         // everybody gets an id

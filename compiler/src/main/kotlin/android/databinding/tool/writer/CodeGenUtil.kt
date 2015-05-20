@@ -27,7 +27,7 @@ class CodeGenUtil {
             return when (it) {
                 is ComparisonExpr -> kcode("") {
                     app("", it.getLeft().toCode())
-                    app(it.getOp())
+                    app(" ", it.getOp()).app(" ")
                     app("", it.getRight().toCode())
                 }
                 is InstanceOfExpr -> kcode("") {
@@ -73,8 +73,8 @@ class CodeGenUtil {
                 is SymbolExpr -> kcode(it.getText()) // TODO
                 is TernaryExpr -> kcode("") {
                     app("", it.getPred().toCode())
-                    app("?", it.getIfTrue().toCode())
-                    app(":", it.getIfFalse().toCode())
+                    app(" ? ", it.getIfTrue().toCode())
+                    app(" : ", it.getIfFalse().toCode())
                 }
                 is ResourceExpr -> kcode("") {
                     app("", it.toJava())

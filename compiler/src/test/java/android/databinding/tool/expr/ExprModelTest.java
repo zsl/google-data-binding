@@ -442,6 +442,22 @@ public class ExprModelTest {
     }
 
     @Test
+    public void testInterExprCircularDependency() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName());
+        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName());
+        final TernaryExpr abTernary = parse(lb, "a > 3 ? a : b", TernaryExpr.class);
+        final TernaryExpr abTernary2 = parse(lb, "b > 3 ? b : a", TernaryExpr.class);
+        mExprModel.seal();
+        Iterable<Expr> shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, a, b, abTernary.getPred(), abTernary2.getPred());
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, abTernary, abTernary2);
+    }
+
+    @Test
     public void testNoFlagsForNonBindingStatic() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
@@ -466,12 +482,12 @@ public class ExprModelTest {
         mExprModel.seal();
         assertTrue(staticParsed.isBindingExpression());
         // +1 for invalidate all flag
-        assertEquals(2, staticParsed.getInvalidFlags().cardinality());
+        assertEquals(1, staticParsed.getInvalidFlags().cardinality());
         assertEquals(parsed.getRight().getInvalidFlags(), staticParsed.getInvalidFlags());
         // +1 for invalidate all flag
         assertEquals(2, parsed.getLeft().getInvalidFlags().cardinality());
         // +1 for invalidate all flag
-        assertEquals(3, mExprModel.getInvalidateableFieldLimit());
+        assertEquals(2, mExprModel.getInvalidateableFieldLimit());
     }
 
     @Test

@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
-import android.databinding.tool.writer.KCode;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -467,6 +466,9 @@ abstract public class Expr {
                 final BitSet invalidFlags = (BitSet) getInvalidFlags().clone();
                 invalidFlags.andNot(readForConditional);
                 mRead = invalidFlags.isEmpty() || clone.isEmpty();
+                if (mRead) {
+                    break;
+                }
             }
 
         }
