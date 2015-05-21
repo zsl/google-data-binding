@@ -64,16 +64,42 @@ android.libraryVariants.all { variant ->
     if (name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
         return; // Skip debug builds.
     }
+    def suffix = name.capitalize()
     // @Jar version is needed to run compiler tests
-    def task = project.tasks.create "jar${name.capitalize()}", Jar
-    task.dependsOn variant.javaCompile
-    task.from variant.javaCompile.destinationDir
+    def jarTask = project.tasks.create "jar${suffix}", Jar
+    jarTask.dependsOn variant.javaCompile
+    jarTask.from variant.javaCompile.destinationDir
     def packageName = "com.android.databinding.library.baseAdapters"
     def appPkgAsClass = packageName.replace('.', '/')
-    task.exclude("android/databinding/layouts/*.*")
-    task.exclude("$appPkgAsClass/databinding/*")
-    task.exclude("$appPkgAsClass/BR.*")
-    artifacts.add('jarArchives', task);
+    jarTask.exclude("android/databinding/layouts/*.*")
+    jarTask.exclude("$appPkgAsClass/databinding/*")
+    jarTask.exclude("$appPkgAsClass/BR.*")
+    artifacts.add('jarArchives', jarTask);
+
+    def javadocTask = project.tasks.create(name: "javadoc${suffix}", type: Javadoc) {
+        source variant.javaCompile.source
+        exclude("android/databinding/layouts/*.*")
+        exclude("$appPkgAsClass/databinding/*")
+        exclude("$appPkgAsClass/BR.*")
+        exclude("$appPkgAsClass/R.*")
+        exclude("$appPkgAsClass/BuildConfig.*")
+        classpath = files(variant.javaCompile.classpath.files) + files(
+                "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
+    }
+
+    def javadocJarTask = project.tasks.create(name: "javadocJar${suffix}", type: Jar) {
+        classifier = 'javadoc'
+        from 'build/docs/javadoc'
+    }
+    javadocJarTask.dependsOn javadocTask
+
+    def sourcesJarTask = project.tasks.create(name: "sourceJar${suffix}", type: Jar) {
+        classifier = 'sources'
+        from android.sourceSets.main.java.srcDirs
+    }
+
+    artifacts.add('jarArchives', javadocJarTask);
+    artifacts.add('jarArchives', sourcesJarTask);
 }
 
 uploadArchives {
