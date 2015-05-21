@@ -1,10 +1,11 @@
 Properties databindingProperties = new Properties()
 databindingProperties.load(new FileInputStream("${projectDir}/databinding.properties"))
-databindingProperties.mavenRepoDir = "${projectDir}/${databindingProperties.mavenRepoName}"
+def repoBase = databindingProperties.mavenRepoAbsolutePath == "." ? projectDir : databindingProperties.mavenRepoAbsolutePath
+databindingProperties.mavenRepoDir = "${repoBase}/${databindingProperties.mavenRepoName}"
+
 databindingProperties.eapOutDir = "${projectDir}/${databindingProperties.eapOutFolderName}"
 databindingProperties.prebuildFolder = "${projectDir}/${databindingProperties.prebuildFolderName}" +
         "/${databindingProperties.releaseVersion}"
-
 ext.config = databindingProperties
 
 println "local maven repo is ${ext.config.mavenRepoDir}."
@@ -32,8 +33,9 @@ subprojects {
     }
 }
 
+
 task deleteRepo(type: Delete) {
-    delete "${config.mavenRepoDir}"
+    delete "${config.mavenRepoDir}/${config.group.replace('.', '/')}"
 }
 
 task deletePrebuildFolder(type: Delete) {
@@ -132,5 +134,4 @@ task batchEAP() {
     dependsOn copyMavenRepoToEap
     dependsOn copySamplesToEap
     dependsOn createEapConfigFile
-
 }

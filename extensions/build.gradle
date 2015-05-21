@@ -18,7 +18,8 @@
 buildscript {
     def Properties dataBindingProperties = new Properties()
     dataBindingProperties.load(new FileInputStream("${projectDir}/../databinding.properties"))
-    dataBindingProperties.mavenRepoDir = "${projectDir}/../${dataBindingProperties.mavenRepoName}"
+    def repoBase = dataBindingProperties.mavenRepoAbsolutePath == "." ? "${projectDir}/.." : dataBindingProperties.mavenRepoAbsolutePath
+    dataBindingProperties.mavenRepoDir = "${repoBase}/${dataBindingProperties.mavenRepoName}"
     dataBindingProperties.prebuildFolder = "${projectDir}/../${dataBindingProperties.prebuildFolderName}" +
             "/${dataBindingProperties.releaseVersion}"
     ext.config = dataBindingProperties

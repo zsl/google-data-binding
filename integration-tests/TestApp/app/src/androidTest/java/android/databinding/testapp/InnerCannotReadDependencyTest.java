@@ -20,8 +20,6 @@ import android.databinding.testapp.vo.BasicObject;
 import android.os.Debug;
 import android.test.UiThreadTest;
 
-import org.junit.Test;
-
 public class InnerCannotReadDependencyTest extends
         BaseDataBinderTest<InnerCannotReadDependencyBinding> {
 

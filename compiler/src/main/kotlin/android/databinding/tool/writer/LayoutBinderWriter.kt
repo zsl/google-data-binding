@@ -20,7 +20,6 @@ import android.databinding.tool.expr.Expr
 import kotlin.properties.Delegates
 import android.databinding.tool.BindingTarget
 import android.databinding.tool.expr.IdentifierExpr
-import android.databinding.tool.util.Log
 import java.util.BitSet
 import android.databinding.tool.expr.ExprModel
 import java.util.Arrays
@@ -43,7 +42,6 @@ import android.databinding.tool.ext.lazy
 import android.databinding.tool.ext.versionedLazy
 import android.databinding.tool.ext.br
 import android.databinding.tool.ext.joinToCamelCaseAsVar
-import android.databinding.tool.util.Log
 import java.util.BitSet
 import java.util.Arrays
 import android.databinding.tool.reflection.Callable
@@ -146,7 +144,7 @@ val BindingTarget.constructorParamName by Delegates.lazy { target : BindingTarge
 // not necessarily unique. Uniqueness is decided per scope
 val Expr.readableName by Delegates.lazy { expr : Expr ->
     val stripped = "${expr.getUniqueKey().stripNonJava()}"
-    Log.d { "readableUniqueName for [${System.identityHashCode(expr)}] ${expr.getUniqueKey()} is $stripped" }
+    L.d("readableUniqueName for [%s] %s is %s", System.identityHashCode(expr), expr.getUniqueKey(), stripped)
     stripped
 }
 
@@ -679,17 +677,17 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             model.getPendingExpressions().filterNot {!it.canBeEvaluatedToAVariable() || it.isVariable()}.forEach {
                 tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${it.getDefaultValue()};")
             }
-            Log.d {"writing executePendingBindings for $className"}
+            L.d("writing executePendingBindings for %s", className)
             do {
                 val batch = ExprModel.filterShouldRead(model.getPendingExpressions()).toArrayList()
-                Log.d {"batch: $batch"}
+                L.d("batch: %s", batch)
                 val mJustRead = arrayListOf<Expr>()
                 while (!batch.none()) {
                     val readNow = batch.filter { it.shouldReadNow(mJustRead) }
                     if (readNow.isEmpty()) {
                         throw IllegalStateException("do not know what I can read. bailing out ${batch.joinToString("\n")}")
                     }
-                    Log.d { "new read now. batch size: ${batch.size()}, readNow size: ${readNow.size()}" }
+                    L.d("new read now. batch size: %d, readNow size: %d", batch.size(), readNow.size())
 
                     readNow.forEach {
                         nl(readWithDependants(it, mJustRead, batch, tmpDirtyFlags))
@@ -754,10 +752,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     fun readWithDependants(expr : Expr, mJustRead : MutableList<Expr>, batch : MutableList<Expr>,
             tmpDirtyFlags : FlagSet, inheritedFlags : FlagSet? = null) : KCode = kcode("") {
         mJustRead.add(expr)
-        Log.d { "$className / readWithDependants: ${expr.getUniqueKey()}" }
+        L.d("%s / readWithDependants %s", className, expr.getUniqueKey());
         val flagSet = expr.shouldReadFlagSet
         val needsIfWrapper = inheritedFlags == null || !flagSet.bitsEqual(inheritedFlags)
-        Log.d { "flag set:$flagSet . inherited flags: $inheritedFlags. need another if: $needsIfWrapper"}
+        L.d("flag set:%s . inherited flags: %s. need another if: %s", flagSet, inheritedFlags, needsIfWrapper);
         val ifClause = "if (${tmpDirtyFlags.mapOr(flagSet){ suffix, index ->
             "(${tmpDirtyFlags.localValue(index)} & ${flagSet.localValue(index)}) != 0"
         }.joinToString(" || ")

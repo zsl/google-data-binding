@@ -33,4 +33,5 @@ public @interface BindingBuildInfo {
      */
     String layoutInfoDir();
     boolean isLibrary();
+    boolean enableDebugLogs() default false;
 }

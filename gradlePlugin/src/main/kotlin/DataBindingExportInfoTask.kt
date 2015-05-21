@@ -15,22 +15,20 @@
  */
 package android.databinding.tool
 
+import android.databinding.tool.util.L
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import kotlin.properties.Delegates
-import android.databinding.tool.util.Log
 import java.io.File
 
 open class DataBindingExportInfoTask : DefaultTask() {
-    {
-        Log.d {"created data binding export info task"}
-    }
     var xmlProcessor: LayoutXmlProcessor by Delegates.notNull()
     var sdkDir : File by Delegates.notNull()
     var xmlOutFolder : File by Delegates.notNull()
+    var enableDebugLogs = false
     [TaskAction]
     public fun doIt() {
-        Log.d {"running process layouts task"}
-        xmlProcessor.writeInfoClass(sdkDir, xmlOutFolder)
+        L.d("running process layouts task %s", getName())
+        xmlProcessor.writeInfoClass(sdkDir, xmlOutFolder, enableDebugLogs)
     }
 }

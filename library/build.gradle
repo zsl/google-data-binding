@@ -28,11 +28,14 @@ buildscript {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'maven'
 
 android {
     compileSdkVersion 21
     buildToolsVersion "21.1"
+
+    sourceSets {
+        main.java.srcDirs = ["src/main/java"]
+    }
 
     defaultConfig {
         minSdkVersion 7
@@ -56,16 +59,16 @@ android {
         exclude 'android/databinding/DataBinderMapper.class'
     }
 }
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(":baseLibrary")
-    compile 'com.android.support:support-v4:+'
-}
 
 configurations {
     jarArchives
 }
 
+
+dependencies {
+    compile 'com.android.support:support-v4:+'
+    compile project(':baseLibrary')
+}
 
 //create jar tasks
 android.libraryVariants.all { variant ->
@@ -81,7 +84,7 @@ android.libraryVariants.all { variant ->
     jarTask.from variant.javaCompile.destinationDir
 
     def javadocTask = project.tasks.create(name: "javadoc${suffix}", type: Javadoc) {
-        source variant.javaCompile.source
+        source variant.javaCompile.source + project(":baseLibrary").tasks['compileJava'].source
         classpath = files(variant.javaCompile.classpath.files) + files(
                 "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
     }
@@ -94,7 +97,7 @@ android.libraryVariants.all { variant ->
 
     def sourcesJarTask = project.tasks.create(name: "sourceJar${suffix}", type: Jar) {
         classifier = 'sources'
-        from android.sourceSets.main.java.srcDirs
+        from android.sourceSets.main.java.srcDirs + project(":baseLibrary").sourceSets.main.java.srcDirs
     }
 
     artifacts.add('archives', javadocJarTask);
@@ -105,6 +108,15 @@ uploadArchives {
     repositories {
         mavenDeployer {
             pom.artifactId = 'library'
+            pom.project {
+                licenses {
+                    license {
+                        name config.licenseName
+                        url config.licenseUrl
+                        distribution config.licenseDistribution
+                    }
+                }
+            }
         }
     }
 }

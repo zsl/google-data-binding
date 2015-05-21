@@ -15,22 +15,19 @@
  */
 package android.databinding.tool
 
+import android.databinding.tool.util.L
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import kotlin.properties.Delegates
-import android.databinding.tool.util.Log
 import java.io.File
 
 open class DataBindingProcessLayoutsTask : DefaultTask() {
-    {
-        Log.d {"created data binding process resources task"}
-    }
     var xmlProcessor: LayoutXmlProcessor by Delegates.notNull()
     var sdkDir : File by Delegates.notNull()
     var xmlOutFolder : File by Delegates.notNull()
     [TaskAction]
     public fun doIt() {
-        Log.d {"running process layouts task"}
+        L.d("running process layouts task %s", getName())
         xmlProcessor.processResources()
     }
 

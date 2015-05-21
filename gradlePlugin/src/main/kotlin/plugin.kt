@@ -16,7 +16,6 @@
 
 package android.databinding.tool
 
-import android.databinding.parser.log
 import android.databinding.tool.expr.Dependency
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -26,7 +25,6 @@ import com.android.build.gradle.internal.variant.ApplicationVariantData
 import java.io.File
 import org.gradle.api.file.FileCollection
 import android.databinding.tool.writer.JavaFileWriter
-import android.databinding.tool.util.Log
 import org.gradle.api.Action
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.LibraryExtension
@@ -97,14 +95,14 @@ open class DataBinderPlugin : Plugin<Project> {
         if (addAdapters) {
             project.getDependencies().add("compile", "com.android.databinding:adapters:$myVersion")
         }
-        project.getDependencies().add("provided", "com.android.databinding:annotationprocessor:$myVersion")
+        project.getDependencies().add("provided", "com.android.databinding:compiler:$myVersion")
         project.afterEvaluate {
             createXmlProcessor(project)
         }
     }
 
     fun logD(s: String) {
-        log(LogLevel.DEBUG, s)
+        log(LogLevel.INFO, s)
     }
     fun logE(s: String) {
         log(LogLevel.ERROR, s)
@@ -204,6 +202,7 @@ open class DataBinderPlugin : Plugin<Project> {
                         task.xmlProcessor = xmlProcessor
                         task.sdkDir = sdkDir
                         task.xmlOutFolder = xmlOutDir
+
                         logD("TASK adding dependency on ${task} for ${processResTask}")
                         processResTask.dependsOn(task)
                         processResTask.getDependsOn().filterNot { it == task }.forEach {
@@ -224,6 +223,7 @@ open class DataBinderPlugin : Plugin<Project> {
                         task.xmlProcessor = xmlProcessor
                         task.sdkDir = sdkDir
                         task.xmlOutFolder = xmlOutDir
+                        task.enableDebugLogs = logger.isEnabled(LogLevel.DEBUG)
                         variantData.registerJavaGeneratingTask(task, codeGenTargetFolder)
                     }
                 })

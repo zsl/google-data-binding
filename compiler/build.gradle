@@ -33,31 +33,61 @@ buildscript {
     }
 }
 
-
-dependencies {
-    compile 'junit:junit:4.12'
-    compile 'org.apache.commons:commons-lang3:3.3.2'
-    compile 'org.apache.commons:commons-io:1.3.2'
-    compile 'com.google.guava:guava:18.0'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:${config.kotlinVersion}"
-    compile 'commons-codec:commons-codec:1.10'
-    compile project(":baseLibrary")
-    compile project(":grammarBuilder")
-    compile project(":xmlGrammar")
-    testCompile "com.android.databinding:libraryJar:$version@jar"
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+            srcDir 'src/main/grammar-gen'
+            srcDir 'src/main/xml-gen'
+        }
+    }
 }
 
+dependencies {
+    compile project(':baseLibrary')
+    compile 'org.apache.commons:commons-lang3:3.3.2'
+    compile 'commons-io:commons-io:2.4'
+    compile 'commons-codec:commons-codec:1.10'
+    compile 'com.google.guava:guava:17.0'
+    compile "org.jetbrains.kotlin:kotlin-stdlib:${config.kotlinVersion}"
+
+    compile 'com.tunnelvisionlabs:antlr4:4.4'
+    testCompile "com.android.databinding:libraryJar:$version@jar"
+    testCompile 'junit:junit:4.12'
+}
 
 uploadArchives {
     repositories {
         mavenDeployer {
             pom.artifactId = 'compiler'
+            pom.project {
+                licenses {
+                    license {
+                        name config.licenseName
+                        url config.licenseUrl
+                        distribution config.licenseDistribution
+                    }
+                }
+            }
         }
     }
 }
 
 project(':library').afterEvaluate { libProject ->
     tasks['compileTestKotlin'].dependsOn libProject.tasks['uploadJarArchives']
+}
+
+project.tasks.create(name : "generateXmlParser", type : JavaExec) {
+    classpath configurations.runtime
+    main "org.antlr.v4.Tool"
+    workingDir projectDir
+    args "XMLParser.g4", "-visitor", "-o", "src/main/java/android/databinding/parser", "-package", "android.databinding.parser", "-lib", "."
+}
+
+project.tasks.create(name : "generateGrammar", type : JavaExec) {
+    classpath configurations.runtime
+    main "org.antlr.v4.Tool"
+    args "BindingExpression.g4", "-visitor", "-o", "src/main/grammar-gen/android/databinding/parser", "-package", "android.databinding.parser"
 }
 
 task fatJar(type: Jar) {

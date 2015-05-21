@@ -18,20 +18,28 @@ package android.databinding.tool.util
 
 import android.databinding.parser.BindingExpressionLexer
 import android.databinding.parser.BindingExpressionParser
-import android.databinding.parser.Position
 import android.databinding.parser.XMLParser
-import android.databinding.parser.toEndPosition
-import android.databinding.parser.toPosition
 import android.databinding.parser.XMLLexer
+import android.databinding.tool.ext
 import java.io.File
 import org.antlr.v4.runtime.ANTLRInputStream
 import java.io.FileReader
 import org.antlr.v4.runtime.CommonTokenStream
 import java.util.Comparator
 import com.google.common.base.Preconditions
+import org.antlr.v4.runtime.Token
 import org.apache.commons.lang3.StringEscapeUtils
 import java.util.ArrayList
 import java.util.regex.Pattern
+
+fun Token.toS() : String = "[L:${getLine()} CH:${getCharPositionInLine()}]"
+
+fun Token.toPosition() : Position = Position(getLine() -1 , getCharPositionInLine())
+
+fun Token.toEndPosition() : Position = Position(getLine() - 1 , getCharPositionInLine() + getText().size)
+
+data class Position(var line : Int, var charIndex : Int) {
+}
 
 /**
  * Ugly inefficient class to strip unwanted tags from XML.

@@ -26,6 +26,10 @@ import javax.tools.Diagnostic.Kind;
 
 public class L {
     static boolean sEnableDebug = false;
+    public static void setDebugLog(boolean enabled) {
+        sEnableDebug = enabled;
+    }
+
     public static void d(String msg, Object... args) {
         if (sEnableDebug) {
             printMessage(Diagnostic.Kind.NOTE, String.format(msg, args));
