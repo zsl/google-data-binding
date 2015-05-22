@@ -111,6 +111,15 @@ uploadJarArchives {
                 println("configured pom, $it")
                 it.dependencies.clear()
             }
+            pom.project {
+                licenses {
+                    license {
+                        name config.licenseName
+                        url config.licenseUrl
+                        distribution config.licenseDistribution
+                    }
+                }
+            }
         }
     }
 }
