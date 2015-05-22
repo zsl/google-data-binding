@@ -3,7 +3,7 @@ package com.android.example.bindingdemo;
 import android.databinding.Bindable;
 import android.databinding.DataBindingUtil;
 import android.databinding.Observable;
-import android.databinding.Observable.OnPropertyChangedListener;
+import android.databinding.Observable.OnPropertyChangedCallback;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -135,12 +135,12 @@ public class MainActivity extends ActionBarActivity implements Observable {
     }
 
     @Override
-    public void addOnPropertyChangedListener(OnPropertyChangedListener listener) {
+    public void addOnPropertyChangedCallback(OnPropertyChangedCallback listener) {
         mListeners.add(listener);
     }
 
     @Override
-    public void removeOnPropertyChangedListener(OnPropertyChangedListener listener) {
+    public void removeOnPropertyChangedCallback(OnPropertyChangedCallback listener) {
         mListeners.remove(listener);
     }
 
@@ -204,12 +204,12 @@ public class MainActivity extends ActionBarActivity implements Observable {
         }
 
         @Override
-        public void addOnPropertyChangedListener(OnPropertyChangedListener listener) {
+        public void addOnPropertyChangedCallback(OnPropertyChangedCallback listener) {
             mListeners.add(listener);
         }
 
         @Override
-        public void removeOnPropertyChangedListener(OnPropertyChangedListener listener) {
+        public void removeOnPropertyChangedCallback(OnPropertyChangedCallback listener) {
             mListeners.remove(listener);
         }
     }
