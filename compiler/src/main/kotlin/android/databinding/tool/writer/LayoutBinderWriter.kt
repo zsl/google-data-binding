@@ -153,7 +153,7 @@ val Expr.fieldName by Delegates.lazy { expr : Expr ->
 }
 
 val Expr.executePendingLocalName by Delegates.lazy { expr : Expr ->
-    if(expr.isVariable()) expr.fieldName else "${expr.getModel().ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD)}"
+    "${expr.getModel().ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD)}"
 }
 
 val Expr.setterName by Delegates.lazy { expr : Expr ->
@@ -674,8 +674,8 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     tab("${mDirtyFlags.localValue(i)} = 0;")
                 }
             } tab("}")
-            model.getPendingExpressions().filterNot {!it.canBeEvaluatedToAVariable() || it.isVariable()}.forEach {
-                tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${it.getDefaultValue()};")
+            model.getPendingExpressions().filterNot {!it.canBeEvaluatedToAVariable() || (it.isVariable() && !it.isUsed())}.forEach {
+                tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${if(it.isVariable()) it.fieldName else it.getDefaultValue()};")
             }
             L.d("writing executePendingBindings for %s", className)
             do {
