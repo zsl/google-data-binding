@@ -831,12 +831,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     }
 
     fun declareFactories() = kcode("") {
+        nl("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
+            tab("return android.databinding.DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot);")
+        }
+        nl("}")
         if (!layoutBinder.isMerge()) {
-            tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
-                tab("return bind(inflater.inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot));")
-            }
-            nl("}")
-            tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {
+            nl("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {
                 tab("return bind(inflater.inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false));")
             }
             nl("}")
@@ -876,13 +876,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             nl("")
             variables.forEach {
                 if (it.getUserDefinedType() != null) {
-                    //it.getExpandedUserDefinedType(ModelAnalyzer.getInstance());
                     val type = ModelAnalyzer.getInstance().applyImports(it.getUserDefinedType(), model.getImports())
                     tab("public abstract void ${it.setterName}(${type} ${it.readableName});")
                 }
             }
             tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
-                tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, true);")
+                tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot);")
             }
             tab("}")
             tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {

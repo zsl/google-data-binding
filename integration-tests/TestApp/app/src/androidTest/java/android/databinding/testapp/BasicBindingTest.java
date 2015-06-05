@@ -142,6 +142,16 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
                 null, false));
     }
 
+    @UiThreadTest
+    public void testInflation() throws Throwable {
+        ViewGroup viewGroup = (ViewGroup) mBinder.getRoot();
+        BasicBindingBinding binding =
+                BasicBindingBinding.inflate(getActivity().getLayoutInflater(), viewGroup, true);
+        assertNotNull(binding);
+        assertNotNull(binding.textView);
+        assertNotSame(binding.textView, mBinder.textView);
+    }
+
     private void assertAB(String a, String b) {
         mBinder.setA(a);
         mBinder.setB(b);
