@@ -15,6 +15,10 @@
  */
 package android.databinding.testapp.vo;
 
+import android.databinding.BaseObservable;
+import android.databinding.Bindable;
+import android.databinding.ObservableField;
+import android.databinding.testapp.BR;
 import android.util.ArrayMap;
 
 import java.util.ArrayList;
@@ -33,6 +37,8 @@ public class FindMethodBindingObject extends FindMethodBindingObjectBase {
     public static String staticMethod() { return "world"; }
 
     public static Foo foo = new Foo();
+
+    public ObservableClass observableClass = new ObservableClass();
 
     public static Bar<String> bar = new Bar<>();
 
@@ -53,6 +59,8 @@ public class FindMethodBindingObject extends FindMethodBindingObjectBase {
 
     public int[] getArray() { return new int[5]; }
 
+    public final ObservableField<String> myField = new ObservableField<String>();
+
     public List getList() {
         ArrayList<String> vals = new ArrayList<>();
         vals.add("hello");
@@ -66,5 +74,18 @@ public class FindMethodBindingObject extends FindMethodBindingObjectBase {
 
     public static class Bar<T> {
         public T method(T value) { return value; }
+    }
+
+    public static final class ObservableClass extends BaseObservable {
+        public String x;
+
+        public String getX() {
+            return x;
+        }
+
+        public void setX(String x) {
+            this.x = x;
+            notifyPropertyChanged(BR._all);
+        }
     }
 }

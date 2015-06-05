@@ -120,4 +120,28 @@ public class FindMethodTest
     public void testJavaLangMethod() throws Throwable {
         assertEquals("Hello World", mBinder.textView24.getText().toString());
     }
+
+    @UiThreadTest
+    public void testObservableField() throws Throwable {
+        // tests an ObservableField inside an Observable object
+        assertEquals("", mBinder.textView25.getText().toString());
+        mBinder.getObj().myField.set("Hello World");
+        mBinder.executePendingBindings();
+        assertEquals("Hello World", mBinder.textView25.getText().toString());
+
+        mBinder.getObj().myField.set("World Hello");
+        mBinder.executePendingBindings();
+        assertEquals("World Hello", mBinder.textView25.getText().toString());
+    }
+
+    @UiThreadTest
+    public void testObservableInstanceField() throws Throwable {
+        assertEquals("", mBinder.textView26.getText().toString());
+        mBinder.getObj().observableClass.setX("foobar");
+        mBinder.executePendingBindings();
+        assertEquals("foobar", mBinder.textView26.getText().toString());
+        mBinder.getObj().observableClass.setX("barfoo");
+        mBinder.executePendingBindings();
+        assertEquals("barfoo", mBinder.textView26.getText().toString());
+    }
 }

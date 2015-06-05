@@ -69,6 +69,10 @@ public class FieldAccessExpr extends Expr {
         return mGetter.isDynamic();
     }
 
+    public boolean hasBindableAnnotations() {
+        return mGetter.canBeInvalidated();
+    }
+
     @Override
     protected List<Dependency> constructDependencies() {
         final List<Dependency> dependencies = constructDynamicChildrenDependencies();

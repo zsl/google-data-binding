@@ -588,7 +588,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             nl("private boolean ${it.onChangeName}(${it.getResolvedType().toJavaCode()} ${it.readableName}, int fieldId) {") {
                 tab("switch (fieldId) {", {
                     val accessedFields: List<FieldAccessExpr> = it.getParents().filterIsInstance(javaClass<FieldAccessExpr>())
-                    accessedFields.filter { it.canBeInvalidated() }
+                    accessedFields.filter { it.hasBindableAnnotations() }
                             .groupBy { it.getName() }
                             .forEach {
                                 tab("case ${it.key.br()}:") {
