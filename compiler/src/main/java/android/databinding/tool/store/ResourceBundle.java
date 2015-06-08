@@ -532,6 +532,8 @@ public class ResourceBundle implements Serializable {
             if (mFullClassName == null) {
                 if (isBinder()) {
                     mFullClassName = mInterfaceType;
+                } else if (mViewName.equals("fragment")) {
+                    mFullClassName = "fragment";
                 } else if (mViewName.indexOf('.') == -1) {
                     if (ArrayUtils.contains(ANDROID_VIEW_PACKAGE_VIEWS, mViewName)) {
                         mFullClassName = "android.view." + mViewName;

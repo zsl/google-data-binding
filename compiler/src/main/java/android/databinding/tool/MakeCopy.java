@@ -172,7 +172,7 @@ public class MakeCopy {
         LayoutXmlProcessor xmlProcessor = new LayoutXmlProcessor(applicationPackage,
                 resourceFolders, makeFileWriter, minSdk, isLibrary);
         try {
-            xmlProcessor.processResources();
+            xmlProcessor.processResources(minSdk);
             xmlProcessor.writeLayoutInfoFiles(xmlDir);
             xmlProcessor.writeInfoClass(null, xmlDir);
             Map<String, List<LayoutFileBundle>> bundles =
