@@ -78,19 +78,19 @@ public fun Class<*>.toJavaCode() : String {
     }
 }
 
-public fun String.androidId() : String = this.split("/")[1]
+public fun String.androidId() : String = this.splitBy("/")[1]
 
 public fun String.toCamelCase() : String {
-    val split = this.split("_")
-    if (split.size == 0) return ""
-    if (split.size == 1) return split[0].capitalize()
+    val split = this.splitBy("_")
+    if (split.size() == 0) return ""
+    if (split.size() == 1) return split[0].capitalize()
     return split.joinToCamelCase()
 }
 
 public fun String.toCamelCaseAsVar() : String {
-    val split = this.split("_")
-    if (split.size == 0) return ""
-    if (split.size == 1) return split[0]
+    val split = this.splitBy("_")
+    if (split.size() == 0) return ""
+    if (split.size() == 1) return split[0]
     return split.joinToCamelCaseAsVar()
 }
 

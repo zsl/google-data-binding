@@ -25,7 +25,7 @@ class KCode (private val s : String? = null){
 
     private val nodes = arrayListOf<Any>()
 
-    class object {
+    companion object {
         private val cachedIndentations = BitSet()
         private val indentCache = arrayListOf<String>()
         fun indent(n: Int): String {

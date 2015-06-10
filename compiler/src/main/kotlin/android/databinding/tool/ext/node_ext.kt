@@ -27,12 +27,12 @@ public fun Node.getAndroidIdPath(includeRoot : Boolean) : List<String> {
     val ids = arrayListOf<String>()
     ids.add(getAndroidId()!!)
     var parent : Node? = getParentNode()
-    while (parent != null && (includeRoot || parent?.getParentNode()?.getParentNode() != null)) {
-        val id = parent?.getAndroidId()
+    while (parent != null && (includeRoot || parent.getParentNode()?.getParentNode() != null)) {
+        val id = parent.getAndroidId()
         if (id != null) {
             ids.add(id)
         }
-        parent = parent?.getParentNode()
+        parent = parent.getParentNode()
     }
     return ids
 }

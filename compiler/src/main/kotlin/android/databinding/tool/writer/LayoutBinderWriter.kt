@@ -51,19 +51,19 @@ import com.google.common.collect.Iterables
 import java.util.ArrayList
 import java.util.HashMap
 
-fun String.stripNonJava() = this.split("[^a-zA-Z0-9]").map{ it.trim() }.joinToCamelCaseAsVar()
+fun String.stripNonJava() = this.split("[^a-zA-Z0-9]".toRegex()).map{ it.trim() }.joinToCamelCaseAsVar()
 
 enum class Scope {
-    FIELD
-    METHOD
-    FLAG
-    EXECUTE_PENDING_METHOD
+    FIELD,
+    METHOD,
+    FLAG,
+    EXECUTE_PENDING_METHOD,
     CONSTRUCTOR_PARAM
 }
 
 class ExprModelExt {
     val usedFieldNames = hashMapOf<Scope, MutableSet<String>>();
-    {
+    init {
         Scope.values().forEach { usedFieldNames[it] = hashSetOf<String>() }
     }
     val localizedFlags = arrayListOf<FlagSet>()

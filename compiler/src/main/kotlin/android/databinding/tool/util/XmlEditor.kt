@@ -36,7 +36,7 @@ fun Token.toS() : String = "[L:${getLine()} CH:${getCharPositionInLine()}]"
 
 fun Token.toPosition() : Position = Position(getLine() -1 , getCharPositionInLine())
 
-fun Token.toEndPosition() : Position = Position(getLine() - 1 , getCharPositionInLine() + getText().size)
+fun Token.toEndPosition() : Position = Position(getLine() - 1 , getCharPositionInLine() + getText().length())
 
 data class Position(var line : Int, var charIndex : Int) {
 }

@@ -81,7 +81,7 @@ class CodeGenUtil {
                 }
                 is BracketExpr -> kcode("") {
                     app("", it.getTarget().toCode())
-                    val bracketType = it.getAccessor();
+                    val bracketType = it.getAccessor()!!
                     when (bracketType) {
                         BracketExpr.BracketAccessor.ARRAY -> {
                             app("[", it.getArg().toCode())
