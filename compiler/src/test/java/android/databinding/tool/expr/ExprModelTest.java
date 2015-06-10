@@ -675,6 +675,63 @@ public class ExprModelTest {
     }
 
     @Test
+    public void testStaticFieldOfInstance() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        lb.addVariable("myView", "android.view.View");
+        FieldAccessExpr fieldAccess = parse(lb, "myView.VISIBLE", FieldAccessExpr.class);
+        assertFalse(fieldAccess.isDynamic());
+        mExprModel.seal();
+        assertEquals(0, Iterables.size(getShouldRead()));
+        final Expr child = fieldAccess.getChild();
+        assertTrue(child instanceof StaticIdentifierExpr);
+        StaticIdentifierExpr id = (StaticIdentifierExpr) child;
+        assertEquals(id.getResolvedType().getCanonicalName(), "android.view.View");
+        // on demand import
+        assertEquals("android.view.View", mExprModel.getImports().get("View"));
+    }
+
+    @Test
+    public void testOnDemandImportConflict() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final IdentifierExpr myView = lb.addVariable("u", "android.view.View");
+        mExprModel.addImport("View", User.class.getCanonicalName());
+        final StaticIdentifierExpr id = mExprModel.staticIdentifierFor(myView.getResolvedType());
+        mExprModel.seal();
+        // on demand import with conflict
+        assertEquals("android.view.View", mExprModel.getImports().get("View1"));
+        assertEquals("View1", id.getName());
+        assertEquals("android.view.View", id.getUserDefinedType());
+    }
+
+    @Test
+    public void testOnDemandImportAlreadyImported() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final StaticIdentifierExpr ux = mExprModel.addImport("UX", User.class.getCanonicalName());
+        final IdentifierExpr u = lb.addVariable("u", User.class.getCanonicalName());
+        final StaticIdentifierExpr id = mExprModel.staticIdentifierFor(u.getResolvedType());
+        mExprModel.seal();
+        // on demand import with conflict
+        assertSame(ux, id);
+    }
+
+    @Test
+    public void testStaticMethodOfInstance() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        lb.addVariable("user", User.class.getCanonicalName());
+        MethodCallExpr methodCall = parse(lb, "user.ourStaticMethod()", MethodCallExpr.class);
+        assertTrue(methodCall.isDynamic());
+        mExprModel.seal();
+        final Expr child = methodCall.getTarget();
+        assertTrue(child instanceof StaticIdentifierExpr);
+        StaticIdentifierExpr id = (StaticIdentifierExpr) child;
+        assertEquals(id.getResolvedType().getCanonicalName(), User.class.getCanonicalName());
+    }
+
+    @Test
     public void testFinalOfStaticField() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
@@ -682,7 +739,8 @@ public class ExprModelTest {
         FieldAccessExpr fieldAccess = parse(lb, "UX.innerStaticInstance.finalStaticField", FieldAccessExpr.class);
         assertFalse(fieldAccess.isDynamic());
         mExprModel.seal();
-        assertExactMatch(getShouldRead(), fieldAccess.getChild());
+        // nothing to read since it is all final and static
+        assertEquals(0, Iterables.size(getShouldRead()));
     }
 
     @Test
@@ -734,9 +792,10 @@ public class ExprModelTest {
 
     private void assertExactMatch(Iterable<Expr> iterable, Expr... exprs) {
         int i = 0;
+        String log = Iterables.toString(iterable);
         log("list", iterable);
         for (Expr expr : exprs) {
-            assertTrue((i++) + ":must contain " + expr.getUniqueKey(),
+            assertTrue((i++) + ":must contain " + expr.getUniqueKey() + "\n" + log,
                     Iterables.contains(iterable, expr));
         }
         i = 0;
@@ -803,6 +862,10 @@ public class ExprModelTest {
 
         public SubObj getAnotherSubObj() {
             return new SubObj();
+        }
+
+        public static boolean ourStaticMethod() {
+            return true;
         }
 
         public static class InnerStaticClass {

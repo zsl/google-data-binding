@@ -112,6 +112,17 @@ public class FieldAccessExpr extends Expr {
             L.d("resolving %s. Resolved class type: %s", this, resolvedType);
 
             mGetter = resolvedType.findGetterOrField(mName, isStatic);
+
+            if (mGetter.isStatic() && !isStatic) {
+                // found a static method on an instance. register a new one
+                child.getParents().remove(this);
+                getChildren().remove(child);
+                StaticIdentifierExpr staticId = getModel().staticIdentifierFor(resolvedType);
+                getChildren().add(staticId);
+                staticId.getParents().add(this);
+                child = getChild(); // replace the child for the next if stmt
+            }
+
             if (mGetter.resolvedType.isObservableField()) {
                 // Make this the ".get()" and add an extra field access for the observable field
                 child.getParents().remove(this);
