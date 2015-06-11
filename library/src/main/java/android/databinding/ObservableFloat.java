@@ -23,7 +23,9 @@ public class ObservableFloat extends BaseObservable {
     }
 
     public void set(float value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }

@@ -23,7 +23,9 @@ public class ObservableDouble extends BaseObservable {
     }
 
     public void set(double value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }

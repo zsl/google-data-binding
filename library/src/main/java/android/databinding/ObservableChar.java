@@ -23,7 +23,9 @@ public class ObservableChar extends BaseObservable {
     }
 
     public void set(char value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }
