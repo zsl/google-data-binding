@@ -25,10 +25,12 @@ open class DataBindingProcessLayoutsTask : DefaultTask() {
     var xmlProcessor: LayoutXmlProcessor by Delegates.notNull()
     var sdkDir : File by Delegates.notNull()
     var xmlOutFolder : File by Delegates.notNull()
+    var minSdk: kotlin.Int by Delegates.notNull()
+
     [TaskAction]
     public fun doIt() {
         L.d("running process layouts task %s", getName())
-        xmlProcessor.processResources()
+        xmlProcessor.processResources(minSdk)
     }
 
     public fun writeLayoutXmls() {

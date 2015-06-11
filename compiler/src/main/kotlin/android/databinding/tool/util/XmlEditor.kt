@@ -69,6 +69,12 @@ object XmlEditor {
                 (value.startsWith("\'@{") && value.endsWith("}\'"))
     }
 
+    fun XMLParser.ElementContext.noTagAttributes() = attributes().filter {
+        val value = it.attrValue.getText()
+        (value.startsWith("\"@{") && value.endsWith("}\"")) ||
+        (value.startsWith("\'@{") && value.endsWith("}\'"))
+    }
+
     fun XMLParser.ElementContext.endTagPosition(): Position {
         if (content() == null) {
             // no content, so just subtract from the "/>"
@@ -198,14 +204,17 @@ object XmlEditor {
         val isMerge = "merge".equals(node.nodeName())
         if (!isMerge && (node.hasExpressionAttributes() || newTag != null)) {
             var tag = ""
+            var replacingAttributes = node.expressionAttributes()
             if (newTag != null) {
                 tag = "android:tag=\"${newTag}_${bindingIndex}\""
                 nextBindingIndex++
+            } else if ("fragment".equals(node.nodeName())) {
+                replacingAttributes = node.noTagAttributes()
             } else if (!"include".equals(node.nodeName())) {
                 tag = "android:tag=\"binding_${bindingIndex}\""
                 nextBindingIndex++
             }
-            node.expressionAttributes().forEach {
+            replacingAttributes.forEach {
                 val start = it.getStart().toPosition()
                 val end = it.getStop().toEndPosition()
                 val defaultVal = defaultReplacement(it)

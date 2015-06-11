@@ -25,6 +25,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Choreographer;
 import android.view.View;
@@ -34,6 +35,7 @@ import android.view.ViewGroup;
 import java.lang.ref.WeakReference;
 
 public abstract class ViewDataBinding {
+    private final static String TAG = "ViewDataBinding";
 
     /**
      * Instead of directly accessing Build.VERSION.SDK_INT, generated code uses this value so that
@@ -121,12 +123,7 @@ public abstract class ViewDataBinding {
                 @Override
                 public void onViewAttachedToWindow(View v) {
                     // execute the pending bindings.
-                    final ViewDataBinding binding;
-                    if (USE_TAG_ID) {
-                        binding = (ViewDataBinding) v.getTag(R.id.dataBinding);
-                    } else {
-                        binding = (ViewDataBinding) v.getTag();
-                    }
+                    final ViewDataBinding binding = getBinding(v);
                     binding.mRebindRunnable.run();
                     v.removeOnAttachStateChangeListener(this);
                 }
@@ -361,12 +358,14 @@ public abstract class ViewDataBinding {
     }
 
     static ViewDataBinding getBinding(View v) {
-        if (USE_TAG_ID) {
-            return (ViewDataBinding) v.getTag(R.id.dataBinding);
-        } else {
-            final Object tag = v.getTag();
-            if (tag instanceof ViewDataBinding) {
-                return (ViewDataBinding) tag;
+        if (v != null) {
+            if (USE_TAG_ID) {
+                return (ViewDataBinding) v.getTag(R.id.dataBinding);
+            } else {
+                final Object tag = v.getTag();
+                if (tag instanceof ViewDataBinding) {
+                    return (ViewDataBinding) tag;
+                }
             }
         }
         return null;
@@ -507,9 +506,31 @@ public abstract class ViewDataBinding {
         return bindings;
     }
 
+    protected static void validateFragmentBinding(ViewDataBinding binding, String fieldName) {
+        if (binding == null) {
+            Log.e(TAG, "The fragment " + fieldName + " has not generated a bound view. " +
+                    "Use DataBindingUtil.inflate, the generated Binding class's inflate method, " +
+                    "or the generated Binding class's bind method to ensure a bound view from " +
+                    "the fragment's onCreateView method.");
+        }
+    }
+
     private static void mapBindings(View view, Object[] bindings,
             IncludedLayoutIndex[][] includes, SparseIntArray viewsWithIds, boolean isRoot) {
         final IncludedLayoutIndex[] includedLayoutIndexes;
+        final ViewDataBinding fragmentBinding = getBinding(view);
+        if (fragmentBinding != null) {
+            // Must be a fragment
+            final int fragmentId = view.getId();
+            final int index = (viewsWithIds == null) ? 0 : viewsWithIds.get(fragmentId);
+            if (fragmentId > 0) {
+                bindings[index] = view;
+            } else {
+                // A fragment without an ID doesn't have any binding expressions
+                // nor can it be accessed. We can just ignore it.
+            }
+            return;
+        }
         final String tag = (String) view.getTag();
         boolean isBound = false;
         if (isRoot && tag != null && tag.startsWith("layout")) {

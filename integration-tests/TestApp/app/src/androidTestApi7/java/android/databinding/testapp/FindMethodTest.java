@@ -94,34 +94,6 @@ public class FindMethodTest
     }
 
     @UiThreadTest
-    public void testImports() throws Throwable {
-        mBinder.setObj2(new FindMethodBindingObject.Bar<String>());
-        mBinder.executePendingBindings();
-        TextView textView = mBinder.textView15;
-        assertEquals("hello", textView.getText().toString());
-    }
-
-    @UiThreadTest
-    public void testConfusingMethods() throws Throwable {
-        assertEquals("1", mBinder.textView16.getText().toString());
-        assertEquals("1", mBinder.textView17.getText().toString());
-        assertEquals("hello", mBinder.textView18.getText().toString());
-        assertEquals("yay", mBinder.textView19.getText().toString());
-        assertEquals("hello", mBinder.textView20.getText().toString());
-        assertEquals("hello", mBinder.textView21.getText().toString());
-    }
-
-    @UiThreadTest
-    public void testArrayLength() throws Throwable {
-        assertEquals("5", mBinder.textView22.getText().toString());
-    }
-
-    @UiThreadTest
-    public void testJavaLangMethod() throws Throwable {
-        assertEquals("Hello World", mBinder.textView24.getText().toString());
-    }
-
-    @UiThreadTest
     public void testObservableField() throws Throwable {
         // tests an ObservableField inside an Observable object
         assertEquals("", mBinder.textView25.getText().toString());

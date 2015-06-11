@@ -202,6 +202,7 @@ open class DataBinderPlugin : Plugin<Project> {
                         task.xmlProcessor = xmlProcessor
                         task.sdkDir = sdkDir
                         task.xmlOutFolder = xmlOutDir
+                        task.minSdk = minSdkVersion.getApiLevel()
 
                         logD("TASK adding dependency on ${task} for ${processResTask}")
                         processResTask.dependsOn(task)

@@ -91,7 +91,7 @@ public class LayoutXmlProcessor {
         return mResourceBundle;
     }
 
-    public boolean processResources()
+    public boolean processResources(int minSdk)
             throws ParserConfigurationException, SAXException, XPathExpressionException,
             IOException {
         if (mProcessingComplete) {
@@ -100,7 +100,7 @@ public class LayoutXmlProcessor {
         LayoutFileParser layoutFileParser = new LayoutFileParser();
         for (File xmlFile : getLayoutFiles(mResources)) {
             final ResourceBundle.LayoutFileBundle bindingLayout = layoutFileParser
-                    .parseXml(xmlFile, mResourceBundle.getAppPackage());
+                    .parseXml(xmlFile, mResourceBundle.getAppPackage(), minSdk);
             if (bindingLayout != null && !bindingLayout.isEmpty()) {
                 mResourceBundle.addLayoutBundle(bindingLayout);
             }

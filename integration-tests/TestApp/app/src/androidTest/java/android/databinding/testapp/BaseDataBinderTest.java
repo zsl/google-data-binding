@@ -13,6 +13,7 @@
 
 package android.databinding.testapp;
 
+import android.app.FragmentManager;
 import android.databinding.ViewDataBinding;
 
 import android.content.pm.ActivityInfo;
