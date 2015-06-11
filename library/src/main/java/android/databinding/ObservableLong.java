@@ -23,7 +23,9 @@ public class ObservableLong extends BaseObservable {
     }
 
     public void set(long value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }

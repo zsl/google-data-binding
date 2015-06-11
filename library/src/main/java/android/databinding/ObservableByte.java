@@ -23,7 +23,9 @@ public class ObservableByte extends BaseObservable {
     }
 
     public void set(byte value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }

@@ -23,7 +23,9 @@ public class ObservableField<T> extends BaseObservable {
     }
 
     public void set(T value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }

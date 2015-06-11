@@ -23,7 +23,9 @@ public class ObservableShort extends BaseObservable {
     }
 
     public void set(short value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }

@@ -23,7 +23,9 @@ public class ObservableInt extends BaseObservable {
     }
 
     public void set(int value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }

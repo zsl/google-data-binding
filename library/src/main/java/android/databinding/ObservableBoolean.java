@@ -23,7 +23,9 @@ public class ObservableBoolean extends BaseObservable {
     }
 
     public void set(boolean value) {
-        mValue = value;
-        notifyChange();
+        if (value != mValue) {
+            mValue = value;
+            notifyChange();
+        }
     }
 }
