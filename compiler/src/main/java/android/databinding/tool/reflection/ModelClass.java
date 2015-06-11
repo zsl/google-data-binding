@@ -15,6 +15,9 @@
  */
 package android.databinding.tool.reflection;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
 
@@ -229,15 +232,17 @@ public abstract class ModelClass {
      *
      * @param name The name of the method to find.
      * @param args The types that the method should accept.
-     * @param isStatic Whether only static methods should be returned or instance methods.
+     * @param staticOnly Whether only static methods should be returned or both instance methods
+     *                 and static methods are valid.
+     *
      * @return An array containing all public methods with the name <code>name</code> and taking
      * <code>args</code> parameters.
      */
-    public ModelMethod[] getMethods(String name, List<ModelClass> args, boolean isStatic) {
+    public ModelMethod[] getMethods(String name, List<ModelClass> args, boolean staticOnly) {
         ModelMethod[] methods = getDeclaredMethods();
         ArrayList<ModelMethod> matching = new ArrayList<ModelMethod>();
         for (ModelMethod method : methods) {
-            if (method.isPublic() && method.isStatic() == isStatic &&
+            if (method.isPublic() && (!staticOnly || method.isStatic()) &&
                     name.equals(method.getName()) && method.acceptsArguments(args)) {
                 matching.add(method);
             }
@@ -267,16 +272,21 @@ public abstract class ModelClass {
 
     /**
      * Returns the public method with the name <code>name</code> with the parameters that
-     * best match args. <code>staticAccess</code> governs whether a static or instance method
+     * best match args. <code>staticOnly</code> governs whether a static or instance method
      * will be returned. If no matching method was found, null is returned.
      *
      * @param name The method name to find
      * @param args The arguments that the method should accept
-     * @param staticAccess true if the returned method should be static or false if it should
-     *                     be an instance method.
+     * @param staticOnly true if the returned method must be static or false if it does not
+     *                     matter.
      */
-    public ModelMethod getMethod(String name, List<ModelClass> args, boolean staticAccess) {
-        ModelMethod[] methods = getMethods(name, args, staticAccess);
+    public ModelMethod getMethod(String name, List<ModelClass> args, boolean staticOnly) {
+        ModelMethod[] methods = getMethods(name, args, staticOnly);
+        L.d("looking methods for %s. static only ? %s . method count: %d", name, staticOnly,
+                methods.length);
+        for (ModelMethod method : methods) {
+            L.d("method: %s, %s", method.getName(), method.isStatic());
+        }
         if (methods.length == 0) {
             return null;
         }
@@ -334,12 +344,12 @@ public abstract class ModelClass {
      * Returns the getter method or field that the name refers to.
      * @param name The name of the field or the body of the method name -- can be name(),
      *             getName(), or isName().
-     * @param staticAccess Whether this should look for static methods and fields or instance
+     * @param staticOnly Whether this should look for static methods and fields or instance
      *                     versions
      * @return the getter method or field that the name refers to.
      * @throws IllegalArgumentException if there is no such method or field available.
      */
-    public Callable findGetterOrField(String name, boolean staticAccess) {
+    public Callable findGetterOrField(String name, boolean staticOnly) {
         if ("length".equals(name) && isArray()) {
             return new Callable(Type.FIELD, name, ModelAnalyzer.getInstance().loadPrimitive("int"),
                     0);
@@ -350,61 +360,63 @@ public abstract class ModelClass {
                 "is" + capitalized,
                 name
         };
-        ModelField backingField = getField(name, true, staticAccess);
-        L.d("Finding getter or field for %s, field = %s", name, backingField == null ? null : backingField.getName());
         for (String methodName : methodNames) {
-            ModelMethod[] methods = getMethods(methodName, 0);
+            ModelMethod[] methods = getMethods(methodName, new ArrayList<ModelClass>(), staticOnly);
             for (ModelMethod method : methods) {
-                if (method.isPublic() && (!staticAccess || method.isStatic())) {
+                if (method.isPublic() && (!staticOnly || method.isStatic())) {
                     int flags = DYNAMIC;
                     if (method.isStatic()) {
                         flags |= STATIC;
                     }
-                    if (method.isBindable() ||
-                            (backingField != null && backingField.isBindable()
-                                    && backingField.isStatic() == method.isStatic())) {
+                    if (method.isBindable()) {
                         flags |= CAN_BE_INVALIDATED;
+                    } else {
+                        // if method is not bindable, look for a backing field
+                        final ModelField backingField = getField(name, true, method.isStatic());
+                        L.d("backing field for method %s is %s", method.getName(),
+                                backingField == null ? "NOT FOUND" : backingField.getName());
+                        if (backingField != null && backingField.isBindable()) {
+                            flags |= CAN_BE_INVALIDATED;
+                        }
                     }
                     final Callable result = new Callable(Callable.Type.METHOD, methodName,
                             method.getReturnType(null), flags);
-                    L.d("backing field for %s is %s", result, backingField);
                     return result;
                 }
             }
         }
 
-        if (backingField == null && !staticAccess) {
-            // if we could not find an instance field, we should search for static fields since
-            // we are not accessing through an instance method
-            backingField = getField(name, false, true);
-        }
-
-        if (backingField != null && backingField.isPublic()) {
-            ModelClass fieldType = backingField.getFieldType();
-            int flags = 0;
-            if (!backingField.isFinal()) {
-                flags |= DYNAMIC;
+        // could not find a method. Look for a public field
+        ModelField publicField = null;
+        if (staticOnly) {
+            publicField = getField(name, false, true);
+        } else {
+            // first check non-static
+            publicField = getField(name, false, false);
+            if (publicField == null) {
+                // check for static
+                publicField = getField(name, false, true);
             }
-            if (backingField.isBindable()) {
-                flags |= CAN_BE_INVALIDATED;
-            }
-            if (backingField.isStatic()) {
-                flags |= STATIC;
-            }
-            return new Callable(Callable.Type.FIELD, name, fieldType, flags);
         }
-        if (staticAccess) {
-            // can be an inner class. allow it as well.
+        Preconditions.checkArgument(publicField != null, "Cannot find " + name + " in " + toJavaCode());
+        ModelClass fieldType = publicField.getFieldType();
+        int flags = 0;
+        if (!publicField.isFinal()) {
+            flags |= DYNAMIC;
         }
-        throw new IllegalArgumentException(
-                "cannot find " + name + " in " + toJavaCode());
-
+        if (publicField.isBindable()) {
+            flags |= CAN_BE_INVALIDATED;
+        }
+        if (publicField.isStatic()) {
+            flags |= STATIC;
+        }
+        return new Callable(Callable.Type.FIELD, name, fieldType, flags);
     }
 
-    public ModelField getField(String name, boolean allowPrivate, boolean staticAccess) {
+    private ModelField getField(String name, boolean allowPrivate, boolean isStatic) {
         ModelField[] fields = getDeclaredFields();
         for (ModelField field : fields) {
-            if (name.equals(stripFieldName(field.getName())) && field.isStatic() == staticAccess &&
+            if (name.equals(stripFieldName(field.getName())) && field.isStatic() == isStatic &&
                     (allowPrivate || field.isPublic())) {
                 return field;
             }

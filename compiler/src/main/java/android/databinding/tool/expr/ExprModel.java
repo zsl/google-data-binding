@@ -16,12 +16,14 @@
 
 package android.databinding.tool.expr;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
+import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.FlagSet;
 
@@ -143,6 +145,45 @@ public class ExprModel {
         return register(new StaticIdentifierExpr(name));
     }
 
+    /**
+     * Creates a static identifier for the given class or returns the existing one.
+     */
+    public StaticIdentifierExpr staticIdentifierFor(final ModelClass modelClass) {
+        final String type = modelClass.getCanonicalName();
+        Optional<Expr> existing = Iterables.tryFind(mExprMap.values(), new Predicate<Expr>() {
+            @Override
+            public boolean apply(Expr input) {
+                if (!(input instanceof StaticIdentifierExpr)) {
+                    return false;
+                }
+                StaticIdentifierExpr id = (StaticIdentifierExpr) input;
+                return id.getUserDefinedType().equals(type);
+            }
+        });
+        if (existing.isPresent()) {
+            return (StaticIdentifierExpr) existing.get();
+        }
+
+        // does not exist. Find a name for it.
+        int cnt = 0;
+        int dotIndex = type.lastIndexOf(".");
+        String baseName;
+        Preconditions.checkArgument(dotIndex < type.length() - 1, "Invalid type %s", type);
+        if (dotIndex == -1) {
+            baseName = type;
+        } else {
+            baseName = type.substring(dotIndex + 1);
+        }
+        while (true) {
+            String candidate = cnt == 0 ? baseName : baseName + cnt;
+            if (!mImports.containsKey(candidate)) {
+                return addImport(candidate, type);
+            }
+            cnt ++;
+            Preconditions.checkState(cnt < 100, "Failed to create an import for " + type);
+        }
+    }
+
     public MethodCallExpr methodCall(Expr target, String name, List<Expr> args) {
         return register(new MethodCallExpr(target, name, args));
     }
@@ -192,13 +233,14 @@ public class ExprModel {
         return mBindingExpressions;
     }
 
-    public void addImport(String alias, String type) {
+    public StaticIdentifierExpr addImport(String alias, String type) {
         Preconditions.checkState(!mImports.containsKey(alias),
                 "%s has already been defined as %s", alias, type);
         final StaticIdentifierExpr id = staticIdentifier(alias);
         L.d("adding import %s as %s klass: %s", type, alias, id.getClass().getSimpleName());
         id.setUserDefinedType(type);
         mImports.put(alias, type);
+        return id;
     }
 
     public Map<String, String> getImports() {
@@ -219,30 +261,6 @@ public class ExprModel {
         return bindingExpr;
     }
 
-    /**
-     * Nodes to which no one depends
-     */
-    public Iterable<Expr> findRootNodes() {
-        return Iterables.filter(mExprMap.values(), new Predicate<Expr>() {
-            @Override
-            public boolean apply(Expr input) {
-                return input.getParents().isEmpty();
-            }
-        });
-    }
-
-    /**
-     * Nodes, which do not depend on any other node
-     */
-    public Iterable<Expr> findLeafNodes() {
-        return Iterables.filter(mExprMap.values(), new Predicate<Expr>() {
-            @Override
-            public boolean apply(Expr input) {
-                return input.getChildren().isEmpty();
-            }
-        });
-    }
-
     public List<Expr> getObservables() {
         return mObservables;
     }
@@ -255,11 +273,8 @@ public class ExprModel {
         List<Expr> notifiableExpressions = new ArrayList<Expr>();
         //ensure class analyzer. We need to know observables at this point
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
+        updateExpressions(modelAnalyzer);
 
-        ArrayList<Expr> exprs = new ArrayList<Expr>(mBindingExpressions);
-        for (Expr expr: exprs) {
-            expr.updateExpr(modelAnalyzer);
-        }
 
         int counter = 0;
         final Iterable<Expr> observables = filterObservables(modelAnalyzer);
@@ -283,7 +298,7 @@ public class ExprModel {
             L.d("non-observable %s", expr.getUniqueKey());
         }
 
-        // descendents of observables gets following ids
+        // descendants of observables gets following ids
         for (Expr expr : observables) {
             for (Expr parent : expr.getParents()) {
                 if (parent.hasId()) {
@@ -371,6 +386,23 @@ public class ExprModel {
         }
 
         mSealed = true;
+    }
+
+    /**
+     * Run updateExpr on each binding expression until no new expressions are added.
+     * <p>
+     * Some expressions (e.g. field access) may replace themselves and add/remove new dependencies
+     * so we need to make sure each expression's update is called at least once.
+     */
+    private void updateExpressions(ModelAnalyzer modelAnalyzer) {
+        int startSize = -1;
+        while (startSize != mExprMap.size()) {
+            startSize = mExprMap.size();
+            ArrayList<Expr> exprs = new ArrayList<Expr>(mBindingExpressions);
+            for (Expr expr : exprs) {
+                expr.updateExpr(modelAnalyzer);
+            }
+        }
     }
 
     public int getFlagBucketCount() {

@@ -68,6 +68,17 @@ public class MethodCallExpr extends Expr {
                         target.getResolvedType().toJavaCode());
                 throw e;
             }
+            if (!isStatic && method.isStatic()) {
+                // found a static method on an instance. Use class instead
+                target.getParents().remove(this);
+                getChildren().remove(target);
+                StaticIdentifierExpr staticId = getModel()
+                        .staticIdentifierFor(target.getResolvedType());
+                getChildren().add(staticId);
+                staticId.getParents().add(this);
+                // make sure we update this in case we access it below
+                target = getTarget();
+            }
             int flags = DYNAMIC;
             if (method.isStatic()) {
                 flags |= STATIC;

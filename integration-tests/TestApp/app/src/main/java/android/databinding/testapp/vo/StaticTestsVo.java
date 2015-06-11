@@ -10,13 +10,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package android.databinding.testapp.vo;
 
-public class PublicFinalTestVo {
-    public final int myField;
+import android.databinding.ObservableField;
 
-    public PublicFinalTestVo(int field) {
-        myField = field;
+public class StaticTestsVo {
+    public static String ourStaticField = "Static";
+    public static ObservableField<String> ourStaticObservable = new ObservableField<>();
+    {
+        ourStaticObservable.set("observable static");
+    }
+
+    private String myField;
+
+    public static String ourStaticMethod() {
+        return "static method value";
+    }
+
+    public String getMyField() {
+        return myField;
+    }
+
+    public void setMyField(String myField) {
+        this.myField = myField;
     }
 }
