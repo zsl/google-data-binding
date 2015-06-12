@@ -416,7 +416,9 @@ public abstract class ModelClass {
     private ModelField getField(String name, boolean allowPrivate, boolean isStatic) {
         ModelField[] fields = getDeclaredFields();
         for (ModelField field : fields) {
-            if (name.equals(stripFieldName(field.getName())) && field.isStatic() == isStatic &&
+            boolean nameMatch = name.equals(field.getName()) ||
+                    name.equals(stripFieldName(field.getName()));
+            if (nameMatch && field.isStatic() == isStatic &&
                     (allowPrivate || field.isPublic())) {
                 return field;
             }
