@@ -64,9 +64,20 @@ public class MultiArgTestAdapter {
         view.setText(str);
     }
 
-    @BindingAdapter({"android:class2"})
+    @BindingAdapter("android:class2")
     public static void setClass2(TextView view, MultiBindingClass2 class2) {
         view.setText(class2.getValue());
+    }
+
+    @BindingAdapter("android:val3")
+    public static void setWithOldValue(TextView view, String oldValue, String newValue) {
+        view.setText(String.format("%s -> %s", oldValue, newValue));
+    }
+
+    @BindingAdapter({"android:val3", "android:val4"})
+    public static void set2WithOldValues(TextView view, String oldValue1, String oldValue2,
+            String newValue1, String newValue2) {
+        view.setText(String.format("%s, %s -> %s, %s", oldValue1, oldValue2, newValue1, newValue2));
     }
 
     public static class MultiBindingClass1 extends BaseMultiBindingClass {

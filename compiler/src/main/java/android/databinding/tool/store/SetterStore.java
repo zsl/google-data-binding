@@ -42,7 +42,6 @@ import java.util.TreeMap;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.TypeParameterElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -177,7 +176,7 @@ public class SetterStore {
             mStore.renamedMethods.put(attribute, renamed);
         }
         MethodDescription methodDescription =
-                new MethodDescription(declaredOn.getQualifiedName().toString(), method);
+                new MethodDescription(declaredOn.getQualifiedName().toString(), method, false);
         L.d("STORE addmethod desc %s", methodDescription);
         renamed.put(declaringClass, methodDescription);
     }
@@ -203,7 +202,7 @@ public class SetterStore {
             throw new IllegalArgumentException("Already exists!");
         }
 
-        adapters.put(key, new MethodDescription(bindingMethod));
+        adapters.put(key, new MethodDescription(bindingMethod, 1));
     }
 
     private static TypeMirror eraseType(ProcessingEnvironment processingEnv,
@@ -270,7 +269,8 @@ public class SetterStore {
         L.d("STORE add multi-value BindingAdapter %d %s", attributes.length, bindingMethod);
         MultiValueAdapterKey key = new MultiValueAdapterKey(processingEnv, bindingMethod,
                 attributes);
-        MethodDescription methodDescription = new MethodDescription(bindingMethod);
+        MethodDescription methodDescription = new MethodDescription(bindingMethod,
+                attributes.length);
         mStore.multiValueAdapters.put(key, methodDescription);
     }
 
@@ -316,7 +316,7 @@ public class SetterStore {
         List<? extends VariableElement> parameters = conversionMethod.getParameters();
         String fromType = getQualifiedName(parameters.get(0).asType());
         String toType = getQualifiedName(conversionMethod.getReturnType());
-        MethodDescription methodDescription = new MethodDescription(conversionMethod);
+        MethodDescription methodDescription = new MethodDescription(conversionMethod, 1);
         HashMap<String, MethodDescription> convertTo = mStore.conversionMethods.get(fromType);
         if (convertTo == null) {
             convertTo = new HashMap<String, MethodDescription>();
@@ -764,7 +764,7 @@ public class SetterStore {
             List<? extends VariableElement> parameters = method.getParameters();
             this.viewType = getQualifiedName(eraseType(processingEnv, parameters.get(0).asType()));
             this.parameterTypes = new String[parameters.size() - 1];
-            for (int i = 0; i < parameterTypes.length; i++) {
+            for (int i = 0; i < attributes.length; i++) {
                 TypeMirror typeMirror = eraseType(processingEnv, parameters.get(i + 1).asType());
                 this.parameterTypes[i] = getQualifiedName(typeMirror);
                 attributeIndices.put(this.attributes[i], i);
@@ -808,16 +808,20 @@ public class SetterStore {
 
         public final String method;
 
-        public MethodDescription(String type, String method) {
+        public final boolean requiresOldValue;
+
+        public MethodDescription(String type, String method, boolean requiresOldValue) {
             this.type = type;
             this.method = method;
+            this.requiresOldValue = requiresOldValue;
             L.d("BINARY created method desc 1 %s %s", type, method );
         }
 
-        public MethodDescription(ExecutableElement method) {
+        public MethodDescription(ExecutableElement method, int numAttributes) {
             TypeElement enclosingClass = (TypeElement) method.getEnclosingElement();
             this.type = enclosingClass.getQualifiedName().toString();
             this.method = method.getSimpleName().toString();
+            this.requiresOldValue = method.getParameters().size() == (numAttributes * 2) + 1;
             L.d("BINARY created method desc 2 %s %s, %s", type, this.method, method);
         }
 
@@ -914,8 +918,19 @@ public class SetterStore {
         }
 
         @Override
+        public String toJavaInternal(String viewExpression, String oldValue,
+                String valueExpression) {
+            return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
+        }
+
+        @Override
         public int getMinApi() {
             return 1;
+        }
+
+        @Override
+        public boolean requiresOldValue() {
+            return false;
         }
     }
 
@@ -933,8 +948,21 @@ public class SetterStore {
         }
 
         @Override
+        protected String toJavaInternal(String viewExpression, String oldValue,
+                String valueExpression) {
+            return mAdapter.type + "." + mAdapter.method + "(" +
+                    mCastString + viewExpression + ", " + oldValue + ", " +
+                    mCastString + valueExpression + ")";
+        }
+
+        @Override
         public int getMinApi() {
             return 1;
+        }
+
+        @Override
+        public boolean requiresOldValue() {
+            return mAdapter.requiresOldValue;
         }
     }
 
@@ -952,15 +980,29 @@ public class SetterStore {
         }
 
         @Override
+        protected String toJavaInternal(String viewExpression, String oldValue,
+                String valueExpression) {
+            return viewExpression + "." + mModelMethod.getName() + "(" +
+                    mCastString + oldValue + ", " + mCastString + valueExpression + ")";
+        }
+
+        @Override
         public int getMinApi() {
             return mModelMethod.getMinApi();
         }
+
+        @Override
+        public boolean requiresOldValue() {
+            return mModelMethod.getParameterTypes().length == 3;
+        }
     }
 
-    public static interface BindingSetterCall {
+    public interface BindingSetterCall {
         String toJava(String viewExpression, String... valueExpressions);
 
         int getMinApi();
+
+        boolean requiresOldValue();
     }
 
     public static abstract class SetterCall implements BindingSetterCall {
@@ -976,10 +1018,18 @@ public class SetterStore {
 
         protected abstract String toJavaInternal(String viewExpression, String converted);
 
+        protected abstract String toJavaInternal(String viewExpression, String oldValue,
+                String converted);
+
         @Override
         public final String toJava(String viewExpression, String... valueExpression) {
-            Preconditions.checkArgument(valueExpression.length == 1);
-            return toJavaInternal(viewExpression, convertValue(valueExpression[0]));
+            Preconditions.checkArgument(valueExpression.length == 2);
+            if (requiresOldValue()) {
+                return toJavaInternal(viewExpression, convertValue(valueExpression[0]),
+                        convertValue(valueExpression[1]));
+            } else {
+                return toJavaInternal(viewExpression, convertValue(valueExpression[1]));
+            }
         }
 
         protected String convertValue(String valueExpression) {
@@ -1015,7 +1065,7 @@ public class SetterStore {
 
         @Override
         public final String toJava(String viewExpression, String[] valueExpressions) {
-            Preconditions.checkArgument(valueExpressions.length == attributes.length,
+            Preconditions.checkArgument(valueExpressions.length == attributes.length * 2,
                     "MultiAttributeSetter needs %s items, received %s",
                     Arrays.toString(attributes), Arrays.toString(valueExpressions));
             StringBuilder sb = new StringBuilder();
@@ -1024,10 +1074,11 @@ public class SetterStore {
                     .append(mAdapter.method)
                     .append('(')
                     .append(viewExpression);
-            for (int i = 0; i < valueExpressions.length; i++) {
+            final int startIndex = mAdapter.requiresOldValue ? 0 : attributes.length;
+            for (int i = startIndex; i < valueExpressions.length; i++) {
                 sb.append(',');
-                if (mConverters[i] != null) {
-                    final MethodDescription converter = mConverters[i];
+                if (mConverters[i % attributes.length] != null) {
+                    final MethodDescription converter = mConverters[i % attributes.length];
                     sb.append(converter.type)
                             .append('.')
                             .append(converter.method)
@@ -1035,9 +1086,9 @@ public class SetterStore {
                             .append(valueExpressions[i])
                             .append(')');
                 } else {
-                    if (mCasts[i] != null) {
+                    if (mCasts[i % attributes.length] != null) {
                         sb.append('(')
-                                .append(mCasts[i])
+                                .append(mCasts[i % attributes.length])
                                 .append(')');
                     }
                     sb.append(valueExpressions[i]);
@@ -1050,6 +1101,11 @@ public class SetterStore {
         @Override
         public int getMinApi() {
             return 1;
+        }
+
+        @Override
+        public boolean requiresOldValue() {
+            return mAdapter.requiresOldValue;
         }
 
         @Override

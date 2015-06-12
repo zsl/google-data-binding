@@ -152,6 +152,10 @@ val Expr.fieldName by Delegates.lazy { expr : Expr ->
     expr.getModel().getUniqueFieldName("m${expr.readableName.capitalize()}")
 }
 
+val Expr.oldValueName by Delegates.lazy { expr : Expr ->
+    expr.getModel().getUniqueFieldName("mOld${expr.readableName.capitalize()}")
+}
+
 val Expr.executePendingLocalName by Delegates.lazy { expr : Expr ->
     "${expr.getModel().ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD)}"
 }
@@ -288,6 +292,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab(declareIncludeViews())
                 tab(declareViews())
                 tab(declareVariables())
+                tab(declareBoundValues())
                 tab(declareConstructor(minSdk))
                 tab(declareInvalidateAll())
                 tab(declareHasPendingBindings())
@@ -641,6 +646,18 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         }
     }
 
+    fun declareBoundValues() = kcode("// values") {
+        layoutBinder.getSortedTargets().filter { it.isUsed() }
+                .flatMap { it.getBindings() }
+                .filter { it.requiresOldValue() }
+                .flatMap{ it.getComponentExpressions().toArrayList() }
+                .groupBy { it }
+                .forEach {
+                    val expr = it.getKey()
+                    nl("private ${expr.getResolvedType().toJavaCode()} ${expr.oldValueName};")
+                }
+    }
+
     fun declareDirtyFlags() = kcode("// dirty flag") {
         model.ext.localizedFlags.forEach { flag ->
             flag.notEmpty { suffix, value ->
@@ -731,6 +748,23 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                 } else {
                                     tab("$bindingCode;")
                                 }
+                            }
+                        }
+                        tab("}")
+                    }
+
+            layoutBinder.getSortedTargets().filter { it.isUsed() }
+                    .flatMap { it.getBindings() }
+                    .filter { it.requiresOldValue() }
+                    .groupBy { it.getExpr() }
+                    .forEach {
+                        val flagSet = it.key.dirtyFlagSet
+                        tab("if (${tmpDirtyFlags.mapOr(flagSet) { suffix, index ->
+                            "(${tmpDirtyFlags.localValue(index)} & ${flagSet.localValue(index)}) != 0"
+                        }.joinToString(" || ")
+                        }) {") {
+                            it.value.first().getComponentExpressions().forEach { expr ->
+                                tab("this.${expr.oldValueName} = ${expr.toCode(false).generate()};")
                             }
                         }
                         tab("}")

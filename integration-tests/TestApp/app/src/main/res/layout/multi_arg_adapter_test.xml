@@ -62,5 +62,16 @@
             android:layout_height="wrap_content"
             android:id="@+id/view2"
             android:class2="@{obj2}" />
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/view7"
+                android:val3="@{obj1.value}" />
+        <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/view8"
+                android:val3="@{obj1.value}"
+                android:val4="@{obj2.value}" />
     </LinearLayout>
 </layout>
