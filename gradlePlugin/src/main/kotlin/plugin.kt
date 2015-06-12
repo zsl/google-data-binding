@@ -37,6 +37,7 @@ import com.android.build.gradle.api.TestVariant
 import com.android.build.gradle.internal.variant.TestVariantData
 import com.android.build.gradle.internal.api.TestVariantImpl
 import com.android.ide.common.res2.ResourceSet
+import com.google.common.base.Preconditions
 import org.apache.commons.io.IOUtils
 import org.gradle.api.artifacts
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -54,12 +55,11 @@ import org.gradle.api.plugins.ExtraPropertiesExtension
 
 
 open class DataBinderPlugin : Plugin<Project> {
-    val XPATH_BINDING_CLASS = "/layout/data/@class"
     var logger : Logger by Delegates.notNull()
 
     inner class GradleFileWriter(var outputBase: String) : JavaFileWriter() {
         override fun writeToFile(canonicalName: String, contents: String) {
-            val f = File("$outputBase/${canonicalName.replaceAll("\\.", "/")}.java")
+            val f = File("$outputBase/${canonicalName.replace("\\.".toRegex(), "/")}.java")
             logD("Asked to write to ${canonicalName}. outputting to:${f.getAbsolutePath()}")
             f.getParentFile().mkdirs()
             f.writeText(contents, "utf-8")
@@ -189,11 +189,12 @@ open class DataBinderPlugin : Plugin<Project> {
                 minSdkVersion.getApiLevel(), isLibrary)
         val processResTask = generateRTask
         val xmlOutDir = File("${project.getBuildDir()}/layout-info/${configuration.getDirName()}")
+        val generatedClassListOut = if (isLibrary) File(xmlOutDir, "_generated.txt") else null
         logD("xml output for ${variantData} is ${xmlOutDir}")
         val layoutTaskName = "dataBindingLayouts${processResTask.getName().capitalize()}"
         val infoClassTaskName = "dataBindingInfoClass${processResTask.getName().capitalize()}"
 
-        var processLayoutsTask : DataBindingProcessLayoutsTask? = null
+        var processLayoutsTask: DataBindingProcessLayoutsTask? = null
         project.getTasks().create(layoutTaskName,
                 javaClass<DataBindingProcessLayoutsTask>(),
                 object : Action<DataBindingProcessLayoutsTask> {
@@ -217,76 +218,40 @@ open class DataBinderPlugin : Plugin<Project> {
                 })
         project.getTasks().create(infoClassTaskName,
                 javaClass<DataBindingExportInfoTask>(),
-                object : Action<DataBindingExportInfoTask>{
+                object : Action<DataBindingExportInfoTask> {
                     override fun execute(task: DataBindingExportInfoTask) {
                         task.dependsOn(processLayoutsTask!!)
                         task.dependsOn(processResTask)
                         task.xmlProcessor = xmlProcessor
                         task.sdkDir = sdkDir
                         task.xmlOutFolder = xmlOutDir
+                        task.exportClassListTo = generatedClassListOut
                         task.enableDebugLogs = logger.isEnabled(LogLevel.DEBUG)
                         variantData.registerJavaGeneratingTask(task, codeGenTargetFolder)
                     }
                 })
+        val packageJarTaskName = "package${fullName.capitalize()}Jar"
+        val packageTask = project.getTasks().findByName(packageJarTaskName)
+        if (packageTask is org.gradle.api.tasks.bundling.Jar) {
+            val removeGeneratedTaskName = "dataBindingExcludeGeneratedFrom${packageTask.getName().capitalize()}"
+            if (project.getTasks().findByName(removeGeneratedTaskName) == null) {
+                val javaCompileTask = variantData.javaCompileTask
+                Preconditions.checkNotNull(javaCompileTask)
 
-        if (isLibrary) {
-            val resourceSets = variantData.mergeResourcesTask.getInputResourceSets()
-            val customBindings = getCustomBindings(resourceSets, packageName)
-            val packageJarTaskName = "package${fullName.capitalize()}Jar"
-            val packageTask = project.getTasks().findByName(packageJarTaskName)
-            if (packageTask !is org.gradle.api.tasks.bundling.Jar) {
-                throw RuntimeException("cannot find package task in $project $variantData project $packageJarTaskName")
-            }
-            val excludePattern = "android/databinding/layouts/*.*"
-            val appPkgAsClass = packageName.replace('.', '/')
-            packageTask.exclude(excludePattern)
-            packageTask.exclude("$appPkgAsClass/databinding/*")
-            packageTask.exclude("$appPkgAsClass/BR.*")
-            packageTask.exclude(xmlProcessor.getInfoClassFullName().replace('.', '/') + ".class")
-            customBindings.forEach {
-                packageTask.exclude("${it.replace('.', '/')}.class")
-            }
-            logD("excludes ${packageTask.getExcludes()}")
-        }
-    }
-
-    fun getCustomBindings(resourceSets : List<ResourceSet>, packageName: String) : List<String> {
-        val xPathFactory = XPathFactory.newInstance()
-        val xPath = xPathFactory.newXPath()
-        val expr = xPath.compile(XPATH_BINDING_CLASS);
-        val customBindings = ArrayList<String>()
-
-        resourceSets.forEach { set ->
-            set.getSourceFiles().forEach({ res ->
-                res.listFiles(object : FileFilter {
-                    override fun accept(file: File?): Boolean {
-                        return file != null && file.isDirectory() &&
-                                file.getName().toLowerCase().startsWith("layout")
-                    }
-                })?.forEach { layoutDir ->
-
-                    layoutDir.listFiles(object : FileFilter {
-                        override fun accept(file: File?): Boolean {
-                            return file != null && !file.isDirectory() &&
-                                    file.getName().toLowerCase().endsWith(".xml")
-                        }
-                    })?.forEach { xmlFile: File ->
-                        val document = parseXml(xmlFile)
-                        val bindingClass = expr.evaluate(document)
-                        if (bindingClass != null && !bindingClass.isEmpty()) {
-                            if (bindingClass.startsWith('.')) {
-                                customBindings.add("${packageName}${bindingClass}")
-                            } else if (bindingClass.contains(".")) {
-                                customBindings.add(bindingClass)
-                            } else {
-                                customBindings.add(
-                                        "${packageName}.databinding.${bindingClass}")
+                project.getTasks().create(removeGeneratedTaskName,
+                        javaClass<DataBindingExcludeGeneratedTask>(),
+                        object : Action<DataBindingExcludeGeneratedTask> {
+                            override fun execute(task: DataBindingExcludeGeneratedTask) {
+                                packageTask.dependsOn(task)
+                                task.dependsOn(javaCompileTask)
+                                task.setAppPackage(packageName)
+                                task.setInfoClassQualifiedName(xmlProcessor.getInfoClassFullName())
+                                task.setPackageTask(packageTask)
+                                task.setLibrary(isLibrary)
+                                task.setGeneratedClassListFile(generatedClassListOut)
                             }
-                        }
-                    }
-                }
-            })
+                        })
+            }
         }
-        return customBindings
     }
 }

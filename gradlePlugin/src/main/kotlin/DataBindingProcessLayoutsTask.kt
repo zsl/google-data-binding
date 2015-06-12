@@ -27,7 +27,7 @@ open class DataBindingProcessLayoutsTask : DefaultTask() {
     var xmlOutFolder : File by Delegates.notNull()
     var minSdk: kotlin.Int by Delegates.notNull()
 
-    [TaskAction]
+    @TaskAction
     public fun doIt() {
         L.d("running process layouts task %s", getName())
         xmlProcessor.processResources(minSdk)

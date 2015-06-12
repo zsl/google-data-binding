@@ -34,6 +34,8 @@ public class DataBinder {
 
     private JavaFileWriter mFileWriter;
 
+    Set<String> writtenClasses = new HashSet<String>();
+
     public DataBinder(ResourceBundle resourceBundle) {
         L.d("reading resource bundle into data binder");
         for (Map.Entry<String, List<ResourceBundle.LayoutFileBundle>> entry :
@@ -48,16 +50,16 @@ public class DataBinder {
     }
     
     public void writerBaseClasses(boolean isLibrary) {
-        Set<String> writtenFiles = new HashSet<String>();
         for (LayoutBinder layoutBinder : mLayoutBinders) {
             if (isLibrary || layoutBinder.hasVariations()) {
                 String className = layoutBinder.getClassName();
-                if (writtenFiles.contains(className)) {
+                String canonicalName = layoutBinder.getPackage() + "." + className;
+                if (writtenClasses.contains(canonicalName)) {
                     continue;
                 }
-                mFileWriter.writeToFile(layoutBinder.getPackage() + "." + className,
-                        layoutBinder.writeViewBinderBaseClass());
-                writtenFiles.add(className);
+                L.d("writing data binder base %s", canonicalName);
+                mFileWriter.writeToFile(canonicalName, layoutBinder.writeViewBinderBaseClass());
+                writtenClasses.add(canonicalName);
             }
         }
     }
@@ -65,10 +67,15 @@ public class DataBinder {
     public void writeBinders(int minSdk) {
         for (LayoutBinder layoutBinder : mLayoutBinders) {
             String className = layoutBinder.getImplementationName();
-            L.d("writing data binder %s", className);
-            mFileWriter.writeToFile(layoutBinder.getPackage() + "." + className,
-                    layoutBinder.writeViewBinder(minSdk));
+            String canonicalName = layoutBinder.getPackage() + "." + className;
+            L.d("writing data binder %s", canonicalName);
+            writtenClasses.add(canonicalName);
+            mFileWriter.writeToFile(canonicalName, layoutBinder.writeViewBinder(minSdk));
         }
+    }
+
+    public Set<String> getWrittenClassNames() {
+        return writtenClasses;
     }
 
     public void setFileWriter(JavaFileWriter fileWriter) {

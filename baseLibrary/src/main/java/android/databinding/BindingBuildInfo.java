@@ -32,6 +32,11 @@ public @interface BindingBuildInfo {
      * The folder that includes xml files which are exported by aapt or gradle plugin from layout files
      */
     String layoutInfoDir();
+
+    /**
+     * The file to which the list of generated classes should be exported
+     */
+    String exportClassListTo();
     boolean isLibrary();
     boolean enableDebugLogs() default false;
 }

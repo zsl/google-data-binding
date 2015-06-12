@@ -18,6 +18,8 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.writer.DataBinderWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
+import java.util.Set;
+
 /**
  * Chef class for compiler.
  *
@@ -85,6 +87,11 @@ public class CompilerChef {
     public void writeViewBinders(int minSdk) {
         ensureDataBinder();
         mDataBinder.writeBinders(minSdk);
+    }
+
+    public Set<String> getWrittenClassNames() {
+        ensureDataBinder();
+        return mDataBinder.getWrittenClassNames();
     }
 
     public interface BindableHolder {

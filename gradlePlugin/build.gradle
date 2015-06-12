@@ -46,6 +46,10 @@ dependencies {
     compile project(":compiler")
 }
 
+compileJava {
+    options.compilerArgs = ["-proc:none"]
+}
+
 uploadArchives {
     repositories {
         mavenDeployer {
