@@ -506,6 +506,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             includedFragments.forEach { fragment ->
                 tab("${fragment.fieldBindingName}.invalidateAll();")
             }
+            tab("requestRebind();");
         }
         nl("}")
     }

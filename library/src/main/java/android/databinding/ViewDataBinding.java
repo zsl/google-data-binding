@@ -214,7 +214,6 @@ public abstract class ViewDataBinding {
             mFrameCallback = null;
             mUIThreadHandler = new Handler(Looper.myLooper());
         }
-        requestRebind();
     }
 
     protected void setRootTag(View view) {
@@ -330,14 +329,14 @@ public abstract class ViewDataBinding {
     protected abstract void executeBindings();
 
     /**
-     * Used internally to invalidate flags of included layouts.
-     * @hide
+     * Invalidates all binding expressions and requests a new rebind to refresh UI.
      */
     public abstract void invalidateAll();
 
     /**
+     * Returns whether the UI needs to be refresh to represent the current data.
+     *
      * @return true if any field has changed and the binding should be evaluated.
-     * @hide
      */
     public abstract boolean hasPendingBindings();
 
