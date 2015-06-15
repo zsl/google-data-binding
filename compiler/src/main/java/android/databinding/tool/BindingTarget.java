@@ -92,10 +92,6 @@ public class BindingTarget {
         return getIncludedLayout() != null;
     }
 
-    public boolean isFragment() {
-        return "fragment".equals(getViewClass());
-    }
-
     public boolean supportsTag() {
         return !SetterStore.get(ModelAnalyzer.getInstance())
                 .isUntaggable(mBundle.getFullClassName());

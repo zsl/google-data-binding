@@ -38,20 +38,16 @@ public class Binding {
 
     private SetterStore.BindingSetterCall getSetterCall() {
         if (mSetterCall == null) {
-            if (mTarget.isFragment()) {
-                return new SetVariableCall(mName);
-            } else {
-                ModelClass viewType = mTarget.getResolvedType();
-                if (viewType != null && viewType.extendsViewStub()) {
-                    if (isViewStubAttribute()) {
-                        mSetterCall = new ViewStubDirectCall(mName, viewType, mExpr);
-                    } else {
-                        mSetterCall = new ViewStubSetterCall(mName);
-                    }
+            ModelClass viewType = mTarget.getResolvedType();
+            if (viewType != null && viewType.extendsViewStub()) {
+                if (isViewStubAttribute()) {
+                    mSetterCall = new ViewStubDirectCall(mName, viewType, mExpr);
                 } else {
-                    mSetterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
-                            viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
+                    mSetterCall = new ViewStubSetterCall(mName);
                 }
+            } else {
+                mSetterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
+                        viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
             }
         }
         return mSetterCall;
@@ -127,28 +123,6 @@ public class Binding {
         protected String toJavaInternal(String viewExpression, String converted) {
             return "if (!" + viewExpression + ".isInflated()) " +
                     mWrappedCall.toJava(viewExpression + ".getViewStub()", converted);
-        }
-
-        @Override
-        public int getMinApi() {
-            return 0;
-        }
-    }
-
-    private static class SetVariableCall extends SetterCall {
-        private String mAttribute;
-
-        public SetVariableCall(String attributeName) {
-            mAttribute = attributeName;
-            int colonIndex = mAttribute.lastIndexOf(':');
-            if (colonIndex >= 0) {
-                mAttribute = mAttribute.substring(colonIndex + 1);
-            }
-        }
-
-        @Override
-        protected String toJavaInternal(String viewExpression, String converted) {
-            return viewExpression + ".setVariable(BR." + mAttribute + ", " + converted + ")";
         }
 
         @Override
