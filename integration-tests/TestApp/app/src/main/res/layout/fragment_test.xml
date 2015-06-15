@@ -9,22 +9,10 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
         <fragment
-                android:id="@+id/fragment1"
-                android:tag="hello"
+                android:id="@+id/fragment"
                 android:name="android.databinding.testapp.TestFragment"
                 android:layout_height="match_parent"
                 android:layout_width="match_parent"
-                android:a="@{a}"
-                android:b="@{b}"
-                />
-        <fragment
-                android:id="@+id/fragment2"
-                android:tag="world"
-                android:name="android.databinding.testapp.TestFragment"
-                android:layout_height="match_parent"
-                android:layout_width="match_parent"
-                android:a="@{a}"
-                android:b="@{b}"
                 />
     </FrameLayout>
 </layout>

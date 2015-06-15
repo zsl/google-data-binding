@@ -115,10 +115,6 @@ public class DataBindingUtil {
      * This differs from {@link #getBinding(View)} in that findBinding takes any view in the
      * layout and searches for the binding associated with the root <code>getBinding</code>
      * takes only the root view.
-     * <p>
-     * Fragments are supported as root layout elements when the minimum SDK is 14 or greater.
-     * The ViewDataBinding returned for these fragments will be the binding for
-     * the containing layout.
      *
      * @param view A <code>View</code> in the bound layout.
      * @return The ViewDataBinding associated with the given view or <code>null</code> if
@@ -164,10 +160,6 @@ public class DataBindingUtil {
     /**
      * Retrieves the binding responsible for the given View layout root. If there is no binding,
      * <code>null</code> will be returned.
-     * <p>
-     * Fragments are supported as root layout elements when the minimum SDK is 14 or greater.
-     * The ViewDataBinding returned for these fragments will be the binding for
-     * the containing layout.
      *
      * @param view The root <code>View</code> in the layout with binding.
      * @return The ViewDataBinding associated with the given view or <code>null</code> if

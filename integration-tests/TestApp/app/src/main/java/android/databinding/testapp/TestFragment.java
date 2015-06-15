@@ -34,9 +34,6 @@ public class TestFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
-        if (getId() == R.id.fragment5) {
-            return inflater.inflate(R.layout.plain_layout, container, false);
-        }
         BasicBindingBinding binding = BasicBindingBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }

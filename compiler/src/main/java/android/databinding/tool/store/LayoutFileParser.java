@@ -57,7 +57,6 @@ public class LayoutFileParser {
     private static final String XPATH_ID_ELEMENTS = "//*[@*[local-name()='id']]";
     private static final String XPATH_IMPORT_DEFINITIONS = "/layout/data/import";
     private static final String XPATH_MERGE_ELEMENT = "/layout/merge";
-    private static final String XPATH_ROOT_FRAGMENTS = "/layout/merge/fragment | /layout/fragment";
     private static final String XPATH_BINDING_LAYOUT = "/layout";
     private static final String XPATH_BINDING_CLASS = "/layout/data/@class";
     final String LAYOUT_PREFIX = "@layout/";
@@ -83,22 +82,6 @@ public class LayoutFileParser {
 
         if (!isBindingLayout(doc, xPath)) {
             return null;
-        }
-
-        final List<Node> rootFragments = getFragmentsInRoot(doc, xPath);
-        if (!rootFragments.isEmpty()) {
-            if (minSdk < 14) {
-                L.e("Data binding does not allow fragments as root elements or elements of merge" +
-                        " with minimum SDK version < 14: %s", xml.getPath());
-                return null;
-            }
-            for (Node node : rootFragments) {
-                if (node.getAttributes().getNamedItem("android:tag") != null) {
-                    L.e("Data binding does not support android:tag in root fragment elements: %s",
-                            xml.getPath());
-                    return null;
-                }
-            }
         }
 
         List<Node> variableNodes = getVariableNodes(doc, xPath);
@@ -157,12 +140,8 @@ public class LayoutFileParser {
                 includedLayoutName = layoutName;
                 tag = nodeTagMap.get(parent.getParentNode());
             } else if ("fragment".equals(nodeName)) {
-                tag = (rootFragments.contains(parent) || originalTag == null)
-                        ? null : originalTag.getNodeValue();
-                viewName = "fragment";
-                if (id == null) {
-                    L.e("fragments with data binding must have an ID: %s", xml.getPath());
-                }
+                L.e("fragments do not support data binding expressions: %s", xml.getPath());
+                continue;
             } else {
                 viewName = getViewName(parent);
                 if (layoutParent == parent.getParentNode()) {
@@ -192,7 +171,8 @@ public class LayoutFileParser {
 
         final List<Node> idNodes = getNakedIds(doc, xPath);
         for (Node node : idNodes) {
-            if (!bindingNodes.contains(node) && !"include".equals(node.getNodeName())) {
+            if (!bindingNodes.contains(node) && !"include".equals(node.getNodeName()) &&
+                    !"fragment".equals(node.getNodeName())) {
                 final Node id = node.getAttributes().getNamedItem("android:id");
                 final String className = getViewName(node);
                 bundle.createBindingTarget(id.getNodeValue(), className, true, null, null);
@@ -206,10 +186,6 @@ public class LayoutFileParser {
 
     private boolean isBindingLayout(Document doc, XPath xPath) throws XPathExpressionException {
         return !get(doc, xPath, XPATH_BINDING_LAYOUT).isEmpty();
-    }
-
-    private List<Node> getFragmentsInRoot(Document doc, XPath xPath) throws XPathExpressionException {
-        return get(doc, xPath, XPATH_ROOT_FRAGMENTS);
     }
 
     private Node getLayoutParent(Document doc, XPath xPath) throws XPathExpressionException {
