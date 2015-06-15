@@ -16,8 +16,11 @@
 
 package android.databinding.annotationprocessor;
 
+import com.google.common.base.Preconditions;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
@@ -34,6 +37,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -94,7 +98,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         for (Intermediate intermediate : intermediates) {
             intermediate.appendTo(resourceBundle);
         }
-        writeResourceBundle(resourceBundle, buildInfo.isLibrary(), buildInfo.minSdk());
+        writeResourceBundle(resourceBundle, buildInfo.isLibrary(), buildInfo.minSdk(),
+                buildInfo.exportClassListTo());
     }
 
     private IntermediateV1 createIntermediateFromLayouts(String layoutInfoFolderPath) {
@@ -120,7 +125,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     }
 
     private void writeResourceBundle(ResourceBundle resourceBundle, boolean forLibraryModule,
-            int minSdk)
+            int minSdk, String exportClassNamesTo)
             throws JAXBException {
         CompilerChef compilerChef = CompilerChef.createChef(resourceBundle, getWriter());
         if (compilerChef.hasAnythingToGenerate()) {
@@ -130,7 +135,21 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
                 compilerChef.writeViewBinders(minSdk);
             }
         }
-        if (!forLibraryModule) {
+        if (forLibraryModule && exportClassNamesTo == null) {
+            L.e("When compiling a library module, build info must include exportClassListTo path");
+        }
+        if (forLibraryModule) {
+            Set<String> classNames = compilerChef.getWrittenClassNames();
+            String out = StringUtils.join(classNames, System.getProperty("line.separator"));
+
+            L.d("Writing list of classes to %s . \nList:%s", exportClassNamesTo, out);
+            try {
+                FileUtils.write(new File(exportClassNamesTo),
+                        out);
+            } catch (IOException e) {
+                L.e(e, "Cannot create list of written classes");
+            }
+        } else {
             compilerChef.writeDbrFile(minSdk);
         }
     }

@@ -174,7 +174,8 @@ public class MakeCopy {
         try {
             xmlProcessor.processResources(minSdk);
             xmlProcessor.writeLayoutInfoFiles(xmlDir);
-            xmlProcessor.writeInfoClass(null, xmlDir);
+            // TODO Looks like make does not support excluding from libs ?
+            xmlProcessor.writeInfoClass(null, xmlDir, null);
             Map<String, List<LayoutFileBundle>> bundles =
                     xmlProcessor.getResourceBundle().getLayoutBundles();
             if (isLibrary) {

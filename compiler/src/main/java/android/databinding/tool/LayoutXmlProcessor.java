@@ -161,20 +161,25 @@ public class LayoutXmlProcessor {
         return name.toString();
     }
 
-    public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir) {
-        writeInfoClass(sdkDir, xmlOutDir, false);
+    public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir,
+            /*Nullable*/ File exportClassListTo) {
+        writeInfoClass(sdkDir, xmlOutDir, exportClassListTo, false);
     }
 
-    public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir, boolean enableDebugLogs) {
+    public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir, File exportClassListTo,
+            boolean enableDebugLogs) {
         final String sdkPath = sdkDir == null ? null : StringEscapeUtils.escapeJava(sdkDir.getAbsolutePath());
         final Class annotation = BindingBuildInfo.class;
         final String layoutInfoPath = StringEscapeUtils.escapeJava(xmlOutDir.getAbsolutePath());
+        final String exportClassListToPath = exportClassListTo == null ? "" :
+                StringEscapeUtils.escapeJava(exportClassListTo.getAbsolutePath());
         String classString = "package " + RESOURCE_BUNDLE_PACKAGE + ";\n\n" +
                 "import " + annotation.getCanonicalName() + ";\n\n" +
                 "@" + annotation.getSimpleName() + "(buildId=\"" + mBuildId + "\", " +
                 "modulePackage=\"" + mResourceBundle.getAppPackage() + "\", " +
                 "sdkRoot=" + "\"" + (sdkPath == null ? "" : sdkPath) + "\"," +
                 "layoutInfoDir=\"" + layoutInfoPath + "\"," +
+                "exportClassListTo=\"" + exportClassListToPath + "\"," +
                 "isLibrary=" + mIsLibrary + "," +
                 "minSdk=" + mMinSdk + "," +
                 "enableDebugLogs=" + enableDebugLogs + ")\n" +

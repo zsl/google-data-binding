@@ -15,17 +15,12 @@
  */
 
 apply plugin: 'java'
-apply plugin: "kotlin"
-
 sourceCompatibility = config.javaTargetCompatibility
 targetCompatibility = config.javaSourceCompatibility
 
 buildscript {
     repositories {
         mavenCentral()
-    }
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${config.kotlinVersion}"
     }
 }
 
@@ -41,9 +36,12 @@ tasks['copyBuildVersion'].dependsOn('processResources')
 
 dependencies {
     compile "com.android.tools.build:gradle:${config.androidPluginVersion}"
-    compile "org.jetbrains.kotlin:kotlin-stdlib:${config.kotlinVersion}"
     compile gradleApi()
     compile project(":compiler")
+}
+
+compileJava {
+    options.compilerArgs = ["-proc:none"]
 }
 
 uploadArchives {
