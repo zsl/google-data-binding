@@ -37,6 +37,7 @@ import android.databinding.parser.BindingExpressionParser;
 import android.databinding.parser.XMLLexer;
 import android.databinding.parser.XMLParser;
 import android.databinding.parser.XMLParser.AttributeContext;
+import android.databinding.parser.XMLParser.ElementContext;
 
 import java.io.File;
 import java.io.FileReader;
@@ -263,7 +264,14 @@ public class XmlEditor {
             String newTag, int bindingIndex) {
         int nextBindingIndex = bindingIndex;
         boolean isMerge = "merge".equals(nodeName(node));
-        if (!isMerge && (hasExpressionAttributes(node) || newTag != null)) {
+        final boolean containsInclude = Iterables.tryFind(elements(node),
+                new Predicate<ElementContext>() {
+                    @Override
+                    public boolean apply(ElementContext input) {
+                        return "include".equals(nodeName(input));
+                    }
+                }).isPresent();
+        if (!isMerge && (hasExpressionAttributes(node) || newTag != null || containsInclude)) {
             String tag = "";
             if (newTag != null) {
                 tag = "android:tag=\"" + newTag + "_" + bindingIndex + "\"";

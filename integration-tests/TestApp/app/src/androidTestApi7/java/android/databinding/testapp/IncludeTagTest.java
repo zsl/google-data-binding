@@ -38,9 +38,9 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         final TextView innerText = (TextView) mBinder.getRoot().findViewById(R.id.innerTextView);
         assertEquals("modified 3a", innerText.getText().toString());
         TextView textView1 = (TextView) mBinder.getRoot().findViewById(R.id.innerTextView1);
-        assertEquals(mBinder.getRoot(), textView1.getParent());
+        assertEquals(mBinder.getRoot(), textView1.getParent().getParent());
         TextView textView2 = (TextView) mBinder.getRoot().findViewById(R.id.innerTextView2);
-        assertEquals(mBinder.getRoot(), textView2.getParent());
+        assertEquals(mBinder.getRoot(), textView2.getParent().getParent());
         assertEquals("a hello 3a", textView1.getText().toString());
         assertEquals("b hello 3a", textView2.getText().toString());
         MergeLayoutBinding mergeLayoutBinding = mBinder.secondMerge;
