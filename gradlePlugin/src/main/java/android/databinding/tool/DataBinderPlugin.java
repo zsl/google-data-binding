@@ -46,6 +46,7 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.AbstractCompile;
 
+import android.databinding.tool.util.L;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.io.File;
@@ -56,6 +57,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.tools.Diagnostic;
 import javax.xml.bind.JAXBException;
 
 public class DataBinderPlugin implements Plugin<Project> {
@@ -95,7 +97,7 @@ public class DataBinderPlugin implements Plugin<Project> {
         if (project == null) {
             return;
         }
-        logger = project.getLogger();
+        setupLogger(project);
 
         String myVersion = readMyVersion();
         logD("data binding plugin version is %s", myVersion);
@@ -132,6 +134,20 @@ public class DataBinderPlugin implements Plugin<Project> {
         });
     }
 
+    private void setupLogger(Project project) {
+        logger = project.getLogger();
+        L.setClient(new L.Client() {
+            @Override
+            public void printMessage(Diagnostic.Kind kind, String message) {
+                if (kind == Diagnostic.Kind.ERROR) {
+                    logE(null, message);
+                } else {
+                    logD(message);
+                }
+            }
+        });
+    }
+
     String readMyVersion() {
         try {
             InputStream stream = getClass().getResourceAsStream("/data_binding_build_info");
@@ -148,6 +164,7 @@ public class DataBinderPlugin implements Plugin<Project> {
 
     private void createXmlProcessor(Project project)
             throws NoSuchFieldException, IllegalAccessException {
+        L.d("creating xml processor for " + project);
         Object androidExt = project.getExtensions().getByName("android");
         if (!(androidExt instanceof BaseExtension)) {
             return;
@@ -165,6 +182,7 @@ public class DataBinderPlugin implements Plugin<Project> {
     private void createXmlProcessorForLibrary(Project project, LibraryExtension lib)
             throws NoSuchFieldException, IllegalAccessException {
         File sdkDir = lib.getSdkDirectory();
+        L.d("create xml processor for " + lib);
         for (TestVariant variant : lib.getTestVariants()) {
             logD("test variant %s. dir name %s", variant, variant.getDirName());
             BaseVariantData variantData = getVariantData(variant);
@@ -179,6 +197,7 @@ public class DataBinderPlugin implements Plugin<Project> {
 
     private void createXmlProcessorForApp(Project project, AppExtension appExt)
             throws NoSuchFieldException, IllegalAccessException {
+        L.d("create xml processor for " + appExt);
         File sdkDir = appExt.getSdkDirectory();
         for (TestVariant testVariant : appExt.getTestVariants()) {
             TestVariantData variantData = getVariantData(testVariant);

@@ -64,7 +64,7 @@ public class LayoutFileParser {
     public ResourceBundle.LayoutFileBundle parseXml(File xml, String pkg, int minSdk)
             throws ParserConfigurationException, IOException, SAXException,
             XPathExpressionException {
-        final String xmlNoExtension = ParserHelper.INSTANCE$.stripExtension(xml.getName());
+        final String xmlNoExtension = ParserHelper.stripExtension(xml.getName());
         final String newTag = xml.getParentFile().getName() + '/' + xmlNoExtension;
         File original = stripFileAndGetOriginal(xml, newTag);
         if (original == null) {
@@ -256,7 +256,7 @@ public class LayoutFileParser {
     }
 
     private void stripBindingTags(File xml, String newTag) throws IOException {
-        String res = XmlEditor.INSTANCE$.strip(xml, newTag);
+        String res = XmlEditor.strip(xml, newTag);
         if (res != null) {
             L.d("file %s has changed, overwriting %s", xml.getName(), xml.getAbsolutePath());
             FileUtils.writeStringToFile(xml, res);

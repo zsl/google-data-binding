@@ -18,14 +18,28 @@ package android.databinding.tool.util;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import android.databinding.tool.reflection.ModelAnalyzer;
-import android.databinding.tool.reflection.annotation.AnnotationAnalyzer;
-
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 
 public class L {
-    static boolean sEnableDebug = false;
+    private static boolean sEnableDebug = false;
+    private static final Client sSystemClient = new Client() {
+        @Override
+        public void printMessage(Kind kind, String message) {
+            if (kind == Kind.ERROR) {
+                System.err.println(message);
+            } else {
+                System.out.println(message);
+            }
+        }
+    };
+
+    private static Client sClient = sSystemClient;
+
+    public static void setClient(Client systemClient) {
+        L.sClient = systemClient;
+    }
+
     public static void setDebugLog(boolean enabled) {
         sEnableDebug = enabled;
     }
@@ -62,20 +76,13 @@ public class L {
     }
 
     private static void printMessage(Diagnostic.Kind kind, String message) {
-        ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
-        System.out.println("[" + kind.name() + "]: " + message);
-        if (modelAnalyzer instanceof AnnotationAnalyzer) {
-            ((AnnotationAnalyzer) modelAnalyzer).getProcessingEnv().getMessager()
-                    .printMessage(kind, message);
-            if (kind == Diagnostic.Kind.ERROR) {
-                throw new RuntimeException("failure, see logs for details.\n" + message);
-            }
-        } else {
-
-            if (kind == Diagnostic.Kind.ERROR) {
-                throw new RuntimeException(message);
-            }
+        sClient.printMessage(kind, message);
+        if (kind == Diagnostic.Kind.ERROR) {
+            throw new RuntimeException("failure, see logs for details.\n" + message);
         }
     }
 
+    public static interface Client {
+        public void printMessage(Diagnostic.Kind kind, String message);
+    }
 }

@@ -1,9 +1,12 @@
 /*
  * Copyright (C) 2015 The Android Open Source Project
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -11,16 +14,21 @@
  * limitations under the License.
  */
 
-package android.databinding.tool.util
+package android.databinding.tool.util;
 
-object ParserHelper {
-    public fun toClassName(name:String) : String  {
-        return stripExtension(name).split("[_-]".toRegex()).map { it.capitalize() }.join("")
+import org.apache.commons.lang3.StringUtils;
+
+public class ParserHelper {
+    public static String toClassName(String name) {
+        StringBuilder builder = new StringBuilder();
+        for (String item : name.split("[_-]")) {
+            builder.append(StringUtils.capitalize(item));
+        }
+        return builder.toString();
     }
 
-
-    public fun stripExtension(name : String) : String {
-        val dot = name.indexOf(".")
-        return if (dot == -1) name else name.substring(0, name.indexOf("."))
+    public static String stripExtension(String name) {
+        final int dot = name.lastIndexOf('.');
+        return dot < 0 ? name : name.substring(0, dot);
     }
 }

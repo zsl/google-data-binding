@@ -237,7 +237,7 @@ public class ResourceBundle implements Serializable {
                     if ("layout".equals(parentFileName)) {
                         configName = "";
                     } else {
-                        configName = ParserHelper.INSTANCE$.toClassName(parentFileName.substring("layout-".length()));
+                        configName = ParserHelper.toClassName(parentFileName.substring("layout-".length()));
                     }
                 } else {
                     configName = "";
@@ -383,7 +383,7 @@ public class ResourceBundle implements Serializable {
             if (mFullBindingClass == null) {
                 if (mBindingClass == null) {
                     mFullBindingClass = getModulePackage() + ".databinding." +
-                            ParserHelper.INSTANCE$.toClassName(getFileName()) + "Binding";
+                            ParserHelper.toClassName(getFileName()) + "Binding";
                 } else if (mBindingClass.startsWith(".")) {
                     mFullBindingClass = getModulePackage() + mBindingClass;
                 } else if (mBindingClass.indexOf('.') < 0) {

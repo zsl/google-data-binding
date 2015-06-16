@@ -1,5 +1,3 @@
-import android.databinding.LicenseCollector
-
 /*
  * Copyright (C) 2014 The Android Open Source Project
  *
@@ -15,7 +13,7 @@ import android.databinding.LicenseCollector
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import android.databinding.LicenseCollector
 apply plugin: 'java'
 apply plugin: "kotlin"
 
@@ -33,17 +31,8 @@ buildscript {
     }
 }
 
-sourceSets {
-    main {
-        java {
-            srcDir 'src/main/java'
-            srcDir 'src/main/grammar-gen'
-            srcDir 'src/main/xml-gen'
-        }
-    }
-}
-
 dependencies {
+    compile project(":compilerCommon")
     compile project(':baseLibrary')
     compile 'org.apache.commons:commons-lang3:3.3.2'
     compile 'commons-io:commons-io:2.4'
@@ -75,19 +64,6 @@ uploadArchives {
 
 project(':library').afterEvaluate { libProject ->
     tasks['compileTestKotlin'].dependsOn libProject.tasks['uploadJarArchives']
-}
-
-project.tasks.create(name : "generateXmlParser", type : JavaExec) {
-    classpath configurations.runtime
-    main "org.antlr.v4.Tool"
-    workingDir projectDir
-    args "XMLParser.g4", "-visitor", "-o", "src/main/java/android/databinding/parser", "-package", "android.databinding.parser", "-lib", "."
-}
-
-project.tasks.create(name : "generateGrammar", type : JavaExec) {
-    classpath configurations.runtime
-    main "org.antlr.v4.Tool"
-    args "BindingExpression.g4", "-visitor", "-o", "src/main/grammar-gen/android/databinding/parser", "-package", "android.databinding.parser"
 }
 
 task fatJar(type: Jar) {

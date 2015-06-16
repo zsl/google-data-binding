@@ -15,6 +15,7 @@
  */
 package android.databinding.tool.store;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -796,7 +796,7 @@ public class SetterStore {
 
         @Override
         public int hashCode() {
-            return Objects.hash(viewType, attributeIndices.keySet());
+            return Objects.hashCode(viewType, attributeIndices.keySet());
         }
     }
 
@@ -833,7 +833,7 @@ public class SetterStore {
 
         @Override
         public int hashCode() {
-            return Objects.hash(type, method);
+            return Objects.hashCode(type, method);
         }
 
         @Override
@@ -857,7 +857,7 @@ public class SetterStore {
 
         @Override
         public int hashCode() {
-            return Objects.hash(viewType, valueType);
+            return Objects.hashCode(viewType, valueType);
         }
 
         @Override

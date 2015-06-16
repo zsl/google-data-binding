@@ -32,6 +32,7 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import javax.tools.Diagnostic;
 
 public class AnnotationAnalyzer extends ModelAnalyzer {
 
@@ -52,6 +53,12 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
     public AnnotationAnalyzer(ProcessingEnvironment processingEnvironment) {
         mProcessingEnv = processingEnvironment;
         setInstance(this);
+        L.setClient(new L.Client() {
+            @Override
+            public void printMessage(Diagnostic.Kind kind, String message) {
+                mProcessingEnv.getMessager().printMessage(kind, message);
+            }
+        });
     }
 
     public static AnnotationAnalyzer get() {

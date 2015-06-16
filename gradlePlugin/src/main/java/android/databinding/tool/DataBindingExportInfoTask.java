@@ -18,7 +18,6 @@ package android.databinding.tool;
 import android.databinding.tool.util.L;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
-import kotlin.properties.Delegates;
 import java.io.File;
 
 /**

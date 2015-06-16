@@ -1,6 +1,5 @@
 // Generated from BindingExpression.g4 by ANTLR 4.4
 package android.databinding.parser;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
