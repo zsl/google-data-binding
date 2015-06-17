@@ -268,13 +268,16 @@ public class ExprModel {
     /**
      * Give id to each expression. Will be useful if we serialize.
      */
-    public void seal() {
+    public void seal(ResolveListenersCallback resolveListeners) {
         L.d("sealing model");
         List<Expr> notifiableExpressions = new ArrayList<Expr>();
         //ensure class analyzer. We need to know observables at this point
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         updateExpressions(modelAnalyzer);
 
+        if (resolveListeners != null) {
+            resolveListeners.resolveListeners();
+        }
 
         int counter = 0;
         final Iterable<Expr> observables = filterObservables(modelAnalyzer);
@@ -577,5 +580,9 @@ public class ExprModel {
 
     public Expr argListExpr(Iterable<Expr> expressions) {
         return register(new ArgListExpr(mArgListIdCounter ++, expressions));
+    }
+
+    public interface ResolveListenersCallback {
+        void resolveListeners();
     }
 }

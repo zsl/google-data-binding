@@ -21,8 +21,8 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.store.SetterStore.SetterCall;
+import android.databinding.tool.util.L;
 import android.databinding.tool.writer.CodeGenUtil;
-import android.databinding.tool.writer.FlagSet;
 import android.databinding.tool.writer.WriterPackage;
 
 public class Binding {
@@ -38,11 +38,24 @@ public class Binding {
         mExpr = expr;
     }
 
+    public void resolveListeners() {
+        ModelClass listenerParameter = getListenerParameter();
+        if (listenerParameter != null) {
+            mExpr.resolveListeners(listenerParameter);
+        }
+    }
+
     private SetterStore.BindingSetterCall getSetterCall() {
         if (mSetterCall == null) {
             ModelClass viewType = mTarget.getResolvedType();
             if (viewType != null && viewType.extendsViewStub()) {
-                if (isViewStubAttribute()) {
+                if (isListenerAttribute()) {
+                    ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
+                    ModelClass viewStubProxy = modelAnalyzer.
+                            findClass("android.databinding.ViewStubProxy", null);
+                    mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
+                            viewStubProxy, mExpr.getResolvedType(), mExpr.getModel().getImports());
+                } else if (isViewStubAttribute()) {
                     mSetterCall = new ViewStubDirectCall(mName, viewType, mExpr);
                 } else {
                     mSetterCall = new ViewStubSetterCall(mName);
@@ -52,7 +65,41 @@ public class Binding {
                         viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
             }
         }
+        if (mSetterCall == null) {
+            L.e("Cannot find the setter for attribute '%s' on %s with parameter type %s.",
+                    mName, mTarget, mExpr.getResolvedType());
+        }
         return mSetterCall;
+    }
+
+    /**
+     * Similar to getSetterCall, but assumes an Object parameter to find the best matching listener.
+     */
+    private ModelClass getListenerParameter() {
+        ModelClass viewType = mTarget.getResolvedType();
+        SetterCall setterCall;
+        ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
+        ModelClass objectParameter = modelAnalyzer.findClass(Object.class);
+        if (viewType != null && viewType.extendsViewStub()) {
+            if (isListenerAttribute()) {
+                ModelClass viewStubProxy = modelAnalyzer.
+                        findClass("android.databinding.ViewStubProxy", null);
+                setterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
+                        viewStubProxy, objectParameter, mExpr.getModel().getImports());
+            } else if (isViewStubAttribute()) {
+                setterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
+                        viewType, objectParameter, mExpr.getModel().getImports());
+            } else {
+                setterCall = new ViewStubSetterCall(mName);
+            }
+        } else {
+            setterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
+                    viewType, objectParameter, mExpr.getModel().getImports());
+        }
+        if (setterCall == null) {
+            return null;
+        }
+        return setterCall.getParameterTypes()[0];
     }
 
     public BindingTarget getTarget() {
@@ -93,15 +140,16 @@ public class Binding {
     }
 
     private boolean isViewStubAttribute() {
-        if ("android:inflatedId".equals(mName)) {
-            return true;
-        } else if ("android:layout".equals(mName)) {
-            return true;
-        } else if ("android:visibility".equals(mName)) {
-            return true;
-        } else {
-            return false;
-        }
+        return ("android:inflatedId".equals(mName) ||
+                "android:layout".equals(mName) ||
+                "android:visibility".equals(mName) ||
+                "android:layoutInflater".equals(mName));
+    }
+
+    private boolean isListenerAttribute() {
+        return ("android:onInflate".equals(mName) ||
+                "android:onInflateListener".equals(mName));
+
     }
 
     private static class ViewStubSetterCall extends SetterCall {
@@ -131,6 +179,13 @@ public class Binding {
         public boolean requiresOldValue() {
             return false;
         }
+
+        @Override
+        public ModelClass[] getParameterTypes() {
+            return new ModelClass[] {
+                    ModelAnalyzer.getInstance().findClass(Object.class)
+            };
+        }
     }
 
     private static class ViewStubDirectCall extends SetterCall {
@@ -139,6 +194,10 @@ public class Binding {
         public ViewStubDirectCall(String name, ModelClass viewType, Expr expr) {
             mWrappedCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(name,
                     viewType, expr.getResolvedType(), expr.getModel().getImports());
+            if (mWrappedCall == null) {
+                L.e("Cannot find the setter for attribute '%s' on %s with parameter type %s.",
+                        name, viewType, expr.getResolvedType());
+            }
         }
 
         @Override
@@ -160,6 +219,13 @@ public class Binding {
         @Override
         public boolean requiresOldValue() {
             return false;
+        }
+
+        @Override
+        public ModelClass[] getParameterTypes() {
+            return new ModelClass[] {
+                    ModelAnalyzer.getInstance().findClass(Object.class)
+            };
         }
     }
 }

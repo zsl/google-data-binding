@@ -15,20 +15,18 @@
  */
 package android.databinding.tool.reflection;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
 
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
 
-import org.apache.commons.lang3.StringUtils;
-
-import static android.databinding.tool.reflection.Callable.STATIC;
-import static android.databinding.tool.reflection.Callable.DYNAMIC;
-import static android.databinding.tool.reflection.Callable.CAN_BE_INVALIDATED;
-
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static android.databinding.tool.reflection.Callable.CAN_BE_INVALIDATED;
+import static android.databinding.tool.reflection.Callable.DYNAMIC;
+import static android.databinding.tool.reflection.Callable.STATIC;
 
 public abstract class ModelClass {
     public abstract String toJavaCode();
@@ -150,6 +148,11 @@ public abstract class ModelClass {
     public boolean isObject() {
         return ModelAnalyzer.getInstance().getObjectType().equals(this);
     }
+
+    /**
+     * @return whether or not this ModelClass is an interface
+     */
+    public abstract boolean isInterface();
 
     /**
      * @return whether or not his is a ViewDataBinding subclass.
@@ -341,13 +344,26 @@ public abstract class ModelClass {
     public abstract String getJniDescription();
 
     /**
+     * Returns a list of all abstract methods in the type.
+     */
+    public List<ModelMethod> getAbstractMethods() {
+        ArrayList<ModelMethod> abstractMethods = new ArrayList<ModelMethod>();
+        ModelMethod[] methods = getDeclaredMethods();
+        for (ModelMethod method : methods) {
+            if (method.isAbstract()) {
+                abstractMethods.add(method);
+            }
+        }
+        return abstractMethods;
+    }
+
+    /**
      * Returns the getter method or field that the name refers to.
      * @param name The name of the field or the body of the method name -- can be name(),
      *             getName(), or isName().
      * @param staticOnly Whether this should look for static methods and fields or instance
      *                     versions
-     * @return the getter method or field that the name refers to.
-     * @throws IllegalArgumentException if there is no such method or field available.
+     * @return the getter method or field that the name refers to or null if none can be found.
      */
     public Callable findGetterOrField(String name, boolean staticOnly) {
         if ("length".equals(name) && isArray()) {
@@ -363,7 +379,8 @@ public abstract class ModelClass {
         for (String methodName : methodNames) {
             ModelMethod[] methods = getMethods(methodName, new ArrayList<ModelClass>(), staticOnly);
             for (ModelMethod method : methods) {
-                if (method.isPublic() && (!staticOnly || method.isStatic())) {
+                if (method.isPublic() && (!staticOnly || method.isStatic()) &&
+                        !method.getReturnType(Arrays.asList(method.getParameterTypes())).isVoid()) {
                     int flags = DYNAMIC;
                     if (method.isStatic()) {
                         flags |= STATIC;
@@ -398,7 +415,9 @@ public abstract class ModelClass {
                 publicField = getField(name, false, true);
             }
         }
-        Preconditions.checkArgument(publicField != null, "Cannot find " + name + " in " + toJavaCode());
+        if (publicField == null) {
+            return null;
+        }
         ModelClass fieldType = publicField.getFieldType();
         int flags = 0;
         if (!publicField.isFinal()) {
@@ -424,6 +443,25 @@ public abstract class ModelClass {
             }
         }
         return null;
+    }
+
+    /**
+     * Finds public methods that matches the given name exactly. These may be resolved into
+     * listener methods during Expr.resolveListeners.
+     */
+    public List<ModelMethod> findMethods(String name, boolean staticOnly) {
+        ModelMethod[] methods = getDeclaredMethods();
+        ArrayList<ModelMethod> matching = new ArrayList<ModelMethod>();
+        for (ModelMethod method : methods) {
+            if (method.getName().equals(name) && (!staticOnly || method.isStatic()) &&
+                    method.isPublic()) {
+                matching.add(method);
+            }
+        }
+        if (matching.isEmpty()) {
+            return null;
+        }
+        return matching;
     }
 
     protected abstract ModelField[] getDeclaredFields();

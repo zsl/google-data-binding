@@ -15,13 +15,87 @@
  */
 package android.databinding.adapters;
 
+import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.databinding.adapters.AdapterViewBindingAdapter.OnItemSelected;
+import android.databinding.adapters.AdapterViewBindingAdapter.OnItemSelectedComponentListener;
+import android.databinding.adapters.AdapterViewBindingAdapter.OnNothingSelected;
+import android.widget.AutoCompleteTextView;
+import android.widget.AutoCompleteTextView.Validator;
 
 @BindingMethods({
-        @BindingMethod(type = android.widget.AutoCompleteTextView.class, attribute = "android:completionThreshold", method = "setThreshold"),
-        @BindingMethod(type = android.widget.AutoCompleteTextView.class, attribute = "android:popupBackground", method = "setDropDownBackgroundDrawable"),
+        @BindingMethod(type = AutoCompleteTextView.class, attribute = "android:completionThreshold", method = "setThreshold"),
+        @BindingMethod(type = AutoCompleteTextView.class, attribute = "android:popupBackground", method = "setDropDownBackgroundDrawable"),
+        @BindingMethod(type = AutoCompleteTextView.class, attribute = "android:onDismiss", method = "setOnDismissListener"),
+        @BindingMethod(type = AutoCompleteTextView.class, attribute = "android:onItemClick", method = "setOnItemClickListener"),
 })
 public class AutoCompleteTextViewBindingAdapter {
 
+    @BindingAdapter("android:fixText")
+    public static void setListener(AutoCompleteTextView view, FixText listener) {
+        setListener(view, listener, null);
+    }
+
+    @BindingAdapter("android:isValid")
+    public static void setListener(AutoCompleteTextView view, IsValid listener) {
+        setListener(view, null, listener);
+    }
+
+    @BindingAdapter({"android:fixText", "android:isValid"})
+    public static void setListener(AutoCompleteTextView view, final FixText fixText,
+            final IsValid isValid) {
+        if (fixText == null && isValid == null) {
+            view.setValidator(null);
+        } else {
+            view.setValidator(new Validator() {
+                @Override
+                public boolean isValid(CharSequence text) {
+                    if (isValid != null) {
+                        return isValid.isValid(text);
+                    } else {
+                        return true;
+                    }
+                }
+
+                @Override
+                public CharSequence fixText(CharSequence invalidText) {
+                    if (fixText != null) {
+                        return fixText.fixText(invalidText);
+                    } else {
+                        return invalidText;
+                    }
+                }
+            });
+        }
+    }
+
+    @BindingAdapter("android:onItemSelected")
+    public static void setListener(AutoCompleteTextView view, OnItemSelected listener) {
+        setListener(view, listener, null);
+    }
+
+    @BindingAdapter("android:onNothingSelected")
+    public static void setListener(AutoCompleteTextView view, OnNothingSelected listener) {
+        setListener(view, null, listener);
+    }
+
+    @BindingAdapter({"android:onItemSelected", "android:onNothingSelected"})
+    public static void setListener(AutoCompleteTextView view, final OnItemSelected selected,
+            final OnNothingSelected nothingSelected) {
+        if (selected == null && nothingSelected == null) {
+            view.setOnItemSelectedListener(null);
+        } else {
+            view.setOnItemSelectedListener(
+                    new OnItemSelectedComponentListener(selected, nothingSelected));
+        }
+    }
+
+    public interface IsValid {
+        boolean isValid(CharSequence text);
+    }
+
+    public interface FixText {
+        CharSequence fixText(CharSequence invalidText);
+    }
 }

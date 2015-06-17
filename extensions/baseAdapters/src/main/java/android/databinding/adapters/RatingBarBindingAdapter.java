@@ -15,15 +15,12 @@
  */
 package android.databinding.adapters;
 
-import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.RatingBar;
 
 @BindingMethods({
-        @BindingMethod(type = CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
-        @BindingMethod(type = CompoundButton.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
+        @BindingMethod(type = RatingBar.class, attribute = "android:onRatingChanged", method = "setOnRatingBarChangeListener"),
 })
-public class CompoundButtonBindingAdapter {
+public class RatingBarBindingAdapter {
 }

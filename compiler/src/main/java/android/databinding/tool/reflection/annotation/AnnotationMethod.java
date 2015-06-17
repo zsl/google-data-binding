@@ -88,6 +88,11 @@ class AnnotationMethod extends ModelMethod {
     }
 
     @Override
+    public boolean isAbstract() {
+        return mExecutableElement.getModifiers().contains(Modifier.ABSTRACT);
+    }
+
+    @Override
     public boolean isBindable() {
         return mExecutableElement.getAnnotation(Bindable.class) != null;
     }

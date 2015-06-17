@@ -15,6 +15,10 @@
  */
 package android.databinding.tool.reflection;
 
+import android.databinding.tool.util.L;
+
+import java.util.List;
+
 public class Callable {
 
     public static enum Type {
@@ -55,6 +59,10 @@ public class Callable {
 
     public boolean canBeInvalidated() {
         return (mFlags & CAN_BE_INVALIDATED) != 0;
+    }
+
+    public int getMinApi() {
+        return 1;
     }
 
     @Override

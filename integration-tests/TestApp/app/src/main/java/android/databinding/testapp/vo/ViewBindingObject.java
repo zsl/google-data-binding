@@ -63,6 +63,8 @@ public class ViewBindingObject extends BindingAdapterBindingObject {
     private int mPaddingStart = 16;
     @Bindable
     private int mPaddingEnd = 17;
+    @Bindable
+    private boolean mClickable = true;
 
     public int getBackgroundTint() {
         return mBackgroundTint;
@@ -148,6 +150,8 @@ public class ViewBindingObject extends BindingAdapterBindingObject {
         return mPaddingTop;
     }
 
+    public boolean getClickable() { return mClickable; }
+
     public void changeValues() {
         mBackgroundTint = 0xFFFF0000;
         mFadeScrollbars = false;
@@ -170,6 +174,7 @@ public class ViewBindingObject extends BindingAdapterBindingObject {
         mPaddingRight = 150;
         mPaddingStart = 160;
         mPaddingEnd = 170;
+        mClickable = false;
         notifyChange();
     }
 }

@@ -15,15 +15,13 @@
  */
 package android.databinding.adapters;
 
-import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ZoomControls;
 
 @BindingMethods({
-        @BindingMethod(type = CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
-        @BindingMethod(type = CompoundButton.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
+        @BindingMethod(type = ZoomControls.class, attribute = "android:onZoomIn", method = "setOnZoomInClickListener"),
+        @BindingMethod(type = ZoomControls.class, attribute = "android:onZoomOut", method = "setOnZoomOutClickListener"),
 })
-public class CompoundButtonBindingAdapter {
+public class ZoomControlsBindingAdapter {
 }

@@ -15,15 +15,13 @@
  */
 package android.databinding.adapters;
 
-import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.Toolbar;
 
 @BindingMethods({
-        @BindingMethod(type = CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
-        @BindingMethod(type = CompoundButton.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
+        @BindingMethod(type = Toolbar.class, attribute = "android:onMenuItemClick", method = "setOnMenuItemClickListener"),
+        @BindingMethod(type = Toolbar.class, attribute = "android:onNavigationClick", method = "setNavigationOnClickListener"),
 })
-public class CompoundButtonBindingAdapter {
+public class ToolbarBindingAdapter {
 }

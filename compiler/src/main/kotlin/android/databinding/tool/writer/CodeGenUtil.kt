@@ -15,8 +15,6 @@ package android.databinding.tool.writer
 
 import android.databinding.tool.expr.*
 import android.databinding.tool.reflection.Callable
-import android.databinding.tool.writer.KCode
-import android.databinding.tool.writer.kcode
 
 class CodeGenUtil {
     companion object {
@@ -36,11 +34,25 @@ class CodeGenUtil {
                     app("", it.getType().toJavaCode())
                 }
                 is FieldAccessExpr -> kcode("") {
-                    app("", it.getChild().toCode())
-                    if (it.getGetter().type == Callable.Type.FIELD) {
-                        app(".", it.getGetter().name)
+                    if (it.isListener()) {
+                        app("(")
+                        if (it.getMinApi() > 1) {
+                            app("", "(getBuildSdkInt() < ${it.getMinApi()}) ? null : ")
+                        }
+                        if (it.getChild().isDynamic()) {
+                            val value = it.getChild().toCode().generate();
+                            app("", "((${it.fieldName} == null) ? (${it.fieldName} = (new ${it.listenerClassName}()).setValue(${value})) : ${it.fieldName}.setValue(${value}))")
+                        } else {
+                            app("", "((${it.fieldName} == null) ? (${it.fieldName} = new ${it.listenerClassName}()) : ${it.fieldName})")
+                        }
+                        app(")")
                     } else {
-                        app(".", it.getGetter().name).app("()")
+                        app("", it.getChild().toCode())
+                        if (it.getGetter().type == Callable.Type.FIELD) {
+                            app(".", it.getGetter().name)
+                        } else {
+                            app(".", it.getGetter().name).app("()")
+                        }
                     }
                 }
                 is GroupExpr -> kcode("(").app("", it.getWrapped().toCode()).app(")")

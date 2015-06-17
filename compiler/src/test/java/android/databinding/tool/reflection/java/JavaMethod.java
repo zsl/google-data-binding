@@ -73,6 +73,11 @@ public class JavaMethod extends ModelMethod {
     }
 
     @Override
+    public boolean isAbstract() {
+        return Modifier.isAbstract(mMethod.getModifiers());
+    }
+
+    @Override
     public boolean isBindable() {
         return mMethod.getAnnotation(Bindable.class) != null;
     }

@@ -15,15 +15,14 @@
  */
 package android.databinding.adapters;
 
-import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.NumberPicker;
 
 @BindingMethods({
-        @BindingMethod(type = CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
-        @BindingMethod(type = CompoundButton.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
+        @BindingMethod(type = NumberPicker.class, attribute = "android:format", method = "setFormatter"),
+        @BindingMethod(type = NumberPicker.class, attribute = "android:onScrollStateChange", method = "setOnScrollListener"),
+        @BindingMethod(type = NumberPicker.class, attribute = "android:onValueChange", method = "setOnValueChangedListener"),
 })
-public class CompoundButtonBindingAdapter {
+public class NumberPickerBindingAdapter {
 }

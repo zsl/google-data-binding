@@ -20,8 +20,10 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.text.method.DialerKeyListener;
 import android.text.method.DigitsKeyListener;
 import android.text.method.KeyListener;
@@ -31,16 +33,19 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.widget.TextView;
 
+import com.android.databinding.library.baseAdapters.R;
+
 @BindingMethods({
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:autoLink", method = "setAutoLinkMask"),
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:drawablePadding", method = "setCompoundDrawablePadding"),
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:editorExtras", method = "setInputExtras"),
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:inputType", method = "setRawInputType"),
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:scrollHorizontally", method = "setHorizontallyScrolling"),
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:textAllCaps", method = "setAllCaps"),
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:textColorHighlight", method = "setHighlightColor"),
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:textColorHint", method = "setHintTextColor"),
-        @BindingMethod(type = android.widget.TextView.class, attribute = "android:textColorLink", method = "setLinkTextColor"),
+        @BindingMethod(type = TextView.class, attribute = "android:autoLink", method = "setAutoLinkMask"),
+        @BindingMethod(type = TextView.class, attribute = "android:drawablePadding", method = "setCompoundDrawablePadding"),
+        @BindingMethod(type = TextView.class, attribute = "android:editorExtras", method = "setInputExtras"),
+        @BindingMethod(type = TextView.class, attribute = "android:inputType", method = "setRawInputType"),
+        @BindingMethod(type = TextView.class, attribute = "android:scrollHorizontally", method = "setHorizontallyScrolling"),
+        @BindingMethod(type = TextView.class, attribute = "android:textAllCaps", method = "setAllCaps"),
+        @BindingMethod(type = TextView.class, attribute = "android:textColorHighlight", method = "setHighlightColor"),
+        @BindingMethod(type = TextView.class, attribute = "android:textColorHint", method = "setHintTextColor"),
+        @BindingMethod(type = TextView.class, attribute = "android:textColorLink", method = "setLinkTextColor"),
+        @BindingMethod(type = TextView.class, attribute = "android:onEditorAction", method = "setOnEditorActionListener"),
 })
 public class TextViewBindingAdapter {
 
@@ -279,5 +284,89 @@ public class TextViewBindingAdapter {
     @BindingAdapter({"android:textSize"})
     public static void setTextSize(TextView view, float size) {
         view.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
+    }
+
+    @BindingAdapter("android:afterTextChanged")
+    public static void setListener(TextView view, AfterTextChanged after) {
+        setListener(view, null, null, after);
+    }
+
+    @BindingAdapter("android:beforeTextChanged")
+    public static void setListener(TextView view, BeforeTextChanged before) {
+        setListener(view, before, null, null);
+    }
+
+    @BindingAdapter("android:onTextChanged")
+    public static void setListener(TextView view, OnTextChanged onTextChanged) {
+        setListener(view, null, onTextChanged, null);
+    }
+
+    @BindingAdapter({"android:beforeTextChanged", "android:afterTextChanged"})
+    public static void setListener(TextView view, final BeforeTextChanged before,
+            final AfterTextChanged after) {
+        setListener(view, before, null, after);
+    }
+
+    @BindingAdapter({"android:beforeTextChanged", "android:onTextChanged"})
+    public static void setListener(TextView view, final BeforeTextChanged before,
+            final OnTextChanged on) {
+        setListener(view, before, on, null);
+    }
+
+    @BindingAdapter({"android:onTextChanged", "android:afterTextChanged"})
+    public static void setListener(TextView view,final OnTextChanged on,
+            final AfterTextChanged after) {
+        setListener(view, null, on, after);
+    }
+
+    @BindingAdapter({"android:beforeTextChanged", "android:onTextChanged", "android:afterTextChanged"})
+    public static void setListener(TextView view, final BeforeTextChanged before,
+            final OnTextChanged on, final AfterTextChanged after) {
+        final TextWatcher newValue;
+        if (before == null && after == null && on == null) {
+            newValue = null;
+        } else {
+            newValue = new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                    if (before != null) {
+                        before.beforeTextChanged(s, start, count, after);
+                    }
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    if (on != null) {
+                        on.onTextChanged(s, start, before, count);
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    if (after != null) {
+                        after.afterTextChanged(s);
+                    }
+                }
+            };
+        }
+        final TextWatcher oldValue = ListenerUtil.trackListener(view, newValue, R.id.textWatcher);
+        if (oldValue != null) {
+            view.removeTextChangedListener(oldValue);
+        }
+        if (newValue != null) {
+            view.addTextChangedListener(newValue);
+        }
+    }
+
+    public interface AfterTextChanged {
+        void afterTextChanged(Editable s);
+    }
+
+    public interface BeforeTextChanged {
+        void beforeTextChanged(CharSequence s, int start, int count, int after);
+    }
+
+    public interface OnTextChanged {
+        void onTextChanged(CharSequence s, int start, int before, int count);
     }
 }

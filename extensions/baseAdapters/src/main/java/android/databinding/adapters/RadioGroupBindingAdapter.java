@@ -17,10 +17,11 @@ package android.databinding.adapters;
 
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.widget.RadioGroup;
 
 @BindingMethods({
-        @BindingMethod(type = android.widget.RadioGroup.class, attribute = "android:checkedButton", method = "check"),
+        @BindingMethod(type = RadioGroup.class, attribute = "android:checkedButton", method = "check"),
+        @BindingMethod(type = RadioGroup.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
 })
 public class RadioGroupBindingAdapter {
-
 }

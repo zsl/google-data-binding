@@ -15,15 +15,16 @@
  */
 package android.databinding.adapters;
 
-import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.VideoView;
+import android.widget.ViewSwitcher;
 
 @BindingMethods({
-        @BindingMethod(type = CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
-        @BindingMethod(type = CompoundButton.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
+        @BindingMethod(type = VideoView.class, attribute = "android:onCompletion", method = "setOnCompletionListener"),
+        @BindingMethod(type = VideoView.class, attribute = "android:onError", method = "setOnErrorListener"),
+        @BindingMethod(type = VideoView.class, attribute = "android:onInfo", method = "setOnInfoListener"),
+        @BindingMethod(type = VideoView.class, attribute = "android:onPrepared", method = "setOnPreparedListener"),
 })
-public class CompoundButtonBindingAdapter {
+public class VideoViewBindingAdapter {
 }

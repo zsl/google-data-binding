@@ -13,17 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package android.databinding.adapters;
+package android.databinding.testapp.adapter;
 
+import android.annotation.TargetApi;
 import android.databinding.BindingAdapter;
-import android.databinding.BindingMethod;
-import android.databinding.BindingMethods;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.os.Build.VERSION_CODES;
+import android.view.View;
 
-@BindingMethods({
-        @BindingMethod(type = CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
-        @BindingMethod(type = CompoundButton.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
-})
-public class CompoundButtonBindingAdapter {
+public class WeirdListeners {
+    @BindingAdapter("android:onFoo")
+    public static void setListener(View view, OnFoo onFoo) {}
+
+    @BindingAdapter("android:onFoo2")
+    public static void setListener(View view, OnFoo2 onFoo) {}
+
+    @TargetApi(VERSION_CODES.ICE_CREAM_SANDWICH)
+    public static abstract class OnFoo {
+        public abstract void onFoo();
+
+        public void onBar() {}
+    }
+
+    public interface OnFoo2 {
+        void onFoo();
+    }
 }
