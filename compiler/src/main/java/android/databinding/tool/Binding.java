@@ -22,6 +22,8 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.store.SetterStore.SetterCall;
 import android.databinding.tool.writer.CodeGenUtil;
+import android.databinding.tool.writer.FlagSet;
+import android.databinding.tool.writer.WriterPackage;
 
 public class Binding {
 
@@ -58,8 +60,18 @@ public class Binding {
     }
 
     public String toJavaCode(String targetViewName) {
-        String argCode = CodeGenUtil.Companion.toCode(getExpr(), false).generate();
-        return getSetterCall().toJava(targetViewName, argCode);
+        final String currentValue = requiresOldValue()
+                ? "this." + WriterPackage.getOldValueName(mExpr) : null;
+        final String argCode = CodeGenUtil.Companion.toCode(getExpr(), false).generate();
+        return getSetterCall().toJava(targetViewName, currentValue, argCode);
+    }
+
+    public Expr[] getComponentExpressions() {
+        return new Expr[] { mExpr };
+    }
+
+    public boolean requiresOldValue() {
+        return getSetterCall().requiresOldValue();
     }
 
     /**
@@ -106,8 +118,18 @@ public class Binding {
         }
 
         @Override
+        protected String toJavaInternal(String viewExpression, String oldValue, String converted) {
+            return null;
+        }
+
+        @Override
         public int getMinApi() {
             return 0;
+        }
+
+        @Override
+        public boolean requiresOldValue() {
+            return false;
         }
     }
 
@@ -122,12 +144,22 @@ public class Binding {
         @Override
         protected String toJavaInternal(String viewExpression, String converted) {
             return "if (!" + viewExpression + ".isInflated()) " +
-                    mWrappedCall.toJava(viewExpression + ".getViewStub()", converted);
+                    mWrappedCall.toJava(viewExpression + ".getViewStub()", null, converted);
+        }
+
+        @Override
+        protected String toJavaInternal(String viewExpression, String oldValue, String converted) {
+            return null;
         }
 
         @Override
         public int getMinApi() {
             return 0;
+        }
+
+        @Override
+        public boolean requiresOldValue() {
+            return false;
         }
     }
 }

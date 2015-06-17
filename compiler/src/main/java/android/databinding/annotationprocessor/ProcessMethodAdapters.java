@@ -44,6 +44,7 @@ import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.ReferenceType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
 public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
@@ -98,8 +99,27 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 continue;
             }
             final int numAttributes = bindingAdapter.value().length;
-            if (parameters.size() != numAttributes + 1) {
-                L.e("@BindingAdapter does not take %d parameters: %s",numAttributes + 1, element);
+            if (parameters.size() == 1 + (2 * numAttributes)) {
+                // This BindingAdapter takes old and new values. Make sure they are properly ordered
+                Types typeUtils = processingEnv.getTypeUtils();
+                boolean hasParameterError = false;
+                for (int i = 1; i <= numAttributes; i++) {
+                    if (!typeUtils.isSameType(parameters.get(i).asType(),
+                            parameters.get(i + numAttributes).asType())) {
+                        L.e("BindingAdapter %s: old values should be followed by new values. " +
+                                "Parameter %d must be the same type as parameter %d.",
+                                executableElement, i + 1, i + numAttributes + 1);
+                        hasParameterError = true;
+                        break;
+                    }
+                }
+                if (hasParameterError) {
+                    continue;
+                }
+            } else if (parameters.size() != numAttributes + 1) {
+                L.e("@BindingAdapter %s has %d attributes and %d parameters. There should be %d " +
+                        "or %d parameters.", executableElement, numAttributes, parameters.size(),
+                        numAttributes + 1, (numAttributes * 2) + 1);
                 continue;
             }
             warnAttributeNamespaces(bindingAdapter.value());

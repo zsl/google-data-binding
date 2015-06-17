@@ -17,6 +17,7 @@
 package android.databinding.tool;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 
 import org.apache.commons.lang3.StringUtils;
@@ -28,7 +29,9 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.CodeGenUtil;
+import android.databinding.tool.writer.WriterPackage;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -63,6 +66,16 @@ public class MergedBinding extends Binding {
         }));
     }
 
+    public Expr[] getComponentExpressions() {
+        ArgListExpr args = (ArgListExpr) getExpr();
+        return args.getChildren().toArray(new Expr[args.getChildren().size()]);
+    }
+
+    @Override
+    public boolean requiresOldValue() {
+        return mMultiAttributeSetter.requiresOldValue();
+    }
+
     @Override
     public int getMinApi() {
         return 1;
@@ -70,14 +83,27 @@ public class MergedBinding extends Binding {
 
     @Override
     public String toJavaCode(String targetViewName) {
-        ArgListExpr args = (ArgListExpr) getExpr();
-        final String[] expressions = Iterables
-                .toArray(Iterables.transform(args.getChildren(), new Function<Expr, String>() {
-                    @Override
-                    public String apply(Expr input) {
-                        return CodeGenUtil.Companion.toCode(input, false).generate();
-                    }
-                }), String.class);
+        final ArgListExpr args = (ArgListExpr) getExpr();
+        final Iterable<String> newValues =
+                Iterables.transform(args.getChildren(), new Function<Expr, String>() {
+            @Override
+            public String apply(Expr input) {
+                return CodeGenUtil.Companion.toCode(input, false).generate();
+            }
+        });
+        final Iterable<String> oldValues;
+        if (requiresOldValue()) {
+            oldValues = Iterables.transform(args.getChildren(), new Function<Expr, String>() {
+                        @Override
+                        public String apply(Expr input) {
+                            return "this." + WriterPackage.getOldValueName(input);
+                        }
+                    });
+        } else {
+            oldValues = Arrays.asList(new String[args.getChildren().size()]);
+        }
+        final String[] expressions = Iterables.toArray(Iterables.concat(oldValues, newValues),
+                String.class);
         L.d("merged binding arg: %s", args.getUniqueKey());
         return mMultiAttributeSetter.toJava(targetViewName, expressions);
     }
