@@ -15,8 +15,36 @@
  */
 package android.databinding;
 
-public class ObservableShort extends BaseObservable {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+/**
+ * An observable class that holds a primitive short.
+ * <p>
+ * This class is parcelable and serializable but callbacks are ignored when the object is
+ * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
+ * data binding framework always re-registers callbacks when the view is bound.
+ */
+public class ObservableShort extends BaseObservable implements Parcelable, Serializable {
+    static final long serialVersionUID = 1L;
     private short mValue;
+
+    /**
+     * Creates an ObservableShort with the given initial value.
+     *
+     * @param value the initial value for the ObservableShort
+     */
+    public ObservableShort(short value) {
+        mValue = value;
+    }
+
+    /**
+     * Creates an ObservableShort with the initial value of <code>0</code>.
+     */
+    public ObservableShort() {
+    }
 
     public short get() {
         return mValue;
@@ -28,4 +56,28 @@ public class ObservableShort extends BaseObservable {
             notifyChange();
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mValue);
+    }
+
+    public static final Parcelable.Creator<ObservableShort> CREATOR
+            = new Parcelable.Creator<ObservableShort>() {
+
+        @Override
+        public ObservableShort createFromParcel(Parcel source) {
+            return new ObservableShort((short) source.readInt());
+        }
+
+        @Override
+        public ObservableShort[] newArray(int size) {
+            return new ObservableShort[size];
+        }
+    };
 }

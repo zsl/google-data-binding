@@ -33,10 +33,6 @@ android {
     compileSdkVersion 21
     buildToolsVersion "21.1"
 
-    sourceSets {
-        main.java.srcDirs = ["src/main/java"]
-    }
-
     defaultConfig {
         minSdkVersion 7
         targetSdkVersion 21

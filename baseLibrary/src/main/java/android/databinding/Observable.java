@@ -19,8 +19,8 @@ package android.databinding;
 /**
  * Observable classes provide a way in which data bound UI can be notified of changes.
  * {@link ObservableList} and {@link ObservableMap} also provide the ability to notify when
- * changes occur. ObservableField, ObservableBoolean, ObservableByte, ObservableShort,
- * ObservableInt, ObservableLong, ObservableFloat, and ObservableDouble provide
+ * changes occur. ObservableField, ObservableParcelable, ObservableBoolean, ObservableByte,
+ * ObservableShort, ObservableInt, ObservableLong, ObservableFloat, and ObservableDouble provide
  * a means by which properties may be notified without implementing Observable.
  * <p>
  * An Observable object should notify the {@link OnPropertyChangedCallback} whenever

@@ -15,8 +15,36 @@
  */
 package android.databinding;
 
-public class ObservableLong extends BaseObservable {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+/**
+ * An observable class that holds a primitive long.
+ * <p>
+ * This class is parcelable and serializable but callbacks are ignored when the object is
+ * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
+ * data binding framework always re-registers callbacks when the view is bound.
+ */
+public class ObservableLong extends BaseObservable implements Parcelable, Serializable {
+    static final long serialVersionUID = 1L;
     private long mValue;
+
+    /**
+     * Creates an ObservableLong with the given initial value.
+     *
+     * @param value the initial value for the ObservableLong
+     */
+    public ObservableLong(long value) {
+        mValue = value;
+    }
+
+    /**
+     * Creates an ObservableLong with the initial value of <code>0L</code>.
+     */
+    public ObservableLong() {
+    }
 
     public long get() {
         return mValue;
@@ -28,4 +56,28 @@ public class ObservableLong extends BaseObservable {
             notifyChange();
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(mValue);
+    }
+
+    public static final Parcelable.Creator<ObservableLong> CREATOR
+            = new Parcelable.Creator<ObservableLong>() {
+
+        @Override
+        public ObservableLong createFromParcel(Parcel source) {
+            return new ObservableLong(source.readLong());
+        }
+
+        @Override
+        public ObservableLong[] newArray(int size) {
+            return new ObservableLong[size];
+        }
+    };
 }

@@ -21,7 +21,7 @@ import java.util.Collection;
 
 public class ObservableArrayMap<K, V> extends ArrayMap<K, V> implements ObservableMap<K, V> {
 
-    private MapChangeRegistry mListeners;
+    private transient MapChangeRegistry mListeners;
 
     @Override
     public void addOnMapChangedCallback(

@@ -15,8 +15,36 @@
  */
 package android.databinding;
 
-public class ObservableInt extends BaseObservable {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+/**
+ * An observable class that holds a primitive int.
+ * <p>
+ * This class is parcelable and serializable but callbacks are ignored when the object is
+ * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
+ * data binding framework always re-registers callbacks when the view is bound.
+ */
+public class ObservableInt extends BaseObservable implements Parcelable, Serializable {
+    static final long serialVersionUID = 1L;
     private int mValue;
+
+    /**
+     * Creates an ObservableInt with the given initial value.
+     *
+     * @param value the initial value for the ObservableInt
+     */
+    public ObservableInt(int value) {
+        mValue = value;
+    }
+
+    /**
+     * Creates an ObservableInt with the initial value of <code>0</code>.
+     */
+    public ObservableInt() {
+    }
 
     public int get() {
         return mValue;
@@ -28,4 +56,28 @@ public class ObservableInt extends BaseObservable {
             notifyChange();
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mValue);
+    }
+
+    public static final Parcelable.Creator<ObservableInt> CREATOR
+            = new Parcelable.Creator<ObservableInt>() {
+
+        @Override
+        public ObservableInt createFromParcel(Parcel source) {
+            return new ObservableInt(source.readInt());
+        }
+
+        @Override
+        public ObservableInt[] newArray(int size) {
+            return new ObservableInt[size];
+        }
+    };
 }

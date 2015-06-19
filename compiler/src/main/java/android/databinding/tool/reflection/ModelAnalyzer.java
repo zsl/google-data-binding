@@ -63,6 +63,7 @@ public abstract class ModelAnalyzer {
             "android.databinding.ObservableFloat",
             "android.databinding.ObservableDouble",
             "android.databinding.ObservableField",
+            "android.databinding.ObservableParcelable",
     };
 
     public static final String VIEW_DATA_BINDING =

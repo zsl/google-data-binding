@@ -64,5 +64,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{obj.oField}"/>
+
+        <TextView
+            android:id="@+id/pFieldx"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text='@{""+obj.pField.x}'/>
+
+        <TextView
+            android:id="@+id/pFieldy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{obj.pField.y}"/>
     </LinearLayout>
 </layout>

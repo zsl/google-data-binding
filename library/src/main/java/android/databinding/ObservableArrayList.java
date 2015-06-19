@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class ObservableArrayList<T> extends ArrayList<T> implements ObservableList<T> {
-    private ListChangeRegistry mListeners = new ListChangeRegistry();
+    private transient ListChangeRegistry mListeners = new ListChangeRegistry();
 
     @Override
     public void addOnListChangedCallback(OnListChangedCallback listener) {

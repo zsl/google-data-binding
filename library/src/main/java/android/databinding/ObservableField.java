@@ -15,8 +15,32 @@
  */
 package android.databinding;
 
-public class ObservableField<T> extends BaseObservable {
+import java.io.Serializable;
+
+/**
+ * An object wrapper to make it observable.
+ *
+ * @param <T> The type parameter for the actual object.
+ * @see android.databinding.ObservableParcelable
+ */
+public class ObservableField<T> extends BaseObservable implements Serializable {
+    static final long serialVersionUID = 1L;
     private T mValue;
+
+    /**
+     * Wraps the given object and creates an observable object
+     *
+     * @param value The value to be wrapped as an observable.
+     */
+    public ObservableField(T value) {
+        mValue = value;
+    }
+
+    /**
+     * Creates an empty observable object
+     */
+    public ObservableField() {
+    }
 
     public T get() {
         return mValue;

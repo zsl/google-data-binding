@@ -15,8 +15,36 @@
  */
 package android.databinding;
 
-public class ObservableFloat extends BaseObservable {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+/**
+ * An observable class that holds a primitive float.
+ * <p>
+ * This class is parcelable and serializable but callbacks are ignored when the object is
+ * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
+ * data binding framework always re-registers callbacks when the view is bound.
+ */
+public class ObservableFloat extends BaseObservable implements Parcelable, Serializable {
+    static final long serialVersionUID = 1L;
     private float mValue;
+
+    /**
+     * Creates an ObservableFloat with the given initial value.
+     *
+     * @param value the initial value for the ObservableFloat
+     */
+    public ObservableFloat(float value) {
+        mValue = value;
+    }
+
+    /**
+     * Creates an ObservableFloat with the initial value of <code>0f</code>.
+     */
+    public ObservableFloat() {
+    }
 
     public float get() {
         return mValue;
@@ -28,4 +56,28 @@ public class ObservableFloat extends BaseObservable {
             notifyChange();
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeFloat(mValue);
+    }
+
+    public static final Parcelable.Creator<ObservableFloat> CREATOR
+            = new Parcelable.Creator<ObservableFloat>() {
+
+        @Override
+        public ObservableFloat createFromParcel(Parcel source) {
+            return new ObservableFloat(source.readFloat());
+        }
+
+        @Override
+        public ObservableFloat[] newArray(int size) {
+            return new ObservableFloat[size];
+        }
+    };
 }

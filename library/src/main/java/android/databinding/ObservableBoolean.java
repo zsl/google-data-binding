@@ -15,8 +15,36 @@
  */
 package android.databinding;
 
-public class ObservableBoolean extends BaseObservable {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+/**
+ * An observable class that holds a primitive int.
+ * <p>
+ * This class is parcelable and serializable but callbacks are ignored when the object is
+ * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
+ * data binding framework always re-registers callbacks when the view is bound.
+ */
+public class ObservableBoolean extends BaseObservable implements Parcelable, Serializable {
+    static final long serialVersionUID = 1L;
     private boolean mValue;
+
+    /**
+     * Creates an ObservableBoolean with the given initial value.
+     *
+     * @param value the initial value for the ObservableBoolean
+     */
+    public ObservableBoolean(boolean value) {
+        mValue = value;
+    }
+
+    /**
+     * Creates an ObservableBoolean with the initial value of <code>false</code>.
+     */
+    public ObservableBoolean() {
+    }
 
     public boolean get() {
         return mValue;
@@ -28,4 +56,28 @@ public class ObservableBoolean extends BaseObservable {
             notifyChange();
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mValue ? 1 : 0);
+    }
+
+    public static final Parcelable.Creator<ObservableBoolean> CREATOR
+            = new Parcelable.Creator<ObservableBoolean>() {
+
+        @Override
+        public ObservableBoolean createFromParcel(Parcel source) {
+            return new ObservableBoolean(source.readInt() == 1);
+        }
+
+        @Override
+        public ObservableBoolean[] newArray(int size) {
+            return new ObservableBoolean[size];
+        }
+    };
 }

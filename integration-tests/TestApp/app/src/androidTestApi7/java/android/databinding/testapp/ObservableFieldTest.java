@@ -137,4 +137,19 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 
         assertEquals("World", view.getText());
     }
+
+    @UiThreadTest
+    public void testParcelable() {
+        TextView x = mBinder.pFieldx;
+        TextView y = mBinder.pFieldy;
+        assertEquals(x.getText().toString(), String.valueOf(mObj.pField.get().getX()));
+        assertEquals(y.getText().toString(), mObj.pField.get().getY());
+        ObservableFieldBindingObject.MyParcelable p2 =
+                new ObservableFieldBindingObject.MyParcelable(7, "updated");
+        mObj.pField.set(p2);
+        mBinder.executePendingBindings();
+
+        assertEquals(x.getText().toString(), String.valueOf(mObj.pField.get().getX()));
+        assertEquals(y.getText().toString(), mObj.pField.get().getY());
+    }
 }

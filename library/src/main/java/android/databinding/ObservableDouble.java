@@ -15,8 +15,36 @@
  */
 package android.databinding;
 
-public class ObservableDouble extends BaseObservable {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+/**
+ * An observable class that holds a primitive double.
+ * <p>
+ * This class is parcelable and serializable but callbacks are ignored when the object is
+ * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
+ * data binding framework always re-registers callbacks when the view is bound.
+ */
+public class ObservableDouble extends BaseObservable implements Parcelable, Serializable {
+    static final long serialVersionUID = 1L;
     private double mValue;
+
+    /**
+     * Creates an ObservableDouble with the given initial value.
+     *
+     * @param value the initial value for the ObservableDouble
+     */
+    public ObservableDouble(double value) {
+        mValue = value;
+    }
+
+    /**
+     * Creates an ObservableDouble with the initial value of <code>0</code>.
+     */
+    public ObservableDouble() {
+    }
 
     public double get() {
         return mValue;
@@ -28,4 +56,28 @@ public class ObservableDouble extends BaseObservable {
             notifyChange();
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeDouble(mValue);
+    }
+
+    public static final Parcelable.Creator<ObservableDouble> CREATOR
+            = new Parcelable.Creator<ObservableDouble>() {
+
+        @Override
+        public ObservableDouble createFromParcel(Parcel source) {
+            return new ObservableDouble(source.readDouble());
+        }
+
+        @Override
+        public ObservableDouble[] newArray(int size) {
+            return new ObservableDouble[size];
+        }
+    };
 }

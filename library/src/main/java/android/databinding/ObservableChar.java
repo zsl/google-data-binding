@@ -15,8 +15,36 @@
  */
 package android.databinding;
 
-public class ObservableChar extends BaseObservable {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+/**
+ * An observable class that holds a primitive char.
+ * <p>
+ * This class is parcelable and serializable but callbacks are ignored when the object is
+ * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
+ * data binding framework always re-registers callbacks when the view is bound.
+ */
+public class ObservableChar extends BaseObservable implements Parcelable, Serializable {
+    static final long serialVersionUID = 1L;
     private char mValue;
+
+    /**
+     * Creates an ObservableChar with the given initial value.
+     *
+     * @param value the initial value for the ObservableChar
+     */
+    public ObservableChar(char value) {
+        mValue = value;
+    }
+
+    /**
+     * Creates an ObservableChar with the initial value of <code>0</code>.
+     */
+    public ObservableChar() {
+    }
 
     public char get() {
         return mValue;
@@ -28,4 +56,28 @@ public class ObservableChar extends BaseObservable {
             notifyChange();
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(mValue);
+    }
+
+    public static final Parcelable.Creator<ObservableChar> CREATOR
+            = new Parcelable.Creator<ObservableChar>() {
+
+        @Override
+        public ObservableChar createFromParcel(Parcel source) {
+            return new ObservableChar((char) source.readInt());
+        }
+
+        @Override
+        public ObservableChar[] newArray(int size) {
+            return new ObservableChar[size];
+        }
+    };
 }
