@@ -257,9 +257,9 @@ public class LayoutBinder {
         }
     }
 
-    public String writeViewBinderBaseClass() {
+    public String writeViewBinderBaseClass(boolean forLibrary) {
         ensureWriter();
-        return mWriter.writeBaseClass();
+        return mWriter.writeBaseClass(forLibrary);
     }
 
 

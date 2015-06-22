@@ -886,7 +886,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         }
     }
 
-    public fun writeBaseClass() : String =
+    /**
+     * When called for a library compilation, we do not generate real implementations
+     */
+    public fun writeBaseClass(forLibrary : Boolean) : String =
         kcode("package ${layoutBinder.getPackage()};") {
             nl("import android.databinding.Bindable;")
             nl("import android.databinding.DataBindingUtil;")
@@ -916,15 +919,27 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
             }
             tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
-                tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot);")
+                if (forLibrary) {
+                    tab("return null;")
+                } else {
+                    tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot);")
+                }
             }
             tab("}")
             tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {
-                tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false);")
+                if (forLibrary) {
+                    tab("return null;")
+                } else {
+                    tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false);")
+                }
             }
             tab("}")
             tab("public static ${baseClassName} bind(android.view.View view) {") {
-                tab("return (${baseClassName})bind(view, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()});")
+                if (forLibrary) {
+                    tab("return null;")
+                } else {
+                    tab("return (${baseClassName})bind(view, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()});")
+                }
             }
             tab("}")
             nl("}")
