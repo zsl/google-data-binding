@@ -48,7 +48,7 @@ public class DataBinder {
     public List<LayoutBinder> getLayoutBinders() {
         return mLayoutBinders;
     }
-    
+
     public void writerBaseClasses(boolean isLibrary) {
         for (LayoutBinder layoutBinder : mLayoutBinders) {
             if (isLibrary || layoutBinder.hasVariations()) {
@@ -58,12 +58,13 @@ public class DataBinder {
                     continue;
                 }
                 L.d("writing data binder base %s", canonicalName);
-                mFileWriter.writeToFile(canonicalName, layoutBinder.writeViewBinderBaseClass());
+                mFileWriter.writeToFile(canonicalName,
+                        layoutBinder.writeViewBinderBaseClass(isLibrary));
                 writtenClasses.add(canonicalName);
             }
         }
     }
-    
+
     public void writeBinders(int minSdk) {
         for (LayoutBinder layoutBinder : mLayoutBinders) {
             String className = layoutBinder.getImplementationName();

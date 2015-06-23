@@ -20,6 +20,7 @@ package android.databinding.compilationTest;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
@@ -58,5 +59,31 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         assertNotEquals(0, result.resultCode);
         assertTrue("Undefined variable",
                 result.errorContainsText("Identifiers must have user defined types from the XML file. myVariable is missing it"));
+    }
+
+    @Test
+    public void testSingleModule() throws IOException, URISyntaxException, InterruptedException {
+        prepareApp(toMap(KEY_DEPENDENCIES, "compile project(':module1')",
+                KEY_SETTINGS_INCLUDES, "include ':app'\ninclude ':module1'"));
+        prepareModule("module1", "com.example.module1", toMap());
+        copyResourceTo("/layout/basic_layout.xml", "/module1/src/main/res/layout/module_layout.xml");
+        copyResourceTo("/layout/basic_layout.xml", "/app/src/main/res/layout/app_layout.xml");
+        CompilationResult result = runGradle("assembleDebug");
+        assertEquals(result.error, 0, result.resultCode);
+    }
+
+    @Test
+    public void testTwoLevelDependency() throws IOException, URISyntaxException, InterruptedException {
+        prepareApp(toMap(KEY_DEPENDENCIES, "compile project(':module1')",
+                KEY_SETTINGS_INCLUDES, "include ':app'\ninclude ':module1'\n"
+                        + "include ':module2'"));
+        prepareModule("module1", "com.example.module1", toMap(KEY_DEPENDENCIES,
+                "compile project(':module2')"));
+        prepareModule("module2", "com.example.module2", toMap());
+        copyResourceTo("/layout/basic_layout.xml", "/module2/src/main/res/layout/module2_layout.xml");
+        copyResourceTo("/layout/basic_layout.xml", "/module1/src/main/res/layout/module1_layout.xml");
+        copyResourceTo("/layout/basic_layout.xml", "/app/src/main/res/layout/app_layout.xml");
+        CompilationResult result = runGradle("assembleDebug");
+        assertEquals(result.error, 0, result.resultCode);
     }
 }
