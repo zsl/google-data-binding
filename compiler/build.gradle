@@ -41,7 +41,8 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:${config.kotlinVersion}"
 
     compile 'com.tunnelvisionlabs:antlr4:4.5'
-    testCompile "com.android.databinding:libraryJar:$version@jar"
+    testCompile files('../baseLibrary/src/main/java')
+    testCompile files('../library/src/main/java')
     testCompile 'junit:junit:4.12'
 }
 

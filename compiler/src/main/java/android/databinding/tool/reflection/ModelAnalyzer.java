@@ -276,7 +276,7 @@ public abstract class ModelAnalyzer {
         return mViewBindingType;
     }
 
-    ModelClass[] getObservableFieldTypes() {
+    protected ModelClass[] getObservableFieldTypes() {
         if (mObservableFieldTypes == null) {
             mObservableFieldTypes = new ModelClass[OBSERVABLE_FIELDS.length];
             for (int i = 0; i < OBSERVABLE_FIELDS.length; i++) {

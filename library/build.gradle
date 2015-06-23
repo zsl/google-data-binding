@@ -74,10 +74,6 @@ android.libraryVariants.all { variant ->
         return; // Skip debug builds.
     }
     def suffix = name.capitalize()
-    // @Jar version is needed to run compiler tests
-    def jarTask = project.tasks.create "jar${suffix}", Jar
-    jarTask.dependsOn variant.javaCompile
-    jarTask.from variant.javaCompile.destinationDir
 
     def javadocTask = project.tasks.create(name: "javadoc${suffix}", type: Javadoc) {
         source variant.javaCompile.source + project(":baseLibrary").tasks['compileJava'].source
@@ -98,7 +94,6 @@ android.libraryVariants.all { variant ->
 
     artifacts.add('archives', javadocJarTask);
     artifacts.add('archives', sourcesJarTask);
-    artifacts.add('jarArchives', jarTask);
 }
 uploadArchives {
     repositories {
@@ -117,21 +112,11 @@ uploadArchives {
     }
 }
 
+
 afterEvaluate {
     tasks['packageReleaseJar'].exclude('android/databinding/DataBinderMapper.*')
     tasks['packageDebugJar'].exclude('android/databinding/DataBinderMapper.*')
 }
-
-uploadJarArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: "file://${config.mavenRepoDir}")
-            pom.artifactId = "libraryJar"
-        }
-    }
-}
-
-uploadArchives.dependsOn uploadJarArchives
 
 task prebuildAar(type : Copy) {
     dependsOn uploadArchives

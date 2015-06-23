@@ -61,6 +61,11 @@ public class JavaAnalyzer extends ModelAnalyzer {
     }
 
     @Override
+    protected ModelClass[] getObservableFieldTypes() {
+        return new ModelClass[0];
+    }
+
+    @Override
     public ModelClass findClass(String className, Map<String, String> imports) {
         // TODO handle imports
         JavaClass loaded = mClassCache.get(className);
