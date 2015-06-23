@@ -154,6 +154,23 @@ abstract public class Expr implements VersionProvider {
         return getResolvedType().isObservable();
     }
 
+    public boolean resolveListeners(ModelClass valueType) {
+        boolean resetResolvedType = false;
+        for (Expr child : getChildren()) {
+            if (child.resolveListeners(valueType)) {
+                resetResolvedType = true;
+            }
+        }
+        if (resetResolvedType) {
+            mResolvedType = null;
+        }
+        return resetResolvedType;
+    }
+
+    protected void resetResolvedType() {
+        mResolvedType = null;
+    }
+
     public BitSet getShouldReadFlags() {
         if (mShouldReadFlags == null) {
             getShouldReadFlagsWithConditionals();
@@ -569,6 +586,9 @@ abstract public class Expr implements VersionProvider {
 
     public void setIsUsed(boolean isUsed) {
         mIsUsed = isUsed;
+        for (Expr child : getChildren()) {
+            child.setIsUsed(isUsed);
+        }
     }
 
     public boolean isUsed() {

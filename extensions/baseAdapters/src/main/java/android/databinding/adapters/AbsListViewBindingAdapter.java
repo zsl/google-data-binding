@@ -15,14 +15,58 @@
  */
 package android.databinding.adapters;
 
+import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 
 @BindingMethods({
-        @BindingMethod(type = android.widget.AbsListView.class, attribute = "android:listSelector", method = "setSelector"),
-        @BindingMethod(type = android.widget.AbsListView.class, attribute = "android:scrollingCache", method = "setScrollingCacheEnabled"),
-        @BindingMethod(type = android.widget.AbsListView.class, attribute = "android:smoothScrollbar", method = "setSmoothScrollbarEnabled"),
+        @BindingMethod(type = AbsListView.class, attribute = "android:listSelector", method = "setSelector"),
+        @BindingMethod(type = AbsListView.class, attribute = "android:scrollingCache", method = "setScrollingCacheEnabled"),
+        @BindingMethod(type = AbsListView.class, attribute = "android:smoothScrollbar", method = "setSmoothScrollbarEnabled"),
+        @BindingMethod(type = AbsListView.class, attribute = "android:onMovedToScrapHeap", method = "setRecyclerListener"),
 })
 public class AbsListViewBindingAdapter {
 
+    @BindingAdapter("android:onScroll")
+    public static void setOnScroll(AbsListView view, OnScroll listener) {
+        setOnScroll(view, listener, null);
+    }
+
+    @BindingAdapter("android:onScrollStateChanged")
+    public static void setOnScroll(AbsListView view, OnScrollStateChanged listener) {
+        setOnScroll(view, null, listener);
+    }
+
+    @BindingAdapter({"android:onScroll", "android:onScrollStateChanged"})
+    public static void setOnScroll(AbsListView view, final OnScroll scrollListener,
+            final OnScrollStateChanged scrollStateListener) {
+        view.setOnScrollListener(new OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                if (scrollStateListener != null) {
+                    scrollStateListener.onScrollStateChanged(view, scrollState);
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount,
+                    int totalItemCount) {
+                if (scrollListener != null) {
+                    scrollListener
+                            .onScroll(view, firstVisibleItem, visibleItemCount, totalItemCount);
+                }
+            }
+        });
+    }
+
+    public interface OnScroll {
+        void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount,
+                int totalItemCount);
+    }
+
+    public interface OnScrollStateChanged {
+        void onScrollStateChanged(AbsListView view, int scrollState);
+    }
 }

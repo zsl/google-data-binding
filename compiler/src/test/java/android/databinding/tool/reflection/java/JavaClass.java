@@ -125,6 +125,11 @@ public class JavaClass extends ModelClass {
     }
 
     @Override
+    public boolean isInterface() {
+        return mClass.isInterface();
+    }
+
+    @Override
     public boolean isVoid() {
         return void.class.equals(mClass);
     }

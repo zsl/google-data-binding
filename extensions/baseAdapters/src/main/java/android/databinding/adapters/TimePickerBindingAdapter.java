@@ -15,15 +15,12 @@
  */
 package android.databinding.adapters;
 
-import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.TimePicker;
 
 @BindingMethods({
-        @BindingMethod(type = CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
-        @BindingMethod(type = CompoundButton.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
+        @BindingMethod(type = TimePicker.class, attribute = "android:onTimeChanged", method = "setOnTimeChangedListener"),
 })
-public class CompoundButtonBindingAdapter {
+public class TimePickerBindingAdapter {
 }

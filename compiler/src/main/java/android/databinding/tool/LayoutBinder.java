@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import android.databinding.tool.expr.Dependency;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
+import android.databinding.tool.expr.ExprModel.ResolveListenersCallback;
 import android.databinding.tool.expr.IdentifierExpr;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
@@ -37,7 +38,7 @@ import java.util.Map;
 /**
  * Keeps all information about the bindings per layout file
  */
-public class LayoutBinder {
+public class LayoutBinder implements ResolveListenersCallback {
     private static final Comparator<BindingTarget> COMPARE_FIELD_NAME = new Comparator<BindingTarget>() {
         @Override
         public int compare(BindingTarget first, BindingTarget second) {
@@ -264,7 +265,7 @@ public class LayoutBinder {
 
 
     public String writeViewBinder(int minSdk) {
-        mExprModel.seal();
+        mExprModel.seal(this);
         ensureWriter();
         Preconditions.checkNotNull(getPackage(), "package cannot be null");
         Preconditions.checkNotNull(getClassName(), "base class name cannot be null");
@@ -305,5 +306,14 @@ public class LayoutBinder {
 
     public boolean hasVariations() {
         return mBundle.hasVariations();
+    }
+
+    @Override
+    public void resolveListeners() {
+        for (BindingTarget target : mBindingTargets) {
+            for (Binding binding : target.getBindings()) {
+                binding.resolveListeners();
+            }
+        }
     }
 }

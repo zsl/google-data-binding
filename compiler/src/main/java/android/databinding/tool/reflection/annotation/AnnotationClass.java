@@ -27,7 +27,10 @@ import android.databinding.tool.util.L;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -202,6 +205,27 @@ class AnnotationClass extends ModelClass {
     }
 
     @Override
+    public int getMinApi() {
+        if (mTypeMirror.getKind() == TypeKind.DECLARED) {
+            DeclaredType declaredType = (DeclaredType) mTypeMirror;
+            List<? extends AnnotationMirror> annotations =
+                    getElementUtils().getAllAnnotationMirrors(declaredType.asElement());
+
+            TypeElement targetApi = getElementUtils().getTypeElement("android.annotation.TargetApi");
+            TypeMirror targetApiType = targetApi.asType();
+            Types typeUtils = getTypeUtils();
+            for (AnnotationMirror annotation : annotations) {
+                if (typeUtils.isAssignable(annotation.getAnnotationType(), targetApiType)) {
+                    for (AnnotationValue value : annotation.getElementValues().values()) {
+                        return (Integer) value.getValue();
+                    }
+                }
+            }
+        }
+        return super.getMinApi();
+    }
+
+    @Override
     public List<ModelClass> getTypeArguments() {
         List<ModelClass> types = null;
         if (mTypeMirror.getKind() == TypeKind.DECLARED) {
@@ -220,6 +244,12 @@ class AnnotationClass extends ModelClass {
     @Override
     public boolean isTypeVar() {
         return mTypeMirror.getKind() == TypeKind.TYPEVAR;
+    }
+
+    @Override
+    public boolean isInterface() {
+        return mTypeMirror.getKind() == TypeKind.DECLARED &&
+                ((DeclaredType)mTypeMirror).asElement().getKind() == ElementKind.INTERFACE;
     }
 
     @Override

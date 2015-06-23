@@ -516,7 +516,9 @@ public abstract class ViewDataBinding {
             final int underscoreIndex = tag.lastIndexOf('_');
             if (underscoreIndex > 0 && isNumeric(tag, underscoreIndex + 1)) {
                 final int index = parseTagInt(tag, underscoreIndex + 1);
-                bindings[index] = view;
+                if (bindings[index] == null) {
+                    bindings[index] = view;
+                }
                 includedLayoutIndexes = includes == null ? null : includes[index];
                 isBound = true;
             } else {
@@ -524,7 +526,9 @@ public abstract class ViewDataBinding {
             }
         } else if (tag != null && tag.startsWith(BINDING_TAG_PREFIX)) {
             int tagIndex = parseTagInt(tag, BINDING_NUMBER_START);
-            bindings[tagIndex] = view;
+            if (bindings[tagIndex] == null) {
+                bindings[tagIndex] = view;
+            }
             isBound = true;
             includedLayoutIndexes = includes == null ? null : includes[tagIndex];
         } else {
@@ -535,7 +539,8 @@ public abstract class ViewDataBinding {
             final int id = view.getId();
             if (id > 0) {
                 int index;
-                if (viewsWithIds != null && (index = viewsWithIds.get(id, -1)) >= 0) {
+                if (viewsWithIds != null && (index = viewsWithIds.get(id, -1)) >= 0 &&
+                        bindings[index] == null) {
                     bindings[index] = view;
                 }
             }

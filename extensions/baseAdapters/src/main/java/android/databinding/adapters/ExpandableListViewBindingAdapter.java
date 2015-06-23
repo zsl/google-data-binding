@@ -15,15 +15,15 @@
  */
 package android.databinding.adapters;
 
-import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ExpandableListView;
 
 @BindingMethods({
-        @BindingMethod(type = CompoundButton.class, attribute = "android:buttonTint", method = "setButtonTintList"),
-        @BindingMethod(type = CompoundButton.class, attribute = "android:onCheckedChanged", method = "setOnCheckedChangeListener"),
+        @BindingMethod(type = ExpandableListView.class, attribute = "android:onChildClick", method = "setOnChildClickListener"),
+        @BindingMethod(type = ExpandableListView.class, attribute = "android:onGroupClick", method = "setOnGroupClickListener"),
+        @BindingMethod(type = ExpandableListView.class, attribute = "android:onGroupCollapse", method = "setOnGroupCollapseListener"),
+        @BindingMethod(type = ExpandableListView.class, attribute = "android:onGroupExpand", method = "setOnGroupExpandListener"),
 })
-public class CompoundButtonBindingAdapter {
+public class ExpandableListViewBindingAdapter {
 }

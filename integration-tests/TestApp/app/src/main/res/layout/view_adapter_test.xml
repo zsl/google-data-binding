@@ -13,7 +13,8 @@
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="obj" type="android.databinding.testapp.vo.ViewBindingObject"/>
+        <import type="android.databinding.testapp.vo.ViewBindingObject"/>
+        <variable name="obj" type="ViewBindingObject"/>
     </data>
     <LinearLayout
             android:orientation="vertical"

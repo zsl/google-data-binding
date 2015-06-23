@@ -13,43 +13,26 @@
 
 package android.databinding.tool.writer
 
+import android.databinding.tool.BindingTarget
 import android.databinding.tool.LayoutBinder
-import kotlin.properties.Delegates
-import android.databinding.tool.BindingTarget
 import android.databinding.tool.expr.Expr
-import kotlin.properties.Delegates
-import android.databinding.tool.BindingTarget
-import android.databinding.tool.expr.IdentifierExpr
-import java.util.BitSet
 import android.databinding.tool.expr.ExprModel
-import java.util.Arrays
-import android.databinding.tool.expr.BitShiftExpr
-import android.databinding.tool.expr.TernaryExpr
 import android.databinding.tool.expr.FieldAccessExpr
-import android.databinding.tool.expr.ComparisonExpr
-import android.databinding.tool.expr.GroupExpr
-import android.databinding.tool.expr.InstanceOfExpr
-import android.databinding.tool.expr.MathExpr
-import android.databinding.tool.expr.MethodCallExpr
-import android.databinding.tool.expr.StaticIdentifierExpr
-import android.databinding.tool.expr.SymbolExpr
-import android.databinding.tool.expr.UnaryExpr
-import android.databinding.tool.expr.ResourceExpr
-import android.databinding.tool.expr.BracketExpr
-import android.databinding.tool.ext;
+import android.databinding.tool.expr.IdentifierExpr
+import android.databinding.tool.expr.TernaryExpr
 import android.databinding.tool.ext.androidId
-import android.databinding.tool.ext.lazy
-import android.databinding.tool.ext.versionedLazy
 import android.databinding.tool.ext.br
 import android.databinding.tool.ext.joinToCamelCaseAsVar
-import java.util.BitSet
-import java.util.Arrays
-import android.databinding.tool.reflection.Callable
+import android.databinding.tool.ext.lazy
+import android.databinding.tool.ext.versionedLazy
 import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.util.L
-import com.google.common.collect.Iterables
 import java.util.ArrayList
+import java.util.Arrays
+import java.util.BitSet
 import java.util.HashMap
+import java.util.HashSet
+import kotlin.properties.Delegates
 
 fun String.stripNonJava() = this.split("[^a-zA-Z0-9]".toRegex()).map{ it.trim() }.joinToCamelCaseAsVar()
 
@@ -152,6 +135,10 @@ val Expr.fieldName by Delegates.lazy { expr : Expr ->
     expr.getModel().getUniqueFieldName("m${expr.readableName.capitalize()}")
 }
 
+val Expr.listenerClassName by Delegates.lazy { expr : Expr ->
+    expr.getModel().getUniqueFieldName("${expr.readableName.capitalize()}Impl")
+}
+
 val Expr.oldValueName by Delegates.lazy { expr : Expr ->
     expr.getModel().getUniqueFieldName("mOld${expr.readableName.capitalize()}")
 }
@@ -182,7 +169,6 @@ fun Expr.toCode(full : Boolean = false) : KCode = CodeGenUtil.toCode(this, full)
 fun Expr.isVariable() = this is IdentifierExpr && this.isDynamic()
 
 fun Expr.conditionalFlagName(output : Boolean, suffix : String) = "${dirtyFlagName}_${output}$suffix"
-
 
 val Expr.dirtyFlagSet by Delegates.lazy { expr : Expr ->
     FlagSet(expr.getInvalidFlags(), expr.getModel().getFlagBucketCount())
@@ -293,6 +279,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab(declareViews())
                 tab(declareVariables())
                 tab(declareBoundValues())
+                tab(declareListeners())
                 tab(declareConstructor(minSdk))
                 tab(declareInvalidateAll())
                 tab(declareHasPendingBindings())
@@ -303,6 +290,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
                 tab(executePendingBindings())
 
+                tab(declareListenerImpls())
                 tab(declareDirtyFlags())
                 if (!layoutBinder.hasVariations()) {
                     tab(declareFactories())
@@ -658,6 +646,15 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
     }
 
+    fun declareListeners() = kcode("// listeners") {
+        model.getExprMap().values().filter {
+            it is FieldAccessExpr && it.isListener()
+        }.groupBy { it }.forEach {
+            val expr = it.key as FieldAccessExpr
+            nl("private ${expr.listenerClassName} ${expr.fieldName};")
+        }
+    }
+
     fun declareDirtyFlags() = kcode("// dirty flag") {
         model.ext.localizedFlags.forEach { flag ->
             flag.notEmpty { suffix, value ->
@@ -862,6 +859,73 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             tab("}")
         } else {
             nl(readCode)
+        }
+    }
+
+    fun declareListenerImpls() = kcode("// Listener Stub Implementations") {
+        model.getExprMap().values().filter {
+            it.isUsed() && it is FieldAccessExpr && it.isListener()
+        }.groupBy { it }.forEach {
+            val expr = it.key as FieldAccessExpr
+            val listeners = expr.getListenerTypes()
+            val extends = listeners.firstOrNull{ !it.isInterface() }
+            val extendsImplements = StringBuilder()
+            if (extends != null) {
+                extendsImplements.append("extends ${extends.toJavaCode()} ");
+            }
+            val implements = expr.getListenerTypes().filter{ it.isInterface() }.map {
+                it.toJavaCode()
+            }.joinToString(", ")
+            if (!implements.isEmpty()) {
+                extendsImplements.append("implements ${implements}")
+            }
+            nl("public static class ${expr.listenerClassName} ${extendsImplements} {") {
+                tab("public ${expr.listenerClassName}() {}")
+                if (expr.getChild().isDynamic()) {
+                    tab("private ${expr.getChild().getResolvedType().toJavaCode()} value;")
+                    tab("public ${expr.listenerClassName} setValue(${expr.getChild().getResolvedType().toJavaCode()} value) {") {
+                        tab("this.value = value;")
+                        tab("return value == null ? null : this;")
+                    }
+                    tab("}")
+                }
+                val signatures = HashSet<String>()
+                expr.getListenerMethods().withIndex().forEach {
+                    val listener = it.value
+                    val calledMethod = expr.getCalledMethods().get(it.index)
+                    val parameterTypes = listener.getParameterTypes()
+                    val returnType = listener.getReturnType(parameterTypes.toArrayList())
+                    val signature = "public ${returnType} ${listener.getName()}(${
+                    parameterTypes.withIndex().map {
+                        "${it.value.toJavaCode()} arg${it.index}"
+                    }.joinToString(", ")
+                    }) {"
+                    if (!signatures.contains(signature)) {
+                        signatures.add(signature)
+                        tab("@Override")
+                        tab(signature) {
+                            val obj : String
+                            if (expr.getChild().isDynamic()) {
+                                obj = "this.value"
+                            } else {
+                                obj = expr.getChild().toCode(false).generate();
+                            }
+                            val returnStr : String
+                            if (!returnType.isVoid()) {
+                                returnStr = "return "
+                            } else {
+                                returnStr = ""
+                            }
+                            val args = parameterTypes.withIndex().map {
+                                "arg${it.index}"
+                            }.joinToString(", ")
+                            tab("${returnStr}${obj}.${calledMethod.getName()}(${args});")
+                        }
+                        tab("}")
+                    }
+                }
+            }
+            nl("}")
         }
     }
 

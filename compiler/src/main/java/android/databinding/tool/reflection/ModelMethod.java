@@ -34,6 +34,8 @@ public abstract class ModelMethod {
 
     public abstract boolean isStatic();
 
+    public abstract boolean isAbstract();
+
     /**
      * @return whether or not this method has been given the {@link Bindable} annotation.
      */
