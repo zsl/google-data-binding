@@ -38,7 +38,6 @@ import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 
@@ -158,7 +157,10 @@ public class BaseCompilationTest {
         copyResourceTo("/project_build.gradle", new File(testFolder, "build.gradle"), replacements);
         copyResourceTo("/app_build.gradle", new File(testFolder, "app/build.gradle"), replacements);
         copyResourceTo("/settings.gradle", new File(testFolder, "settings.gradle"), replacements);
-        FileUtils.copyFile(new File("../local.properties"), new File(testFolder, "local.properties"));
+        File localProperties = new File("../local.properties");
+        if (localProperties.exists()) {
+            FileUtils.copyFile(localProperties, new File(testFolder, "local.properties"));
+        }
         FileUtils.copyFile(new File("../gradlew"), new File(testFolder, "gradlew"));
         FileUtils.copyDirectory(new File("../gradle"), new File(testFolder, "gradle"));
     }

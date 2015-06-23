@@ -54,11 +54,13 @@ public class SimpleCompilationTest extends BaseCompilationTest {
     public void testUndefinedVariable() throws IOException, URISyntaxException,
             InterruptedException {
         prepareProject();
-        copyResourceTo("/layout/undefined_variable_binding.xml", "/app/src/main/res/layout/broken.xml");
+        copyResourceTo("/layout/undefined_variable_binding.xml",
+                "/app/src/main/res/layout/broken.xml");
         CompilationResult result = runGradle("assembleDebug");
         assertNotEquals(0, result.resultCode);
         assertTrue("Undefined variable",
-                result.errorContainsText("Identifiers must have user defined types from the XML file. myVariable is missing it"));
+                result.errorContainsText(
+                        "Identifiers must have user defined types from the XML file. myVariable is missing it"));
     }
 
     @Test
@@ -80,10 +82,22 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         prepareModule("module1", "com.example.module1", toMap(KEY_DEPENDENCIES,
                 "compile project(':module2')"));
         prepareModule("module2", "com.example.module2", toMap());
-        copyResourceTo("/layout/basic_layout.xml", "/module2/src/main/res/layout/module2_layout.xml");
+        copyResourceTo("/layout/basic_layout.xml",
+                "/module2/src/main/res/layout/module2_layout.xml");
         copyResourceTo("/layout/basic_layout.xml", "/module1/src/main/res/layout/module1_layout.xml");
         copyResourceTo("/layout/basic_layout.xml", "/app/src/main/res/layout/app_layout.xml");
         CompilationResult result = runGradle("assembleDebug");
         assertEquals(result.error, 0, result.resultCode);
+    }
+
+    @Test
+    public void testIncludeInMerge() throws Throwable {
+        prepareProject();
+        copyResourceTo("/layout/merge_include.xml", "/app/src/main/res/layout/merge_include.xml");
+        CompilationResult result = runGradle("assembleDebug");
+        assertNotEquals(0, result.resultCode);
+        assertTrue("Merge shouldn't support includes as root. Error message was '" + result.error + "'",
+                result.errorContainsText(
+                        "Data binding does not support include elements as direct children of a merge element"));
     }
 }

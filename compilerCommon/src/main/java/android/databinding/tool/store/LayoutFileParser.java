@@ -16,7 +16,6 @@ package android.databinding.tool.store;
 import com.google.common.base.Preconditions;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
@@ -58,6 +57,7 @@ public class LayoutFileParser {
     private static final String XPATH_IMPORT_DEFINITIONS = "/layout/data/import";
     private static final String XPATH_MERGE_ELEMENT = "/layout/merge";
     private static final String XPATH_BINDING_LAYOUT = "/layout";
+    private static final String XPATH_MERGE_INCLUDE = "/layout/merge/include";
     private static final String XPATH_BINDING_CLASS = "/layout/data/@class";
     final String LAYOUT_PREFIX = "@layout/";
 
@@ -81,6 +81,12 @@ public class LayoutFileParser {
         final XPath xPath = xPathFactory.newXPath();
 
         if (!isBindingLayout(doc, xPath)) {
+            return null;
+        }
+
+        if (hasMergeInclude(doc, xPath)) {
+            L.e("Data binding does not support include elements as direct children of a " +
+                    "merge element: %s", xml.getPath());
             return null;
         }
 
@@ -186,6 +192,10 @@ public class LayoutFileParser {
 
     private boolean isBindingLayout(Document doc, XPath xPath) throws XPathExpressionException {
         return !get(doc, xPath, XPATH_BINDING_LAYOUT).isEmpty();
+    }
+
+    private boolean hasMergeInclude(Document doc, XPath xPath) throws XPathExpressionException {
+        return !get(doc, xPath, XPATH_MERGE_INCLUDE).isEmpty();
     }
 
     private Node getLayoutParent(Document doc, XPath xPath) throws XPathExpressionException {
