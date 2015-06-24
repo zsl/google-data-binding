@@ -16,10 +16,9 @@
 
 package android.databinding.annotationprocessor;
 
-import com.google.common.base.Preconditions;
-
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 
 import java.lang.annotation.Annotation;
 
@@ -46,7 +45,7 @@ public class BuildInfoUtil {
             if (info == null) {
                 continue; // It gets confused between BindingAppInfo and BinderBundle
             }
-            Preconditions.checkState(result == null, "Should have only one %s",
+            Preconditions.check(result == null, "Should have only one %s",
                     annotationClass.getCanonicalName());
             result = info;
         }

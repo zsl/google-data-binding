@@ -16,11 +16,10 @@
 
 package android.databinding.tool.expr;
 
-import com.google.common.collect.Lists;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SymbolExpr extends Expr {
@@ -49,6 +48,6 @@ public class SymbolExpr extends Expr {
 
     @Override
     protected List<Dependency> constructDependencies() {
-        return Lists.newArrayList();
+        return new ArrayList<>();
     }
 }

@@ -16,15 +16,9 @@
 
 package android.databinding.tool.expr;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -47,7 +41,7 @@ abstract public class Expr implements VersionProvider {
 
     private List<Dependency> mDependencies;
 
-    private List<Dependency> mDependants = Lists.newArrayList();
+    private List<Dependency> mDependants = new ArrayList<>();
 
     private int mId = NO_ID;
 
@@ -105,13 +99,13 @@ abstract public class Expr implements VersionProvider {
     }
 
     public int getId() {
-        Preconditions.checkState(mId != NO_ID, "if getId is called on an expression, it should have"
-                + " and id");
+        Preconditions.check(mId != NO_ID, "if getId is called on an expression, it should have"
+                + " an id: %s", this);
         return mId;
     }
 
     public void setId(int id) {
-        Preconditions.checkState(mId == NO_ID, "ID is already set on " + this);
+        Preconditions.check(mId == NO_ID, "ID is already set on %s", this);
         mId = id;
     }
 
@@ -220,7 +214,7 @@ abstract public class Expr implements VersionProvider {
             bitSet.or(getInvalidFlags());
         }
         for (Dependency dependency : getDependants()) {
-            final boolean isUnreadElevated = unreadElevatedCheck.apply(dependency);
+            final boolean isUnreadElevated = isUnreadElevated(dependency);
             if (dependency.isConditional()) {
                 continue; // will be resolved later when conditional is elevated
             }
@@ -236,13 +230,9 @@ abstract public class Expr implements VersionProvider {
         return bitSet;
     }
 
-    Predicate<Dependency> unreadElevatedCheck = new Predicate<Dependency>() {
-        @Override
-        public boolean apply(Dependency input) {
-            return input.isElevated() && !input.getDependant().isRead();
-        }
-    };
-
+    private static boolean isUnreadElevated(Dependency input) {
+        return input.isElevated() && !input.getDependant().isRead();
+    }
     private void addParents() {
         for (Expr expr : mChildren) {
             expr.mParents.add(this);
@@ -256,7 +246,8 @@ abstract public class Expr implements VersionProvider {
     }
 
     private void onParentSwapped(Expr oldParent, Expr newParent) {
-        Preconditions.checkState(mParents.remove(oldParent));
+        Preconditions.check(mParents.remove(oldParent), "trying to remove non-existent parent %s"
+                + " from %s", oldParent, mParents);
         mParents.add(newParent);
     }
 
@@ -285,13 +276,12 @@ abstract public class Expr implements VersionProvider {
     }
 
     private boolean isAnyChildDynamic() {
-        return Iterables.any(mChildren, new Predicate<Expr>() {
-            @Override
-            public boolean apply(Expr input) {
-                return input.isDynamic();
+        for (Expr expr : mChildren) {
+            if (expr.isDynamic()) {
+                return true;
             }
-        });
-
+        }
+        return false;
     }
 
     public ModelClass getResolvedType() {
@@ -337,7 +327,6 @@ abstract public class Expr implements VersionProvider {
     }
 
     protected static final String KEY_JOIN = "~";
-    protected static final Joiner sUniqueKeyJoiner = Joiner.on(KEY_JOIN);
 
     /**
      * Returns a unique string key that can identify this expression.
@@ -351,7 +340,7 @@ abstract public class Expr implements VersionProvider {
             mUniqueKey = computeUniqueKey();
             Preconditions.checkNotNull(mUniqueKey,
                     "if there are no children, you must override computeUniqueKey");
-            Preconditions.checkState(!mUniqueKey.trim().equals(""),
+            Preconditions.check(!mUniqueKey.trim().equals(""),
                     "if there are no children, you must override computeUniqueKey");
         }
         return mUniqueKey;
@@ -362,12 +351,7 @@ abstract public class Expr implements VersionProvider {
     }
 
     protected final String computeChildrenKey() {
-        return sUniqueKeyJoiner.join(Iterables.transform(mChildren, new Function<Expr, String>() {
-            @Override
-            public String apply(Expr input) {
-                return input.getUniqueKey();
-            }
-        }));
+        return join(mChildren);
     }
 
     public void enableDirectInvalidation() {
@@ -399,7 +383,7 @@ abstract public class Expr implements VersionProvider {
      * Base method should thr
      */
     public int getRequirementFlagIndex(boolean expectedOutput) {
-        Preconditions.checkState(mRequirementId != NO_ID, "If this is an expression w/ conditional"
+        Preconditions.check(mRequirementId != NO_ID, "If this is an expression w/ conditional"
                 + " dependencies, it must be assigned a requirement ID");
         return expectedOutput ? mRequirementId + 1 : mRequirementId;
     }
@@ -444,15 +428,17 @@ abstract public class Expr implements VersionProvider {
         if (getShouldReadFlags().isEmpty()) {
             return true;
         }
-        return Iterables.any(getDependencies(), hasNestedCannotRead);
+        for (Dependency dependency : getDependencies()) {
+            if (hasNestedCannotRead(dependency)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    Predicate<Dependency> hasNestedCannotRead = new Predicate<Dependency>() {
-        @Override
-        public boolean apply(Dependency input) {
-            return input.isConditional() || input.getOther().hasNestedCannotRead();
-        }
-    };
+    private static boolean hasNestedCannotRead(Dependency input) {
+        return input.isConditional() || input.getOther().hasNestedCannotRead();
+    }
 
     public boolean markAsReadIfDone() {
         if (mRead) {
@@ -499,7 +485,7 @@ abstract public class Expr implements VersionProvider {
     BitSet mConditionalFlags;
 
     private BitSet findConditionalFlags() {
-        Preconditions.checkState(isConditional(), "should not call this on a non-conditional expr");
+        Preconditions.check(isConditional(), "should not call this on a non-conditional expr");
         if (mConditionalFlags == null) {
             mConditionalFlags = new BitSet();
             resolveConditionalFlags(mConditionalFlags);
@@ -569,15 +555,18 @@ abstract public class Expr implements VersionProvider {
     /**
      * Used by code generation
      */
-    public boolean shouldReadNow(final Iterable<Expr> justRead) {
-        return !getShouldReadFlags().isEmpty() &&
-                !Iterables.any(getDependencies(), new Predicate<Dependency>() {
-                    @Override
-                    public boolean apply(Dependency input) {
-                        return !(input.getOther().isRead() || (justRead != null && Iterables
-                                .contains(justRead, input.getOther())));
-                    }
-                });
+    public boolean shouldReadNow(final List<Expr> justRead) {
+        if (getShouldReadFlags().isEmpty()) {
+            return false;
+        }
+        for (Dependency input : getDependencies()) {
+            boolean dependencyReady = input.getOther().isRead() || (justRead != null &&
+                    justRead.contains(input.getOther()));
+            if(!dependencyReady) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean isEqualityCheck() {
@@ -599,6 +588,28 @@ abstract public class Expr implements VersionProvider {
         for (Expr child : mChildren) {
             child.updateExpr(modelAnalyzer);
         }
+    }
+
+    protected static String join(String... items) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < items.length; i ++) {
+            if (i > 0) {
+                result.append(KEY_JOIN);
+            }
+            result.append(items[i]);
+        }
+        return result.toString();
+    }
+
+    protected static String join(List<Expr> items) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < items.size(); i ++) {
+            if (i > 0) {
+                result.append(KEY_JOIN);
+            }
+            result.append(items.get(i).getUniqueKey());
+        }
+        return result.toString();
     }
 
     protected String asPackage() {

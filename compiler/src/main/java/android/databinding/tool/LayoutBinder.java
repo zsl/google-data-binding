@@ -16,8 +16,6 @@
 
 package android.databinding.tool;
 
-import com.google.common.base.Preconditions;
-
 import android.databinding.tool.expr.Dependency;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
@@ -25,6 +23,7 @@ import android.databinding.tool.expr.ExprModel.ResolveListenersCallback;
 import android.databinding.tool.expr.IdentifierExpr;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
+import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.LayoutBinderWriter;
 import android.databinding.tool.writer.WriterPackage;
 
@@ -210,7 +209,7 @@ public class LayoutBinder implements ResolveListenersCallback {
     }
 
     public IdentifierExpr addVariable(String name, String type) {
-        Preconditions.checkState(!mUserDefinedVariables.containsKey(name),
+        Preconditions.check(!mUserDefinedVariables.containsKey(name),
                 "%s has already been defined as %s", name, type);
         final IdentifierExpr id = mExprModel.identifier(name);
         id.setUserDefinedType(type);

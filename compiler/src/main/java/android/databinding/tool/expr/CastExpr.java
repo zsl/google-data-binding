@@ -45,7 +45,7 @@ public class CastExpr extends Expr {
     }
 
     protected String computeUniqueKey() {
-        return sUniqueKeyJoiner.join(mType, getCastExpr().computeUniqueKey());
+        return join(mType, getCastExpr().computeUniqueKey());
     }
 
     public Expr getCastExpr() {

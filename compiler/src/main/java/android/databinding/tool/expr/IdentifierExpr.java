@@ -16,13 +16,12 @@
 
 package android.databinding.tool.expr;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class IdentifierExpr extends Expr {
@@ -46,7 +45,7 @@ public class IdentifierExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return sUniqueKeyJoiner.join(mName, super.computeUniqueKey());
+        return join(mName, super.computeUniqueKey());
     }
 
     public String getUserDefinedType() {
@@ -77,7 +76,7 @@ public class IdentifierExpr extends Expr {
 
     @Override
     protected List<Dependency> constructDependencies() {
-        return Lists.newArrayList();
+        return new ArrayList<>();
     }
 
     @Override

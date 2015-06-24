@@ -15,10 +15,9 @@
  */
 package android.databinding.tool.reflection;
 
-import com.google.common.base.Preconditions;
-
 import android.databinding.tool.reflection.annotation.AnnotationAnalyzer;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 
 import java.util.Map;
 

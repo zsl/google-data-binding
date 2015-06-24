@@ -13,8 +13,6 @@
 
 package android.databinding.tool.reflection.java;
 
-import com.google.common.collect.ImmutableMap;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.SdkUtil;
@@ -29,17 +27,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class JavaAnalyzer extends ModelAnalyzer {
-    public static final Map<String, Class> PRIMITIVE_TYPES =
-            new ImmutableMap.Builder<String, Class>()
-                    .put("boolean", boolean.class)
-                    .put("byte", byte.class)
-                    .put("short", short.class)
-                    .put("char", char.class)
-                    .put("int", int.class)
-                    .put("long", long.class)
-                    .put("float", float.class)
-                    .put("double", double.class)
-                    .build();
+    public static final Map<String, Class> PRIMITIVE_TYPES;
+    static {
+        PRIMITIVE_TYPES = new HashMap<String, Class>();
+        PRIMITIVE_TYPES.put("boolean", boolean.class);
+        PRIMITIVE_TYPES.put("byte", byte.class);
+        PRIMITIVE_TYPES.put("short", short.class);
+        PRIMITIVE_TYPES.put("char", char.class);
+        PRIMITIVE_TYPES.put("int", int.class);
+        PRIMITIVE_TYPES.put("long", long.class);
+        PRIMITIVE_TYPES.put("float", float.class);
+        PRIMITIVE_TYPES.put("double", double.class);
+    }
 
     private HashMap<String, JavaClass> mClassCache = new HashMap<String, JavaClass>();
 

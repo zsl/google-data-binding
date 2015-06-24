@@ -30,7 +30,7 @@ public class ComparisonExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return sUniqueKeyJoiner.join(mOp, super.computeUniqueKey());
+        return join(mOp, super.computeUniqueKey());
     }
 
     @Override

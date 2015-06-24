@@ -65,7 +65,7 @@ public class ExprTest{
         JavaAnalyzer.initForTests();
     }
 
-    @Test(expected=IllegalStateException.class)
+    @Test(expected=Throwable.class)
     public void testBadExpr() {
         Expr expr = new Expr() {
             @Override

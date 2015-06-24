@@ -15,14 +15,13 @@
  */
 package android.databinding.tool.reflection.annotation;
 
-import com.google.common.collect.ImmutableMap;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.TypeUtil;
 import android.databinding.tool.util.L;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -36,17 +35,18 @@ import javax.tools.Diagnostic;
 
 public class AnnotationAnalyzer extends ModelAnalyzer {
 
-    public static final Map<String, TypeKind> PRIMITIVE_TYPES =
-            new ImmutableMap.Builder<String, TypeKind>()
-                    .put("boolean", TypeKind.BOOLEAN)
-                    .put("byte", TypeKind.BYTE)
-                    .put("short", TypeKind.SHORT)
-                    .put("char", TypeKind.CHAR)
-                    .put("int", TypeKind.INT)
-                    .put("long", TypeKind.LONG)
-                    .put("float", TypeKind.FLOAT)
-                    .put("double", TypeKind.DOUBLE)
-                    .build();
+    public static final Map<String, TypeKind> PRIMITIVE_TYPES;
+    static {
+        PRIMITIVE_TYPES = new HashMap<>();
+        PRIMITIVE_TYPES.put("boolean", TypeKind.BOOLEAN);
+        PRIMITIVE_TYPES.put("byte", TypeKind.BYTE);
+        PRIMITIVE_TYPES.put("short", TypeKind.SHORT);
+        PRIMITIVE_TYPES.put("char", TypeKind.CHAR);
+        PRIMITIVE_TYPES.put("int", TypeKind.INT);
+        PRIMITIVE_TYPES.put("long", TypeKind.LONG);
+        PRIMITIVE_TYPES.put("float", TypeKind.FLOAT);
+        PRIMITIVE_TYPES.put("double", TypeKind.DOUBLE);
+    }
 
     public final ProcessingEnvironment mProcessingEnv;
 

@@ -30,7 +30,7 @@ public class UnaryExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return sUniqueKeyJoiner.join(getOpStr(), getExpr().getUniqueKey());
+        return join(getOpStr(), getExpr().getUniqueKey());
     }
 
     @Override

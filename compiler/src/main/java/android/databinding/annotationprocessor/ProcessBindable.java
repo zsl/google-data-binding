@@ -16,13 +16,12 @@
 
 package android.databinding.annotationprocessor;
 
-import com.google.common.base.Preconditions;
-
 import android.databinding.Bindable;
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef.BindableHolder;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 
 import java.io.Serializable;
 import java.util.ArrayList;

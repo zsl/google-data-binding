@@ -16,9 +16,6 @@
 
 package android.databinding.tool;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-
 import android.databinding.tool.expr.ArgListExpr;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
@@ -28,6 +25,8 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.writer.CodeGenUtil;
 import android.databinding.tool.writer.WriterPackage;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -44,23 +43,21 @@ public class MergedBinding extends Binding {
     }
 
     private static Expr createArgListExpr(ExprModel model, final Iterable<Binding> bindings) {
-        Expr expr = model.argListExpr(Iterables.transform(bindings, new Function<Binding, Expr>() {
-            @Override
-            public Expr apply(Binding input) {
-                return input.getExpr();
-            }
-        }));
+        List<Expr> args = new ArrayList<>();
+        for (Binding binding : bindings) {
+            args.add(binding.getExpr());
+        }
+        Expr expr = model.argListExpr(args);
         expr.setBindingExpression(true);
         return expr;
     }
 
     private static String createMergedName(Iterable<Binding> bindings) {
-        return Iterables.toString(Iterables.transform(bindings, new Function<Binding, String>() {
-            @Override
-            public String apply(Binding input) {
-                return input.getName();
-            }
-        }));
+        StringBuilder sb = new StringBuilder();
+        for (Binding binding : bindings) {
+            sb.append(binding.getName());
+        }
+        return sb.toString();
     }
 
     @Override
@@ -90,27 +87,28 @@ public class MergedBinding extends Binding {
     @Override
     public String toJavaCode(String targetViewName) {
         final ArgListExpr args = (ArgListExpr) getExpr();
-        final Iterable<String> newValues =
-                Iterables.transform(args.getChildren(), new Function<Expr, String>() {
-            @Override
-            public String apply(Expr input) {
-                return CodeGenUtil.Companion.toCode(input, false).generate();
-            }
-        });
-        final Iterable<String> oldValues;
+        final List<String> newValues = new ArrayList<>();
+        for (Expr expr : args.getChildren()) {
+            newValues.add(CodeGenUtil.Companion.toCode(expr, false).generate());
+        }
+        final List<String> oldValues;
         if (requiresOldValue()) {
-            oldValues = Iterables.transform(args.getChildren(), new Function<Expr, String>() {
-                        @Override
-                        public String apply(Expr input) {
-                            return "this." + WriterPackage.getOldValueName(input);
-                        }
-                    });
+            oldValues = new ArrayList<>();
+            for (Expr expr : args.getChildren()) {
+                oldValues.add("this." + WriterPackage.getOldValueName(expr));
+            }
         } else {
             oldValues = Arrays.asList(new String[args.getChildren().size()]);
         }
-        final String[] expressions = Iterables.toArray(Iterables.concat(oldValues, newValues),
-                String.class);
+        final String[] expressions = concat(oldValues, newValues, String.class);
         L.d("merged binding arg: %s", args.getUniqueKey());
         return mMultiAttributeSetter.toJava(targetViewName, expressions);
+    }
+
+    private static <T> T[] concat(List<T> l1, List<T> l2, Class<T> klass) {
+        List<T> result = new ArrayList<>();
+        result.addAll(l1);
+        result.addAll(l2);
+        return result.toArray((T[]) Array.newInstance(klass, result.size()));
     }
 }

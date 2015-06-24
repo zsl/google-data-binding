@@ -16,8 +16,6 @@
 
 package android.databinding.tool.expr;
 
-import com.google.common.base.Preconditions;
-
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -187,9 +185,9 @@ public class FieldAccessExpr extends Expr {
     @Override
     protected String computeUniqueKey() {
         if (mIsObservableField) {
-            return sUniqueKeyJoiner.join(mName, "..", super.computeUniqueKey());
+            return join(mName, "..", super.computeUniqueKey());
         }
-        return sUniqueKeyJoiner.join(mName, ".", super.computeUniqueKey());
+        return join(mName, ".", super.computeUniqueKey());
     }
 
     public String getName() {

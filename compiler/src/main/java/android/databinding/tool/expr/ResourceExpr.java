@@ -15,28 +15,27 @@
  */
 package android.databinding.tool.expr;
 
-import com.google.common.collect.ImmutableMap;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.writer.WriterPackage;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ResourceExpr extends Expr {
 
-    private final static Map<String, String> RESOURCE_TYPE_TO_R_OBJECT =
-            ImmutableMap.<String, String>builder()
-                    .put("colorStateList", "color  ")
-                    .put("dimenOffset", "dimen  ")
-                    .put("dimenSize", "dimen  ")
-                    .put("intArray", "array  ")
-                    .put("stateListAnimator", "animator  ")
-                    .put("stringArray", "array  ")
-                    .put("typedArray", "array")
-                    .build();
-
+    private final static Map<String, String> RESOURCE_TYPE_TO_R_OBJECT;
+    static {
+        RESOURCE_TYPE_TO_R_OBJECT = new HashMap<>();
+        RESOURCE_TYPE_TO_R_OBJECT.put("colorStateList", "color  ");
+        RESOURCE_TYPE_TO_R_OBJECT.put("dimenOffset", "dimen  ");
+        RESOURCE_TYPE_TO_R_OBJECT.put("dimenSize", "dimen  ");
+        RESOURCE_TYPE_TO_R_OBJECT.put("intArray", "array  ");
+        RESOURCE_TYPE_TO_R_OBJECT.put("stateListAnimator", "animator  ");
+        RESOURCE_TYPE_TO_R_OBJECT.put("stringArray", "array  ");
+        RESOURCE_TYPE_TO_R_OBJECT.put("typedArray", "array");
+    }
     // lazily initialized
     private Map<String, ModelClass> mResourceToTypeMapping;
 
@@ -61,38 +60,37 @@ public class ResourceExpr extends Expr {
     private Map<String, ModelClass> getResourceToTypeMapping(ModelAnalyzer modelAnalyzer) {
         if (mResourceToTypeMapping == null) {
             final Map<String, String> imports = getModel().getImports();
-            mResourceToTypeMapping = ImmutableMap.<String, ModelClass>builder()
-                    .put("anim", modelAnalyzer.findClass("android.view.animation.Animation",
-                            imports))
-                    .put("animator", modelAnalyzer.findClass("android.animation.Animator",
-                            imports))
-                    .put("colorStateList",
+            mResourceToTypeMapping = new HashMap<>();
+            mResourceToTypeMapping.put("anim", modelAnalyzer.findClass("android.view.animation.Animation",
+                            imports));
+            mResourceToTypeMapping.put("animator", modelAnalyzer.findClass("android.animation.Animator",
+                            imports));
+            mResourceToTypeMapping.put("colorStateList",
                             modelAnalyzer.findClass("android.content.res.ColorStateList",
-                                    imports))
-                    .put("drawable", modelAnalyzer.findClass("android.graphics.drawable.Drawable",
-                            imports))
-                    .put("stateListAnimator",
+                                    imports));
+            mResourceToTypeMapping.put("drawable", modelAnalyzer.findClass("android.graphics.drawable.Drawable",
+                            imports));
+            mResourceToTypeMapping.put("stateListAnimator",
                             modelAnalyzer.findClass("android.animation.StateListAnimator",
-                                    imports))
-                    .put("transition", modelAnalyzer.findClass("android.transition.Transition",
-                            imports))
-                    .put("typedArray", modelAnalyzer.findClass("android.content.res.TypedArray",
-                            imports))
-                    .put("interpolator",
-                            modelAnalyzer.findClass("android.view.animation.Interpolator", imports))
-                    .put("bool", modelAnalyzer.findClass(boolean.class))
-                    .put("color", modelAnalyzer.findClass(int.class))
-                    .put("dimenOffset", modelAnalyzer.findClass(int.class))
-                    .put("dimenSize", modelAnalyzer.findClass(int.class))
-                    .put("id", modelAnalyzer.findClass(int.class))
-                    .put("integer", modelAnalyzer.findClass(int.class))
-                    .put("layout", modelAnalyzer.findClass(int.class))
-                    .put("dimen", modelAnalyzer.findClass(float.class))
-                    .put("fraction", modelAnalyzer.findClass(float.class))
-                    .put("intArray", modelAnalyzer.findClass(int[].class))
-                    .put("string", modelAnalyzer.findClass(String.class))
-                    .put("stringArray", modelAnalyzer.findClass(String[].class))
-                    .build();
+                                    imports));
+            mResourceToTypeMapping.put("transition", modelAnalyzer.findClass("android.transition.Transition",
+                            imports));
+            mResourceToTypeMapping.put("typedArray", modelAnalyzer.findClass("android.content.res.TypedArray",
+                            imports));
+            mResourceToTypeMapping.put("interpolator",
+                            modelAnalyzer.findClass("android.view.animation.Interpolator", imports));
+            mResourceToTypeMapping.put("bool", modelAnalyzer.findClass(boolean.class));
+            mResourceToTypeMapping.put("color", modelAnalyzer.findClass(int.class));
+            mResourceToTypeMapping.put("dimenOffset", modelAnalyzer.findClass(int.class));
+            mResourceToTypeMapping.put("dimenSize", modelAnalyzer.findClass(int.class));
+            mResourceToTypeMapping.put("id", modelAnalyzer.findClass(int.class));
+            mResourceToTypeMapping.put("integer", modelAnalyzer.findClass(int.class));
+            mResourceToTypeMapping.put("layout", modelAnalyzer.findClass(int.class));
+            mResourceToTypeMapping.put("dimen", modelAnalyzer.findClass(float.class));
+            mResourceToTypeMapping.put("fraction", modelAnalyzer.findClass(float.class));
+            mResourceToTypeMapping.put("intArray", modelAnalyzer.findClass(int[].class));
+            mResourceToTypeMapping.put("string", modelAnalyzer.findClass(String.class));
+            mResourceToTypeMapping.put("stringArray", modelAnalyzer.findClass(String[].class));
         }
         return mResourceToTypeMapping;
     }
@@ -128,7 +126,7 @@ public class ResourceExpr extends Expr {
         } else {
             base = "@" + "android:" + mResourceType + "/" + mResourceId;
         }
-        return sUniqueKeyJoiner.join(base, computeChildrenKey());
+        return join(base, computeChildrenKey());
     }
 
     public String getResourceId() {

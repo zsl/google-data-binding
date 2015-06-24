@@ -16,8 +16,6 @@
 
 package android.databinding.tool;
 
-import com.google.common.base.Preconditions;
-
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -35,6 +33,7 @@ import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.StaticIdentifierExpr;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +61,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
 
     @Override
     public Expr visitGrouping(@NotNull BindingExpressionParser.GroupingContext ctx) {
-        Preconditions.checkArgument(ctx.children.size() == 3, "Grouping expression should have"
+        Preconditions.check(ctx.children.size() == 3, "Grouping expression should have"
                 + " 3 children. # of children: %d", ctx.children.size());
         return mModel.group(ctx.children.get(1).accept(this));
     }

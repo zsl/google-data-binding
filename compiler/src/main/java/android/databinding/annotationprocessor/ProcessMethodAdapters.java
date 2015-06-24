@@ -15,8 +15,6 @@
  */
 package android.databinding.annotationprocessor;
 
-import com.google.common.base.Preconditions;
-
 import android.databinding.BindingAdapter;
 import android.databinding.BindingBuildInfo;
 import android.databinding.BindingConversion;
@@ -26,6 +24,7 @@ import android.databinding.Untaggable;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 
 import java.io.IOException;
 import java.util.HashSet;

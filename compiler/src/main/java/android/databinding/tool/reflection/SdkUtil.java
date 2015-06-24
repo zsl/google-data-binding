@@ -13,8 +13,6 @@
 
 package android.databinding.tool.reflection;
 
-import com.google.common.base.Preconditions;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
@@ -22,6 +20,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 
 import java.io.File;
 import java.io.InputStream;

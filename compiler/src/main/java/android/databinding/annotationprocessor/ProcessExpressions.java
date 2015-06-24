@@ -16,8 +16,6 @@
 
 package android.databinding.annotationprocessor;
 
-import com.google.common.base.Preconditions;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;

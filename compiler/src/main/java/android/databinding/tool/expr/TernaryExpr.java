@@ -16,11 +16,10 @@
 
 package android.databinding.tool.expr;
 
-import com.google.common.collect.Lists;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
@@ -54,7 +53,7 @@ public class TernaryExpr extends Expr {
 
     @Override
     protected List<Dependency> constructDependencies() {
-        List<Dependency> deps = Lists.newArrayList();
+        List<Dependency> deps = new ArrayList<>();
         Expr predExpr = getPred();
         if (predExpr.isDynamic()) {
             final Dependency pred = new Dependency(this, predExpr);

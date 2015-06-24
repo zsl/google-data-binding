@@ -16,11 +16,6 @@
 
 package android.databinding.tool;
 
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -28,6 +23,7 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -148,22 +144,19 @@ public class BindingTarget {
         List<MergedBinding> mergeBindings = new ArrayList<MergedBinding>();
         for (final SetterStore.MultiAttributeSetter setter : multiAttributeSetterCalls) {
             L.d("resolved %s", setter);
-            final Binding[] mergedBindings = Iterables.toArray(
-                    Iterables.transform(Arrays.asList(setter.attributes),
-                            new Function<String, Binding>() {
-                                @Override
-                                public Binding apply(final String attribute) {
-                                    L.d("looking for binding for attribute %s", attribute);
-                                    return lookup.get(attribute);
-                                }
-                            }), Binding.class) ;
-            Preconditions.checkArgument(mergedBindings.length == setter.attributes.length);
+            final List<Binding> mergedBindings = new ArrayList<>();
+            for (String attribute : setter.attributes) {
+                Binding binding = lookup.get(attribute);
+                Preconditions.checkNotNull(binding, "cannot find binding for %s", attribute);
+                mergedBindings.add(binding);
+            }
+
             for (Binding binding : mergedBindings) {
                 binding.getExpr().setBindingExpression(false);
                 mBindings.remove(binding);
             }
             MergedBinding mergedBinding = new MergedBinding(getModel(), setter, this,
-                    Arrays.asList(mergedBindings));
+                    mergedBindings);
             mergeBindings.add(mergedBinding);
         }
         for (MergedBinding binding : mergeBindings) {

@@ -16,8 +16,6 @@
 
 package android.databinding.tool.expr;
 
-import com.google.common.collect.Iterables;
-
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -38,8 +36,15 @@ public class MethodCallExpr extends Expr {
 
     Callable mGetter;
 
+    static List<Expr> concat(Expr e, List<Expr> list) {
+        List<Expr> merged = new ArrayList<>();
+        merged.add(e);
+        merged.addAll(list);
+        return merged;
+    }
+
     MethodCallExpr(Expr target, String name, List<Expr> args) {
-        super(Iterables.concat(Arrays.asList(target), args));
+        super(concat(target, args));
         mName = name;
     }
 
@@ -101,7 +106,7 @@ public class MethodCallExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return sUniqueKeyJoiner.join(getTarget().computeUniqueKey(), mName,
+        return join(getTarget().computeUniqueKey(), mName,
                 super.computeUniqueKey());
     }
 

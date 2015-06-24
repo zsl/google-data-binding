@@ -15,9 +15,6 @@
  */
 package android.databinding.tool.store;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-
 import org.apache.commons.lang3.StringUtils;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -25,6 +22,7 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -86,7 +84,7 @@ public class SetterStore {
                                 return compare;
                             }
                         }
-                        Preconditions.checkState(false,
+                        Preconditions.check(false,
                                 "The sets don't match! That means the keys shouldn't match also");
                     }
                     // Same view type. Same attributes
@@ -796,8 +794,12 @@ public class SetterStore {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(viewType, attributeIndices.keySet());
+            return mergedHashCode(viewType, attributeIndices.keySet());
         }
+    }
+
+    private static int mergedHashCode(Object... objects) {
+        return Arrays.hashCode(objects);
     }
 
     private static class MethodDescription implements Serializable {
@@ -837,7 +839,7 @@ public class SetterStore {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(type, method);
+            return mergedHashCode(type, method);
         }
 
         @Override
@@ -861,7 +863,7 @@ public class SetterStore {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(viewType, valueType);
+            return mergedHashCode(viewType, valueType);
         }
 
         @Override
@@ -1044,7 +1046,7 @@ public class SetterStore {
 
         @Override
         public final String toJava(String viewExpression, String... valueExpression) {
-            Preconditions.checkArgument(valueExpression.length == 2);
+            Preconditions.check(valueExpression.length == 2, "value expressions size must be 2");
             if (requiresOldValue()) {
                 return toJavaInternal(viewExpression, convertValue(valueExpression[0]),
                         convertValue(valueExpression[1]));
@@ -1074,9 +1076,10 @@ public class SetterStore {
 
         public MultiAttributeSetter(MultiValueAdapterKey key, String[] attributes,
                 MethodDescription adapter, MethodDescription[] converters, String[] casts) {
-            Preconditions.checkArgument(converters != null &&
+            Preconditions.check(converters != null &&
                     converters.length == attributes.length &&
-                    casts != null && casts.length == attributes.length);
+                    casts != null && casts.length == attributes.length,
+                    "invalid arguments to create multi attr setter");
             this.attributes = attributes;
             this.mAdapter = adapter;
             this.mConverters = converters;
@@ -1086,7 +1089,7 @@ public class SetterStore {
 
         @Override
         public final String toJava(String viewExpression, String[] valueExpressions) {
-            Preconditions.checkArgument(valueExpressions.length == attributes.length * 2,
+            Preconditions.check(valueExpressions.length == attributes.length * 2,
                     "MultiAttributeSetter needs %s items, received %s",
                     Arrays.toString(attributes), Arrays.toString(valueExpressions));
             StringBuilder sb = new StringBuilder();

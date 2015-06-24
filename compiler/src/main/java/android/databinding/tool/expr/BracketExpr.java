@@ -58,7 +58,7 @@ public class BracketExpr extends Expr {
     }
 
     protected String computeUniqueKey() {
-        return sUniqueKeyJoiner.join(getTarget().computeUniqueKey(), "$", getArg().computeUniqueKey(), "$");
+        return join(getTarget().computeUniqueKey(), "$", getArg().computeUniqueKey(), "$");
     }
 
     public Expr getTarget() {

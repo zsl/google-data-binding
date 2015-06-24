@@ -16,15 +16,10 @@
 
 package android.databinding.tool.expr;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.FlagSet;
 
 import java.util.ArrayList;
@@ -84,10 +79,10 @@ public class ExprModel {
      * @return The expression itself or another one if the same thing was parsed before
      */
     public <T extends Expr> T register(T expr) {
-        Preconditions.checkState(!mSealed, "Cannot add expressions to a model after it is sealed");
+        Preconditions.check(!mSealed, "Cannot add expressions to a model after it is sealed");
         T existing = (T) mExprMap.get(expr.getUniqueKey());
         if (existing != null) {
-            Preconditions.checkState(expr.getParents().isEmpty(),
+            Preconditions.check(expr.getParents().isEmpty(),
                     "If an expression already exists, it should've never been added to a parent,"
                             + "if thats the case, somewhere we are creating an expression w/o"
                             + "calling expression model");
@@ -150,25 +145,21 @@ public class ExprModel {
      */
     public StaticIdentifierExpr staticIdentifierFor(final ModelClass modelClass) {
         final String type = modelClass.getCanonicalName();
-        Optional<Expr> existing = Iterables.tryFind(mExprMap.values(), new Predicate<Expr>() {
-            @Override
-            public boolean apply(Expr input) {
-                if (!(input instanceof StaticIdentifierExpr)) {
-                    return false;
+        // check for existing
+        for (Expr expr : mExprMap.values()) {
+            if (expr instanceof StaticIdentifierExpr) {
+                StaticIdentifierExpr id = (StaticIdentifierExpr) expr;
+                if (id.getUserDefinedType().equals(type)) {
+                    return id;
                 }
-                StaticIdentifierExpr id = (StaticIdentifierExpr) input;
-                return id.getUserDefinedType().equals(type);
             }
-        });
-        if (existing.isPresent()) {
-            return (StaticIdentifierExpr) existing.get();
         }
 
         // does not exist. Find a name for it.
         int cnt = 0;
         int dotIndex = type.lastIndexOf(".");
         String baseName;
-        Preconditions.checkArgument(dotIndex < type.length() - 1, "Invalid type %s", type);
+        Preconditions.check(dotIndex < type.length() - 1, "Invalid type %s", type);
         if (dotIndex == -1) {
             baseName = type;
         } else {
@@ -180,7 +171,7 @@ public class ExprModel {
                 return addImport(candidate, type);
             }
             cnt ++;
-            Preconditions.checkState(cnt < 100, "Failed to create an import for " + type);
+            Preconditions.check(cnt < 100, "Failed to create an import for " + type);
         }
     }
 
@@ -234,7 +225,7 @@ public class ExprModel {
     }
 
     public StaticIdentifierExpr addImport(String alias, String type) {
-        Preconditions.checkState(!mImports.containsKey(alias),
+        Preconditions.check(!mImports.containsKey(alias),
                 "%s has already been defined as %s", alias, type);
         final StaticIdentifierExpr id = staticIdentifier(alias);
         L.d("adding import %s as %s klass: %s", type, alias, id.getClass().getSimpleName());
@@ -253,7 +244,7 @@ public class ExprModel {
      * Input must be already registered
      */
     public Expr bindingExpr(Expr bindingExpr) {
-        Preconditions.checkArgument(mExprMap.containsKey(bindingExpr.getUniqueKey()),
+        Preconditions.check(mExprMap.containsKey(bindingExpr.getUniqueKey()),
                 "Main expression should already be registered");
         if (!mBindingExpressions.contains(bindingExpr)) {
             mBindingExpressions.add(bindingExpr);
@@ -284,8 +275,8 @@ public class ExprModel {
 
         int counter = 0;
         final Iterable<Expr> observables = filterObservables(modelAnalyzer);
-        List<String> flagMapping = Lists.newArrayList();
-        mObservables = Lists.newArrayList();
+        List<String> flagMapping = new ArrayList<>();
+        mObservables = new ArrayList<>();
         for (Expr expr : observables) {
             // observables gets initial ids
             flagMapping.add(expr.getUniqueKey());
@@ -431,30 +422,32 @@ public class ExprModel {
         return mFlagMapping[id];
     }
 
-    private Iterable<Expr> filterNonObservableIds(final ModelAnalyzer modelAnalyzer) {
-        return Iterables.filter(mExprMap.values(), new Predicate<Expr>() {
-            @Override
-            public boolean apply(Expr input) {
-                return input instanceof IdentifierExpr
-                        && !input.hasId()
-                        && !input.isObservable()
-                        && input.isDynamic();
+    private List<Expr> filterNonObservableIds(final ModelAnalyzer modelAnalyzer) {
+        List<Expr> result = new ArrayList<>();
+        for (Expr input : mExprMap.values()) {
+            if (input instanceof IdentifierExpr
+                    && !input.hasId()
+                    && !input.isObservable()
+                    && input.isDynamic()) {
+                result.add(input);
             }
-        });
+        }
+        return result;
     }
 
     private Iterable<Expr> filterObservables(final ModelAnalyzer modelAnalyzer) {
-        return Iterables.filter(mExprMap.values(), new Predicate<Expr>() {
-            @Override
-            public boolean apply(Expr input) {
-                return input.isObservable();
+        List<Expr> result = new ArrayList<>();
+        for (Expr input : mExprMap.values()) {
+            if (input.isObservable()) {
+                result.add(input);
             }
-        });
+        }
+        return result;
     }
 
     public List<Expr> getPendingExpressions() {
         if (mPendingExpressions == null) {
-            mPendingExpressions = Lists.newArrayList();
+            mPendingExpressions = new ArrayList<>();
             for (Expr expr : mExprMap.values()) {
                 if (!expr.isRead() && expr.isDynamic()) {
                     mPendingExpressions.add(expr);
@@ -466,7 +459,7 @@ public class ExprModel {
 
     public boolean markBitsRead() {
         // each has should read flags, we set them back on them
-        List<Expr> markedSomeFlagsRead = Lists.newArrayList();
+        List<Expr> markedSomeFlagsRead = new ArrayList<>();
         for (Expr expr : filterShouldRead(getPendingExpressions())) {
             expr.markFlagsAsRead(expr.getShouldReadFlags());
             markedSomeFlagsRead.add(expr);
@@ -476,7 +469,7 @@ public class ExprModel {
 
     private boolean pruneDone(List<Expr> markedSomeFlagsAsRead) {
         boolean marked = true;
-        List<Expr> markedAsReadList = Lists.newArrayList();
+        List<Expr> markedAsReadList = new ArrayList<>();
         while (marked) {
             marked = false;
             for (Expr expr : mExprMap.values()) {
@@ -523,28 +516,25 @@ public class ExprModel {
         return elevated;
     }
 
-    public static Iterable<Expr> filterShouldRead(Iterable<Expr> exprs) {
-        return toCollection(Iterables.filter(exprs, sShouldReadPred));
-    }
-
-    public static List<Expr> toCollection(Iterable<Expr> iterable) {
-        return Arrays.asList(Iterables.toArray(iterable, Expr.class));
-    }
-
-    private static final Predicate<Expr> sShouldReadPred = new Predicate<Expr>() {
-        @Override
-        public boolean apply(final Expr expr) {
-            return !expr.getShouldReadFlags().isEmpty() && !Iterables.any(
-                    expr.getDependencies(), new Predicate<Dependency>() {
-                        @Override
-                        public boolean apply(Dependency dependency) {
-                            final boolean result = dependency.isConditional() ||
-                                    dependency.getOther().hasNestedCannotRead();
-                            return result;
-                        }
-                    });
+    private static boolean hasConditionalOrNestedCannotReadDependency(Expr expr) {
+        for (Dependency dependency : expr.getDependencies()) {
+            if (dependency.isConditional() || dependency.getOther().hasNestedCannotRead()) {
+                return true;
+            }
         }
-    };
+        return false;
+    }
+
+    public static List<Expr> filterShouldRead(Iterable<Expr> exprs) {
+        List<Expr> result = new ArrayList<>();
+        for (Expr expr : exprs) {
+            if (!expr.getShouldReadFlags().isEmpty() &&
+                    !hasConditionalOrNestedCannotReadDependency(expr)) {
+                result.add(expr);
+            }
+        }
+        return result;
+    }
 
     /**
      * May return null if flag is equal to invalidate any flag.
@@ -573,7 +563,7 @@ public class ExprModel {
         error.append("invalidate any flag:").append(mInvalidateAnyFlags).append("\n");
         error.append("key:").append(key).append("\n");
         error.append("flag mapping:").append(Arrays.toString(mFlagMapping));
-        Preconditions.checkArgument(false, error.toString());
+        L.e(error.toString());
         return null;
     }
 
