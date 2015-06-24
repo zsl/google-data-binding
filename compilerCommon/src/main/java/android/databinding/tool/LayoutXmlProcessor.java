@@ -13,9 +13,6 @@
 
 package android.databinding.tool;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.xml.sax.SAXException;
 
@@ -69,7 +66,10 @@ public class LayoutXmlProcessor {
 
     public static List<File> getLayoutFiles(List<File> resources) {
         List<File> result = new ArrayList<File>();
-        for (File resource : Iterables.filter(resources, fileExists)) {
+        for (File resource : resources) {
+            if (!resource.exists() || !resource.canRead()) {
+                continue;
+            }
             if (resource.isDirectory()) {
                 for (File layoutFolder : resource.listFiles(layoutFolderFilter)) {
                     for (File xmlFile : layoutFolder.listFiles(xmlFileFilter)) {
@@ -186,13 +186,6 @@ public class LayoutXmlProcessor {
                 "public class " + CLASS_NAME + " {}\n";
         mFileWriter.writeToFile(RESOURCE_BUNDLE_PACKAGE + "." + CLASS_NAME, classString);
     }
-
-    private static final Predicate<File> fileExists = new Predicate<File>() {
-        @Override
-        public boolean apply(File input) {
-            return input.exists() && input.canRead();
-        }
-    };
 
     private static final FilenameFilter layoutFolderFilter = new FilenameFilter() {
         @Override

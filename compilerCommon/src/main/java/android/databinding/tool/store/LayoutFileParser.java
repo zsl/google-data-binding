@@ -13,8 +13,6 @@
 
 package android.databinding.tool.store;
 
-import com.google.common.base.Preconditions;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
@@ -137,9 +135,14 @@ public class LayoutFileParser {
             if ("include".equals(nodeName)) {
                 // get the layout attribute
                 final Node includedLayout = attributes.getNamedItem("layout");
-                Preconditions.checkNotNull(includedLayout, "must include a layout");
+                if (includedLayout == null) {
+                    L.e("%s must include a layout", xml.getAbsolutePath());
+                }
                 final String includeValue = includedLayout.getNodeValue();
-                Preconditions.checkArgument(includeValue.startsWith(LAYOUT_PREFIX));
+                if (!includeValue.startsWith(LAYOUT_PREFIX)) {
+                    L.e("included value in %s must start with %s.",
+                            xml.getAbsolutePath(), LAYOUT_PREFIX);
+                }
                 // if user is binding something there, there MUST be a layout file to be
                 // generated.
                 String layoutName = includeValue.substring(LAYOUT_PREFIX.length());
@@ -159,7 +162,8 @@ public class LayoutFileParser {
             }
             final ResourceBundle.BindingTargetBundle bindingTargetBundle =
                     bundle.createBindingTarget(id == null ? null : id.getNodeValue(),
-                            viewName, true, tag, originalTag == null ? null : originalTag.getNodeValue());
+                            viewName, true, tag,
+                            originalTag == null ? null : originalTag.getNodeValue());
             nodeTagMap.put(parent, tag);
             bindingTargetBundle.setIncludedLayout(includedLayoutName);
 

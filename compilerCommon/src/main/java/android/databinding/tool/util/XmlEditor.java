@@ -16,12 +16,6 @@
 
 package android.databinding.tool.util;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
@@ -65,36 +59,31 @@ public class XmlEditor {
             return null; // not a binding layout
         }
 
-        Iterable<? extends XMLParser.ElementContext> dataNodes = Iterables
-                .filter(elements(root), new Predicate<XMLParser.ElementContext>() {
-                    @Override
-                    public boolean apply(XMLParser.ElementContext input) {
-                        return "data".equals(nodeName(input));
-                    }
-                });
-        Preconditions.checkState(Iterables.size(dataNodes) < 2,
-                "Multiple binding data tags. Expecting a maximum of one.");
+        List<? extends ElementContext> childrenOfRoot = elements(root);
+        List<? extends XMLParser.ElementContext> dataNodes = filterNodesByName("data",
+                childrenOfRoot);
+        if (dataNodes.size() > 1) {
+            L.e("Multiple binding data tags in %s. Expecting a maximum of one.",
+                    f.getAbsolutePath());
+        }
 
-        ArrayList<String> lines = Lists.newArrayList();
+        ArrayList<String> lines = new ArrayList<>();
         lines.addAll(FileUtils.readLines(f, "utf-8"));
 
         for (android.databinding.parser.XMLParser.ElementContext it : dataNodes) {
             replace(lines, toPosition(it.getStart()), toEndPosition(it.getStop()), "");
         }
-        Iterable<? extends XMLParser.ElementContext> layoutNodes = Iterables
-                .filter(elements(root), new Predicate<XMLParser.ElementContext>() {
-                    @Override
-                    public boolean apply(XMLParser.ElementContext input) {
-                        return !"data".equals(nodeName(input));
-                    }
-                });
-        Preconditions.checkState(Iterables.size(layoutNodes) == 1,
-                "Only one layout element and one data element are allowed");
+        List<? extends XMLParser.ElementContext> layoutNodes =
+                excludeNodesByName("data", childrenOfRoot);
+        if (layoutNodes.size() != 1) {
+            L.e("Only one layout element and one data element are allowed. %s has %d",
+                    f.getAbsolutePath(), layoutNodes.size());
+        }
 
-        final XMLParser.ElementContext layoutNode = Iterables.getFirst(layoutNodes, null);
+        final XMLParser.ElementContext layoutNode = layoutNodes.get(0);
 
-        ArrayList<Pair<String, android.databinding.parser.XMLParser.ElementContext>> noTag = Lists
-                .newArrayList();
+        ArrayList<Pair<String, android.databinding.parser.XMLParser.ElementContext>> noTag =
+                new ArrayList<>();
 
         recurseReplace(layoutNode, lines, noTag, newTag, 0);
 
@@ -111,15 +100,14 @@ public class XmlEditor {
         for (AttributeContext attr : attributes(root)) {
             rootAttributes.append(' ').append(attr.getText());
         }
-        Optional<Pair<String, XMLParser.ElementContext>> pairOptional = Iterables
-                .tryFind(noTag, new Predicate<Pair<String, XMLParser.ElementContext>>() {
-                    @Override
-                    public boolean apply(Pair<String, XMLParser.ElementContext> input) {
-                        return input.getRight() == layoutNode;
-                    }
-                });
-        if (pairOptional.isPresent()) {
-            Pair<String, XMLParser.ElementContext> noTagRoot = pairOptional.get();
+        Pair<String, XMLParser.ElementContext> noTagRoot = null;
+        for (Pair<String, XMLParser.ElementContext> pair : noTag) {
+            if (pair.getRight() == layoutNode) {
+                noTagRoot = pair;
+                break;
+            }
+        }
+        if (noTagRoot != null) {
             ImmutablePair<String, XMLParser.ElementContext>
                     newRootTag = new ImmutablePair<>(
                     noTagRoot.getLeft() + rootAttributes.toString(), layoutNode);
@@ -157,6 +145,28 @@ public class XmlEditor {
         return StringUtils.join(lines, System.getProperty("line.separator"));
     }
 
+    private static <T extends XMLParser.ElementContext> List<T>
+            filterNodesByName(String name, Iterable<T> items) {
+        List<T> result = new ArrayList<>();
+        for (T item : items) {
+            if (name.equals(nodeName(item))) {
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
+    private static <T extends XMLParser.ElementContext> List<T>
+            excludeNodesByName(String name, Iterable<T> items) {
+        List<T> result = new ArrayList<>();
+        for (T item : items) {
+            if (!name.equals(nodeName(item))) {
+                result.add(item);
+            }
+        }
+        return result;
+    }
+
     private static Position toPosition(Token token) {
         return new Position(token.getLine() - 1, token.getCharPositionInLine());
     }
@@ -172,37 +182,42 @@ public class XmlEditor {
 
     private static List<? extends AttributeContext> attributes(XMLParser.ElementContext elementContext) {
         if (elementContext.attribute() == null) {
-            return Lists.newArrayList();
+            return new ArrayList<>();
         } else {
             return elementContext.attribute();
         }
     }
 
-    private static Iterable<? extends AttributeContext> expressionAttributes(
+    private static List<? extends AttributeContext> expressionAttributes(
             XMLParser.ElementContext elementContext) {
-        return Iterables.filter(attributes(elementContext), new Predicate<AttributeContext>() {
-            @Override
-            public boolean apply(AttributeContext input) {
-                String attrName = input.attrName.getText();
-                String value = input.attrValue.getText();
-                return attrName.equals("android:tag") ||
-                        (value.startsWith("\"@{") && value.endsWith("}\"")) ||
-                        (value.startsWith("'@{") && value.endsWith("}'"));
+        List<AttributeContext> result = new ArrayList<>();
+        for (AttributeContext input : attributes(elementContext)) {
+            String attrName = input.attrName.getText();
+            String value = input.attrValue.getText();
+            if (attrName.equals("android:tag") ||
+                    (value.startsWith("\"@{") && value.endsWith("}\"")) ||
+                    (value.startsWith("'@{") && value.endsWith("}'"))) {
+                result.add(input);
             }
-        });
+        }
+        return result;
     }
 
     private static Position endTagPosition(XMLParser.ElementContext context) {
         if (context.content() == null) {
             // no content, so just subtract from the "/>"
             Position endTag = toEndPosition(context.getStop());
-            Preconditions.checkState(endTag.charIndex > 0);
+            if (endTag.charIndex <= 0) {
+                L.e("invalid input in %s", context);
+            }
             endTag.charIndex -= 2;
             return endTag;
         } else {
             // tag with no attributes, but with content
             Position position = toPosition(context.content().getStart());
-            Preconditions.checkState(position.charIndex > 0);
+            if (position.charIndex <= 0) {
+                L.e("invalid input in %s", context);
+            }
             position.charIndex--;
             return position;
         }
@@ -213,7 +228,7 @@ public class XmlEditor {
         if (context.content() != null && context.content().element() != null) {
             return context.content().element();
         }
-        return Lists.newArrayList();
+        return new ArrayList<>();
     }
 
     private static boolean replace(ArrayList<String> lines, Position start, Position end,
@@ -252,11 +267,11 @@ public class XmlEditor {
     }
 
     private static boolean hasExpressionAttributes(XMLParser.ElementContext context) {
-        Iterable<? extends AttributeContext> expressions = expressionAttributes(context);
-        int size = Iterables.size(expressions);
+        List<? extends AttributeContext> expressions = expressionAttributes(context);
+        int size = expressions.size();
         //noinspection ConstantConditions
         return size > 1 || (size == 1 &&
-                !Iterables.getFirst(expressions, null).attrName.getText().equals("android:tag"));
+                !expressions.get(0).attrName.getText().equals("android:tag"));
     }
 
     private static int recurseReplace(XMLParser.ElementContext node, ArrayList<String> lines,
@@ -264,13 +279,7 @@ public class XmlEditor {
             String newTag, int bindingIndex) {
         int nextBindingIndex = bindingIndex;
         boolean isMerge = "merge".equals(nodeName(node));
-        final boolean containsInclude = Iterables.tryFind(elements(node),
-                new Predicate<ElementContext>() {
-                    @Override
-                    public boolean apply(ElementContext input) {
-                        return "include".equals(nodeName(input));
-                    }
-                }).isPresent();
+        final boolean containsInclude = filterNodesByName("include", elements(node)).size() > 0;
         if (!isMerge && (hasExpressionAttributes(node) || newTag != null || containsInclude)) {
             String tag = "";
             if (newTag != null) {

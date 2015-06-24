@@ -265,6 +265,9 @@ public class ExprModel {
         return mObservables;
     }
 
+    public void seal() {
+        seal(null);
+    }
     /**
      * Give id to each expression. Will be useful if we serialize.
      */

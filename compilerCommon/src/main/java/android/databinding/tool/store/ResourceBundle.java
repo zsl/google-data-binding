@@ -13,10 +13,7 @@
 
 package android.databinding.tool.store;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-
+import org.antlr.v4.runtime.misc.Predicate;
 import org.apache.commons.lang3.ArrayUtils;
 
 import android.databinding.tool.util.L;
@@ -55,7 +52,10 @@ public class ResourceBundle implements Serializable {
     }
 
     public void addLayoutBundle(LayoutFileBundle bundle) {
-        Preconditions.checkArgument(bundle.mFileName != null, "File bundle must have a name");
+        if (bundle.mFileName == null) {
+            L.e("File bundle must have a name. %s does not have one.", bundle);
+            return;
+        }
         if (!mLayoutBundles.containsKey(bundle.mFileName)) {
             mLayoutBundles.put(bundle.mFileName, new ArrayList<LayoutFileBundle>());
         }
@@ -96,16 +96,10 @@ public class ResourceBundle implements Serializable {
             }
         }
 
-        final Iterable<Map.Entry<String, List<LayoutFileBundle>>> multiResLayouts = Iterables
-                .filter(mLayoutBundles.entrySet(),
-                        new Predicate<Map.Entry<String, List<LayoutFileBundle>>>() {
-                            @Override
-                            public boolean apply(Map.Entry<String, List<LayoutFileBundle>> input) {
-                                return input.getValue().size() > 1;
-                            }
-                        });
-
-        for (Map.Entry<String, List<LayoutFileBundle>> bundles : multiResLayouts) {
+        for (Map.Entry<String, List<LayoutFileBundle>> bundles : mLayoutBundles.entrySet()) {
+            if (bundles.getValue().size() < 2) {
+                continue;
+            }
             // validate all ids are in correct view types
             // and all variables have the same name
             Map<String, String> variableTypes = new HashMap<String, String>();
@@ -126,18 +120,20 @@ public class ResourceBundle implements Serializable {
                 }
                 for (Map.Entry<String, String> variable : bundle.mVariables.entrySet()) {
                     String existing = variableTypes.get(variable.getKey());
-                    Preconditions
-                            .checkState(existing == null || existing.equals(variable.getValue()),
-                                    "inconsistent variable types for %s for layout %s",
-                                    variable.getKey(), bundle.mFileName);
+                    if (existing != null && !existing.equals(variable.getValue())) {
+                        L.e("inconsistent variable types for %s for layout %s",
+                                variable.getKey(), bundle.mFileName);
+                        continue;
+                    }
                     variableTypes.put(variable.getKey(), variable.getValue());
                 }
                 for (Map.Entry<String, String> userImport : bundle.mImports.entrySet()) {
                     String existing = importTypes.get(userImport.getKey());
-                    Preconditions
-                            .checkState(existing == null || existing.equals(userImport.getValue()),
-                                    "inconsistent variable types for %s for layout %s",
-                                    userImport.getKey(), bundle.mFileName);
+                    if (existing != null && !existing.equals(userImport.getValue())) {
+                        L.e("inconsistent variable types for %s for layout %s",
+                                userImport.getKey(), bundle.mFileName);
+                        continue;
+                    }
                     importTypes.put(userImport.getKey(), userImport.getValue());
                 }
             }
@@ -173,14 +169,16 @@ public class ResourceBundle implements Serializable {
                             target.isBinder());
                     if (target.mId != null) {
                         if (target.isBinder()) {
-                            Preconditions.checkState(!viewBindingIds.contains(target.getFullClassName()),
-                                    "Cannot use the same id for a View and an include tag. Error " +
-                                            "in file %s / %s", bundle.mFileName, bundle.mConfigName);
+                            if (viewBindingIds.contains(target.getFullClassName())) {
+                                L.e("Cannot use the same id for a View and an include tag. Error " +
+                                        "in file %s / %s", bundle.mFileName, bundle.mConfigName);
+                            }
                             includeBindingIds.add(target.getFullClassName());
                         } else {
-                            Preconditions.checkState(!includeBindingIds.contains(target.getFullClassName()),
-                                    "Cannot use the same id for a View and an include tag. Error in "
-                                            + "file %s / %s", bundle.mFileName, bundle.mConfigName);
+                            if (includeBindingIds.contains(target.getFullClassName())) {
+                                L.e("Cannot use the same id for a View and an include tag. Error in"
+                                        + " file %s / %s", bundle.mFileName, bundle.mConfigName);
+                            }
                             viewBindingIds.add(target.getFullClassName());
                         }
                         String existingType = viewTypes.get(target.mId);
