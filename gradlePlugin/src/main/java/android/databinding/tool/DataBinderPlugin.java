@@ -272,6 +272,7 @@ public class DataBinderPlugin implements Plugin<Project> {
 
                         logD("TASK adding dependency on %s for %s", task, processResTask);
                         processResTask.dependsOn(task);
+                        processResTask.getInputs().dir(xmlOutDir);
                         for (Object dep : processResTask.getDependsOn()) {
                             if (dep == task) {
                                 continue;

@@ -35,7 +35,7 @@ public class UnaryExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
-        return getExpr().resolveType(modelAnalyzer);
+        return getExpr().getResolvedType();
     }
 
     @Override

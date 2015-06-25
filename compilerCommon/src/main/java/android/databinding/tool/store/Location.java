@@ -17,6 +17,7 @@
 package android.databinding.tool.store;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -40,12 +41,19 @@ public class Location {
     public int endLine;
     @XmlAttribute(name = "endOffset")
     public int endOffset;
-    @XmlElement
+    @XmlElement(name = "parentLocation")
     public Location parentLocation;
 
     // for XML unmarshalling
     public Location() {
         startOffset = endOffset = startLine = endLine = NaN;
+    }
+
+    public Location(Location other) {
+        startOffset = other.startOffset;
+        endOffset = other.endOffset;
+        startLine = other.startLine;
+        endLine = other.endLine;
     }
 
     public Location(Token start, Token end) {
@@ -60,13 +68,34 @@ public class Location {
             endLine = endOffset = NaN;
         } else {
             endLine = end.getLine() - 1; // token lines start from 1
-            endOffset = end.getCharPositionInLine();
+            String endText = end.getText();
+            int lastLineStart = endText.lastIndexOf(System.lineSeparator());
+            String lastLine = lastLineStart < 0 ? endText : endText.substring(lastLineStart + 1);
+            endOffset = end.getCharPositionInLine() + lastLine.length() - 1;//end is inclusive
         }
     }
 
     public Location(ParserRuleContext context) {
         this(context == null ? null : context.getStart(),
                 context == null ? null : context.getStop());
+    }
+
+    public Location(int startLine, int startOffset, int endLine, int endOffset) {
+        this.startOffset = startOffset;
+        this.startLine = startLine;
+        this.endLine = endLine;
+        this.endOffset = endOffset;
+    }
+
+    @Override
+    public String toString() {
+        return "Location{" +
+                "startLine=" + startLine +
+                ", startOffset=" + startOffset +
+                ", endLine=" + endLine +
+                ", endOffset=" + endOffset +
+                ", parentLocation=" + parentLocation +
+                '}';
     }
 
     public void setParentLocation(Location parentLocation) {
@@ -111,5 +140,87 @@ public class Location {
         result = 31 * result + endLine;
         result = 31 * result + endOffset;
         return result;
+    }
+
+    public boolean isValid() {
+        return startLine != NaN && endLine != NaN && startOffset != NaN && endOffset != NaN;
+    }
+
+    public boolean contains(Location other) {
+        if (startLine > other.startLine) {
+            return false;
+        }
+        if (startLine == other.startLine && startOffset > other.startOffset) {
+            return false;
+        }
+        if (endLine < other.endLine) {
+            return false;
+        }
+        if (endLine == other.endLine && endOffset < other.endOffset) {
+            return false;
+        }
+        return true;
+    }
+
+    private Location getValidParentAbsoluteLocation() {
+        if (parentLocation == null) {
+            return null;
+        }
+        if (parentLocation.isValid()) {
+            return parentLocation.toAbsoluteLocation();
+        }
+        return parentLocation.getValidParentAbsoluteLocation();
+    }
+
+    public Location toAbsoluteLocation() {
+        Location absoluteParent = getValidParentAbsoluteLocation();
+        if (absoluteParent == null) {
+            return this;
+        }
+        Location copy = new Location(this);
+        boolean sameLine = copy.startLine == copy.endLine;
+        if (copy.startLine == 0) {
+            copy.startOffset += absoluteParent.startOffset;
+        }
+        if (sameLine) {
+            copy.endOffset += absoluteParent.startOffset;
+        }
+
+        copy.startLine += absoluteParent.startLine;
+        copy.endLine += absoluteParent.startLine;
+        return copy;
+    }
+
+    public String toUserReadableString() {
+        return startLine + ":" + startOffset + " - " + endLine + ":" + endOffset;
+    }
+
+    public static Location fromUserReadableString(String str) {
+        int glue = str.indexOf('-');
+        if (glue == -1) {
+            return new Location();
+        }
+        String start = str.substring(0, glue);
+        String end = str.substring(glue + 1);
+        int[] point = new int[]{-1, -1};
+        Location location = new Location();
+        parsePoint(start, point);
+        location.startLine = point[0];
+        location.startOffset = point[1];
+        point[0] = point[1] = -1;
+        parsePoint(end, point);
+        location.endLine = point[0];
+        location.endOffset = point[1];
+        return location;
+    }
+
+    private static boolean parsePoint(String content, int[] into) {
+        int index = content.indexOf(':');
+        if (index == -1) {
+            return false;
+        }
+        into[0] = Integer.parseInt(content.substring(0, index).trim());
+        into[1] = Integer.parseInt(content.substring(index + 1).trim());
+        return true;
     }
 }

@@ -28,6 +28,9 @@ import org.xml.sax.SAXException;
 import android.databinding.parser.XMLLexer;
 import android.databinding.parser.XMLParser;
 import android.databinding.parser.XMLParserBaseVisitor;
+import android.databinding.tool.processing.ErrorMessages;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.scopes.FileScopeProvider;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.Preconditions;
@@ -64,47 +67,66 @@ public class LayoutFileParser {
 
     private static final String LAYOUT_PREFIX = "@layout/";
 
-    public ResourceBundle.LayoutFileBundle parseXml(File xml, String pkg, int minSdk)
+    public ResourceBundle.LayoutFileBundle parseXml(final File xml, String pkg, int minSdk)
             throws ParserConfigurationException, IOException, SAXException,
             XPathExpressionException {
-        final String xmlNoExtension = ParserHelper.stripExtension(xml.getName());
-        final String newTag = xml.getParentFile().getName() + '/' + xmlNoExtension;
-        File original = stripFileAndGetOriginal(xml, newTag);
-        if (original == null) {
-            L.d("assuming the file is the original for %s", xml.getAbsoluteFile());
-            original = xml;
+        try {
+            Scope.enter(new FileScopeProvider() {
+                @Override
+                public String provideScopeFilePath() {
+                    return xml.getAbsolutePath();
+                }
+            });
+            final String xmlNoExtension = ParserHelper.stripExtension(xml.getName());
+            final String newTag = xml.getParentFile().getName() + '/' + xmlNoExtension;
+            File original = stripFileAndGetOriginal(xml, newTag);
+            if (original == null) {
+                L.d("assuming the file is the original for %s", xml.getAbsoluteFile());
+                original = xml;
+            }
+            return parseXml(original, pkg);
+        } finally {
+            Scope.exit();
         }
-        return parseXml(original, pkg);
     }
 
-    private ResourceBundle.LayoutFileBundle parseXml(File original, String pkg)
+    private ResourceBundle.LayoutFileBundle parseXml(final File original, String pkg)
             throws IOException {
-        final String xmlNoExtension = ParserHelper.stripExtension(original.getName());
-        ANTLRInputStream inputStream = new ANTLRInputStream(new FileReader(original));
-        XMLLexer lexer = new XMLLexer(inputStream);
-        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-        XMLParser parser = new XMLParser(tokenStream);
-        XMLParser.DocumentContext expr = parser.document();
-        XMLParser.ElementContext root = expr.element();
-        if (!"layout".equals(root.elmName.getText())) {
-            return null;
-        }
-        XMLParser.ElementContext data = getDataNode(root);
-        XMLParser.ElementContext rootView = getViewNode(original, root);
+        try {
+            Scope.enter(new FileScopeProvider() {
+                @Override
+                public String provideScopeFilePath() {
+                    return original.getAbsolutePath();
+                }
+            });
+            final String xmlNoExtension = ParserHelper.stripExtension(original.getName());
+            ANTLRInputStream inputStream = new ANTLRInputStream(new FileReader(original));
+            XMLLexer lexer = new XMLLexer(inputStream);
+            CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+            XMLParser parser = new XMLParser(tokenStream);
+            XMLParser.DocumentContext expr = parser.document();
+            XMLParser.ElementContext root = expr.element();
+            if (!"layout".equals(root.elmName.getText())) {
+                return null;
+            }
+            XMLParser.ElementContext data = getDataNode(root);
+            XMLParser.ElementContext rootView = getViewNode(original, root);
 
-        if (hasMergeInclude(rootView)) {
-            L.e("Data binding does not support include elements as direct children of a " +
-                    "merge element: %s", original.getPath());
-            return null;
-        }
-        boolean isMerge = "merge".equals(rootView.elmName.getText());
+            if (hasMergeInclude(rootView)) {
+                L.e(ErrorMessages.INCLUDE_INSIDE_MERGE);
+                return null;
+            }
+            boolean isMerge = "merge".equals(rootView.elmName.getText());
 
-        ResourceBundle.LayoutFileBundle bundle = new ResourceBundle.LayoutFileBundle(
-                xmlNoExtension, original.getParentFile().getName(), pkg, isMerge);
-        final String newTag = original.getParentFile().getName() + '/' + xmlNoExtension;
-        parseData(original, data, bundle);
-        parseExpressions(newTag, rootView, isMerge, bundle);
-        return bundle;
+            ResourceBundle.LayoutFileBundle bundle = new ResourceBundle.LayoutFileBundle(original,
+                    xmlNoExtension, original.getParentFile().getName(), pkg, isMerge);
+            final String newTag = original.getParentFile().getName() + '/' + xmlNoExtension;
+            parseData(original, data, bundle);
+            parseExpressions(newTag, rootView, isMerge, bundle);
+            return bundle;
+        } finally {
+            Scope.exit();
+        }
     }
 
     private void parseExpressions(String newTag, final XMLParser.ElementContext rootView,
@@ -215,8 +237,16 @@ public class LayoutFileParser {
                 if (value.charAt(0) == '@' && value.charAt(1) == '{' &&
                         value.charAt(value.length() - 1) == '}') {
                     final String strippedValue = value.substring(2, value.length() - 1);
+                    Location attrLocation = new Location(attr);
+                    Location valueLocation = new Location();
+                    // offset to 0 based
+                    valueLocation.startLine = attr.attrValue.getLine() - 1;
+                    valueLocation.startOffset = attr.attrValue.getCharPositionInLine() +
+                            attr.attrValue.getText().indexOf(strippedValue);
+                    valueLocation.endLine = attrLocation.endLine;
+                    valueLocation.endOffset = attrLocation.endOffset - 2; // account for: "}
                     bindingTargetBundle.addBinding(escapeQuotes(attr.attrName.getText(), false)
-                            , strippedValue);
+                            , strippedValue, attrLocation, valueLocation);
                 }
             }
         }

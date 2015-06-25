@@ -19,6 +19,10 @@ package android.databinding.compilationTest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TestName;
+
+import android.databinding.tool.store.Location;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -29,8 +33,11 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -42,6 +49,8 @@ import static org.junit.Assert.assertTrue;
 
 
 public class BaseCompilationTest {
+    @Rule
+    public TestName name = new TestName();
     static Pattern VARIABLES = Pattern.compile("!@\\{([A-Za-z0-9_-]*)}");
 
     public static final String KEY_MANIFEST_PACKAGE = "PACKAGE";
@@ -49,7 +58,7 @@ public class BaseCompilationTest {
     public static final String KEY_SETTINGS_INCLUDES = "SETTINGS_INCLUDES";
     public static final String DEFAULT_APP_PACKAGE = "com.android.databinding.compilationTest.test";
 
-    File testFolder = new File("./build/build-test");
+    protected final File testFolder = new File("./build/build-test");
 
     protected void copyResourceTo(String name, String path) throws IOException {
         copyResourceTo(name, new File(testFolder, path));
@@ -79,6 +88,36 @@ public class BaseCompilationTest {
         if (testFolder.exists()) {
             FileUtils.forceDelete(testFolder);
         }
+    }
+
+    /**
+     * Extracts the text in the given location from the the at the given application path.
+     * @param pathInApp The path, relative to the root of the application under test
+     * @param location The location to extract
+     * @return The string that is contained in the given location
+     * @throws IOException If file is invalid.
+     */
+    protected String extract(String pathInApp, Location location) throws IOException {
+        File file = new File(testFolder, pathInApp);
+        assertTrue(file.exists());
+        StringBuilder result = new StringBuilder();
+        List<String> lines = FileUtils.readLines(file);
+        for (int i = location.startLine; i <= location.endLine; i ++) {
+            if (i > location.startLine) {
+                result.append("\n");
+            }
+            String line = lines.get(i);
+            int start = 0;
+            if (i == location.startLine) {
+                start = location.startOffset;
+            }
+            int end = line.length() - 1; // inclusive
+            if (i == location.endLine) {
+                end = location.endOffset;
+            }
+            result.append(line.substring(start, end + 1));
+        }
+        return result.toString();
     }
 
     protected void copyResourceTo(String name, File targetFile) throws IOException {
@@ -179,13 +218,17 @@ public class BaseCompilationTest {
         copyResourceTo("/module_build.gradle", new File(moduleFolder, "build.gradle"), replacements);
     }
 
-    protected CompilationResult runGradle(String params) throws IOException, InterruptedException {
+    protected CompilationResult runGradle(String... params) throws IOException, InterruptedException {
         setExecutable();
         File pathToExecutable = new File(testFolder, "gradlew");
-        ProcessBuilder builder = new ProcessBuilder(pathToExecutable.getAbsolutePath(), params);
+        List<String> args = new ArrayList<>();
+        args.add(pathToExecutable.getAbsolutePath());
+        args.add("--project-cache-dir");
+        args.add(new File("../.caches/", name.getMethodName()).getAbsolutePath());
+        Collections.addAll(args, params);
+        ProcessBuilder builder = new ProcessBuilder(args);
         builder.environment().putAll(System.getenv());
         builder.directory(testFolder);
-        //builder.redirectErrorStream(true); // merges error and input streams
         Process process =  builder.start();
         String output = IOUtils.toString(process.getInputStream());
         String error = IOUtils.toString(process.getErrorStream());

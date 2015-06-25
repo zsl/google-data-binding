@@ -23,6 +23,8 @@ import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.ExprModel.ResolveListenersCallback;
 import android.databinding.tool.expr.IdentifierExpr;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.scopes.FileScopeProvider;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
@@ -40,7 +42,7 @@ import java.util.Map;
 /**
  * Keeps all information about the bindings per layout file
  */
-public class LayoutBinder implements ResolveListenersCallback {
+public class LayoutBinder implements ResolveListenersCallback, FileScopeProvider {
     private static final Comparator<BindingTarget> COMPARE_FIELD_NAME = new Comparator<BindingTarget>() {
         @Override
         public int compare(BindingTarget first, BindingTarget second) {
@@ -164,33 +166,43 @@ public class LayoutBinder implements ResolveListenersCallback {
     };
 
     public LayoutBinder(ResourceBundle.LayoutFileBundle layoutBundle) {
-        mExprModel = new ExprModel();
-        mExpressionParser = new ExpressionParser(mExprModel);
-        mBindingTargets = new ArrayList<BindingTarget>();
-        mBundle = layoutBundle;
-        mModulePackage = layoutBundle.getModulePackage();
-        // copy over data.
-        for (ResourceBundle.NameTypeLocation variable : mBundle.getVariables()) {
-            addVariable(variable.name, variable.type, variable.location);
-        }
-
-        for (ResourceBundle.NameTypeLocation userImport : mBundle.getImports()) {
-            mExprModel.addImport(userImport.name, userImport.type, userImport.location);
-        }
-        for (String javaLangClass : sJavaLangClasses) {
-            mExprModel.addImport(javaLangClass, "java.lang." + javaLangClass, null);
-        }
-        for (BindingTargetBundle targetBundle : mBundle.getBindingTargetBundles()) {
-            final BindingTarget bindingTarget = createBindingTarget(targetBundle);
-            for (ResourceBundle.BindingTargetBundle.BindingBundle bindingBundle : targetBundle
-                    .getBindingBundleList()) {
-                bindingTarget.addBinding(bindingBundle.getName(), parse(bindingBundle.getExpr(),
-                        targetBundle.getLocation()));
+        try {
+            Scope.enter(this);
+            mExprModel = new ExprModel();
+            mExpressionParser = new ExpressionParser(mExprModel);
+            mBindingTargets = new ArrayList<BindingTarget>();
+            mBundle = layoutBundle;
+            mModulePackage = layoutBundle.getModulePackage();
+            // copy over data.
+            for (ResourceBundle.NameTypeLocation variable : mBundle.getVariables()) {
+                addVariable(variable.name, variable.type, variable.location);
             }
-            bindingTarget.resolveMultiSetters();
+
+            for (ResourceBundle.NameTypeLocation userImport : mBundle.getImports()) {
+                mExprModel.addImport(userImport.name, userImport.type, userImport.location);
+            }
+            for (String javaLangClass : sJavaLangClasses) {
+                mExprModel.addImport(javaLangClass, "java.lang." + javaLangClass, null);
+            }
+            for (BindingTargetBundle targetBundle : mBundle.getBindingTargetBundles()) {
+                try {
+                    Scope.enter(targetBundle);
+                    final BindingTarget bindingTarget = createBindingTarget(targetBundle);
+                    for (BindingTargetBundle.BindingBundle bindingBundle : targetBundle
+                            .getBindingBundleList()) {
+                        bindingTarget.addBinding(bindingBundle.getName(),
+                                parse(bindingBundle.getExpr(), bindingBundle.getValueLocation()));
+                    }
+                    bindingTarget.resolveMultiSetters();
+                } finally {
+                    Scope.exit();
+                }
+            }
+            mSortedBindingTargets = new ArrayList<BindingTarget>(mBindingTargets);
+            Collections.sort(mSortedBindingTargets, COMPARE_FIELD_NAME);
+        } finally {
+            Scope.exit();
         }
-        mSortedBindingTargets = new ArrayList<BindingTarget>(mBindingTargets);
-        Collections.sort(mSortedBindingTargets, COMPARE_FIELD_NAME);
     }
 
     public void resolveWhichExpressionsAreUsed() {
@@ -320,5 +332,10 @@ public class LayoutBinder implements ResolveListenersCallback {
                 binding.resolveListeners();
             }
         }
+    }
+
+    @Override
+    public String provideScopeFilePath() {
+        return mBundle.getAbsoluteFilePath();
     }
 }
