@@ -16,11 +16,14 @@
 
 package android.databinding.tool;
 
+import org.antlr.v4.runtime.misc.Nullable;
+
 import android.databinding.tool.expr.Dependency;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.ExprModel.ResolveListenersCallback;
 import android.databinding.tool.expr.IdentifierExpr;
+import android.databinding.tool.store.Location;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
 import android.databinding.tool.util.Preconditions;
@@ -167,21 +170,22 @@ public class LayoutBinder implements ResolveListenersCallback {
         mBundle = layoutBundle;
         mModulePackage = layoutBundle.getModulePackage();
         // copy over data.
-        for (Map.Entry<String, String> variable : mBundle.getVariables().entrySet()) {
-            addVariable(variable.getKey(), variable.getValue());
+        for (ResourceBundle.NameTypeLocation variable : mBundle.getVariables()) {
+            addVariable(variable.name, variable.type, variable.location);
         }
 
-        for (Map.Entry<String, String> userImport : mBundle.getImports().entrySet()) {
-            mExprModel.addImport(userImport.getKey(), userImport.getValue());
+        for (ResourceBundle.NameTypeLocation userImport : mBundle.getImports()) {
+            mExprModel.addImport(userImport.name, userImport.type, userImport.location);
         }
         for (String javaLangClass : sJavaLangClasses) {
-            mExprModel.addImport(javaLangClass, "java.lang." + javaLangClass);
+            mExprModel.addImport(javaLangClass, "java.lang." + javaLangClass, null);
         }
         for (BindingTargetBundle targetBundle : mBundle.getBindingTargetBundles()) {
             final BindingTarget bindingTarget = createBindingTarget(targetBundle);
             for (ResourceBundle.BindingTargetBundle.BindingBundle bindingBundle : targetBundle
                     .getBindingBundleList()) {
-                bindingTarget.addBinding(bindingBundle.getName(), parse(bindingBundle.getExpr()));
+                bindingTarget.addBinding(bindingBundle.getName(), parse(bindingBundle.getExpr(),
+                        targetBundle.getLocation()));
             }
             bindingTarget.resolveMultiSetters();
         }
@@ -208,12 +212,15 @@ public class LayoutBinder implements ResolveListenersCallback {
         }
     }
 
-    public IdentifierExpr addVariable(String name, String type) {
+    public IdentifierExpr addVariable(String name, String type, Location location) {
         Preconditions.check(!mUserDefinedVariables.containsKey(name),
                 "%s has already been defined as %s", name, type);
         final IdentifierExpr id = mExprModel.identifier(name);
         id.setUserDefinedType(type);
         id.enableDirectInvalidation();
+        if (location != null) {
+            id.addLocation(location);
+        }
         mUserDefinedVariables.put(name, type);
         return id;
     }
@@ -229,8 +236,8 @@ public class LayoutBinder implements ResolveListenersCallback {
         return target;
     }
 
-    public Expr parse(String input) {
-        final Expr parsed = mExpressionParser.parse(input);
+    public Expr parse(String input, @Nullable Location locationInFile) {
+        final Expr parsed = mExpressionParser.parse(input, locationInFile);
         parsed.setBindingExpression(true);
         return parsed;
     }

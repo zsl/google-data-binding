@@ -16,8 +16,11 @@
 
 package android.databinding.tool.expr;
 
+import org.antlr.v4.runtime.misc.Nullable;
+
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.store.Location;
 import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
@@ -41,7 +44,7 @@ abstract public class Expr implements VersionProvider {
 
     private List<Dependency> mDependencies;
 
-    private List<Dependency> mDependants = new ArrayList<>();
+    private List<Dependency> mDependants = new ArrayList<Dependency>();
 
     private int mId = NO_ID;
 
@@ -51,6 +54,9 @@ abstract public class Expr implements VersionProvider {
 
     // means this expression can directly be invalidated by the user
     private boolean mCanBeInvalidated = false;
+
+    @Nullable
+    private List<Location> mLocations = new ArrayList<>();
 
     /**
      * This set denotes the times when this expression is invalid.
@@ -107,6 +113,14 @@ abstract public class Expr implements VersionProvider {
     public void setId(int id) {
         Preconditions.check(mId == NO_ID, "ID is already set on %s", this);
         mId = id;
+    }
+
+    public void addLocation(Location location) {
+        mLocations.add(location);
+    }
+
+    public List<Location> getLocations() {
+        return mLocations;
     }
 
     public ExprModel getModel() {

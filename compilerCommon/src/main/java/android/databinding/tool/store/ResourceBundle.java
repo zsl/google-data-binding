@@ -13,11 +13,11 @@
 
 package android.databinding.tool.store;
 
-import org.antlr.v4.runtime.misc.Predicate;
 import org.apache.commons.lang3.ArrayUtils;
 
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
+import android.databinding.tool.util.Preconditions;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -102,8 +102,8 @@ public class ResourceBundle implements Serializable {
             }
             // validate all ids are in correct view types
             // and all variables have the same name
-            Map<String, String> variableTypes = new HashMap<String, String>();
-            Map<String, String> importTypes = new HashMap<String, String>();
+            Map<String, NameTypeLocation> variableTypes = new HashMap<String, NameTypeLocation>();
+            Map<String, NameTypeLocation> importTypes = new HashMap<String, NameTypeLocation>();
             String bindingClass = null;
 
             for (LayoutFileBundle bundle : bundles.getValue()) {
@@ -118,23 +118,23 @@ public class ResourceBundle implements Serializable {
                                 bindingClass, bundle.getFullBindingClass());
                     }
                 }
-                for (Map.Entry<String, String> variable : bundle.mVariables.entrySet()) {
-                    String existing = variableTypes.get(variable.getKey());
-                    if (existing != null && !existing.equals(variable.getValue())) {
+                for (NameTypeLocation variable : bundle.mVariables) {
+                    NameTypeLocation existing = variableTypes.get(variable.name);
+                    if (existing != null && !existing.equals(variable)) {
                         L.e("inconsistent variable types for %s for layout %s",
-                                variable.getKey(), bundle.mFileName);
+                                variable, bundle.mFileName);
                         continue;
                     }
-                    variableTypes.put(variable.getKey(), variable.getValue());
+                    variableTypes.put(variable.name, variable);
                 }
-                for (Map.Entry<String, String> userImport : bundle.mImports.entrySet()) {
-                    String existing = importTypes.get(userImport.getKey());
-                    if (existing != null && !existing.equals(userImport.getValue())) {
+                for (NameTypeLocation userImport : bundle.mImports) {
+                    NameTypeLocation existing = importTypes.get(userImport.name);
+                    if (existing != null && !existing.equals(userImport)) {
                         L.e("inconsistent variable types for %s for layout %s",
-                                userImport.getKey(), bundle.mFileName);
+                                userImport, bundle.mFileName);
                         continue;
                     }
-                    importTypes.put(userImport.getKey(), userImport.getValue());
+                    importTypes.put(userImport.name, userImport);
                 }
             }
 
@@ -142,16 +142,16 @@ public class ResourceBundle implements Serializable {
                 // now add missing ones to each to ensure they can be referenced
                 L.d("checking for missing variables in %s / %s", bundle.mFileName,
                         bundle.mConfigName);
-                for (Map.Entry<String, String> variable : variableTypes.entrySet()) {
-                    if (!bundle.mVariables.containsKey(variable.getKey())) {
-                        bundle.mVariables.put(variable.getKey(), variable.getValue());
+                for (Map.Entry<String, NameTypeLocation> variable : variableTypes.entrySet()) {
+                    if (!NameTypeLocation.contains(bundle.mVariables, variable.getKey())) {
+                        bundle.mVariables.add(variable.getValue());
                         L.d("adding missing variable %s to %s / %s", variable.getKey(),
                                 bundle.mFileName, bundle.mConfigName);
                     }
                 }
-                for (Map.Entry<String, String> userImport : importTypes.entrySet()) {
-                    if (!bundle.mImports.containsKey(userImport.getKey())) {
-                        bundle.mImports.put(userImport.getKey(), userImport.getValue());
+                for (Map.Entry<String, NameTypeLocation> userImport : importTypes.entrySet()) {
+                    if (!NameTypeLocation.contains(bundle.mImports, userImport.getKey())) {
+                        bundle.mImports.add(userImport.getValue());
                         L.d("adding missing import %s to %s / %s", userImport.getKey(),
                                 bundle.mFileName, bundle.mConfigName);
                     }
@@ -210,15 +210,16 @@ public class ResourceBundle implements Serializable {
                         String include = includes.get(viewType.getKey());
                         if (include == null) {
                             bundle.createBindingTarget(viewType.getKey(), viewType.getValue(),
-                                    false, null, null);
+                                    false, null, null, null);
                         } else {
                             BindingTargetBundle bindingTargetBundle = bundle.createBindingTarget(
-                                    viewType.getKey(), null, false, null, null);
+                                    viewType.getKey(), null, false, null, null, null);
                             bindingTargetBundle.setIncludedLayout(includes.get(viewType.getKey()));
                             bindingTargetBundle.setInterfaceType(viewType.getValue());
                         }
                     } else {
-                        L.d("setting interface type on %s (%s) as %s", target.mId, target.getFullClassName(), viewType.getValue());
+                        L.d("setting interface type on %s (%s) as %s", target.mId,
+                                target.getFullClassName(), viewType.getValue());
                         target.setInterfaceType(viewType.getValue());
                     }
                 }
@@ -272,12 +273,10 @@ public class ResourceBundle implements Serializable {
         public boolean mHasVariations;
 
         @XmlElement(name="Variables")
-        @XmlJavaTypeAdapter(NameTypeAdapter.class)
-        public Map<String, String> mVariables = new HashMap<String, String>();
+        public List<NameTypeLocation> mVariables = new ArrayList<>();
 
         @XmlElement(name="Imports")
-        @XmlJavaTypeAdapter(NameTypeAdapter.class)
-        public Map<String, String> mImports = new HashMap<String, String>();
+        public List<NameTypeLocation> mImports = new ArrayList<>();
 
         @XmlElementWrapper(name="Targets")
         @XmlElement(name="Target")
@@ -298,18 +297,22 @@ public class ResourceBundle implements Serializable {
             mIsMerge = isMerge;
         }
 
-        public void addVariable(String name, String type) {
-            mVariables.put(name, type);
+        public void addVariable(String name, String type, Location location) {
+            Preconditions.check(!NameTypeLocation.contains(mVariables, name),
+                    "Cannot use same variable name twice. %s in %s", name, location);
+            mVariables.add(new NameTypeLocation(name, type, location));
         }
 
-        public void addImport(String alias, String type) {
-            mImports.put(alias, type);
+        public void addImport(String alias, String type, Location location) {
+            Preconditions.check(!NameTypeLocation.contains(mImports, alias),
+                    "Cannot import same alias twice. %s in %s", alias, location);
+            mImports.add(new NameTypeLocation(alias, type, location));
         }
 
         public BindingTargetBundle createBindingTarget(String id, String viewName,
-                boolean used, String tag, String originalTag) {
+                boolean used, String tag, String originalTag, Location location) {
             BindingTargetBundle target = new BindingTargetBundle(id, viewName, used, tag,
-                    originalTag);
+                    originalTag, location);
             mBindingTargetBundles.add(target);
             return target;
         }
@@ -343,11 +346,11 @@ public class ResourceBundle implements Serializable {
             return mHasVariations;
         }
 
-        public Map<String, String> getVariables() {
+        public List<NameTypeLocation> getVariables() {
             return mVariables;
         }
 
-        public Map<String, String> getImports() {
+        public List<NameTypeLocation> getImports() {
             return mImports;
         }
 
@@ -449,16 +452,78 @@ public class ResourceBundle implements Serializable {
     }
 
     @XmlAccessorType(XmlAccessType.NONE)
-    public static class MarshalledNameType {
+    public static class NameTypeLocation {
         @XmlAttribute(name="type", required = true)
         public String type;
 
         @XmlAttribute(name="name", required = true)
         public String name;
+
+        @XmlElement(name="location", required = false)
+        public Location location;
+
+        public NameTypeLocation() {
+        }
+
+        public NameTypeLocation(String name, String type, Location location) {
+            this.type = type;
+            this.name = name;
+            this.location = location;
+        }
+
+        @Override
+        public String toString() {
+            return "{" +
+                    "type='" + type + '\'' +
+                    ", name='" + name + '\'' +
+                    ", location=" + location +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            NameTypeLocation that = (NameTypeLocation) o;
+
+            if (location != null ? !location.equals(that.location) : that.location != null) {
+                return false;
+            }
+            if (!name.equals(that.name)) {
+                return false;
+            }
+            if (!type.equals(that.type)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = type.hashCode();
+            result = 31 * result + name.hashCode();
+            result = 31 * result + (location != null ? location.hashCode() : 0);
+            return result;
+        }
+
+        public static boolean contains(List<NameTypeLocation> list, String name) {
+            for (NameTypeLocation ntl : list) {
+                if (name.equals(ntl.name)) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     public static class MarshalledMapType {
-        public List<MarshalledNameType> entries;
+        public List<NameTypeLocation> entries;
     }
 
     @XmlAccessorType(XmlAccessType.NONE)
@@ -480,18 +545,21 @@ public class ResourceBundle implements Serializable {
         public List<BindingBundle> mBindingBundleList = new ArrayList<BindingBundle>();
         @XmlAttribute(name="include")
         public String mIncludedLayout;
+        @XmlElement(name="location")
+        public Location mLocation;
         private String mInterfaceType;
 
         // For XML serialization
         public BindingTargetBundle() {}
 
         public BindingTargetBundle(String id, String viewName, boolean used,
-                String tag, String originalTag) {
+                String tag, String originalTag, Location location) {
             mId = id;
             mViewName = viewName;
             mUsed = used;
             mTag = tag;
             mOriginalTag = originalTag;
+            mLocation = location;
         }
 
         public void addBinding(String name, String expr) {
@@ -512,6 +580,14 @@ public class ResourceBundle implements Serializable {
 
         public void setInterfaceType(String interfaceType) {
             mInterfaceType = interfaceType;
+        }
+
+        public void setLocation(Location location) {
+            mLocation = location;
+        }
+
+        public Location getLocation() {
+            return mLocation;
         }
 
         public String getId() {
@@ -591,37 +667,6 @@ public class ResourceBundle implements Serializable {
             public void setExpr(String expr) {
                 mExpr = expr;
             }
-        }
-    }
-
-    private final static class NameTypeAdapter
-            extends XmlAdapter<MarshalledMapType, Map<String, String>> {
-
-        @Override
-        public HashMap<String, String> unmarshal(MarshalledMapType v) throws Exception {
-            HashMap<String, String> map = new HashMap<String, String>();
-            if (v.entries != null) {
-                for (MarshalledNameType entry : v.entries) {
-                    map.put(entry.name, entry.type);
-                }
-            }
-            return map;
-        }
-
-        @Override
-        public MarshalledMapType marshal(Map<String, String> v) throws Exception {
-            if (v.isEmpty()) {
-                return null;
-            }
-            MarshalledMapType marshalled = new MarshalledMapType();
-            marshalled.entries = new ArrayList<MarshalledNameType>();
-            for (String name : v.keySet()) {
-                MarshalledNameType nameType = new MarshalledNameType();
-                nameType.name = name;
-                nameType.type = v.get(name);
-                marshalled.entries.add(nameType);
-            }
-            return marshalled;
         }
     }
 }

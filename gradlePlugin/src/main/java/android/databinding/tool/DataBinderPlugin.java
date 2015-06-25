@@ -36,6 +36,7 @@ import com.android.builder.model.ApiVersion;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -284,7 +285,10 @@ public class DataBinderPlugin implements Plugin<Project> {
                                 try {
                                     task.writeLayoutXmls();
                                 } catch (JAXBException e) {
-                                    logE(e, "cannot write layout xmls");
+                                    // gradle sometimes fails to resolve JAXBException.
+                                    // We get stack trace manually to ensure we have the log
+                                    logE(e, "cannot write layout xmls %s",
+                                            ExceptionUtils.getStackTrace(e));
                                 }
                             }
                         });

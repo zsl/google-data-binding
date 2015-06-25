@@ -16,8 +16,11 @@
 
 package android.databinding.tool.expr;
 
+import org.antlr.v4.runtime.ParserRuleContext;
+
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.FlagSet;
@@ -71,6 +74,8 @@ public class ExprModel {
 
     private Map<String, String> mImports = new HashMap<String, String>();
 
+    private ParserRuleContext mCurrentParserContext;
+    private Location mCurrentLocationInFile;
     /**
      * Adds the expression to the list of expressions and returns it.
      * If it already exists, returns existing one.
@@ -80,6 +85,11 @@ public class ExprModel {
      */
     public <T extends Expr> T register(T expr) {
         Preconditions.check(!mSealed, "Cannot add expressions to a model after it is sealed");
+        Location location = null;
+        if (mCurrentParserContext != null) {
+            location = new Location(mCurrentParserContext);
+            location.setParentLocation(mCurrentLocationInFile);
+        }
         T existing = (T) mExprMap.get(expr.getUniqueKey());
         if (existing != null) {
             Preconditions.check(expr.getParents().isEmpty(),
@@ -89,11 +99,21 @@ public class ExprModel {
             // tell the expr that it is being swapped so that if it was added to some other expr
             // as a parent, those can swap their references
             expr.onSwappedWith(existing);
+            if (location != null) {
+                existing.addLocation(location);
+            }
             return existing;
         }
         mExprMap.put(expr.getUniqueKey(), expr);
         expr.setModel(this);
+        if (location != null) {
+            expr.addLocation(location);
+        }
         return expr;
+    }
+
+    public void setCurrentParserContext(ParserRuleContext currentParserContext) {
+        mCurrentParserContext = currentParserContext;
     }
 
     public void unregister(Expr expr) {
@@ -168,7 +188,7 @@ public class ExprModel {
         while (true) {
             String candidate = cnt == 0 ? baseName : baseName + cnt;
             if (!mImports.containsKey(candidate)) {
-                return addImport(candidate, type);
+                return addImport(candidate, type, null);
             }
             cnt ++;
             Preconditions.check(cnt < 100, "Failed to create an import for " + type);
@@ -224,12 +244,15 @@ public class ExprModel {
         return mBindingExpressions;
     }
 
-    public StaticIdentifierExpr addImport(String alias, String type) {
+    public StaticIdentifierExpr addImport(String alias, String type, Location location) {
         Preconditions.check(!mImports.containsKey(alias),
                 "%s has already been defined as %s", alias, type);
         final StaticIdentifierExpr id = staticIdentifier(alias);
         L.d("adding import %s as %s klass: %s", type, alias, id.getClass().getSimpleName());
         id.setUserDefinedType(type);
+        if (location != null) {
+            id.addLocation(location);
+        }
         mImports.put(alias, type);
         return id;
     }
@@ -573,6 +596,10 @@ public class ExprModel {
 
     public Expr argListExpr(Iterable<Expr> expressions) {
         return register(new ArgListExpr(mArgListIdCounter ++, expressions));
+    }
+
+    public void setCurrentLocationInFile(Location location) {
+        mCurrentLocationInFile = location;
     }
 
     public interface ResolveListenersCallback {

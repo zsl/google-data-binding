@@ -13,19 +13,28 @@
 
 package android.databinding.tool.store;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import android.databinding.parser.XMLLexer;
+import android.databinding.parser.XMLParser;
+import android.databinding.parser.XMLParserBaseVisitor;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
+import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.XmlEditor;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -33,6 +42,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,15 +59,10 @@ import javax.xml.xpath.XPathFactory;
  * LayoutBinder.
  */
 public class LayoutFileParser {
-    private static final String XPATH_VARIABLE_DEFINITIONS = "/layout/data/variable";
-    private static final String XPATH_BINDING_ELEMENTS = "/layout/*[name() != 'data' and name() != 'merge'] | /layout/merge/* | //*[include/.. or @*[starts-with(., '@{') and substring(., string-length(.)) = '}']]";
-    private static final String XPATH_ID_ELEMENTS = "//*[@*[local-name()='id']]";
-    private static final String XPATH_IMPORT_DEFINITIONS = "/layout/data/import";
-    private static final String XPATH_MERGE_ELEMENT = "/layout/merge";
+
     private static final String XPATH_BINDING_LAYOUT = "/layout";
-    private static final String XPATH_MERGE_INCLUDE = "/layout/merge/include";
-    private static final String XPATH_BINDING_CLASS = "/layout/data/@class";
-    final String LAYOUT_PREFIX = "@layout/";
+
+    private static final String LAYOUT_PREFIX = "@layout/";
 
     public ResourceBundle.LayoutFileBundle parseXml(File xml, String pkg, int minSdk)
             throws ParserConfigurationException, IOException, SAXException,
@@ -69,91 +74,130 @@ public class LayoutFileParser {
             L.d("assuming the file is the original for %s", xml.getAbsoluteFile());
             original = xml;
         }
-        L.d("parsing file %s", xml.getAbsolutePath());
+        return parseXml(original, pkg);
+    }
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        final DocumentBuilder builder = factory.newDocumentBuilder();
-        final Document doc = builder.parse(original);
-
-        final XPathFactory xPathFactory = XPathFactory.newInstance();
-        final XPath xPath = xPathFactory.newXPath();
-
-        if (!isBindingLayout(doc, xPath)) {
+    private ResourceBundle.LayoutFileBundle parseXml(File original, String pkg)
+            throws IOException {
+        final String xmlNoExtension = ParserHelper.stripExtension(original.getName());
+        ANTLRInputStream inputStream = new ANTLRInputStream(new FileReader(original));
+        XMLLexer lexer = new XMLLexer(inputStream);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        XMLParser parser = new XMLParser(tokenStream);
+        XMLParser.DocumentContext expr = parser.document();
+        XMLParser.ElementContext root = expr.element();
+        if (!"layout".equals(root.elmName.getText())) {
             return null;
         }
+        XMLParser.ElementContext data = getDataNode(root);
+        XMLParser.ElementContext rootView = getViewNode(original, root);
 
-        if (hasMergeInclude(doc, xPath)) {
+        if (hasMergeInclude(rootView)) {
             L.e("Data binding does not support include elements as direct children of a " +
-                    "merge element: %s", xml.getPath());
+                    "merge element: %s", original.getPath());
             return null;
         }
-
-        List<Node> variableNodes = getVariableNodes(doc, xPath);
-        final List<Node> imports = getImportNodes(doc, xPath);
+        boolean isMerge = "merge".equals(rootView.elmName.getText());
 
         ResourceBundle.LayoutFileBundle bundle = new ResourceBundle.LayoutFileBundle(
-                xmlNoExtension, xml.getParentFile().getName(), pkg, isMerge(doc, xPath));
+                xmlNoExtension, original.getParentFile().getName(), pkg, isMerge);
+        final String newTag = original.getParentFile().getName() + '/' + xmlNoExtension;
+        parseData(original, data, bundle);
+        parseExpressions(newTag, rootView, isMerge, bundle);
+        return bundle;
+    }
 
-        L.d("number of variable nodes %d", variableNodes.size());
-        for (Node item : variableNodes) {
-            L.d("reading variable node %s", item);
-            NamedNodeMap attributes = item.getAttributes();
-            String variableName = attributes.getNamedItem("name").getNodeValue();
-            String variableType = attributes.getNamedItem("type").getNodeValue();
-            L.d("name: %s, type:%s", variableName, variableType);
-            bundle.addVariable(variableName, variableType);
-        }
-
-        L.d("import node count %d", imports.size());
-        for (Node item : imports) {
-            NamedNodeMap attributes = item.getAttributes();
-            String type = attributes.getNamedItem("type").getNodeValue();
-            final Node aliasNode = attributes.getNamedItem("alias");
-            final String alias;
-            if (aliasNode == null) {
-                final String[] split = StringUtils.split(type, '.');
-                alias = split[split.length - 1];
-            } else {
-                alias = aliasNode.getNodeValue();
+    private void parseExpressions(String newTag, final XMLParser.ElementContext rootView,
+            final boolean isMerge, ResourceBundle.LayoutFileBundle bundle) {
+        final List<XMLParser.ElementContext> bindingElements = new ArrayList<>();
+        final List<XMLParser.ElementContext> otherElementsWithIds = new ArrayList<>();
+        rootView.accept(new XMLParserBaseVisitor<Void>() {
+            @Override
+            public Void visitElement(@NotNull XMLParser.ElementContext ctx) {
+                if (filter(ctx)) {
+                    bindingElements.add(ctx);
+                } else {
+                    String name = ctx.elmName.getText();
+                    if (!"include".equals(name) && !"fragment".equals(name) &&
+                            attributeMap(ctx).containsKey("android:id")) {
+                        otherElementsWithIds.add(ctx);
+                    }
+                }
+                visitChildren(ctx);
+                return null;
             }
-            bundle.addImport(alias, type);
-        }
 
-        final Node layoutParent = getLayoutParent(doc, xPath);
-        final List<Node> bindingNodes = getBindingNodes(doc, xPath);
-        final HashMap<Node, String> nodeTagMap = new HashMap<Node, String>();
-        L.d("number of binding nodes %d", bindingNodes.size());
+            private boolean filter(XMLParser.ElementContext ctx) {
+                if (isMerge) {
+                    // account for XMLParser.ContentContext
+                    if (ctx.getParent().getParent() == rootView) {
+                        return true;
+                    }
+                } else if (ctx == rootView) {
+                    return true;
+                }
+                if (hasIncludeChild(ctx)) {
+                    return true;
+                }
+                if (XmlEditor.hasExpressionAttributes(ctx)) {
+                    return true;
+                }
+                return false;
+            }
+
+            private boolean hasIncludeChild(XMLParser.ElementContext ctx) {
+                for (XMLParser.ElementContext child : XmlEditor.elements(ctx)) {
+                    if ("include".equals(child.elmName.getText())) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        final HashMap<XMLParser.ElementContext, String> nodeTagMap =
+                new HashMap<XMLParser.ElementContext, String>();
+        L.d("number of binding nodes %d", bindingElements.size());
         int tagNumber = 0;
-        for (Node parent : bindingNodes) {
-            NamedNodeMap attributes = parent.getAttributes();
-            String nodeName = parent.getNodeName();
+        for (XMLParser.ElementContext parent : bindingElements) {
+            final Map<String, String> attributes = attributeMap(parent);
+            String nodeName = parent.elmName.getText();
             String viewName = null;
             String includedLayoutName = null;
-            final Node id = attributes.getNamedItem("android:id");
+            final String id = attributes.get("android:id");
             final String tag;
-            final Node originalTag = attributes.getNamedItem("android:tag");
+            final String originalTag = attributes.get("android:tag");
             if ("include".equals(nodeName)) {
                 // get the layout attribute
-                final Node includedLayout = attributes.getNamedItem("layout");
-                if (includedLayout == null) {
-                    L.e("%s must include a layout", xml.getAbsolutePath());
+                final String includeValue = attributes.get("layout");
+                if (StringUtils.isEmpty(includeValue)) {
+                    L.e("%s must include a layout", parent);
                 }
-                final String includeValue = includedLayout.getNodeValue();
                 if (!includeValue.startsWith(LAYOUT_PREFIX)) {
-                    L.e("included value in %s must start with %s.",
-                            xml.getAbsolutePath(), LAYOUT_PREFIX);
+                    L.e("included value (%s) must start with %s.",
+                            includeValue, LAYOUT_PREFIX);
                 }
                 // if user is binding something there, there MUST be a layout file to be
                 // generated.
                 String layoutName = includeValue.substring(LAYOUT_PREFIX.length());
                 includedLayoutName = layoutName;
-                tag = nodeTagMap.get(parent.getParentNode());
+                final ParserRuleContext myParentContent = parent.getParent();
+                Preconditions.check(myParentContent instanceof XMLParser.ContentContext,
+                        "parent of an include tag must be a content context but it is %s",
+                        myParentContent.getClass().getCanonicalName());
+                final ParserRuleContext grandParent = myParentContent.getParent();
+                Preconditions.check(grandParent instanceof XMLParser.ElementContext,
+                        "grandparent of an include tag must be an element context but it is %s",
+                        grandParent.getClass().getCanonicalName());
+                //noinspection SuspiciousMethodCalls
+                tag = nodeTagMap.get(grandParent);
             } else if ("fragment".equals(nodeName)) {
-                L.e("fragments do not support data binding expressions: %s", xml.getPath());
+                L.e("fragments do not support data binding expressions.");
                 continue;
             } else {
                 viewName = getViewName(parent);
-                if (layoutParent == parent.getParentNode()) {
+                // account for XMLParser.ContentContext
+                if (rootView == parent || (isMerge && parent.getParent().getParent() == rootView)) {
                     tag = newTag + "_" + tagNumber;
                 } else {
                     tag = "binding_" + tagNumber;
@@ -161,120 +205,129 @@ public class LayoutFileParser {
                 tagNumber++;
             }
             final ResourceBundle.BindingTargetBundle bindingTargetBundle =
-                    bundle.createBindingTarget(id == null ? null : id.getNodeValue(),
-                            viewName, true, tag,
-                            originalTag == null ? null : originalTag.getNodeValue());
+                    bundle.createBindingTarget(id, viewName, true, tag, originalTag,
+                            new Location(parent));
             nodeTagMap.put(parent, tag);
             bindingTargetBundle.setIncludedLayout(includedLayoutName);
 
-            final int attrCount = attributes.getLength();
-            for (int i = 0; i < attrCount; i ++) {
-                final Node attr = attributes.item(i);
-                String value = attr.getNodeValue();
+            for (XMLParser.AttributeContext attr : XmlEditor.expressionAttributes(parent)) {
+                String value = escapeQuotes(attr.attrValue.getText(), true);
                 if (value.charAt(0) == '@' && value.charAt(1) == '{' &&
                         value.charAt(value.length() - 1) == '}') {
                     final String strippedValue = value.substring(2, value.length() - 1);
-                    bindingTargetBundle.addBinding(attr.getNodeName(), strippedValue);
+                    bindingTargetBundle.addBinding(escapeQuotes(attr.attrName.getText(), false)
+                            , strippedValue);
                 }
             }
         }
 
-        final List<Node> idNodes = getNakedIds(doc, xPath);
-        for (Node node : idNodes) {
-            if (!bindingNodes.contains(node) && !"include".equals(node.getNodeName()) &&
-                    !"fragment".equals(node.getNodeName())) {
-                final Node id = node.getAttributes().getNamedItem("android:id");
-                final String className = getViewName(node);
-                bundle.createBindingTarget(id.getNodeValue(), className, true, null, null);
-            }
-        }
-
-        bundle.setBindingClass(getBindingClass(doc, xPath, original));
-
-        return bundle;
-    }
-
-    private boolean isBindingLayout(Document doc, XPath xPath) throws XPathExpressionException {
-        return !get(doc, xPath, XPATH_BINDING_LAYOUT).isEmpty();
-    }
-
-    private boolean hasMergeInclude(Document doc, XPath xPath) throws XPathExpressionException {
-        return !get(doc, xPath, XPATH_MERGE_INCLUDE).isEmpty();
-    }
-
-    private Node getLayoutParent(Document doc, XPath xPath) throws XPathExpressionException {
-        if (isMerge(doc, xPath)) {
-            return get(doc, xPath, XPATH_MERGE_ELEMENT).get(0);
-        } else {
-            return get(doc, xPath, XPATH_BINDING_LAYOUT).get(0);
+        for (XMLParser.ElementContext elm : otherElementsWithIds) {
+            final String id = attributeMap(elm).get("android:id");
+            final String className = getViewName(elm);
+            bundle.createBindingTarget(id, className, true, null, null, new Location(elm));
         }
     }
 
-    private String getBindingClass(Document doc, XPath xPath, File file)
-            throws XPathExpressionException {
-        List<Node> nodes = get(doc, xPath, XPATH_BINDING_CLASS);
-        if (nodes.isEmpty()) {
-            return null;
-        }
-        if (nodes.size() > 1) {
-            L.e("More than one binding class declared in %s", file.getAbsolutePath());
-        }
-        return nodes.get(0).getNodeValue();
-    }
-
-    private List<Node> getBindingNodes(Document doc, XPath xPath) throws XPathExpressionException {
-        return get(doc, xPath, XPATH_BINDING_ELEMENTS);
-    }
-
-    private List<Node> getVariableNodes(Document doc, XPath xPath) throws XPathExpressionException {
-        return get(doc, xPath, XPATH_VARIABLE_DEFINITIONS);
-    }
-
-    private List<Node> getImportNodes(Document doc, XPath xPath) throws XPathExpressionException {
-        return get(doc, xPath, XPATH_IMPORT_DEFINITIONS);
-    }
-
-    private List<Node> getNakedIds(Document doc, XPath xPath) throws XPathExpressionException {
-        return get(doc, xPath, XPATH_ID_ELEMENTS);
-    }
-
-    private boolean isMerge(Document doc, XPath xPath) throws XPathExpressionException {
-        return !get(doc, xPath, XPATH_MERGE_ELEMENT).isEmpty();
-    }
-
-    private List<Node> get(Document doc, XPath xPath, String pattern)
-            throws XPathExpressionException {
-        final XPathExpression expr = xPath.compile(pattern);
-        return toList((NodeList) expr.evaluate(doc, XPathConstants.NODESET));
-    }
-
-    private List<Node> toList(NodeList nodeList) {
-        List<Node> result = new ArrayList<Node>();
-        for (int i = 0; i < nodeList.getLength(); i ++) {
-            result.add(nodeList.item(i));
-        }
-        return result;
-    }
-
-    private String getViewName(Node viewNode) {
-        String viewName = viewNode.getNodeName();
+    private String getViewName(XMLParser.ElementContext elm) {
+        String viewName = elm.elmName.getText();
         if ("view".equals(viewName)) {
-            Node classNode = viewNode.getAttributes().getNamedItem("class");
-            if (classNode == null) {
+            String classNode = attributeMap(elm).get("class");
+            if (StringUtils.isEmpty(classNode)) {
                 L.e("No class attribute for 'view' node");
-            } else {
-                viewName = classNode.getNodeValue();
             }
+            viewName = classNode;
         }
         return viewName;
     }
 
-    private void stripBindingTags(File xml, String newTag) throws IOException {
-        String res = XmlEditor.strip(xml, newTag);
-        if (res != null) {
-            L.d("file %s has changed, overwriting %s", xml.getName(), xml.getAbsolutePath());
-            FileUtils.writeStringToFile(xml, res);
+    private void parseData(File xml, XMLParser.ElementContext data,
+            ResourceBundle.LayoutFileBundle bundle) {
+        if (data == null) {
+            return;
         }
+        for (XMLParser.ElementContext imp : filter(data, "import")) {
+            final Map<String, String> attrMap = attributeMap(imp);
+            String type = attrMap.get("type");
+            String alias = attrMap.get("alias");
+            Preconditions.check(StringUtils.isNotBlank(type), "Type of an import cannot be empty."
+                    + " %s in %s", imp.toStringTree(), xml);
+            if (StringUtils.isEmpty(alias)) {
+                final String[] split = StringUtils.split(type, '.');
+                alias = split[split.length - 1];
+            }
+            bundle.addImport(alias, type, new Location(imp));
+        }
+
+        for (XMLParser.ElementContext variable : filter(data, "variable")) {
+            final Map<String, String> attrMap = attributeMap(variable);
+            String type = attrMap.get("type");
+            String name = attrMap.get("name");
+            Preconditions.checkNotNull(type, "variable must have a type definition %s in %s",
+                    variable.toStringTree(), xml);
+            Preconditions.checkNotNull(name, "variable must have a name %s in %s",
+                    variable.toStringTree(), xml);
+            bundle.addVariable(name, type, new Location(variable));
+        }
+        final String className = attributeMap(data).get("class");
+        if (StringUtils.isNotBlank(className)) {
+            bundle.setBindingClass(className);
+        }
+    }
+
+    private XMLParser.ElementContext getDataNode(XMLParser.ElementContext root) {
+        final List<XMLParser.ElementContext> data = filter(root, "data");
+        if (data.size() == 0) {
+            return null;
+        }
+        Preconditions.check(data.size() == 1, "XML layout can have only 1 data tag");
+        return data.get(0);
+    }
+
+    private XMLParser.ElementContext getViewNode(File xml, XMLParser.ElementContext root) {
+        final List<XMLParser.ElementContext> view = filterNot(root, "data");
+        Preconditions.check(view.size() == 1, "XML layout %s must have 1 view but has %s. root"
+                        + " children count %s", xml, view.size(), root.getChildCount());
+        return view.get(0);
+    }
+
+    private List<XMLParser.ElementContext> filter(XMLParser.ElementContext root,
+            String name) {
+        List<XMLParser.ElementContext> result = new ArrayList<>();
+        if (root == null) {
+            return result;
+        }
+        final XMLParser.ContentContext content = root.content();
+        if (content == null) {
+            return result;
+        }
+        for (XMLParser.ElementContext child : XmlEditor.elements(root)) {
+            if (name.equals(child.elmName.getText())) {
+                result.add(child);
+            }
+        }
+        return result;
+    }
+
+    private List<XMLParser.ElementContext> filterNot(XMLParser.ElementContext root,
+            String name) {
+        List<XMLParser.ElementContext> result = new ArrayList<>();
+        if (root == null) {
+            return result;
+        }
+        final XMLParser.ContentContext content = root.content();
+        if (content == null) {
+            return result;
+        }
+        for (XMLParser.ElementContext child : XmlEditor.elements(root)) {
+            if (!name.equals(child.elmName.getText())) {
+                result.add(child);
+            }
+        }
+        return result;
+    }
+
+    private boolean hasMergeInclude(XMLParser.ElementContext rootView) {
+        return "merge".equals(rootView.elmName.getText()) && filter(rootView, "include").size() > 0;
     }
 
     private File stripFileAndGetOriginal(File xml, String binderId)
@@ -313,21 +366,68 @@ public class LayoutFileParser {
         return actualFile;
     }
 
-    public static File urlToFile(String url) throws MalformedURLException {
-        return urlToFile(new URL(url));
+    private boolean isBindingLayout(Document doc, XPath xPath) throws XPathExpressionException {
+        return !get(doc, xPath, XPATH_BINDING_LAYOUT).isEmpty();
+    }
+
+    private List<Node> get(Document doc, XPath xPath, String pattern)
+            throws XPathExpressionException {
+        final XPathExpression expr = xPath.compile(pattern);
+        return toList((NodeList) expr.evaluate(doc, XPathConstants.NODESET));
+    }
+
+    private List<Node> toList(NodeList nodeList) {
+        List<Node> result = new ArrayList<Node>();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            result.add(nodeList.item(i));
+        }
+        return result;
+    }
+
+    private void stripBindingTags(File xml, String newTag) throws IOException {
+        String res = XmlEditor.strip(xml, newTag);
+        if (res != null) {
+            L.d("file %s has changed, overwriting %s", xml.getName(), xml.getAbsolutePath());
+            FileUtils.writeStringToFile(xml, res);
+        }
     }
 
     public static File urlToFile(URL url) throws MalformedURLException {
         try {
             return new File(url.toURI());
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             MalformedURLException ex = new MalformedURLException(e.getLocalizedMessage());
             ex.initCause(e);
             throw ex;
-        }
-        catch (URISyntaxException e) {
+        } catch (URISyntaxException e) {
             return new File(url.getPath());
+        }
+    }
+
+    private static Map<String, String> attributeMap(XMLParser.ElementContext root) {
+        final Map<String, String> result = new HashMap<>();
+        for (XMLParser.AttributeContext attr : XmlEditor.attributes(root)) {
+            result.put(escapeQuotes(attr.attrName.getText(), false),
+                    escapeQuotes(attr.attrValue.getText(), true));
+        }
+        return result;
+    }
+
+    private static String escapeQuotes(String textWithQuotes, boolean unescapeValue) {
+        char first = textWithQuotes.charAt(0);
+        int start = 0, end = textWithQuotes.length();
+        if (first == '"' || first == '\'') {
+            start = 1;
+        }
+        char last = textWithQuotes.charAt(textWithQuotes.length() - 1);
+        if (last == '"' || last == '\'') {
+            end -= 1;
+        }
+        String val = textWithQuotes.substring(start, end);
+        if (unescapeValue) {
+            return StringEscapeUtils.unescapeXml(val);
+        } else {
+            return val;
         }
     }
 }

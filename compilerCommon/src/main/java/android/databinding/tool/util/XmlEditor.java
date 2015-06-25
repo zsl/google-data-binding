@@ -176,11 +176,11 @@ public class XmlEditor {
                 token.getCharPositionInLine() + token.getText().length());
     }
 
-    private static String nodeName(XMLParser.ElementContext elementContext) {
+    public static String nodeName(XMLParser.ElementContext elementContext) {
         return elementContext.elmName.getText();
     }
 
-    private static List<? extends AttributeContext> attributes(XMLParser.ElementContext elementContext) {
+    public static List<? extends AttributeContext> attributes(XMLParser.ElementContext elementContext) {
         if (elementContext.attribute() == null) {
             return new ArrayList<>();
         } else {
@@ -188,7 +188,7 @@ public class XmlEditor {
         }
     }
 
-    private static List<? extends AttributeContext> expressionAttributes(
+    public static List<? extends AttributeContext> expressionAttributes (
             XMLParser.ElementContext elementContext) {
         List<AttributeContext> result = new ArrayList<>();
         for (AttributeContext input : attributes(elementContext)) {
@@ -223,7 +223,7 @@ public class XmlEditor {
         }
     }
 
-    private static List<? extends android.databinding.parser.XMLParser.ElementContext> elements(
+    public static List<? extends android.databinding.parser.XMLParser.ElementContext> elements(
             XMLParser.ElementContext context) {
         if (context.content() != null && context.content().element() != null) {
             return context.content().element();
@@ -266,7 +266,7 @@ public class XmlEditor {
         return line.substring(0, start) + newText + line.substring(end);
     }
 
-    private static boolean hasExpressionAttributes(XMLParser.ElementContext context) {
+    public static boolean hasExpressionAttributes(XMLParser.ElementContext context) {
         List<? extends AttributeContext> expressions = expressionAttributes(context);
         int size = expressions.size();
         //noinspection ConstantConditions

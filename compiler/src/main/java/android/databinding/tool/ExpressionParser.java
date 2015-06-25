@@ -18,12 +18,22 @@ package android.databinding.tool;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.Nullable;
+import org.antlr.v4.runtime.tree.ErrorNode;
+import org.antlr.v4.runtime.tree.ParseTreeListener;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import android.databinding.parser.BindingExpressionLexer;
 import android.databinding.parser.BindingExpressionParser;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
+import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExpressionParser {
     final ExprModel mModel;
@@ -34,13 +44,49 @@ public class ExpressionParser {
         visitor = new ExpressionVisitor(mModel);
     }
 
-    public Expr parse(String input) {
+    public Expr parse(String input, @Nullable Location locationInFile) {
         ANTLRInputStream inputStream = new ANTLRInputStream(input);
         BindingExpressionLexer lexer = new BindingExpressionLexer(inputStream);
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
-        BindingExpressionParser parser = new BindingExpressionParser(tokenStream);
+        final BindingExpressionParser parser = new BindingExpressionParser(tokenStream);
         BindingExpressionParser.BindingSyntaxContext root = parser.bindingSyntax();
+        try {
+            mModel.setCurrentLocationInFile(locationInFile);
+            visitor.setParseTreeListener(new ParseTreeListener() {
+                List<ParserRuleContext> mStack = new ArrayList<ParserRuleContext>();
+                @Override
+                public void visitTerminal(TerminalNode node) {
+                }
+
+                @Override
+                public void visitErrorNode(ErrorNode node) {
+                }
+
+                @Override
+                public void enterEveryRule(ParserRuleContext ctx) {
+                    mStack.add(ctx);
+                    mModel.setCurrentParserContext(ctx);
+                }
+
+                @Override
+                public void exitEveryRule(ParserRuleContext ctx) {
+                    Preconditions.check(ctx == mStack.get(mStack.size() - 1),
+                            "Inconsistent exit from context. Received %s, expecting %s",
+                            ctx.toInfoString(parser),
+                            mStack.get(mStack.size() - 1).toInfoString(parser));
+                    mStack.remove(mStack.size() - 1);
+                    if (mStack.size() > 0) {
+                        mModel.setCurrentParserContext(mStack.get(mStack.size() - 1));
+                    } else {
+                        mModel.setCurrentParserContext(null);
+                    }
+                }
+            });
+        } finally {
+            mModel.setCurrentLocationInFile(null);
+        }
         L.d("exp tree: %s", root.toStringTree(parser));
+
         return root.accept(visitor);
     }
 

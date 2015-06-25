@@ -29,9 +29,9 @@ import android.databinding.tool.MockLayoutBinder;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.java.JavaAnalyzer;
+import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -133,10 +133,10 @@ public class ExprModelTest {
     public void testShouldRead() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", "java.lang.String");
-        IdentifierExpr b = lb.addVariable("b", "java.lang.String");
-        IdentifierExpr c = lb.addVariable("c", "java.lang.String");
-        lb.parse("a == null ? b : c");
+        IdentifierExpr a = lb.addVariable("a", "java.lang.String", null);
+        IdentifierExpr b = lb.addVariable("b", "java.lang.String", null);
+        IdentifierExpr c = lb.addVariable("c", "java.lang.String", null);
+        lb.parse("a == null ? b : c", null);
         mExprModel.comparison("==", a, mExprModel.symbol("null", Object.class));
         lb.getModel().seal();
         List<Expr> shouldRead = getShouldRead();
@@ -156,7 +156,8 @@ public class ExprModelTest {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr user = lb
-                .addVariable("user", "android.databinding.tool.expr.ExprModelTest.User");
+                .addVariable("user", "android.databinding.tool.expr.ExprModelTest.User",
+                        null);
         MathExpr parsed = parse(lb, "user.name + \" \" + (user.lastName ?? \"\")", MathExpr.class);
         mExprModel.seal();
         List<Expr> toRead = getShouldRead();
@@ -209,12 +210,12 @@ public class ExprModelTest {
     public void testTernaryInsideTernary() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr cond1 = lb.addVariable("cond1", "boolean");
-        IdentifierExpr cond2 = lb.addVariable("cond2", "boolean");
+        IdentifierExpr cond1 = lb.addVariable("cond1", "boolean", null);
+        IdentifierExpr cond2 = lb.addVariable("cond2", "boolean", null);
 
-        IdentifierExpr a = lb.addVariable("a", "boolean");
-        IdentifierExpr b = lb.addVariable("b", "boolean");
-        IdentifierExpr c = lb.addVariable("c", "boolean");
+        IdentifierExpr a = lb.addVariable("a", "boolean", null);
+        IdentifierExpr b = lb.addVariable("b", "boolean", null);
+        IdentifierExpr c = lb.addVariable("c", "boolean", null);
 
         final TernaryExpr ternaryExpr = parse(lb, "cond1 ? cond2 ? a : b : c", TernaryExpr.class);
         final TernaryExpr innerTernary = (TernaryExpr) ternaryExpr.getIfTrue();
@@ -254,12 +255,12 @@ public class ExprModelTest {
     public void testRequirementFlags() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", "java.lang.String");
-        IdentifierExpr b = lb.addVariable("b", "java.lang.String");
-        IdentifierExpr c = lb.addVariable("c", "java.lang.String");
-        IdentifierExpr d = lb.addVariable("d", "java.lang.String");
-        IdentifierExpr e = lb.addVariable("e", "java.lang.String");
-        final Expr aTernary = lb.parse("a == null ? b == null ? c : d : e");
+        IdentifierExpr a = lb.addVariable("a", "java.lang.String", null);
+        IdentifierExpr b = lb.addVariable("b", "java.lang.String", null);
+        IdentifierExpr c = lb.addVariable("c", "java.lang.String", null);
+        IdentifierExpr d = lb.addVariable("d", "java.lang.String", null);
+        IdentifierExpr e = lb.addVariable("e", "java.lang.String", null);
+        final Expr aTernary = lb.parse("a == null ? b == null ? c : d : e", null);
         assertTrue(aTernary instanceof TernaryExpr);
         final Expr bTernary = ((TernaryExpr) aTernary).getIfTrue();
         assertTrue(bTernary instanceof TernaryExpr);
@@ -327,13 +328,13 @@ public class ExprModelTest {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
 
-        IdentifierExpr u1 = lb.addVariable("u1", User.class.getCanonicalName());
-        IdentifierExpr u2 = lb.addVariable("u2", User.class.getCanonicalName());
-        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName());
-        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName());
-        IdentifierExpr c = lb.addVariable("c", int.class.getCanonicalName());
-        IdentifierExpr d = lb.addVariable("d", int.class.getCanonicalName());
-        IdentifierExpr e = lb.addVariable("e", int.class.getCanonicalName());
+        IdentifierExpr u1 = lb.addVariable("u1", User.class.getCanonicalName(), null);
+        IdentifierExpr u2 = lb.addVariable("u2", User.class.getCanonicalName(), null);
+        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName(), null);
+        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName(), null);
+        IdentifierExpr c = lb.addVariable("c", int.class.getCanonicalName(), null);
+        IdentifierExpr d = lb.addVariable("d", int.class.getCanonicalName(), null);
+        IdentifierExpr e = lb.addVariable("e", int.class.getCanonicalName(), null);
         TernaryExpr abTernary = parse(lb, "a > b ? u1.name : u2.name", TernaryExpr.class);
         TernaryExpr bcTernary = parse(lb, "b > c ? u1.getCond(d) ? u1.lastName : u2.lastName : `xx`"
                 + " + u2.getCond(e) ", TernaryExpr.class);
@@ -407,8 +408,10 @@ public class ExprModelTest {
     public void testCircularDependency() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName());
-        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName());
+        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName(),
+                null);
+        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName(),
+                null);
         final TernaryExpr abTernary = parse(lb, "a > 3 ? a : b", TernaryExpr.class);
         mExprModel.seal();
         List<Expr> shouldRead = getShouldRead();
@@ -423,9 +426,12 @@ public class ExprModelTest {
     public void testNestedCircularDependency() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName());
-        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName());
-        IdentifierExpr c = lb.addVariable("c", int.class.getCanonicalName());
+        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName(),
+                null);
+        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName(),
+                null);
+        IdentifierExpr c = lb.addVariable("c", int.class.getCanonicalName(),
+                null);
         final TernaryExpr a3Ternary = parse(lb, "a > 3 ? c > 4 ? a : b : c", TernaryExpr.class);
         final TernaryExpr c4Ternary = (TernaryExpr) a3Ternary.getIfTrue();
         mExprModel.seal();
@@ -443,8 +449,10 @@ public class ExprModelTest {
     public void testInterExprCircularDependency() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName());
-        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName());
+        IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName(),
+                null);
+        IdentifierExpr b = lb.addVariable("b", int.class.getCanonicalName(),
+                null);
         final TernaryExpr abTernary = parse(lb, "a > 3 ? a : b", TernaryExpr.class);
         final TernaryExpr abTernary2 = parse(lb, "b > 3 ? b : a", TernaryExpr.class);
         mExprModel.seal();
@@ -459,8 +467,10 @@ public class ExprModelTest {
     public void testInterExprCircularDependency2() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName());
-        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName());
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(),
+                null);
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName(),
+                null);
         final TernaryExpr abTernary = parse(lb, "a ? b : true", TernaryExpr.class);
         final TernaryExpr baTernary = parse(lb, "b ? a : false", TernaryExpr.class);
         mExprModel.seal();
@@ -480,7 +490,6 @@ public class ExprModelTest {
         readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
         assertExactMatch(readFirst, abTernary, baTernary);
 
-
         assertFalse(mExprModel.markBitsRead());
         shouldRead = getShouldRead();
         assertEquals(0, shouldRead.size());
@@ -490,9 +499,12 @@ public class ExprModelTest {
     public void testInterExprCircularDependency3() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName());
-        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName());
-        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName());
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(),
+                null);
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName(),
+                null);
+        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName(),
+                null);
         final TernaryExpr abTernary = parse(lb, "a ? b : c", TernaryExpr.class);
         final TernaryExpr abTernary2 = parse(lb, "b ? a : c", TernaryExpr.class);
         mExprModel.seal();
@@ -512,10 +524,14 @@ public class ExprModelTest {
     public void testInterExprCircularDependency4() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName());
-        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName());
-        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName());
-        IdentifierExpr d = lb.addVariable("d", boolean.class.getCanonicalName());
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(),
+                null);
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName(),
+                null);
+        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName(),
+                null);
+        IdentifierExpr d = lb.addVariable("d", boolean.class.getCanonicalName(),
+                null);
         final TernaryExpr cTernary = parse(lb, "c ? (a ? d : false) : false", TernaryExpr.class);
         final TernaryExpr abTernary = parse(lb, "a ? b : true", TernaryExpr.class);
         final TernaryExpr baTernary = parse(lb, "b ? a : false", TernaryExpr.class);
@@ -554,11 +570,11 @@ public class ExprModelTest {
     public void testInterExprDependencyNotReadyYet() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName());
-        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName());
-        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName());
-        IdentifierExpr d = lb.addVariable("d", boolean.class.getCanonicalName());
-        IdentifierExpr e = lb.addVariable("e", boolean.class.getCanonicalName());
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(), null);
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName(), null);
+        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName(), null);
+        IdentifierExpr d = lb.addVariable("d", boolean.class.getCanonicalName(), null);
+        IdentifierExpr e = lb.addVariable("e", boolean.class.getCanonicalName(), null);
         final TernaryExpr cTernary = parse(lb, "c ? (a ? d : false) : false", TernaryExpr.class);
         final TernaryExpr baTernary = parse(lb, "b ? a : false", TernaryExpr.class);
         final TernaryExpr eaTernary = parse(lb, "e ? a : false", TernaryExpr.class);
@@ -578,7 +594,7 @@ public class ExprModelTest {
     public void testNoFlagsForNonBindingStatic() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        lb.addVariable("a", int.class.getCanonicalName());
+        lb.addVariable("a", int.class.getCanonicalName(), null);
         final MathExpr parsed = parse(lb, "a * (3 + 2)", MathExpr.class);
         mExprModel.seal();
         // +1 for invalidate all flag
@@ -593,7 +609,7 @@ public class ExprModelTest {
     public void testFlagsForBindingStatic() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        lb.addVariable("a", int.class.getCanonicalName());
+        lb.addVariable("a", int.class.getCanonicalName(), null);
         final Expr staticParsed = parse(lb, "3 + 2", MathExpr.class);
         final MathExpr parsed = parse(lb, "a * (3 + 2)", MathExpr.class);
         mExprModel.seal();
@@ -611,7 +627,8 @@ public class ExprModelTest {
     public void testFinalFieldOfAVariable() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        IdentifierExpr user = lb.addVariable("user", User.class.getCanonicalName());
+        IdentifierExpr user = lb.addVariable("user", User.class.getCanonicalName(),
+                null);
         Expr fieldGet = parse(lb, "user.finalField", FieldAccessExpr.class);
         mExprModel.seal();
         assertTrue(fieldGet.isDynamic());
@@ -626,7 +643,7 @@ public class ExprModelTest {
     public void testFinalFieldOfAField() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        lb.addVariable("user", User.class.getCanonicalName());
+        lb.addVariable("user", User.class.getCanonicalName(), null);
         Expr finalFieldGet = parse(lb, "user.subObj.finalField", FieldAccessExpr.class);
         mExprModel.seal();
         assertTrue(finalFieldGet.isDynamic());
@@ -645,7 +662,7 @@ public class ExprModelTest {
     public void testFinalFieldOfAMethod() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        lb.addVariable("user", User.class.getCanonicalName());
+        lb.addVariable("user", User.class.getCanonicalName(), null);
         Expr finalFieldGet = parse(lb, "user.anotherSubObj.finalField", FieldAccessExpr.class);
         mExprModel.seal();
         assertTrue(finalFieldGet.isDynamic());
@@ -664,7 +681,7 @@ public class ExprModelTest {
     public void testFinalOfAClass() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        mExprModel.addImport("View", "android.view.View");
+        mExprModel.addImport("View", "android.view.View", null);
         FieldAccessExpr fieldAccess = parse(lb, "View.VISIBLE", FieldAccessExpr.class);
         assertFalse(fieldAccess.isDynamic());
         mExprModel.seal();
@@ -675,7 +692,7 @@ public class ExprModelTest {
     public void testStaticFieldOfInstance() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        lb.addVariable("myView", "android.view.View");
+        lb.addVariable("myView", "android.view.View", null);
         FieldAccessExpr fieldAccess = parse(lb, "myView.VISIBLE", FieldAccessExpr.class);
         assertFalse(fieldAccess.isDynamic());
         mExprModel.seal();
@@ -692,8 +709,9 @@ public class ExprModelTest {
     public void testOnDemandImportConflict() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        final IdentifierExpr myView = lb.addVariable("u", "android.view.View");
-        mExprModel.addImport("View", User.class.getCanonicalName());
+        final IdentifierExpr myView = lb.addVariable("u", "android.view.View",
+                null);
+        mExprModel.addImport("View", User.class.getCanonicalName(), null);
         final StaticIdentifierExpr id = mExprModel.staticIdentifierFor(myView.getResolvedType());
         mExprModel.seal();
         // on demand import with conflict
@@ -706,8 +724,10 @@ public class ExprModelTest {
     public void testOnDemandImportAlreadyImported() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        final StaticIdentifierExpr ux = mExprModel.addImport("UX", User.class.getCanonicalName());
-        final IdentifierExpr u = lb.addVariable("u", User.class.getCanonicalName());
+        final StaticIdentifierExpr ux = mExprModel.addImport("UX", User.class.getCanonicalName(),
+                null);
+        final IdentifierExpr u = lb.addVariable("u", User.class.getCanonicalName(),
+                null);
         final StaticIdentifierExpr id = mExprModel.staticIdentifierFor(u.getResolvedType());
         mExprModel.seal();
         // on demand import with conflict
@@ -718,7 +738,7 @@ public class ExprModelTest {
     public void testStaticMethodOfInstance() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        lb.addVariable("user", User.class.getCanonicalName());
+        lb.addVariable("user", User.class.getCanonicalName(), null);
         MethodCallExpr methodCall = parse(lb, "user.ourStaticMethod()", MethodCallExpr.class);
         assertTrue(methodCall.isDynamic());
         mExprModel.seal();
@@ -732,8 +752,9 @@ public class ExprModelTest {
     public void testFinalOfStaticField() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        mExprModel.addImport("UX", User.class.getCanonicalName());
-        FieldAccessExpr fieldAccess = parse(lb, "UX.innerStaticInstance.finalStaticField", FieldAccessExpr.class);
+        mExprModel.addImport("UX", User.class.getCanonicalName(), null);
+        FieldAccessExpr fieldAccess = parse(lb, "UX.innerStaticInstance.finalStaticField",
+                FieldAccessExpr.class);
         assertFalse(fieldAccess.isDynamic());
         mExprModel.seal();
         // nothing to read since it is all final and static
@@ -744,11 +765,62 @@ public class ExprModelTest {
     public void testFinalOfFinalStaticField() {
         LayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
-        mExprModel.addImport("User", User.class.getCanonicalName());
-        FieldAccessExpr fieldAccess = parse(lb, "User.innerFinalStaticInstance.finalStaticField", FieldAccessExpr.class);
+        mExprModel.addImport("User", User.class.getCanonicalName(), null);
+        FieldAccessExpr fieldAccess = parse(lb, "User.innerFinalStaticInstance.finalStaticField",
+                FieldAccessExpr.class);
         assertFalse(fieldAccess.isDynamic());
         mExprModel.seal();
         assertEquals(0, getShouldRead().size());
+    }
+
+    @Test
+    public void testLocationTracking() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final String input = "a > 3 ? b : c";
+        TernaryExpr ternaryExpr = parse(lb, input, TernaryExpr.class);
+        final Location location = ternaryExpr.getLocations().get(0);
+        assertNotNull(location);
+        assertEquals(0, location.startLine);
+        assertEquals(0, location.startOffset);
+        assertEquals(0, location.endLine);
+        assertEquals(input.length() - 1, location.endOffset);
+
+        final ComparisonExpr comparison = (ComparisonExpr) ternaryExpr.getPred();
+        final Location predLoc = comparison.getLocations().get(0);
+        assertNotNull(predLoc);
+        assertEquals(0, predLoc.startLine);
+        assertEquals(0, predLoc.startOffset);
+        assertEquals(0, predLoc.endLine);
+        assertEquals(4, predLoc.endOffset);
+
+        final Location aLoc = comparison.getLeft().getLocations().get(0);
+        assertNotNull(aLoc);
+        assertEquals(0, aLoc.startLine);
+        assertEquals(0, aLoc.startOffset);
+        assertEquals(0, aLoc.endLine);
+        assertEquals(0, aLoc.endOffset);
+
+        final Location tLoc = comparison.getRight().getLocations().get(0);
+        assertNotNull(tLoc);
+        assertEquals(0, tLoc.startLine);
+        assertEquals(4, tLoc.startOffset);
+        assertEquals(0, tLoc.endLine);
+        assertEquals(4, tLoc.endOffset);
+
+        final Location bLoc = ternaryExpr.getIfTrue().getLocations().get(0);
+        assertNotNull(bLoc);
+        assertEquals(0, bLoc.startLine);
+        assertEquals(8, bLoc.startOffset);
+        assertEquals(0, bLoc.endLine);
+        assertEquals(8, bLoc.endOffset);
+
+        final Location cLoc = ternaryExpr.getIfFalse().getLocations().get(0);
+        assertNotNull(cLoc);
+        assertEquals(0, cLoc.startLine);
+        assertEquals(12, cLoc.startOffset);
+        assertEquals(0, cLoc.endLine);
+        assertEquals(12, cLoc.endOffset);
     }
 
 //    TODO uncomment when we have inner static access
@@ -803,7 +875,7 @@ public class ExprModelTest {
     }
 
     private <T extends Expr> T parse(LayoutBinder binder, String input, Class<T> klass) {
-        final Expr parsed = binder.parse(input);
+        final Expr parsed = binder.parse(input, null);
         assertTrue(klass.isAssignableFrom(parsed.getClass()));
         return (T) parsed;
     }
@@ -842,8 +914,11 @@ public class ExprModelTest {
         String lastName;
 
         public final int finalField = 5;
+
         public static InnerStaticClass innerStaticInstance = new InnerStaticClass();
+
         public static final InnerStaticClass innerFinalStaticInstance = new InnerStaticClass();
+
         public SubObj subObj = new SubObj();
 
         public String getName() {
@@ -867,12 +942,15 @@ public class ExprModelTest {
         }
 
         public static class InnerStaticClass {
+
             public static final int finalField = 3;
+
             public static final int finalStaticField = 3;
         }
     }
 
     public static class SubObj {
+
         public final int finalField = 5;
     }
 
