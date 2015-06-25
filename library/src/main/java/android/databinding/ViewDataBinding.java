@@ -475,7 +475,7 @@ public abstract class ViewDataBinding {
      * included layouts.
      */
     protected static Object[] mapBindings(View root, int numBindings,
-            IncludedLayoutIndex[][] includes, SparseIntArray viewsWithIds) {
+            IncludedLayouts includes, SparseIntArray viewsWithIds) {
         Object[] bindings = new Object[numBindings];
         mapBindings(root, bindings, includes, viewsWithIds, true);
         return bindings;
@@ -495,7 +495,7 @@ public abstract class ViewDataBinding {
      * included layouts.
      */
     protected static Object[] mapBindings(View[] roots, int numBindings,
-            IncludedLayoutIndex[][] includes, SparseIntArray viewsWithIds) {
+            IncludedLayouts includes, SparseIntArray viewsWithIds) {
         Object[] bindings = new Object[numBindings];
         for (int i = 0; i < roots.length; i++) {
             mapBindings(roots[i], bindings, includes, viewsWithIds, true);
@@ -504,8 +504,8 @@ public abstract class ViewDataBinding {
     }
 
     private static void mapBindings(View view, Object[] bindings,
-            IncludedLayoutIndex[][] includes, SparseIntArray viewsWithIds, boolean isRoot) {
-        final IncludedLayoutIndex[] includedLayoutIndexes;
+            IncludedLayouts includes, SparseIntArray viewsWithIds, boolean isRoot) {
+        final int indexInIncludes;
         final ViewDataBinding existingBinding = getBinding(view);
         if (existingBinding != null) {
             return;
@@ -519,10 +519,10 @@ public abstract class ViewDataBinding {
                 if (bindings[index] == null) {
                     bindings[index] = view;
                 }
-                includedLayoutIndexes = includes == null ? null : includes[index];
+                indexInIncludes = includes == null ? -1 : index;
                 isBound = true;
             } else {
-                includedLayoutIndexes = null;
+                indexInIncludes = -1;
             }
         } else if (tag != null && tag.startsWith(BINDING_TAG_PREFIX)) {
             int tagIndex = parseTagInt(tag, BINDING_NUMBER_START);
@@ -530,10 +530,10 @@ public abstract class ViewDataBinding {
                 bindings[tagIndex] = view;
             }
             isBound = true;
-            includedLayoutIndexes = includes == null ? null : includes[tagIndex];
+            indexInIncludes = includes == null ? -1 : tagIndex;
         } else {
             // Not a bound view
-            includedLayoutIndexes = null;
+            indexInIncludes = -1;
         }
         if (!isBound) {
             final int id = view.getId();
@@ -553,29 +553,28 @@ public abstract class ViewDataBinding {
             for (int i = 0; i < count; i++) {
                 final View child = viewGroup.getChildAt(i);
                 boolean isInclude = false;
-                if (includedLayoutIndexes != null) {
+                if (indexInIncludes >= 0) {
                     String childTag = (String) child.getTag();
                     if (childTag != null && childTag.endsWith("_0") &&
                             childTag.startsWith("layout") && childTag.indexOf('/') > 0) {
                         // This *could* be an include. Test against the expected includes.
                         int includeIndex = findIncludeIndex(childTag, minInclude,
-                                includedLayoutIndexes);
+                                includes, indexInIncludes);
                         if (includeIndex >= 0) {
                             isInclude = true;
                             minInclude = includeIndex + 1;
-                            IncludedLayoutIndex include = includedLayoutIndexes[includeIndex];
+                            final int index = includes.indexes[indexInIncludes][includeIndex];
+                            final int layoutId = includes.layoutIds[indexInIncludes][includeIndex];
                             int lastMatchingIndex = findLastMatching(viewGroup, i);
                             if (lastMatchingIndex == i) {
-                                bindings[include.index] = DataBindingUtil.bind(child,
-                                        include.layoutId);
+                                bindings[index] = DataBindingUtil.bind(child, layoutId);
                             } else {
                                 final int includeCount =  lastMatchingIndex - i + 1;
                                 final View[] included = new View[includeCount];
                                 for (int j = 0; j < includeCount; j++) {
                                     included[j] = viewGroup.getChildAt(i + j);
                                 }
-                                bindings[include.index] = DataBindingUtil.bind(included,
-                                        include.layoutId);
+                                bindings[index] = DataBindingUtil.bind(included, layoutId);
                                 i += includeCount - 1;
                             }
                         }
@@ -589,14 +588,15 @@ public abstract class ViewDataBinding {
     }
 
     private static int findIncludeIndex(String tag, int minInclude,
-            IncludedLayoutIndex[] layoutIndexes) {
+            IncludedLayouts included, int includedIndex) {
         final int slashIndex = tag.indexOf('/');
         final CharSequence layoutName = tag.subSequence(slashIndex + 1, tag.length() - 2);
 
-        final int length = layoutIndexes.length;
+        final String[] layouts = included.layouts[includedIndex];
+        final int length = layouts.length;
         for (int i = minInclude; i < length; i++) {
-            final IncludedLayoutIndex layoutIndex = layoutIndexes[i];
-            if (TextUtils.equals(layoutName, layoutIndex.layout)) {
+            final String layout = layouts[i];
+            if (TextUtils.equals(layoutName, layout)) {
                 return i;
             }
         }
@@ -837,15 +837,27 @@ public abstract class ViewDataBinding {
         WeakListener create(ViewDataBinding viewDataBinding, int localFieldId);
     }
 
-    protected static class IncludedLayoutIndex {
-        public final String layout;
-        public final int index;
-        public final int layoutId;
+    /**
+     * This class is used by generated subclasses of {@link ViewDataBinding} to track the
+     * included layouts contained in the bound layout. This class is an implementation
+     * detail of how binding expressions are mapped to Views after inflation.
+     * @hide
+     */
+    protected static class IncludedLayouts {
+        public final String[][] layouts;
+        public final int[][] indexes;
+        public final int[][] layoutIds;
 
-        public IncludedLayoutIndex(String layout, int index, int layoutId) {
-            this.layout = layout;
-            this.index = index;
-            this.layoutId = layoutId;
+        public IncludedLayouts(int bindingCount) {
+            layouts = new String[bindingCount][];
+            indexes = new int[bindingCount][];
+            layoutIds = new int[bindingCount][];
+        }
+
+        public void setIncludes(int index, String[] layouts, int[] indexes, int[] layoutIds) {
+            this.layouts[index] = layouts;
+            this.indexes[index] = indexes;
+            this.layoutIds[index] = layoutIds;
         }
     }
 }

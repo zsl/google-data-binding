@@ -316,7 +316,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         }
     }
     fun declareIncludeViews() = kcode("") {
-        nl("private static final android.databinding.ViewDataBinding.IncludedLayoutIndex[][] sIncludes;")
+        nl("private static final android.databinding.ViewDataBinding.IncludedLayouts sIncludes;")
         nl("private static final android.util.SparseIntArray sViewsWithIds;")
         nl("static {") {
             val hasBinders = layoutBinder.getBindingTargets().firstOrNull{ it.isUsed() && it.isBinder()} != null
@@ -324,7 +324,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab("sIncludes = null;")
             } else {
                 val numBindings = layoutBinder.getBindingTargets().filter{ it.isUsed() }.count()
-                tab("sIncludes = new android.databinding.ViewDataBinding.IncludedLayoutIndex[${numBindings}][];")
+                tab("sIncludes = new android.databinding.ViewDataBinding.IncludedLayouts(${numBindings});")
                 val includeMap = HashMap<BindingTarget, ArrayList<BindingTarget>>()
                 layoutBinder.getBindingTargets().filter{ it.isUsed() && it.isBinder() }.forEach {
                     val includeTag = it.getTag();
@@ -344,14 +344,23 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
                 includeMap.keySet().forEach {
                     val index = indices.get(it)
-                    tab("sIncludes[${index}] = new android.databinding.ViewDataBinding.IncludedLayoutIndex[] {") {
-                        includeMap.get(it).forEach {
-                            val bindingIndex = indices.get(it)
-                            val layoutName = it.getIncludedLayout()
-                            tab("new android.databinding.ViewDataBinding.IncludedLayoutIndex(\"${layoutName}\", ${bindingIndex}, R.layout.${layoutName}),")
-                        }
+                    tab("sIncludes.setIncludes(${index}, ") {
+                        tab ("new String[] {${
+                        includeMap.get(it).map {
+                            "\"${it.getIncludedLayout()}\""
+                        }.joinToString(", ")
+                        }},")
+                        tab("new int[] {${
+                        includeMap.get(it).map {
+                            "${indices.get(it)}"
+                        }.joinToString(", ")
+                        }},")
+                        tab("new int[] {${
+                        includeMap.get(it).map {
+                            "R.layout.${it.getIncludedLayout()}"
+                        }.joinToString(", ")
+                        }});")
                     }
-                    tab("};")
                 }
             }
             val viewsWithIds = layoutBinder.getBindingTargets().filter {
