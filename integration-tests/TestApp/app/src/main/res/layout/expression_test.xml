@@ -15,6 +15,8 @@
     <data>
         <variable name="var1" type="int"/>
         <variable name="var2" type="int"/>
+        <variable name="bool1" type="boolean"/>
+        <variable name="bool2" type="boolean"/>
     </data>
     <LinearLayout
             android:orientation="vertical"
@@ -95,5 +97,9 @@
                 android:id="@+id/textView17"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="@{`` + (((Object)var1) instanceof Float)}"/>
+        <TextView
+                android:id="@+id/textView18"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="@{bool1 ? @string/app_name : bool2 ? @string/rain : null}"/>
     </LinearLayout>
 </layout>

@@ -66,7 +66,7 @@ expression
     |   left=expression op='|' right=expression                       # BinaryOp
     |   left=expression op='&&' right=expression                      # AndOrOp
     |   left=expression op='||' right=expression                      # AndOrOp
-    |   left=expression op='?' iftrue=expression ':' iffalse=expression        # TernaryOp
+    |   <assoc=right>left=expression op='?' iftrue=expression ':' iffalse=expression # TernaryOp
     |   left=expression op='??' right=expression                      # QuestionQuestionOp
     ;
 

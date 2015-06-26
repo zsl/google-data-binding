@@ -147,4 +147,15 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals("true", mBinder.textView16.getText().toString());
         assertEquals("false", mBinder.textView17.getText().toString());
     }
+
+    @UiThreadTest
+    public void testTernaryChain()  throws Throwable {
+        mBinder.setBool1(true);
+        mBinder.setBool2(false);
+        mBinder.executePendingBindings();
+        String appName = getActivity().getResources().getString(R.string.app_name);
+        String rain = getActivity().getResources().getString(R.string.rain);
+        assertEquals(mBinder.getBool1() ? appName : mBinder.getBool2() ? rain : "",
+                mBinder.textView18.getText().toString());
+    }
 }

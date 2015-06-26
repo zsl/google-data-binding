@@ -1,5 +1,6 @@
-// Generated from BindingExpression.g4 by ANTLR 4.4
+// Generated from BindingExpression.g4 by ANTLR 4.5
 package android.databinding.parser;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -8,28 +9,6 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  * {@link BindingExpressionParser}.
  */
 public interface BindingExpressionListener extends ParseTreeListener {
-	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterExpression(@NotNull BindingExpressionParser.ExpressionContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitExpression(@NotNull BindingExpressionParser.ExpressionContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#resources}.
-	 * @param ctx the parse tree
-	 */
-	void enterResources(@NotNull BindingExpressionParser.ResourcesContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#resources}.
-	 * @param ctx the parse tree
-	 */
-	void exitResources(@NotNull BindingExpressionParser.ResourcesContext ctx);
-
 	/**
 	 * Enter a parse tree produced by the {@code BracketOp}
 	 * labeled alternative in {@link BindingExpressionParser#expression}.
@@ -44,17 +23,17 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitBracketOp(@NotNull BindingExpressionParser.BracketOpContext ctx);
 
 	/**
-	 * Enter a parse tree produced by the {@code UnaryOp}
+	 * Enter a parse tree produced by the {@code Resource}
 	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterUnaryOp(@NotNull BindingExpressionParser.UnaryOpContext ctx);
+	void enterResource(@NotNull BindingExpressionParser.ResourceContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code UnaryOp}
+	 * Exit a parse tree produced by the {@code Resource}
 	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitUnaryOp(@NotNull BindingExpressionParser.UnaryOpContext ctx);
+	void exitResource(@NotNull BindingExpressionParser.ResourceContext ctx);
 
 	/**
 	 * Enter a parse tree produced by the {@code CastOp}
@@ -70,15 +49,17 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitCastOp(@NotNull BindingExpressionParser.CastOpContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#resourceParameters}.
+	 * Enter a parse tree produced by the {@code UnaryOp}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterResourceParameters(@NotNull BindingExpressionParser.ResourceParametersContext ctx);
+	void enterUnaryOp(@NotNull BindingExpressionParser.UnaryOpContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#resourceParameters}.
+	 * Exit a parse tree produced by the {@code UnaryOp}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitResourceParameters(@NotNull BindingExpressionParser.ResourceParametersContext ctx);
+	void exitUnaryOp(@NotNull BindingExpressionParser.UnaryOpContext ctx);
 
 	/**
 	 * Enter a parse tree produced by the {@code AndOrOp}
@@ -107,39 +88,6 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitMethodInvocation(@NotNull BindingExpressionParser.MethodInvocationContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#expressionList}.
-	 * @param ctx the parse tree
-	 */
-	void enterExpressionList(@NotNull BindingExpressionParser.ExpressionListContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#expressionList}.
-	 * @param ctx the parse tree
-	 */
-	void exitExpressionList(@NotNull BindingExpressionParser.ExpressionListContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#classOrInterfaceType}.
-	 * @param ctx the parse tree
-	 */
-	void enterClassOrInterfaceType(@NotNull BindingExpressionParser.ClassOrInterfaceTypeContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#classOrInterfaceType}.
-	 * @param ctx the parse tree
-	 */
-	void exitClassOrInterfaceType(@NotNull BindingExpressionParser.ClassOrInterfaceTypeContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#stringLiteral}.
-	 * @param ctx the parse tree
-	 */
-	void enterStringLiteral(@NotNull BindingExpressionParser.StringLiteralContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#stringLiteral}.
-	 * @param ctx the parse tree
-	 */
-	void exitStringLiteral(@NotNull BindingExpressionParser.StringLiteralContext ctx);
-
-	/**
 	 * Enter a parse tree produced by the {@code Primary}
 	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
@@ -153,39 +101,17 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitPrimary(@NotNull BindingExpressionParser.PrimaryContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#type}.
-	 * @param ctx the parse tree
-	 */
-	void enterType(@NotNull BindingExpressionParser.TypeContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#type}.
-	 * @param ctx the parse tree
-	 */
-	void exitType(@NotNull BindingExpressionParser.TypeContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#bindingSyntax}.
-	 * @param ctx the parse tree
-	 */
-	void enterBindingSyntax(@NotNull BindingExpressionParser.BindingSyntaxContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#bindingSyntax}.
-	 * @param ctx the parse tree
-	 */
-	void exitBindingSyntax(@NotNull BindingExpressionParser.BindingSyntaxContext ctx);
-
-	/**
-	 * Enter a parse tree produced by the {@code ComparisonOp}
+	 * Enter a parse tree produced by the {@code Grouping}
 	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx);
+	void enterGrouping(@NotNull BindingExpressionParser.GroupingContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code ComparisonOp}
+	 * Exit a parse tree produced by the {@code Grouping}
 	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx);
+	void exitGrouping(@NotNull BindingExpressionParser.GroupingContext ctx);
 
 	/**
 	 * Enter a parse tree produced by the {@code TernaryOp}
@@ -201,15 +127,17 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitTernaryOp(@NotNull BindingExpressionParser.TernaryOpContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#constantValue}.
+	 * Enter a parse tree produced by the {@code ComparisonOp}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterConstantValue(@NotNull BindingExpressionParser.ConstantValueContext ctx);
+	void enterComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#constantValue}.
+	 * Exit a parse tree produced by the {@code ComparisonOp}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitConstantValue(@NotNull BindingExpressionParser.ConstantValueContext ctx);
+	void exitComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx);
 
 	/**
 	 * Enter a parse tree produced by the {@code DotOp}
@@ -225,15 +153,30 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitDotOp(@NotNull BindingExpressionParser.DotOpContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#defaults}.
+	 * Enter a parse tree produced by the {@code MathOp}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterDefaults(@NotNull BindingExpressionParser.DefaultsContext ctx);
+	void enterMathOp(@NotNull BindingExpressionParser.MathOpContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#defaults}.
+	 * Exit a parse tree produced by the {@code MathOp}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitDefaults(@NotNull BindingExpressionParser.DefaultsContext ctx);
+	void exitMathOp(@NotNull BindingExpressionParser.MathOpContext ctx);
+
+	/**
+	 * Enter a parse tree produced by the {@code QuestionQuestionOp}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code QuestionQuestionOp}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx);
 
 	/**
 	 * Enter a parse tree produced by the {@code BitShiftOp}
@@ -275,65 +218,48 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitBinaryOp(@NotNull BindingExpressionParser.BinaryOpContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#explicitGenericInvocation}.
+	 * Enter a parse tree produced by {@link BindingExpressionParser#bindingSyntax}.
 	 * @param ctx the parse tree
 	 */
-	void enterExplicitGenericInvocation(@NotNull BindingExpressionParser.ExplicitGenericInvocationContext ctx);
+	void enterBindingSyntax(@NotNull BindingExpressionParser.BindingSyntaxContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#explicitGenericInvocation}.
+	 * Exit a parse tree produced by {@link BindingExpressionParser#bindingSyntax}.
 	 * @param ctx the parse tree
 	 */
-	void exitExplicitGenericInvocation(@NotNull BindingExpressionParser.ExplicitGenericInvocationContext ctx);
+	void exitBindingSyntax(@NotNull BindingExpressionParser.BindingSyntaxContext ctx);
 
 	/**
-	 * Enter a parse tree produced by the {@code Resource}
-	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * Enter a parse tree produced by {@link BindingExpressionParser#defaults}.
 	 * @param ctx the parse tree
 	 */
-	void enterResource(@NotNull BindingExpressionParser.ResourceContext ctx);
+	void enterDefaults(@NotNull BindingExpressionParser.DefaultsContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code Resource}
-	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * Exit a parse tree produced by {@link BindingExpressionParser#defaults}.
 	 * @param ctx the parse tree
 	 */
-	void exitResource(@NotNull BindingExpressionParser.ResourceContext ctx);
+	void exitDefaults(@NotNull BindingExpressionParser.DefaultsContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#typeArguments}.
+	 * Enter a parse tree produced by {@link BindingExpressionParser#constantValue}.
 	 * @param ctx the parse tree
 	 */
-	void enterTypeArguments(@NotNull BindingExpressionParser.TypeArgumentsContext ctx);
+	void enterConstantValue(@NotNull BindingExpressionParser.ConstantValueContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#typeArguments}.
+	 * Exit a parse tree produced by {@link BindingExpressionParser#constantValue}.
 	 * @param ctx the parse tree
 	 */
-	void exitTypeArguments(@NotNull BindingExpressionParser.TypeArgumentsContext ctx);
+	void exitConstantValue(@NotNull BindingExpressionParser.ConstantValueContext ctx);
 
 	/**
-	 * Enter a parse tree produced by the {@code Grouping}
-	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * Enter a parse tree produced by {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void enterGrouping(@NotNull BindingExpressionParser.GroupingContext ctx);
+	void enterExpression(@NotNull BindingExpressionParser.ExpressionContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code Grouping}
-	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * Exit a parse tree produced by {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree
 	 */
-	void exitGrouping(@NotNull BindingExpressionParser.GroupingContext ctx);
-
-	/**
-	 * Enter a parse tree produced by the {@code MathOp}
-	 * labeled alternative in {@link BindingExpressionParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterMathOp(@NotNull BindingExpressionParser.MathOpContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code MathOp}
-	 * labeled alternative in {@link BindingExpressionParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitMathOp(@NotNull BindingExpressionParser.MathOpContext ctx);
+	void exitExpression(@NotNull BindingExpressionParser.ExpressionContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link BindingExpressionParser#classExtraction}.
@@ -347,61 +273,26 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitClassExtraction(@NotNull BindingExpressionParser.ClassExtractionContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#arguments}.
+	 * Enter a parse tree produced by {@link BindingExpressionParser#expressionList}.
 	 * @param ctx the parse tree
 	 */
-	void enterArguments(@NotNull BindingExpressionParser.ArgumentsContext ctx);
+	void enterExpressionList(@NotNull BindingExpressionParser.ExpressionListContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#arguments}.
+	 * Exit a parse tree produced by {@link BindingExpressionParser#expressionList}.
 	 * @param ctx the parse tree
 	 */
-	void exitArguments(@NotNull BindingExpressionParser.ArgumentsContext ctx);
+	void exitExpressionList(@NotNull BindingExpressionParser.ExpressionListContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#primitiveType}.
+	 * Enter a parse tree produced by {@link BindingExpressionParser#literal}.
 	 * @param ctx the parse tree
 	 */
-	void enterPrimitiveType(@NotNull BindingExpressionParser.PrimitiveTypeContext ctx);
+	void enterLiteral(@NotNull BindingExpressionParser.LiteralContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#primitiveType}.
+	 * Exit a parse tree produced by {@link BindingExpressionParser#literal}.
 	 * @param ctx the parse tree
 	 */
-	void exitPrimitiveType(@NotNull BindingExpressionParser.PrimitiveTypeContext ctx);
-
-	/**
-	 * Enter a parse tree produced by the {@code QuestionQuestionOp}
-	 * labeled alternative in {@link BindingExpressionParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code QuestionQuestionOp}
-	 * labeled alternative in {@link BindingExpressionParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#javaLiteral}.
-	 * @param ctx the parse tree
-	 */
-	void enterJavaLiteral(@NotNull BindingExpressionParser.JavaLiteralContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#javaLiteral}.
-	 * @param ctx the parse tree
-	 */
-	void exitJavaLiteral(@NotNull BindingExpressionParser.JavaLiteralContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#explicitGenericInvocationSuffix}.
-	 * @param ctx the parse tree
-	 */
-	void enterExplicitGenericInvocationSuffix(@NotNull BindingExpressionParser.ExplicitGenericInvocationSuffixContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#explicitGenericInvocationSuffix}.
-	 * @param ctx the parse tree
-	 */
-	void exitExplicitGenericInvocationSuffix(@NotNull BindingExpressionParser.ExplicitGenericInvocationSuffixContext ctx);
+	void exitLiteral(@NotNull BindingExpressionParser.LiteralContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link BindingExpressionParser#identifier}.
@@ -415,13 +306,123 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitIdentifier(@NotNull BindingExpressionParser.IdentifierContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link BindingExpressionParser#literal}.
+	 * Enter a parse tree produced by {@link BindingExpressionParser#javaLiteral}.
 	 * @param ctx the parse tree
 	 */
-	void enterLiteral(@NotNull BindingExpressionParser.LiteralContext ctx);
+	void enterJavaLiteral(@NotNull BindingExpressionParser.JavaLiteralContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link BindingExpressionParser#literal}.
+	 * Exit a parse tree produced by {@link BindingExpressionParser#javaLiteral}.
 	 * @param ctx the parse tree
 	 */
-	void exitLiteral(@NotNull BindingExpressionParser.LiteralContext ctx);
+	void exitJavaLiteral(@NotNull BindingExpressionParser.JavaLiteralContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#stringLiteral}.
+	 * @param ctx the parse tree
+	 */
+	void enterStringLiteral(@NotNull BindingExpressionParser.StringLiteralContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#stringLiteral}.
+	 * @param ctx the parse tree
+	 */
+	void exitStringLiteral(@NotNull BindingExpressionParser.StringLiteralContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#explicitGenericInvocation}.
+	 * @param ctx the parse tree
+	 */
+	void enterExplicitGenericInvocation(@NotNull BindingExpressionParser.ExplicitGenericInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#explicitGenericInvocation}.
+	 * @param ctx the parse tree
+	 */
+	void exitExplicitGenericInvocation(@NotNull BindingExpressionParser.ExplicitGenericInvocationContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#typeArguments}.
+	 * @param ctx the parse tree
+	 */
+	void enterTypeArguments(@NotNull BindingExpressionParser.TypeArgumentsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#typeArguments}.
+	 * @param ctx the parse tree
+	 */
+	void exitTypeArguments(@NotNull BindingExpressionParser.TypeArgumentsContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#type}.
+	 * @param ctx the parse tree
+	 */
+	void enterType(@NotNull BindingExpressionParser.TypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#type}.
+	 * @param ctx the parse tree
+	 */
+	void exitType(@NotNull BindingExpressionParser.TypeContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#explicitGenericInvocationSuffix}.
+	 * @param ctx the parse tree
+	 */
+	void enterExplicitGenericInvocationSuffix(@NotNull BindingExpressionParser.ExplicitGenericInvocationSuffixContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#explicitGenericInvocationSuffix}.
+	 * @param ctx the parse tree
+	 */
+	void exitExplicitGenericInvocationSuffix(@NotNull BindingExpressionParser.ExplicitGenericInvocationSuffixContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#arguments}.
+	 * @param ctx the parse tree
+	 */
+	void enterArguments(@NotNull BindingExpressionParser.ArgumentsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#arguments}.
+	 * @param ctx the parse tree
+	 */
+	void exitArguments(@NotNull BindingExpressionParser.ArgumentsContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#classOrInterfaceType}.
+	 * @param ctx the parse tree
+	 */
+	void enterClassOrInterfaceType(@NotNull BindingExpressionParser.ClassOrInterfaceTypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#classOrInterfaceType}.
+	 * @param ctx the parse tree
+	 */
+	void exitClassOrInterfaceType(@NotNull BindingExpressionParser.ClassOrInterfaceTypeContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#primitiveType}.
+	 * @param ctx the parse tree
+	 */
+	void enterPrimitiveType(@NotNull BindingExpressionParser.PrimitiveTypeContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#primitiveType}.
+	 * @param ctx the parse tree
+	 */
+	void exitPrimitiveType(@NotNull BindingExpressionParser.PrimitiveTypeContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#resources}.
+	 * @param ctx the parse tree
+	 */
+	void enterResources(@NotNull BindingExpressionParser.ResourcesContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#resources}.
+	 * @param ctx the parse tree
+	 */
+	void exitResources(@NotNull BindingExpressionParser.ResourcesContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#resourceParameters}.
+	 * @param ctx the parse tree
+	 */
+	void enterResourceParameters(@NotNull BindingExpressionParser.ResourceParametersContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#resourceParameters}.
+	 * @param ctx the parse tree
+	 */
+	void exitResourceParameters(@NotNull BindingExpressionParser.ResourceParametersContext ctx);
 }
