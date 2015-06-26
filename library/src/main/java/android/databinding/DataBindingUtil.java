@@ -186,4 +186,15 @@ public class DataBindingUtil {
         activity.setContentView(binding.getRoot(), binding.getRoot().getLayoutParams());
         return binding;
     }
+
+    /**
+     * Converts the given BR id to its string representation which might be useful for logging
+     * purposes.
+     *
+     * @param id The integer id, which should be a field from BR class.
+     * @return The name if the BR id or null if id is out of bounds.
+     */
+    public static String convertBrIdToString(int id) {
+        return sMapper.convertBrIdToString(id);
+    }
 }

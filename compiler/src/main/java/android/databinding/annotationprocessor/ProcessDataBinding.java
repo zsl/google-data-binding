@@ -16,9 +16,14 @@
 
 package android.databinding.annotationprocessor;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 import android.databinding.BindingBuildInfo;
+import android.databinding.tool.CompilerChef;
 import android.databinding.tool.reflection.ModelAnalyzer;
+import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.AnnotationJavaFileWriter;
+import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.util.Arrays;
@@ -69,15 +74,46 @@ public class ProcessDataBinding extends AbstractProcessor {
     }
 
     private void initProcessingSteps() {
-        ProcessBindable processBindable = new ProcessBindable();
+        final ProcessBindable processBindable = new ProcessBindable();
         mProcessingSteps = Arrays.asList(
                 new ProcessMethodAdapters(),
-                new ProcessExpressions(processBindable),
+                new ProcessExpressions(),
                 processBindable
         );
+        Callback dataBinderWriterCallback = new Callback() {
+            CompilerChef mChef;
+            BRWriter mBRWriter;
+            boolean mLibraryProject;
+            int mMinSdk;
+
+            @Override
+            public void onChefReady(CompilerChef chef, boolean libraryProject, int minSdk) {
+                Preconditions.checkNull(mChef, "Cannot set compiler chef twice");
+                chef.addBRVariables(processBindable);
+                mChef = chef;
+                mLibraryProject = libraryProject;
+                mMinSdk = minSdk;
+                considerWritingMapper();
+            }
+
+            private void considerWritingMapper() {
+                if (mLibraryProject || mChef == null || mBRWriter == null) {
+                    return;
+                }
+                mChef.writeDataBinderMapper(mMinSdk, mBRWriter);
+            }
+
+            @Override
+            public void onBrWriterReady(BRWriter brWriter) {
+                Preconditions.checkNull(mBRWriter, "Cannot set br writer twice");
+                mBRWriter = brWriter;
+                considerWritingMapper();
+            }
+        };
         AnnotationJavaFileWriter javaFileWriter = new AnnotationJavaFileWriter(processingEnv);
         for (ProcessingStep step : mProcessingSteps) {
             step.mJavaFileWriter = javaFileWriter;
+            step.mCallback = dataBinderWriterCallback;
         }
     }
 
@@ -93,6 +129,7 @@ public class ProcessDataBinding extends AbstractProcessor {
     public abstract static class ProcessingStep {
         private boolean mDone;
         private JavaFileWriter mJavaFileWriter;
+        protected Callback mCallback;
 
         protected JavaFileWriter getWriter() {
             return mJavaFileWriter;
@@ -124,5 +161,10 @@ public class ProcessDataBinding extends AbstractProcessor {
         abstract public void onProcessingOver(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
                 BindingBuildInfo buildInfo);
+    }
+
+    interface Callback {
+        void onChefReady(CompilerChef chef, boolean libraryProject, int minSdk);
+        void onBrWriterReady(BRWriter brWriter);
     }
 }

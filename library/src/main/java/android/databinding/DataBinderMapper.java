@@ -31,5 +31,8 @@ class DataBinderMapper {
         return null;
     }
     public int getLayoutId(String tag) { return 0; }
+    public String convertBrIdToString(int id) {
+        return null;
+    }
     public static int TARGET_MIN_SDK = 0;
 }

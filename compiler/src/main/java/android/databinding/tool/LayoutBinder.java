@@ -269,7 +269,6 @@ public class LayoutBinder implements ResolveListenersCallback {
         return mWriter.writeBaseClass(forLibrary);
     }
 
-
     public String writeViewBinder(int minSdk) {
         mExprModel.seal(this);
         ensureWriter();

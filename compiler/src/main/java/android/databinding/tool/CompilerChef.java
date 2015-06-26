@@ -15,6 +15,7 @@ package android.databinding.tool;
 
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
+import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.DataBinderWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
@@ -59,12 +60,12 @@ public class CompilerChef {
         return mResourceBundle != null && mResourceBundle.getLayoutBundles().size() > 0;
     }
 
-    public void writeDbrFile(int minSdk) {
+    public void writeDataBinderMapper(int minSdk, BRWriter brWriter) {
         ensureDataBinder();
         final String pkg = "android.databinding";
         DataBinderWriter dbr = new DataBinderWriter(pkg, mResourceBundle.getAppPackage(),
                 "DataBinderMapper", mDataBinder.getLayoutBinders(), minSdk);
-        mFileWriter.writeToFile(pkg + "." + dbr.getClassName(), dbr.write());
+        mFileWriter.writeToFile(pkg + "." + dbr.getClassName(), dbr.write(brWriter));
     }
 
     /**

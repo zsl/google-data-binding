@@ -17,19 +17,13 @@ import android.databinding.tool.LayoutBinder
 
 class DataBinderWriter(val pkg: String, val projectPackage: String, val className: String,
         val layoutBinders : List<LayoutBinder>, val minSdk : kotlin.Int) {
-    fun write() = kcode("") {
+    fun write(brWriter : BRWriter) = kcode("") {
         nl("package $pkg;")
         nl("import $projectPackage.BR;")
         nl("class $className {") {
             tab("final static int TARGET_MIN_SDK = ${minSdk};")
             nl("")
-            tab("private final java.util.HashMap<String, Integer> mLayoutIds;")
-            nl("")
             tab("public $className() {") {
-                tab("mLayoutIds = new java.util.HashMap<String, Integer>();")
-                layoutBinders.forEach {
-                    tab("mLayoutIds.put(\"${it.getTag()}_0\", ${it.getModulePackage()}.R.layout.${it.getLayoutname()});")
-                }
             }
             tab("}")
             nl("")
@@ -97,14 +91,45 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
             tab("}")
 
             tab("int getLayoutId(String tag) {") {
-                tab("Integer id = mLayoutIds.get(tag);")
-                tab("if (id == null) {") {
-                    tab("return 0;")
+                tab("if (tag == null) {") {
+                    tab("return 0;");
                 }
                 tab("}")
-                tab("return id;")
+                // String.hashCode is well defined in the API so we can rely on it being the same on the device and the host machine
+                tab("final int code = tag.hashCode();");
+                tab("switch(code) {") {
+                    layoutBinders.groupBy {"${it.getTag()}_0".hashCode()}.forEach {
+                        tab("case ${it.key}:") {
+                            it.value.forEach {
+                                tab("if(tag.equals(\"${it.getTag()}_0\"))") {
+                                    tab("return ${it.getModulePackage()}.R.layout.${it.getLayoutname()};")
+                                }
+                            }
+                            tab("break;")
+                        }
+
+                    }
+                }
+                tab("}")
+                tab("return 0;")
             }
             tab("}")
+
+            tab("String convertBrIdToString(int id) {") {
+                tab("if (id < 0 || id >= InnerBrLookup.sKeys.length) {") {
+                    tab("return null;")
+                } tab("}")
+                tab("return InnerBrLookup.sKeys[id];")
+            } tab("}")
+
+            tab("private static class InnerBrLookup {") {
+                tab("static String[] sKeys = new String[]{") {
+                    tab("\"_all\"")
+                    brWriter.indexedProps.forEach {
+                        tab(",\"${it.value}\"")
+                    }
+                }.app("};")
+            } tab("}")
         }
         nl("}")
     }.generate()

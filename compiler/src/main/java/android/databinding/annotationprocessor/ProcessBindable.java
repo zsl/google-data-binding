@@ -22,10 +22,10 @@ import android.databinding.tool.CompilerChef.BindableHolder;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.writer.BRWriter;
+import android.databinding.tool.writer.JavaFileWriter;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -117,34 +117,18 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
         for (Intermediate intermediate : previousIntermediates) {
             intermediate.captureProperties(properties);
         }
-        writeBRClass(useFinalFields, pkg, properties);
+        final JavaFileWriter writer = getWriter();
+        BRWriter brWriter = new BRWriter(properties, useFinalFields);
+        writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
+        //writeBRClass(useFinalFields, pkg, properties);
         if (useFinalFields) {
             // generate BR for all previous packages
             for (Intermediate intermediate : previousIntermediates) {
-                writeBRClass(true, intermediate.getPackage(),
-                        properties);
+                writer.writeToFile(intermediate.getPackage() + ".BR",
+                        brWriter.write(intermediate.getPackage()));
             }
         }
-    }
-
-    private void writeBRClass(boolean useFinalFields, String pkg, HashSet<String> properties) {
-        ArrayList<String> sortedProperties = new ArrayList<String>();
-        sortedProperties.addAll(properties);
-        Collections.sort(sortedProperties);
-        StringBuilder out = new StringBuilder();
-        String modifier = "public static " + (useFinalFields ? "final" : "") + " int ";
-        out.append("package " + pkg + ";\n\n" +
-                        "public class BR {\n" +
-                        "    " + modifier + "_all = 0;\n"
-        );
-        int id = 0;
-        for (String property : sortedProperties) {
-            id++;
-            out.append("    " + modifier + property + " = " + id + ";\n");
-        }
-        out.append("}\n");
-
-        getWriter().writeToFile(pkg + ".BR", out.toString() );
+        mCallback.onBrWriterReady(brWriter);
     }
 
     private String getPropertyName(Element element) {

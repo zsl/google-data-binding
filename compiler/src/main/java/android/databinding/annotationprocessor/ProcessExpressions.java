@@ -26,6 +26,7 @@ import android.databinding.tool.reflection.SdkUtil;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
+import android.databinding.tool.writer.BRWriter;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -47,12 +48,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     private static final String LAYOUT_INFO_FILE_SUFFIX = "-layoutinfo.bin";
 
-    private final ProcessBindable mProcessBindable;
-
-    public ProcessExpressions(ProcessBindable processBindable) {
-        mProcessBindable = processBindable;
+    public ProcessExpressions() {
     }
-
 
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnvironment,
@@ -123,11 +120,10 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     }
 
     private void writeResourceBundle(ResourceBundle resourceBundle, boolean forLibraryModule,
-            int minSdk, String exportClassNamesTo)
+            final int minSdk, String exportClassNamesTo)
             throws JAXBException {
-        CompilerChef compilerChef = CompilerChef.createChef(resourceBundle, getWriter());
+        final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle, getWriter());
         if (compilerChef.hasAnythingToGenerate()) {
-            compilerChef.addBRVariables(mProcessBindable);
             compilerChef.writeViewBinderInterfaces(forLibraryModule);
             if (!forLibraryModule) {
                 compilerChef.writeViewBinders(minSdk);
@@ -139,17 +135,15 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         if (forLibraryModule) {
             Set<String> classNames = compilerChef.getWrittenClassNames();
             String out = StringUtils.join(classNames, System.getProperty("line.separator"));
-
             L.d("Writing list of classes to %s . \nList:%s", exportClassNamesTo, out);
             try {
-                FileUtils.write(new File(exportClassNamesTo),
-                        out);
+                //noinspection ConstantConditions
+                FileUtils.write(new File(exportClassNamesTo), out);
             } catch (IOException e) {
                 L.e(e, "Cannot create list of written classes");
             }
-        } else {
-            compilerChef.writeDbrFile(minSdk);
         }
+        mCallback.onChefReady(compilerChef, forLibraryModule, minSdk);
     }
 
     public static interface Intermediate extends Serializable {
