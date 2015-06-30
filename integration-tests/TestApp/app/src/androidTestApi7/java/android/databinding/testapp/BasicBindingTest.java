@@ -22,6 +22,7 @@ import android.databinding.testapp.databinding.JustIdBinding;
 import android.test.UiThreadTest;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
     public BasicBindingTest() {
@@ -150,6 +151,14 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
         assertNotNull(binding);
         assertNotNull(binding.textView);
         assertNotSame(binding.textView, mBinder.textView);
+    }
+
+    @UiThreadTest
+    public void testAndroidId() throws Throwable {
+        JustIdBinding binding = JustIdBinding.inflate(getActivity().getLayoutInflater());
+        assertNotNull(binding);
+        assertNotNull(binding.empty);
+        assertTrue(binding.empty instanceof TextView);
     }
 
     private void assertAB(String a, String b) {
