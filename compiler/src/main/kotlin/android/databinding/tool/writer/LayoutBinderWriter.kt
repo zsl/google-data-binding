@@ -109,7 +109,11 @@ val BindingTarget.fieldName : String by Delegates.lazy { target : BindingTarget 
 }
 
 val BindingTarget.androidId by Delegates.lazy { target : BindingTarget ->
-    "R.id.${target.getId().androidId()}"
+    if (target.getId().startsWith("@android:id/")) {
+        "android.R.id.${target.getId().androidId()}"
+    } else {
+        "R.id.${target.getId().androidId()}"
+    }
 }
 
 val BindingTarget.interfaceType by Delegates.lazy { target : BindingTarget ->
