@@ -16,8 +16,6 @@
 
 package android.databinding.annotationprocessor;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.reflection.ModelAnalyzer;

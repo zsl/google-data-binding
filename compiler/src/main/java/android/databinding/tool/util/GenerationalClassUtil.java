@@ -18,7 +18,6 @@ package android.databinding.tool.util;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
@@ -32,7 +31,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -47,13 +45,26 @@ import javax.tools.StandardLocation;
  * and their extraction later on.
  */
 public class GenerationalClassUtil {
-    public static <T extends Serializable> List<T> loadObjects(ClassLoader classLoader, Filter filter) {
-        final List<T> result = new ArrayList<T>();
-        if (!(classLoader instanceof URLClassLoader)) {
-            L.d("class loader is not url class loader (%s). skipping.", classLoader.getClass());
-            return result;
+    private static List[] sCache = null;
+    public static <T extends Serializable> List<T> loadObjects(ExtensionFilter filter) {
+        if (sCache == null) {
+            buildCache();
         }
+        //noinspection unchecked
+        return sCache[filter.ordinal()];
+    }
+
+    private static void buildCache() {
+        L.d("building generational class cache");
+        ClassLoader classLoader = GenerationalClassUtil.class.getClassLoader();
+        Preconditions.check(classLoader instanceof URLClassLoader, "Class loader must be an"
+                + "instance of URLClassLoader. %s", classLoader);
+        //noinspection ConstantConditions
         final URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
+        sCache = new List[ExtensionFilter.values().length];
+        for (ExtensionFilter filter : ExtensionFilter.values()) {
+            sCache[filter.ordinal()] = new ArrayList();
+        }
         for (URL url : urlClassLoader.getURLs()) {
             L.d("checking url %s for intermediate data", url);
             try {
@@ -64,85 +75,79 @@ public class GenerationalClassUtil {
                 }
                 if (file.isDirectory()) {
                     // probably exported classes dir.
-                    loadFromDirectory(filter, result, file);
+                    loadFromDirectory(file);
                 } else {
                     // assume it is a zip file
-                    loadFomZipFile(filter, result, file);
+                    loadFomZipFile(file);
                 }
-            } catch (IOException e) {
+            } catch (IOException | URISyntaxException e) {
                 L.d("cannot open zip file from %s", url);
-            } catch (URISyntaxException e) {
-                L.d("cannot open zip file from %s", url);
-            }
-        }
-        return result;
-    }
-
-    private static <T extends Serializable> void loadFromDirectory(final Filter filter, List<T> result,
-            File directory) {
-        //noinspection unchecked
-        Collection<File> files = FileUtils.listFiles(directory, new IOFileFilter() {
-            @Override
-            public boolean accept(File file) {
-                return filter.accept(file.getName());
-            }
-
-            @Override
-            public boolean accept(File dir, String name) {
-                return filter.accept(name);
-            }
-        }, TrueFileFilter.INSTANCE);
-        for (File file : files) {
-            InputStream inputStream = null;
-            try {
-                inputStream = FileUtils.openInputStream(file);
-                T item = fromInputStream(result, inputStream);
-                L.d("loaded item %s from file", item);
-                if (item != null) {
-                    result.add(item);
-                }
-            } catch (IOException e) {
-                L.e(e, "Could not merge in Bindables from %s", file.getAbsolutePath());
-            } catch (ClassNotFoundException e) {
-                L.e(e, "Could not read Binding properties intermediate file. %s", file.getAbsolutePath());
-            } finally {
-                IOUtils.closeQuietly(inputStream);
             }
         }
     }
 
-    private static <T extends Serializable> void loadFomZipFile(Filter filter,
-            List<T> result, File file) throws IOException {
+    private static void loadFromDirectory(File directory) {
+        for (File file : FileUtils.listFiles(directory, TrueFileFilter.INSTANCE,
+                TrueFileFilter.INSTANCE)) {
+            for (ExtensionFilter filter : ExtensionFilter.values()) {
+                if (filter.accept(file.getName())) {
+                    InputStream inputStream = null;
+                    try {
+                        inputStream = FileUtils.openInputStream(file);
+                        Serializable item = fromInputStream(inputStream);
+                        if (item != null) {
+                            //noinspection unchecked
+                            sCache[filter.ordinal()].add(item);
+                            L.d("loaded item %s from file", item);
+                        }
+                    } catch (IOException e) {
+                        L.e(e, "Could not merge in Bindables from %s", file.getAbsolutePath());
+                    } catch (ClassNotFoundException e) {
+                        L.e(e, "Could not read Binding properties intermediate file. %s",
+                                file.getAbsolutePath());
+                    } finally {
+                        IOUtils.closeQuietly(inputStream);
+                    }
+                }
+            }
+        }
+    }
+
+    private static void loadFomZipFile(File file)
+            throws IOException {
         ZipFile zipFile = new ZipFile(file);
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while (entries.hasMoreElements()) {
             ZipEntry entry = entries.nextElement();
-            if (!filter.accept(entry.getName())) {
-                continue;
-            }
-            L.d("loading data from file %s", entry.getName());
-            InputStream inputStream = null;
-            try {
-                inputStream = zipFile.getInputStream(entry);
-                T item = fromInputStream(result, inputStream);
-                L.d("loaded item %s from zip file", item);
-                if (item != null) {
-                    result.add(item);
+            for (ExtensionFilter filter : ExtensionFilter.values()) {
+                if (!filter.accept(entry.getName())) {
+                    continue;
                 }
-            } catch (IOException e) {
-                L.e(e, "Could not merge in Bindables from %s", file.getAbsolutePath());
-            } catch (ClassNotFoundException e) {
-                L.e(e, "Could not read Binding properties intermediate file. %s", file.getAbsolutePath());
-            } finally {
-                IOUtils.closeQuietly(inputStream);
+                InputStream inputStream = null;
+                try {
+                    inputStream = zipFile.getInputStream(entry);
+                    Serializable item = fromInputStream(inputStream);
+                    L.d("loaded item %s from zip file", item);
+                    if (item != null) {
+                        //noinspection unchecked
+                        sCache[filter.ordinal()].add(item);
+                    }
+                } catch (IOException e) {
+                    L.e(e, "Could not merge in Bindables from %s", file.getAbsolutePath());
+                } catch (ClassNotFoundException e) {
+                    L.e(e, "Could not read Binding properties intermediate file. %s",
+                            file.getAbsolutePath());
+                } finally {
+                    IOUtils.closeQuietly(inputStream);
+                }
             }
         }
     }
 
-    private static <T extends Serializable> T fromInputStream(List<T> result,
-            InputStream inputStream) throws IOException, ClassNotFoundException {
+    private static Serializable fromInputStream(InputStream inputStream)
+            throws IOException, ClassNotFoundException {
         ObjectInputStream in = new ObjectInputStream(inputStream);
-        return (T) in.readObject();
+        return (Serializable) in.readObject();
 
     }
 
@@ -165,20 +170,21 @@ public class GenerationalClassUtil {
         }
     }
 
-
-    public static interface Filter {
-        public boolean accept(String entryName);
-    }
-
-    public static class ExtensionFilter implements Filter {
+    public enum ExtensionFilter {
+        BR("-br.bin"),
+        LAYOUT("-layoutinfo.bin"),
+        SETTER_STORE("-setter_store.bin");
         private final String mExtension;
-        public ExtensionFilter(String extension) {
+        ExtensionFilter(String extension) {
             mExtension = extension;
         }
 
-        @Override
         public boolean accept(String entryName) {
             return entryName.endsWith(mExtension);
+        }
+
+        public String getExtension() {
+            return mExtension;
         }
     }
 }

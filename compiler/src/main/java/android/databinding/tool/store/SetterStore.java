@@ -47,9 +47,6 @@ import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 
 public class SetterStore {
-
-    public static final String SETTER_STORE_FILE_EXT = "-setter_store.bin";
-
     private static SetterStore sStore;
 
     private final IntermediateV1 mStore;
@@ -149,16 +146,15 @@ public class SetterStore {
 
     public static SetterStore get(ModelAnalyzer modelAnalyzer) {
         if (sStore == null) {
-            sStore = load(modelAnalyzer, SetterStore.class.getClassLoader());
+            sStore = load(modelAnalyzer);
         }
         return sStore;
     }
 
-    private static SetterStore load(ModelAnalyzer modelAnalyzer, ClassLoader classLoader) {
+    private static SetterStore load(ModelAnalyzer modelAnalyzer) {
         IntermediateV1 store = new IntermediateV1();
         List<Intermediate> previousStores = GenerationalClassUtil
-                .loadObjects(classLoader,
-                        new GenerationalClassUtil.ExtensionFilter(SETTER_STORE_FILE_EXT));
+                .loadObjects(GenerationalClassUtil.ExtensionFilter.SETTER_STORE);
         for (Intermediate intermediate : previousStores) {
             merge(store, intermediate);
         }
@@ -375,7 +371,8 @@ public class SetterStore {
     public void write(String projectPackage, ProcessingEnvironment processingEnvironment)
             throws IOException {
         GenerationalClassUtil.writeIntermediateFile(processingEnvironment,
-                projectPackage, projectPackage + SETTER_STORE_FILE_EXT, mStore);
+                projectPackage, projectPackage +
+                        GenerationalClassUtil.ExtensionFilter.SETTER_STORE.getExtension(), mStore);
     }
 
     private static String stripNamespace(String attribute) {

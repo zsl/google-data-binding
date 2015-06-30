@@ -47,7 +47,6 @@ import javax.lang.model.util.Types;
 // binding app info and library info are necessary to trigger this.
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ProcessBindable extends ProcessDataBinding.ProcessingStep implements BindableHolder {
-    private static final String INTERMEDIATE_FILE_EXT = "-br.bin";
     Intermediate mProperties;
     HashMap<String, HashSet<String>> mLayoutVariables = new HashMap<String, HashSet<String>>();
 
@@ -106,7 +105,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
     }
 
     private String createIntermediateFileName(String appPkg) {
-        return appPkg + INTERMEDIATE_FILE_EXT;
+        return appPkg + GenerationalClassUtil.ExtensionFilter.BR.getExtension();
     }
 
     private void generateBRClasses(boolean useFinalFields, String pkg) {
@@ -227,8 +226,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
 
     private List<Intermediate> loadPreviousBRFiles() {
         return GenerationalClassUtil
-                .loadObjects(getClass().getClassLoader(),
-                        new GenerationalClassUtil.ExtensionFilter(INTERMEDIATE_FILE_EXT));
+                .loadObjects(GenerationalClassUtil.ExtensionFilter.BR);
     }
 
     private interface Intermediate extends Serializable {

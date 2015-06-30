@@ -45,9 +45,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
-
-    private static final String LAYOUT_INFO_FILE_SUFFIX = "-layoutinfo.bin";
-
     public ProcessExpressions() {
     }
 
@@ -58,8 +55,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         SdkUtil.initialize(buildInfo.minSdk(), new File(buildInfo.sdkRoot()));
         resourceBundle = new ResourceBundle(buildInfo.modulePackage());
         List<Intermediate> intermediateList =
-                GenerationalClassUtil.loadObjects(getClass().getClassLoader(),
-                        new GenerationalClassUtil.ExtensionFilter(LAYOUT_INFO_FILE_SUFFIX));
+                GenerationalClassUtil.loadObjects(
+                        GenerationalClassUtil.ExtensionFilter.LAYOUT);
         IntermediateV1 mine = createIntermediateFromLayouts(buildInfo.layoutInfoDir());
         if (mine != null) {
             mine.removeOverridden(intermediateList);
@@ -78,7 +75,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     private void saveIntermediate(ProcessingEnvironment processingEnvironment,
             BindingBuildInfo buildInfo, IntermediateV1 intermediate) {
         GenerationalClassUtil.writeIntermediateFile(processingEnvironment,
-                buildInfo.modulePackage(), buildInfo.modulePackage() + LAYOUT_INFO_FILE_SUFFIX,
+                buildInfo.modulePackage(), buildInfo.modulePackage() +
+                        GenerationalClassUtil.ExtensionFilter.LAYOUT.getExtension(),
                 intermediate);
     }
 
