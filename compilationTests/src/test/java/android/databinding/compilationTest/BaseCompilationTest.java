@@ -18,6 +18,7 @@ package android.databinding.compilationTest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -57,11 +58,21 @@ public class BaseCompilationTest {
     public static final String KEY_DEPENDENCIES = "DEPENDENCIES";
     public static final String KEY_SETTINGS_INCLUDES = "SETTINGS_INCLUDES";
     public static final String DEFAULT_APP_PACKAGE = "com.android.databinding.compilationTest.test";
+    public static final String KEY_CLASS_NAME = "CLASSNAME";
+    public static final String KEY_CLASS_TYPE = "CLASSTYPE";
+    public static final String KEY_IMPORT_TYPE = "IMPORTTYPE";
+    public static final String KEY_INCLUDE_ID = "INCLUDEID";
+    public static final String KEY_VIEW_ID = "VIEWID";
 
     protected final File testFolder = new File("./build/build-test");
 
     protected void copyResourceTo(String name, String path) throws IOException {
         copyResourceTo(name, new File(testFolder, path));
+    }
+
+    protected void copyResourceTo(String name, String path, Map<String, String> replacements)
+            throws IOException {
+        copyResourceTo(name, new File(testFolder, path), replacements);
     }
 
     protected void copyResourceDirectory(String name, String targetPath)
@@ -228,6 +239,10 @@ public class BaseCompilationTest {
         Collections.addAll(args, params);
         ProcessBuilder builder = new ProcessBuilder(args);
         builder.environment().putAll(System.getenv());
+        String javaHome = System.getProperty("java.home");
+        if (StringUtils.isNotBlank(javaHome)) {
+            builder.environment().put("JAVA_HOME", javaHome);
+        }
         builder.directory(testFolder);
         Process process =  builder.start();
         String output = IOUtils.toString(process.getInputStream());

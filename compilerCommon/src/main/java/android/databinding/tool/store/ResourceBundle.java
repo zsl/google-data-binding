@@ -13,10 +13,12 @@
 
 package android.databinding.tool.store;
 
-import org.antlr.v4.runtime.Token;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 
+import android.databinding.tool.processing.ErrorMessages;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.ScopedException;
+import android.databinding.tool.processing.scopes.FileScopeProvider;
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
@@ -103,43 +105,30 @@ public class ResourceBundle implements Serializable {
             if (bundles.getValue().size() < 2) {
                 continue;
             }
+
             // validate all ids are in correct view types
             // and all variables have the same name
-            Map<String, NameTypeLocation> variableTypes = new HashMap<String, NameTypeLocation>();
-            Map<String, NameTypeLocation> importTypes = new HashMap<String, NameTypeLocation>();
-            String bindingClass = null;
-
             for (LayoutFileBundle bundle : bundles.getValue()) {
                 bundle.mHasVariations = true;
-                if (bindingClass == null) {
-                    bindingClass = bundle.getFullBindingClass();
-                } else {
-                    if (!bindingClass.equals(bundle.getFullBindingClass())) {
-                        L.e("Binding class names must match. Layout file for %s have " +
-                                        "different binding class names %s and %s",
-                                bundle.getFileName(),
-                                bindingClass, bundle.getFullBindingClass());
-                    }
-                }
-                for (NameTypeLocation variable : bundle.mVariables) {
-                    NameTypeLocation existing = variableTypes.get(variable.name);
-                    if (existing != null && !existing.equals(variable)) {
-                        L.e("inconsistent variable types for %s for layout %s",
-                                variable, bundle.mFileName);
-                        continue;
-                    }
-                    variableTypes.put(variable.name, variable);
-                }
-                for (NameTypeLocation userImport : bundle.mImports) {
-                    NameTypeLocation existing = importTypes.get(userImport.name);
-                    if (existing != null && !existing.equals(userImport)) {
-                        L.e("inconsistent variable types for %s for layout %s",
-                                userImport, bundle.mFileName);
-                        continue;
-                    }
-                    importTypes.put(userImport.name, userImport);
-                }
             }
+            String bindingClass = validateAndGetSharedClassName(bundles.getValue());
+            Map<String, NameTypeLocation> variableTypes = validateAndMergeNameTypeLocations(
+                    bundles.getValue(), ErrorMessages.MULTI_CONFIG_VARIABLE_TYPE_MISMATCH,
+                    new ValidateAndFilterCallback() {
+                        @Override
+                        public List<NameTypeLocation> get(LayoutFileBundle bundle) {
+                            return bundle.mVariables;
+                        }
+                    });
+
+            Map<String, NameTypeLocation> importTypes = validateAndMergeNameTypeLocations(
+                    bundles.getValue(), ErrorMessages.MULTI_CONFIG_IMPORT_TYPE_MISMATCH,
+                    new ValidateAndFilterCallback() {
+                        @Override
+                        public List<NameTypeLocation> get(LayoutFileBundle bundle) {
+                            return bundle.mImports;
+                        }
+                    });
 
             for (LayoutFileBundle bundle : bundles.getValue()) {
                 // now add missing ones to each to ensure they can be referenced
@@ -166,65 +155,102 @@ public class ResourceBundle implements Serializable {
             Map<String, String> viewTypes = new HashMap<String, String>();
             Map<String, String> includes = new HashMap<String, String>();
             L.d("validating ids for %s", bundles.getKey());
+            Set<String> conflictingIds = new HashSet<>();
             for (LayoutFileBundle bundle : bundles.getValue()) {
-                for (BindingTargetBundle target : bundle.mBindingTargetBundles) {
-                    L.d("checking %s %s %s", target.getId(), target.getFullClassName(),
-                            target.isBinder());
-                    if (target.mId != null) {
-                        if (target.isBinder()) {
-                            if (viewBindingIds.contains(target.getFullClassName())) {
-                                L.e("Cannot use the same id for a View and an include tag. Error " +
-                                        "in file %s / %s", bundle.mFileName, bundle.mConfigName);
+                try {
+                    Scope.enter(bundle);
+                    for (BindingTargetBundle target : bundle.mBindingTargetBundles) {
+                        try {
+                            Scope.enter(target);
+                            L.d("checking %s %s %s", target.getId(), target.getFullClassName(),
+                                    target.isBinder());
+                            if (target.mId != null) {
+                                if (target.isBinder()) {
+                                    if (viewBindingIds.contains(target.mId)) {
+                                        L.d("%s is conflicting", target.mId);
+                                        conflictingIds.add(target.mId);
+                                        continue;
+                                    }
+                                    includeBindingIds.add(target.mId);
+                                } else {
+                                    if (includeBindingIds.contains(target.mId)) {
+                                        L.d("%s is conflicting", target.mId);
+                                        conflictingIds.add(target.mId);
+                                        continue;
+                                    }
+                                    viewBindingIds.add(target.mId);
+                                }
+                                String existingType = viewTypes.get(target.mId);
+                                if (existingType == null) {
+                                    L.d("assigning %s as %s", target.getId(),
+                                            target.getFullClassName());
+                                            viewTypes.put(target.mId, target.getFullClassName());
+                                    if (target.isBinder()) {
+                                        includes.put(target.mId, target.getIncludedLayout());
+                                    }
+                                } else if (!existingType.equals(target.getFullClassName())) {
+                                    if (target.isBinder()) {
+                                        L.d("overriding %s as base binder", target.getId());
+                                        viewTypes.put(target.mId,
+                                                "android.databinding.ViewDataBinding");
+                                        includes.put(target.mId, target.getIncludedLayout());
+                                    } else {
+                                        L.d("overriding %s as base view", target.getId());
+                                        viewTypes.put(target.mId, "android.view.View");
+                                    }
+                                }
                             }
-                            includeBindingIds.add(target.getFullClassName());
-                        } else {
-                            if (includeBindingIds.contains(target.getFullClassName())) {
-                                L.e("Cannot use the same id for a View and an include tag. Error in"
-                                        + " file %s / %s", bundle.mFileName, bundle.mConfigName);
-                            }
-                            viewBindingIds.add(target.getFullClassName());
+                        } catch (ScopedException ex) {
+                            Scope.defer(ex);
+                        } finally {
+                            Scope.exit();
                         }
-                        String existingType = viewTypes.get(target.mId);
-                        if (existingType == null) {
-                            L.d("assigning %s as %s", target.getId(), target.getFullClassName());
-                            viewTypes.put(target.mId, target.getFullClassName());
-                            if (target.isBinder()) {
-                                includes.put(target.mId, target.getIncludedLayout());
-                            }
-                        } else if (!existingType.equals(target.getFullClassName())) {
-                            if (target.isBinder()) {
-                                L.d("overriding %s as base binder", target.getId());
-                                viewTypes.put(target.mId,
-                                        "android.databinding.ViewDataBinding");
-                                includes.put(target.mId, target.getIncludedLayout());
-                            } else {
-                                L.d("overriding %s as base view", target.getId());
-                                viewTypes.put(target.mId, "android.view.View");
-                            }
+                    }
+                } finally {
+                    Scope.exit();
+                }
+            }
+
+            if (!conflictingIds.isEmpty()) {
+                for (LayoutFileBundle bundle : bundles.getValue()) {
+                    for (BindingTargetBundle target : bundle.mBindingTargetBundles) {
+                        if (conflictingIds.contains(target.mId)) {
+                            Scope.registerError(String.format(
+                                            ErrorMessages.MULTI_CONFIG_ID_USED_AS_IMPORT,
+                                            target.mId), bundle, target);
                         }
                     }
                 }
             }
 
             for (LayoutFileBundle bundle : bundles.getValue()) {
-                for (Map.Entry<String, String> viewType : viewTypes.entrySet()) {
-                    BindingTargetBundle target = bundle.getBindingTargetById(viewType.getKey());
-                    if (target == null) {
-                        String include = includes.get(viewType.getKey());
-                        if (include == null) {
-                            bundle.createBindingTarget(viewType.getKey(), viewType.getValue(),
-                                    false, null, null, null);
+                try {
+                    Scope.enter(bundle);
+                    for (Map.Entry<String, String> viewType : viewTypes.entrySet()) {
+                        BindingTargetBundle target = bundle.getBindingTargetById(viewType.getKey());
+                        if (target == null) {
+                            String include = includes.get(viewType.getKey());
+                            if (include == null) {
+                                bundle.createBindingTarget(viewType.getKey(), viewType.getValue(),
+                                        false, null, null, null);
+                            } else {
+                                BindingTargetBundle bindingTargetBundle = bundle
+                                        .createBindingTarget(
+                                                viewType.getKey(), null, false, null, null, null);
+                                bindingTargetBundle
+                                        .setIncludedLayout(includes.get(viewType.getKey()));
+                                bindingTargetBundle.setInterfaceType(viewType.getValue());
+                            }
                         } else {
-                            BindingTargetBundle bindingTargetBundle = bundle.createBindingTarget(
-                                    viewType.getKey(), null, false, null, null, null);
-                            bindingTargetBundle.setIncludedLayout(includes.get(viewType.getKey()));
-                            bindingTargetBundle.setInterfaceType(viewType.getValue());
+                            L.d("setting interface type on %s (%s) as %s", target.mId,
+                                    target.getFullClassName(), viewType.getValue());
+                            target.setInterfaceType(viewType.getValue());
                         }
-                    } else {
-                        L.d("setting interface type on %s (%s) as %s", target.mId,
-                                target.getFullClassName(), viewType.getValue());
-                        target.setInterfaceType(viewType.getValue());
                     }
+                } catch (ScopedException ex) {
+                    Scope.defer(ex);
+                } finally {
+                    Scope.exit();
                 }
             }
         }
@@ -249,9 +275,88 @@ public class ResourceBundle implements Serializable {
         }
     }
 
+    /**
+     * Receives a list of bundles which are representations of the same layout file in different
+     * configurations.
+     * @param bundles
+     * @return The map for variables and their types
+     */
+    private Map<String, NameTypeLocation> validateAndMergeNameTypeLocations(
+            List<LayoutFileBundle> bundles, String errorMessage,
+            ValidateAndFilterCallback callback) {
+        Map<String, NameTypeLocation> result = new HashMap<>();
+        Set<String> mismatched = new HashSet<>();
+        for (LayoutFileBundle bundle : bundles) {
+            for (NameTypeLocation item : callback.get(bundle)) {
+                NameTypeLocation existing = result.get(item.name);
+                if (existing != null && !existing.type.equals(item.type)) {
+                    mismatched.add(item.name);
+                    continue;
+                }
+                result.put(item.name, item);
+            }
+        }
+        if (mismatched.isEmpty()) {
+            return result;
+        }
+        // create exceptions. We could get more clever and find the outlier but for now, listing
+        // each file w/ locations seems enough
+        for (String mismatch : mismatched) {
+            for (LayoutFileBundle bundle : bundles) {
+                NameTypeLocation found = null;
+                for (NameTypeLocation item : callback.get(bundle)) {
+                    if (mismatch.equals(item.name)) {
+                        found = item;
+                        break;
+                    }
+                }
+                if (found == null) {
+                    // variable is not defined in this layout, continue
+                    continue;
+                }
+                Scope.registerError(String.format(
+                                errorMessage, found.name, found.type,
+                                bundle.mDirectory + "/" + bundle.getFileName()), bundle,
+                        found.location.createScope());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Receives a list of bundles which are representations of the same layout file in different
+     * configurations.
+     * @param bundles
+     * @return The shared class name for these bundles
+     */
+    private String validateAndGetSharedClassName(List<LayoutFileBundle> bundles) {
+        String sharedClassName = null;
+        boolean hasMismatch = false;
+        for (LayoutFileBundle bundle : bundles) {
+            bundle.mHasVariations = true;
+            String fullBindingClass = bundle.getFullBindingClass();
+            if (sharedClassName == null) {
+                sharedClassName = fullBindingClass;
+            } else if (!sharedClassName.equals(fullBindingClass)) {
+                hasMismatch = true;
+                break;
+            }
+        }
+        if (!hasMismatch) {
+            return sharedClassName;
+        }
+        // generate proper exceptions for each
+        for (LayoutFileBundle bundle : bundles) {
+            Scope.registerError(String.format(ErrorMessages.MULTI_CONFIG_LAYOUT_CLASS_NAME_MISMATCH,
+                    bundle.getFullBindingClass(), bundle.mDirectory + "/" + bundle.getFileName()),
+                    bundle, bundle.getClassNameLocationProvider());
+        }
+        return sharedClassName;
+    }
+
     @XmlAccessorType(XmlAccessType.NONE)
     @XmlRootElement(name="Layout")
-    public static class LayoutFileBundle implements Serializable {
+    public static class LayoutFileBundle implements Serializable, FileScopeProvider {
         @XmlAttribute(name="layout", required = true)
         public String mFileName;
         @XmlAttribute(name="modulePackage", required = true)
@@ -264,6 +369,9 @@ public class ResourceBundle implements Serializable {
         @XmlAttribute(name="bindingClass", required = false)
         public String mBindingClass;
 
+        // The location of the name of the generated class, optional
+        @XmlElement(name = "ClassNameLocation", required = false)
+        private Location mClassNameLocation;
         // The full package and class name as determined from mBindingClass and mModulePackage
         private String mFullBindingClass;
 
@@ -290,6 +398,8 @@ public class ResourceBundle implements Serializable {
         @XmlAttribute(name="isMerge", required = true)
         private boolean mIsMerge;
 
+        private LocationScopeProvider mClassNameLocationProvider;
+
         // for XML binding
         public LayoutFileBundle() {
         }
@@ -301,6 +411,14 @@ public class ResourceBundle implements Serializable {
             mModulePackage = modulePackage;
             mIsMerge = isMerge;
             mAbsoluteFilePath = file.getAbsolutePath();
+        }
+
+        public LocationScopeProvider getClassNameLocationProvider() {
+            if (mClassNameLocationProvider == null && mClassNameLocation != null
+                    && mClassNameLocation.isValid()) {
+                mClassNameLocationProvider = mClassNameLocation.createScope();
+            }
+            return mClassNameLocationProvider;
         }
 
         public void addVariable(String name, String type, Location location) {
@@ -373,8 +491,9 @@ public class ResourceBundle implements Serializable {
             return mBindingClassName;
         }
 
-        public void setBindingClass(String bindingClass) {
+        public void setBindingClass(String bindingClass, Location location) {
             mBindingClass = bindingClass;
+            mClassNameLocation = location;
         }
 
         public String getBindingClassPackage() {
@@ -457,6 +576,11 @@ public class ResourceBundle implements Serializable {
         }
 
         public String getAbsoluteFilePath() {
+            return mAbsoluteFilePath;
+        }
+
+        @Override
+        public String provideScopeFilePath() {
             return mAbsoluteFilePath;
         }
     }
@@ -706,5 +830,12 @@ public class ResourceBundle implements Serializable {
                 mValueLocation = valueLocation;
             }
         }
+    }
+
+    /**
+     * Just an inner callback class to process imports and variables w/ the same code.
+     */
+    private interface ValidateAndFilterCallback {
+        List<NameTypeLocation> get(LayoutFileBundle bundle);
     }
 }

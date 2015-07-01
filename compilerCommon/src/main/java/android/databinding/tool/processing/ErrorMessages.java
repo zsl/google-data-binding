@@ -25,4 +25,15 @@ public class ErrorMessages {
             "Cannot find the setter for attribute '%s' with parameter type %s.";
     public static final String CANNOT_RESOLVE_TYPE =
             "Cannot resolve type for %s";
+    public static final String MULTI_CONFIG_LAYOUT_CLASS_NAME_MISMATCH =
+            "Classname (%s) does not match the class name defined for layout(%s) in other"
+                    + " configurations";
+    public static final String MULTI_CONFIG_VARIABLE_TYPE_MISMATCH =
+            "Variable declaration (%s - %s) does not match the type defined for layout(%s) in other"
+                    + " configurations";
+    public static final String MULTI_CONFIG_IMPORT_TYPE_MISMATCH =
+            "Import declaration (%s - %s) does not match the import defined for layout(%s) in other"
+                    + " configurations";
+    public static final String MULTI_CONFIG_ID_USED_AS_IMPORT =
+            "Cannot use the same id (%s) for a View and an include tag.";
 }

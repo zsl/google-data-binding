@@ -19,6 +19,11 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.apache.commons.lang3.StringUtils;
 
+import android.databinding.tool.processing.scopes.LocationScopeProvider;
+
+import java.util.Arrays;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -222,5 +227,14 @@ public class Location {
         into[0] = Integer.parseInt(content.substring(0, index).trim());
         into[1] = Integer.parseInt(content.substring(index + 1).trim());
         return true;
+    }
+
+    public LocationScopeProvider createScope() {
+        return new LocationScopeProvider() {
+            @Override
+            public List<Location> provideScopeLocation() {
+                return Arrays.asList(Location.this);
+            }
+        };
     }
 }

@@ -35,6 +35,14 @@ public class Scope {
     private static ThreadLocal<ScopeEntry> sScopeItems = new ThreadLocal<ScopeEntry>();
     static List<ScopedException> sDeferredExceptions = new ArrayList<>();
 
+    public static void enter(final Location location) {
+        enter(new LocationScopeProvider() {
+            @Override
+            public List<Location> provideScopeLocation() {
+                return Arrays.asList(location);
+            }
+        });
+    }
     public static void enter(ScopeProvider scopeProvider) {
         ScopeEntry peek = sScopeItems.get();
         ScopeEntry entry = new ScopeEntry(scopeProvider, peek);
@@ -49,6 +57,39 @@ public class Scope {
 
     public static void defer(ScopedException exception) {
         sDeferredExceptions.add(exception);
+    }
+
+    private static void registerErrorInternal(String msg, int scopeIndex,
+            ScopeProvider... scopeProviders) {
+        if (scopeProviders == null || scopeProviders.length <= scopeIndex) {
+            defer(new ScopedException(msg));
+        } else if (scopeProviders[scopeIndex] == null) {
+            registerErrorInternal(msg, scopeIndex + 1, scopeProviders);
+        } else {
+            try {
+                Scope.enter(scopeProviders[scopeIndex]);
+                registerErrorInternal(msg, scopeIndex + 1, scopeProviders);
+            } finally {
+                Scope.exit();
+            }
+        }
+    }
+
+    /**
+     * Convenience method to add an error in a known list of scopes, w/o adding try catch flows.
+     * <p>
+     * This code actually starts entering the given scopes 1 by 1, starting from 0. When list is
+     * consumed, it creates the exception and defers if possible then exits from the provided
+     * scopes.
+     * <p>
+     * Note that these scopes are added on top of the already existing scopes.
+     *
+     * @param msg The exception message
+     * @param scopeProviders The list of additional scope providers to enter. Null scopes are
+     *                       automatically ignored.
+     */
+    public static void registerError(String msg, ScopeProvider... scopeProviders) {
+        registerErrorInternal(msg, 0, scopeProviders);
     }
 
     public static void assertNoError() {

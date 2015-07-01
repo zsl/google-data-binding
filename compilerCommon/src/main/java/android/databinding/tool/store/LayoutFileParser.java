@@ -298,9 +298,18 @@ public class LayoutFileParser {
                     variable.toStringTree(), xml);
             bundle.addVariable(name, type, new Location(variable));
         }
-        final String className = attributeMap(data).get("class");
-        if (StringUtils.isNotBlank(className)) {
-            bundle.setBindingClass(className);
+        final XMLParser.AttributeContext className = findAttribute(data, "class");
+        if (className != null) {
+            final String name = escapeQuotes(className.attrValue.getText(), true);
+            if (StringUtils.isNotBlank(name)) {
+                Location location = new Location(
+                        className.attrValue.getLine() - 1,
+                        className.attrValue.getCharPositionInLine() + 1,
+                        className.attrValue.getLine() - 1,
+                        className.attrValue.getCharPositionInLine() + name.length()
+                );
+                bundle.setBindingClass(name, location);
+            }
         }
     }
 
@@ -441,6 +450,16 @@ public class LayoutFileParser {
                     escapeQuotes(attr.attrValue.getText(), true));
         }
         return result;
+    }
+
+    private static XMLParser.AttributeContext findAttribute(XMLParser.ElementContext element,
+            String name) {
+        for (XMLParser.AttributeContext attr : element.attribute()) {
+            if (escapeQuotes(attr.attrName.getText(), false).equals(name)) {
+                return attr;
+            }
+        }
+        return null;
     }
 
     private static String escapeQuotes(String textWithQuotes, boolean unescapeValue) {
