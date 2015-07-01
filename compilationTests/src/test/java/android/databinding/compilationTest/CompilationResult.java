@@ -16,6 +16,13 @@
 
 package android.databinding.compilationTest;
 
+import android.databinding.tool.processing.ScopedErrorReport;
+import android.databinding.tool.processing.ScopedException;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+
 public class CompilationResult {
     public final int resultCode;
     public final String output;
@@ -33,5 +40,18 @@ public class CompilationResult {
 
     public boolean errorContainsText(String text) {
         return resultCode != 0 && error.indexOf(text) > 0;
+    }
+
+    public ScopedException getBindingException() {
+        List<ScopedException> errors = ScopedException.extractErrors(error);
+        if (errors.isEmpty()) {
+            return null;
+        }
+        assertEquals(1, errors.size());
+        return errors.get(0);
+    }
+
+    public List<ScopedException> getBindingExceptions() {
+        return ScopedException.extractErrors(error);
     }
 }

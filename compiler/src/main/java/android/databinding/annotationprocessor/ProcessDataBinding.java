@@ -18,6 +18,7 @@ package android.databinding.annotationprocessor;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
+import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.AnnotationJavaFileWriter;
@@ -68,6 +69,7 @@ public class ProcessDataBinding extends AbstractProcessor {
                 step.onProcessingOver(roundEnv, processingEnv, buildInfo);
             }
         }
+        Scope.assertNoError();
         return done;
     }
 

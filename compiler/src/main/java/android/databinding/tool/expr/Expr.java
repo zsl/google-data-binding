@@ -18,9 +18,14 @@ package android.databinding.tool.expr;
 
 import org.antlr.v4.runtime.misc.Nullable;
 
+import android.databinding.tool.processing.ErrorMessages;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.scopes.LocationScopeProvider;
+import android.databinding.tool.processing.scopes.ScopeProvider;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.Location;
+import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
@@ -28,7 +33,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 
-abstract public class Expr implements VersionProvider {
+abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     public static final int NO_ID = -1;
     protected List<Expr> mChildren = new ArrayList<Expr>();
@@ -301,7 +306,15 @@ abstract public class Expr implements VersionProvider {
     public ModelClass getResolvedType() {
         if (mResolvedType == null) {
             // TODO not get instance
-            mResolvedType = resolveType(ModelAnalyzer.getInstance());
+            try {
+                Scope.enter(this);
+                mResolvedType = resolveType(ModelAnalyzer.getInstance());
+                if (mResolvedType == null) {
+                    L.e(ErrorMessages.CANNOT_RESOLVE_TYPE, this);
+                }
+            } finally {
+                Scope.exit();
+            }
         }
         return mResolvedType;
     }
@@ -628,6 +641,11 @@ abstract public class Expr implements VersionProvider {
 
     protected String asPackage() {
         return null;
+    }
+
+    @Override
+    public List<Location> provideScopeLocation() {
+        return mLocations;
     }
 
     static class Node {

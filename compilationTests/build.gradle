@@ -12,4 +12,5 @@ dependencies {
     testCompile 'org.apache.commons:commons-lang3:3.3.2'
     testCompile 'commons-io:commons-io:2.4'
     testCompile 'commons-codec:commons-codec:1.10'
+    testCompile project(':compilerCommon')
 }

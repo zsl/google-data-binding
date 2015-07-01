@@ -16,6 +16,7 @@
 
 package android.databinding.tool.expr;
 
+import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.L;
@@ -52,16 +53,6 @@ public class IdentifierExpr extends Expr {
         return mUserDefinedType;
     }
 
-    public String getExpandedUserDefinedType(ModelAnalyzer modelAnalyzer) {
-        Preconditions.checkNotNull(mUserDefinedType,
-                "Identifiers must have user defined types from the XML file. %s is missing it",
-                mName);
-        final String expanded = modelAnalyzer
-                .applyImports(mUserDefinedType, getModel().getImports());
-        L.d("expanded version of %s is %s", mUserDefinedType, expanded);
-        return expanded;
-    }
-
     @Override
     public boolean isDynamic() {
         return true;
@@ -69,8 +60,7 @@ public class IdentifierExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(final ModelAnalyzer modelAnalyzer) {
-        Preconditions.checkNotNull(mUserDefinedType,
-                "Identifiers must have user defined types from the XML file. %s is missing it", mName);
+        Preconditions.checkNotNull(mUserDefinedType, ErrorMessages.UNDEFINED_VARIABLE, mName);
         return modelAnalyzer.findClass(mUserDefinedType, getModel().getImports());
     }
 

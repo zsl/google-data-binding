@@ -18,6 +18,8 @@ package android.databinding.tool.util;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import android.databinding.tool.processing.ScopedException;
+
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 
@@ -66,13 +68,30 @@ public class L {
                 String.format(msg, args) + " " + ExceptionUtils.getStackTrace(t));
     }
 
+    private static void tryToThrowScoped(Throwable t, String fullMessage) {
+        if (t instanceof ScopedException) {
+            ScopedException ex = (ScopedException) t;
+            if (ex.isValid()) {
+                throw ex;
+            }
+        }
+        ScopedException ex = new ScopedException(fullMessage);
+        if (ex.isValid()) {
+            throw ex;
+        }
+    }
+
     public static void e(String msg, Object... args) {
-        printMessage(Diagnostic.Kind.ERROR, String.format(msg, args));
+        String fullMsg = String.format(msg, args);
+        tryToThrowScoped(null, fullMsg);
+        printMessage(Diagnostic.Kind.ERROR, fullMsg);
     }
 
     public static void e(Throwable t, String msg, Object... args) {
+        String fullMsg = String.format(msg, args);
+        tryToThrowScoped(t, fullMsg);
         printMessage(Diagnostic.Kind.ERROR,
-                String.format(msg, args) + " " + ExceptionUtils.getStackTrace(t));
+                fullMsg + " " + ExceptionUtils.getStackTrace(t));
     }
 
     private static void printMessage(Diagnostic.Kind kind, String message) {
@@ -80,6 +99,10 @@ public class L {
         if (kind == Diagnostic.Kind.ERROR) {
             throw new RuntimeException("failure, see logs for details.\n" + message);
         }
+    }
+
+    public static boolean isDebugEnabled() {
+        return sEnableDebug;
     }
 
     public static interface Client {

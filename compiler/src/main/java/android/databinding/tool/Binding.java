@@ -17,15 +17,21 @@
 package android.databinding.tool;
 
 import android.databinding.tool.expr.Expr;
+import android.databinding.tool.processing.ErrorMessages;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.store.Location;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.store.SetterStore.SetterCall;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.CodeGenUtil;
 import android.databinding.tool.writer.WriterPackage;
 
-public class Binding {
+import java.util.List;
+
+public class Binding implements LocationScopeProvider {
 
     private final String mName;
     private final Expr mExpr;
@@ -38,6 +44,11 @@ public class Binding {
         mExpr = expr;
     }
 
+    @Override
+    public List<Location> provideScopeLocation() {
+        return mExpr.getLocations();
+    }
+
     public void resolveListeners() {
         ModelClass listenerParameter = getListenerParameter();
         if (listenerParameter != null) {
@@ -47,29 +58,39 @@ public class Binding {
 
     private SetterStore.BindingSetterCall getSetterCall() {
         if (mSetterCall == null) {
-            ModelClass viewType = mTarget.getResolvedType();
-            if (viewType != null && viewType.extendsViewStub()) {
-                if (isListenerAttribute()) {
-                    ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
-                    ModelClass viewStubProxy = modelAnalyzer.
-                            findClass("android.databinding.ViewStubProxy", null);
-                    mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
-                            viewStubProxy, mExpr.getResolvedType(), mExpr.getModel().getImports());
-                } else if (isViewStubAttribute()) {
-                    mSetterCall = new ViewStubDirectCall(mName, viewType, mExpr);
-                } else {
-                    mSetterCall = new ViewStubSetterCall(mName);
+            try {
+                Scope.enter(getTarget());
+                Scope.enter(this);
+                resolveSetterCall();
+                if (mSetterCall == null) {
+                    L.e(ErrorMessages.CANNOT_FIND_SETTER_CALL, mName, mExpr.getResolvedType());
                 }
-            } else {
-                mSetterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
-                        viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
+            } finally {
+                Scope.exit();
+                Scope.exit();
             }
         }
-        if (mSetterCall == null) {
-            L.e("Cannot find the setter for attribute '%s' on %s with parameter type %s.",
-                    mName, mTarget, mExpr.getResolvedType());
-        }
         return mSetterCall;
+    }
+
+    private void resolveSetterCall() {
+        ModelClass viewType = mTarget.getResolvedType();
+        if (viewType != null && viewType.extendsViewStub()) {
+            if (isListenerAttribute()) {
+                ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
+                ModelClass viewStubProxy = modelAnalyzer.
+                        findClass("android.databinding.ViewStubProxy", null);
+                mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
+                        viewStubProxy, mExpr.getResolvedType(), mExpr.getModel().getImports());
+            } else if (isViewStubAttribute()) {
+                mSetterCall = new ViewStubDirectCall(mName, viewType, mExpr);
+            } else {
+                mSetterCall = new ViewStubSetterCall(mName);
+            }
+        } else {
+            mSetterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
+                    viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
+        }
     }
 
     /**

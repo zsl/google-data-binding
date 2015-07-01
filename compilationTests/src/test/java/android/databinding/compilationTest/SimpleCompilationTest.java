@@ -20,13 +20,21 @@ package android.databinding.compilationTest;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import android.databinding.tool.processing.ErrorMessages;
+import android.databinding.tool.processing.ScopedErrorReport;
+import android.databinding.tool.processing.ScopedException;
+import android.databinding.tool.store.Location;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class SimpleCompilationTest extends BaseCompilationTest {
 
@@ -50,17 +58,95 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 result.resultContainsText("BUILD SUCCESSFUL"));
     }
 
+    private ScopedException singleFileErrorTest(String resource, String targetFile,
+            String expectedExtract, String errorMessage)
+            throws IOException, URISyntaxException, InterruptedException {
+        prepareProject();
+        copyResourceTo(resource, targetFile);
+        CompilationResult result = runGradle("assembleDebug");
+        assertNotEquals(0, result.resultCode);
+        ScopedException scopedException = result.getBindingException();
+        assertNotNull(scopedException);
+        ScopedErrorReport report = scopedException.getScopedErrorReport();
+        assertNotNull(report);
+        assertEquals(1, report.getLocations().size());
+        Location loc = report.getLocations().get(0);
+        if (expectedExtract != null) {
+            String extract = extract(targetFile, loc);
+            assertEquals(expectedExtract, extract);
+        }
+        final File errorFile = new File(report.getFilePath());
+        assertTrue(errorFile.exists());
+        assertEquals(new File(testFolder, targetFile).getCanonicalFile(),
+                errorFile.getCanonicalFile());
+        if (errorMessage != null) {
+            assertEquals(errorMessage, scopedException.getBareMessage());
+        }
+        return scopedException;
+    }
+
     @Test
-    public void testUndefinedVariable() throws IOException, URISyntaxException,
-            InterruptedException {
+    public void testMultipleExceptionsInDifferentFiles()
+            throws IOException, URISyntaxException, InterruptedException {
         prepareProject();
         copyResourceTo("/layout/undefined_variable_binding.xml",
                 "/app/src/main/res/layout/broken.xml");
+        copyResourceTo("/layout/invalid_setter_binding.xml",
+                "/app/src/main/res/layout/invalid_setter.xml");
         CompilationResult result = runGradle("assembleDebug");
         assertNotEquals(0, result.resultCode);
-        assertTrue("Undefined variable",
-                result.errorContainsText(
-                        "Identifiers must have user defined types from the XML file. myVariable is missing it"));
+        List<ScopedException> bindingExceptions = result.getBindingExceptions();
+        assertEquals(2, bindingExceptions.size());
+        File broken = new File(testFolder, "/app/src/main/res/layout/broken.xml");
+        File invalidSetter = new File(testFolder, "/app/src/main/res/layout/invalid_setter.xml");
+        for (ScopedException exception : bindingExceptions) {
+            ScopedErrorReport report = exception.getScopedErrorReport();
+            final File errorFile = new File(report.getFilePath());
+            String message = null;
+            String expectedErrorFile = null;
+            if (errorFile.getCanonicalPath().equals(broken.getCanonicalPath())) {
+                message = String.format(ErrorMessages.UNDEFINED_VARIABLE, "myVariable");
+                expectedErrorFile = "/app/src/main/res/layout/broken.xml";
+            } else if (errorFile.getCanonicalPath().equals(invalidSetter.getCanonicalPath())) {
+                message = String.format(ErrorMessages.CANNOT_FIND_SETTER_CALL, "android:textx",
+                        String.class.getCanonicalName());
+                expectedErrorFile = "/app/src/main/res/layout/invalid_setter.xml";
+            } else {
+                fail("unexpected exception " + exception.getBareMessage());
+            }
+            assertEquals(1, report.getLocations().size());
+            Location loc = report.getLocations().get(0);
+            String extract = extract(expectedErrorFile, loc);
+            assertEquals("myVariable", extract);
+            assertEquals(message, exception.getBareMessage());
+        }
+    }
+
+    @Test
+    public void testUndefinedVariable() throws IOException, URISyntaxException,
+            InterruptedException {
+        ScopedException ex = singleFileErrorTest("/layout/undefined_variable_binding.xml",
+                "/app/src/main/res/layout/broken.xml", "myVariable",
+                String.format(ErrorMessages.UNDEFINED_VARIABLE, "myVariable"));
+    }
+
+    @Test
+    public void testInvalidSetterBinding() throws IOException, URISyntaxException,
+            InterruptedException {
+        prepareProject();
+        ScopedException ex = singleFileErrorTest("/layout/invalid_setter_binding.xml",
+                "/app/src/main/res/layout/invalid_setter.xml", "myVariable",
+                String.format(ErrorMessages.CANNOT_FIND_SETTER_CALL, "android:textx",
+                        String.class.getCanonicalName()));
+    }
+
+    @Test
+    public void testInvalidVariableType() throws IOException, URISyntaxException,
+            InterruptedException {
+        prepareProject();
+        ScopedException ex = singleFileErrorTest("/layout/invalid_variable_type.xml",
+                "/app/src/main/res/layout/invalid_variable.xml", "myVariable",
+                String.format(ErrorMessages.CANNOT_RESOLVE_TYPE, "myVariable~"));
     }
 
     @Test
@@ -96,8 +182,17 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         copyResourceTo("/layout/merge_include.xml", "/app/src/main/res/layout/merge_include.xml");
         CompilationResult result = runGradle("assembleDebug");
         assertNotEquals(0, result.resultCode);
-        assertTrue("Merge shouldn't support includes as root. Error message was '" + result.error + "'",
-                result.errorContainsText(
-                        "Data binding does not support include elements as direct children of a merge element"));
+        List<ScopedException> errors = ScopedException.extractErrors(result.error);
+        assertEquals(result.error, 1, errors.size());
+        final ScopedException ex = errors.get(0);
+        final ScopedErrorReport report = ex.getScopedErrorReport();
+        final File errorFile = new File(report.getFilePath());
+        assertTrue(errorFile.exists());
+        assertEquals(
+                new File(testFolder, "/app/src/main/res/layout/merge_include.xml")
+                        .getCanonicalFile(),
+                errorFile.getCanonicalFile());
+        assertEquals("Merge shouldn't support includes as root. Error message was '" + result.error,
+                ErrorMessages.INCLUDE_INSIDE_MERGE, ex.getBareMessage());
     }
 }

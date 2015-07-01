@@ -16,6 +16,8 @@
 
 package android.databinding.tool;
 
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.JavaFileWriter;
@@ -41,7 +43,11 @@ public class DataBinder {
         for (Map.Entry<String, List<ResourceBundle.LayoutFileBundle>> entry :
                 resourceBundle.getLayoutBundles().entrySet()) {
             for (ResourceBundle.LayoutFileBundle bundle : entry.getValue()) {
-                mLayoutBinders.add(new LayoutBinder(bundle));
+                try {
+                    mLayoutBinders.add(new LayoutBinder(bundle));
+                } catch (ScopedException ex) {
+                    Scope.defer(ex);
+                }
             }
         }
     }
@@ -51,27 +57,41 @@ public class DataBinder {
 
     public void writerBaseClasses(boolean isLibrary) {
         for (LayoutBinder layoutBinder : mLayoutBinders) {
-            if (isLibrary || layoutBinder.hasVariations()) {
-                String className = layoutBinder.getClassName();
-                String canonicalName = layoutBinder.getPackage() + "." + className;
-                if (writtenClasses.contains(canonicalName)) {
-                    continue;
+            try {
+                Scope.enter(layoutBinder);
+                if (isLibrary || layoutBinder.hasVariations()) {
+                    String className = layoutBinder.getClassName();
+                    String canonicalName = layoutBinder.getPackage() + "." + className;
+                    if (writtenClasses.contains(canonicalName)) {
+                        continue;
+                    }
+                    L.d("writing data binder base %s", canonicalName);
+                    mFileWriter.writeToFile(canonicalName,
+                            layoutBinder.writeViewBinderBaseClass(isLibrary));
+                    writtenClasses.add(canonicalName);
                 }
-                L.d("writing data binder base %s", canonicalName);
-                mFileWriter.writeToFile(canonicalName,
-                        layoutBinder.writeViewBinderBaseClass(isLibrary));
-                writtenClasses.add(canonicalName);
+            } catch (ScopedException ex){
+                Scope.defer(ex);
+            } finally {
+                Scope.exit();
             }
         }
     }
 
     public void writeBinders(int minSdk) {
         for (LayoutBinder layoutBinder : mLayoutBinders) {
-            String className = layoutBinder.getImplementationName();
-            String canonicalName = layoutBinder.getPackage() + "." + className;
-            L.d("writing data binder %s", canonicalName);
-            writtenClasses.add(canonicalName);
-            mFileWriter.writeToFile(canonicalName, layoutBinder.writeViewBinder(minSdk));
+            try {
+                Scope.enter(layoutBinder);
+                String className = layoutBinder.getImplementationName();
+                String canonicalName = layoutBinder.getPackage() + "." + className;
+                L.d("writing data binder %s", canonicalName);
+                writtenClasses.add(canonicalName);
+                mFileWriter.writeToFile(canonicalName, layoutBinder.writeViewBinder(minSdk));
+            } catch (ScopedException ex) {
+                Scope.defer(ex);
+            } finally {
+                Scope.exit();
+            }
         }
     }
 

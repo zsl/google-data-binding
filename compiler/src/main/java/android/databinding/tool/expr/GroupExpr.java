@@ -28,7 +28,7 @@ public class GroupExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
-        return getWrapped().resolveType(modelAnalyzer);
+        return getWrapped().getResolvedType();
     }
 
     @Override

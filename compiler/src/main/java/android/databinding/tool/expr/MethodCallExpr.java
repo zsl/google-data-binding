@@ -16,6 +16,7 @@
 
 package android.databinding.tool.expr;
 
+import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -50,8 +51,13 @@ public class MethodCallExpr extends Expr {
 
     @Override
     public void updateExpr(ModelAnalyzer modelAnalyzer) {
-        resolveType(modelAnalyzer);
-        super.updateExpr(modelAnalyzer);
+        try {
+            Scope.enter(this);
+            resolveType(modelAnalyzer);
+            super.updateExpr(modelAnalyzer);
+        } finally {
+            Scope.exit();
+        }
     }
 
     @Override

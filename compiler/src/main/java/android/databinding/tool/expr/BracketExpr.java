@@ -37,7 +37,7 @@ public class BracketExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
-        ModelClass targetType = getTarget().resolveType(modelAnalyzer);
+        ModelClass targetType = getTarget().getResolvedType();
         if (targetType.isArray()) {
             mAccessor = BracketAccessor.ARRAY;
         } else if (targetType.isList()) {

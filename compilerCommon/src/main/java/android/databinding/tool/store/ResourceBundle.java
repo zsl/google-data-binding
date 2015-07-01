@@ -13,14 +13,19 @@
 
 package android.databinding.tool.store;
 
+import org.antlr.v4.runtime.Token;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.Preconditions;
 
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,8 +38,6 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * This is a serializable class that can keep the result of parsing layout files.
@@ -253,6 +256,8 @@ public class ResourceBundle implements Serializable {
         public String mFileName;
         @XmlAttribute(name="modulePackage", required = true)
         public String mModulePackage;
+        @XmlAttribute(name="absoluteFilePath", required = true)
+        public String mAbsoluteFilePath;
         private String mConfigName;
 
         // The binding class as given by the user
@@ -289,12 +294,13 @@ public class ResourceBundle implements Serializable {
         public LayoutFileBundle() {
         }
 
-        public LayoutFileBundle(String fileName, String directory, String modulePackage,
-                boolean isMerge) {
+        public LayoutFileBundle(File file, String fileName, String directory,
+                String modulePackage, boolean isMerge) {
             mFileName = fileName;
             mDirectory = directory;
             mModulePackage = modulePackage;
             mIsMerge = isMerge;
+            mAbsoluteFilePath = file.getAbsolutePath();
         }
 
         public void addVariable(String name, String type, Location location) {
@@ -449,6 +455,10 @@ public class ResourceBundle implements Serializable {
         public String getModulePackage() {
             return mModulePackage;
         }
+
+        public String getAbsoluteFilePath() {
+            return mAbsoluteFilePath;
+        }
     }
 
     @XmlAccessorType(XmlAccessType.NONE)
@@ -527,7 +537,7 @@ public class ResourceBundle implements Serializable {
     }
 
     @XmlAccessorType(XmlAccessType.NONE)
-    public static class BindingTargetBundle implements Serializable {
+    public static class BindingTargetBundle implements Serializable, LocationScopeProvider {
         // public for XML serialization
 
         @XmlAttribute(name="id")
@@ -562,8 +572,8 @@ public class ResourceBundle implements Serializable {
             mLocation = location;
         }
 
-        public void addBinding(String name, String expr) {
-            mBindingBundleList.add(new BindingBundle(name, expr));
+        public void addBinding(String name, String expr, Location location, Location valueLocation) {
+            mBindingBundleList.add(new BindingBundle(name, expr, location, valueLocation));
         }
 
         public void setIncludedLayout(String includedLayout) {
@@ -637,17 +647,27 @@ public class ResourceBundle implements Serializable {
             return mInterfaceType;
         }
 
+        @Override
+        public List<Location> provideScopeLocation() {
+            return mLocation == null ? null : Arrays.asList(mLocation);
+        }
+
         @XmlAccessorType(XmlAccessType.NONE)
         public static class BindingBundle implements Serializable {
 
             private String mName;
             private String mExpr;
+            private Location mLocation;
+            private Location mValueLocation;
 
             public BindingBundle() {}
 
-            public BindingBundle(String name, String expr) {
+            public BindingBundle(String name, String expr, Location location,
+                    Location valueLocation) {
                 mName = name;
                 mExpr = expr;
+                mLocation = location;
+                mValueLocation = valueLocation;
             }
 
             @XmlAttribute(name="attribute", required=true)
@@ -666,6 +686,24 @@ public class ResourceBundle implements Serializable {
 
             public void setExpr(String expr) {
                 mExpr = expr;
+            }
+
+            @XmlElement(name="Location")
+            public Location getLocation() {
+                return mLocation;
+            }
+
+            public void setLocation(Location location) {
+                mLocation = location;
+            }
+
+            @XmlElement(name="ValueLocation")
+            public Location getValueLocation() {
+                return mValueLocation;
+            }
+
+            public void setValueLocation(Location valueLocation) {
+                mValueLocation = valueLocation;
             }
         }
     }

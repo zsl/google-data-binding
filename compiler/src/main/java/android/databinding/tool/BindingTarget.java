@@ -18,8 +18,12 @@ package android.databinding.tool;
 
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.scopes.FileScopeProvider;
+import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.store.Location;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
@@ -31,7 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BindingTarget {
+public class BindingTarget implements LocationScopeProvider {
     List<Binding> mBindings = new ArrayList<Binding>();
     ExprModel mModel;
     ModelClass mResolvedClass;
@@ -54,6 +58,11 @@ public class BindingTarget {
 
     public String getInterfaceType() {
         return mBundle.getInterfaceType() == null ? mBundle.getFullClassName() : mBundle.getInterfaceType();
+    }
+
+    @Override
+    public List<Location> provideScopeLocation() {
+        return mBundle.provideScopeLocation();
     }
 
     public String getId() {
@@ -119,8 +128,13 @@ public class BindingTarget {
         final ModelClass[] types = new ModelClass[mBindings.size()];
         for (int i = 0; i < mBindings.size(); i ++) {
             Binding binding = mBindings.get(i);
-            attributes[i] = binding.getName();
-            types[i] = binding.getExpr().getResolvedType();
+            try {
+                Scope.enter(binding);
+                attributes[i] = binding.getName();
+                types[i] = binding.getExpr().getResolvedType();
+            } finally {
+                Scope.exit();
+            }
         }
         final List<SetterStore.MultiAttributeSetter> multiAttributeSetterCalls = setterStore
                 .getMultiAttributeSetterCalls(attributes, getResolvedType(), types);

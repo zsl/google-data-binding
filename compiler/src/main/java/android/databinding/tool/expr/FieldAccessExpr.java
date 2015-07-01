@@ -16,6 +16,7 @@
 
 package android.databinding.tool.expr;
 
+import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -196,8 +197,13 @@ public class FieldAccessExpr extends Expr {
 
     @Override
     public void updateExpr(ModelAnalyzer modelAnalyzer) {
-        resolveType(modelAnalyzer);
-        super.updateExpr(modelAnalyzer);
+        try {
+            Scope.enter(this);
+            resolveType(modelAnalyzer);
+            super.updateExpr(modelAnalyzer);
+        } finally {
+            Scope.exit();
+        }
     }
 
     @Override
@@ -207,7 +213,7 @@ public class FieldAccessExpr extends Expr {
                 return modelAnalyzer.findClass(Object.class);
             }
             Expr child = getChild();
-            child.resolveType(modelAnalyzer);
+            child.getResolvedType();
             boolean isStatic = child instanceof StaticIdentifierExpr;
             ModelClass resolvedType = child.getResolvedType();
             L.d("resolving %s. Resolved class type: %s", this, resolvedType);

@@ -82,12 +82,10 @@ public class ExpressionParser {
                     }
                 }
             });
+            return root.accept(visitor);
         } finally {
             mModel.setCurrentLocationInFile(null);
         }
-        L.d("exp tree: %s", root.toStringTree(parser));
-
-        return root.accept(visitor);
     }
 
     public ExprModel getModel() {
