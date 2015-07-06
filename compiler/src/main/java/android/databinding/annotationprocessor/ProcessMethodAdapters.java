@@ -32,7 +32,6 @@ import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -40,9 +39,9 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.MirroredTypeException;
-import javax.lang.model.type.ReferenceType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 
@@ -84,7 +83,6 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
         for (Element element : AnnotationUtil
                 .getElementsAnnotatedWith(roundEnv, BindingAdapter.class)) {
             if (element.getKind() != ElementKind.METHOD ||
-                    !element.getModifiers().contains(Modifier.STATIC) ||
                     !element.getModifiers().contains(Modifier.PUBLIC)) {
                 L.e("@BindingAdapter on invalid element: %s", element);
                 continue;
@@ -97,12 +95,16 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 L.e("@BindingAdapter requires at least one attribute. %s", element);
                 continue;
             }
+
+            final boolean takesComponent = takesComponent(executableElement, processingEnv);
+            final int startIndex = 1 + (takesComponent ? 1 : 0);
             final int numAttributes = bindingAdapter.value().length;
-            if (parameters.size() == 1 + (2 * numAttributes)) {
+            final int numAdditionalArgs = parameters.size() - startIndex;
+            if (numAdditionalArgs == (2 * numAttributes)) {
                 // This BindingAdapter takes old and new values. Make sure they are properly ordered
                 Types typeUtils = processingEnv.getTypeUtils();
                 boolean hasParameterError = false;
-                for (int i = 1; i <= numAttributes; i++) {
+                for (int i = startIndex; i < numAttributes + startIndex; i++) {
                     if (!typeUtils.isSameType(parameters.get(i).asType(),
                             parameters.get(i + numAttributes).asType())) {
                         L.e("BindingAdapter %s: old values should be followed by new values. " +
@@ -115,10 +117,10 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 if (hasParameterError) {
                     continue;
                 }
-            } else if (parameters.size() != numAttributes + 1) {
-                L.e("@BindingAdapter %s has %d attributes and %d parameters. There should be %d " +
-                        "or %d parameters.", executableElement, numAttributes, parameters.size(),
-                        numAttributes + 1, (numAttributes * 2) + 1);
+            } else if (numAdditionalArgs != numAttributes) {
+                L.e("@BindingAdapter %s has %d attributes and %d value parameters. There should " +
+                        "be %d or %d value parameters.", executableElement, numAttributes,
+                        numAdditionalArgs, numAttributes, numAttributes * 2);
                 continue;
             }
             warnAttributeNamespaces(bindingAdapter.value());
@@ -126,15 +128,50 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 if (numAttributes == 1) {
                     final String attribute = bindingAdapter.value()[0];
                     L.d("------------------ @BindingAdapter for %s", element);
-                    store.addBindingAdapter(processingEnv, attribute, executableElement);
+                    store.addBindingAdapter(processingEnv, attribute, executableElement,
+                            takesComponent);
                 } else {
                     store.addBindingAdapter(processingEnv, bindingAdapter.value(),
-                            executableElement);
+                            executableElement, takesComponent);
                 }
             } catch (IllegalArgumentException e) {
                 L.e(e, "@BindingAdapter for duplicate View and parameter type: %s", element);
             }
         }
+    }
+
+    private static boolean takesComponent(ExecutableElement executableElement,
+            ProcessingEnvironment processingEnvironment) {
+        List<? extends VariableElement> parameters = executableElement.getParameters();
+        Elements elementUtils = processingEnvironment.getElementUtils();
+        TypeMirror viewElement = elementUtils.getTypeElement("android.view.View").asType();
+        if (parameters.size() < 2) {
+            return false; // Validation will fail in the caller
+        }
+        TypeMirror parameter1 = parameters.get(0).asType();
+        Types typeUtils = processingEnvironment.getTypeUtils();
+        if (parameter1.getKind() == TypeKind.DECLARED &&
+                typeUtils.isAssignable(parameter1, viewElement)) {
+            return false; // first parameter is a View
+        }
+        if (parameters.size() < 3) {
+            TypeMirror viewStubProxy = elementUtils.
+                    getTypeElement("android.databinding.ViewStubProxy").asType();
+            if (!typeUtils.isAssignable(parameter1, viewStubProxy)) {
+                L.e("@BindingAdapter %s is applied to a method that has two parameters, the " +
+                        "first must be a View type", executableElement);
+            }
+            return false;
+        }
+        TypeMirror parameter2 = parameters.get(1).asType();
+        if (typeUtils.isAssignable(parameter2, viewElement)) {
+            return true; // second parameter is a View
+        }
+        L.e("@BindingAdapter %s is applied to a method that doesn't take a View subclass as the " +
+                "first or second parameter. When a BindingAdapter uses a DataBindingComponent, " +
+                "the component parameter is first and the View parameter is second, otherwise " +
+                "the View parameter is first.", executableElement);
+        return false;
     }
 
     private static void warnAttributeNamespace(String attribute) {

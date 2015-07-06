@@ -37,7 +37,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Keeps all information about the bindings per layout file
@@ -276,13 +275,16 @@ public class LayoutBinder implements ResolveListenersCallback, FileScopeProvider
         }
     }
 
+    public void sealModel() {
+        mExprModel.seal(this);
+    }
+
     public String writeViewBinderBaseClass(boolean forLibrary) {
         ensureWriter();
         return mWriter.writeBaseClass(forLibrary);
     }
 
     public String writeViewBinder(int minSdk) {
-        mExprModel.seal(this);
         ensureWriter();
         Preconditions.checkNotNull(getPackage(), "package cannot be null");
         Preconditions.checkNotNull(getClassName(), "base class name cannot be null");

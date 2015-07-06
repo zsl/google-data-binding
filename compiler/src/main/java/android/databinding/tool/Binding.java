@@ -127,11 +127,19 @@ public class Binding implements LocationScopeProvider {
         return mTarget;
     }
 
-    public String toJavaCode(String targetViewName) {
+    public String toJavaCode(String targetViewName, String bindingComponent) {
         final String currentValue = requiresOldValue()
                 ? "this." + WriterPackage.getOldValueName(mExpr) : null;
         final String argCode = CodeGenUtil.Companion.toCode(getExpr(), false).generate();
-        return getSetterCall().toJava(targetViewName, currentValue, argCode);
+        return getSetterCall().toJava(bindingComponent, targetViewName, currentValue, argCode);
+    }
+
+    public String getBindingAdapterInstanceClass() {
+        return getSetterCall().getBindingAdapterInstanceClass();
+    }
+
+    public void setBindingAdapterCall(String method) {
+        getSetterCall().setBindingAdapterCall(method);
     }
 
     public Expr[] getComponentExpressions() {
@@ -181,13 +189,15 @@ public class Binding implements LocationScopeProvider {
         }
 
         @Override
-        protected String toJavaInternal(String viewExpression, String converted) {
+        protected String toJavaInternal(String componentExpression, String viewExpression,
+                String converted) {
             return "if (" + viewExpression + ".isInflated()) " + viewExpression +
                     ".getBinding().setVariable(BR." + mName + ", " + converted + ")";
         }
 
         @Override
-        protected String toJavaInternal(String viewExpression, String oldValue, String converted) {
+        protected String toJavaInternal(String componentExpression, String viewExpression,
+                String oldValue, String converted) {
             return null;
         }
 
@@ -206,6 +216,15 @@ public class Binding implements LocationScopeProvider {
             return new ModelClass[] {
                     ModelAnalyzer.getInstance().findClass(Object.class)
             };
+        }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return null;
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
         }
     }
 
@@ -222,13 +241,16 @@ public class Binding implements LocationScopeProvider {
         }
 
         @Override
-        protected String toJavaInternal(String viewExpression, String converted) {
+        protected String toJavaInternal(String componentExpression, String viewExpression,
+                String converted) {
             return "if (!" + viewExpression + ".isInflated()) " +
-                    mWrappedCall.toJava(viewExpression + ".getViewStub()", null, converted);
+                    mWrappedCall.toJava(componentExpression, viewExpression + ".getViewStub()",
+                            null, converted);
         }
 
         @Override
-        protected String toJavaInternal(String viewExpression, String oldValue, String converted) {
+        protected String toJavaInternal(String componentExpression, String viewExpression,
+                String oldValue, String converted) {
             return null;
         }
 
@@ -247,6 +269,16 @@ public class Binding implements LocationScopeProvider {
             return new ModelClass[] {
                     ModelAnalyzer.getInstance().findClass(Object.class)
             };
+        }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return mWrappedCall.getBindingAdapterInstanceClass();
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
+            mWrappedCall.setBindingAdapterCall(method);
         }
     }
 }

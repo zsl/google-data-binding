@@ -29,9 +29,29 @@ import android.view.ViewParent;
  */
 public class DataBindingUtil {
     private static DataBinderMapper sMapper = new DataBinderMapper();
+    private static DataBindingComponent sDefaultComponent = null;
+
+    /**
+     * Set the default {@link DataBindingComponent} to use for data binding. When instance
+     * method BindingAdapters are used, the class instance for the binding adapter is retrieved
+     * from the DataBindingComponent.
+     */
+    public static void setDefaultComponent(DataBindingComponent bindingComponent) {
+        sDefaultComponent = bindingComponent;
+    }
+
+    /**
+     * @return the default {@link DataBindingComponent} used in data binding. Can be <code>null</code>
+     * if no default was set in {@link #setDefaultComponent(DataBindingComponent)}.
+     */
+    public static DataBindingComponent getDefaultComponent() {
+        return sDefaultComponent;
+    }
 
     /**
      * Inflates a binding layout and returns the newly-created binding for that layout.
+     * This uses the DataBindingComponent set in
+     * {@link #setDefaultComponent(DataBindingComponent)}.
      *
      * @param inflater The LayoutInflater used to inflate the binding layout.
      * @param layoutId The layout resource ID of the layout to inflate.
@@ -45,9 +65,33 @@ public class DataBindingUtil {
      * @return The newly-created binding for the inflated layout or <code>null</code> if
      * the layoutId wasn't for a binding layout.
      * @throws InflateException When a merge layout was used and attachToParent was false.
+     * @see #setDefaultComponent(DataBindingComponent)
      */
     public static <T extends ViewDataBinding> T inflate(LayoutInflater inflater, int layoutId,
             @Nullable ViewGroup parent, boolean attachToParent) {
+        return inflate(inflater, layoutId, parent, attachToParent, sDefaultComponent);
+    }
+
+    /**
+     * Inflates a binding layout and returns the newly-created binding for that layout.
+     *
+     * @param inflater The LayoutInflater used to inflate the binding layout.
+     * @param layoutId The layout resource ID of the layout to inflate.
+     * @param parent Optional view to be the parent of the generated hierarchy
+     *               (if attachToParent is true), or else simply an object that provides
+     *               a set of LayoutParams values for root of the returned hierarchy
+     *               (if attachToParent is false.)
+     * @param attachToParent Whether the inflated hierarchy should be attached to the
+     *                       parent parameter. If false, parent is only used to create
+     *                       the correct subclass of LayoutParams for the root view in the XML.
+     * @param bindingComponent The DataBindingComponent to use in the binding.
+     * @return The newly-created binding for the inflated layout or <code>null</code> if
+     * the layoutId wasn't for a binding layout.
+     * @throws InflateException When a merge layout was used and attachToParent was false.
+     */
+    public static <T extends ViewDataBinding> T inflate(
+            LayoutInflater inflater, int layoutId, @Nullable ViewGroup parent,
+            boolean attachToParent, DataBindingComponent bindingComponent) {
         final boolean useChildren = parent != null && attachToParent;
         final int startChildren = useChildren ? parent.getChildCount() : 0;
         final View view = inflater.inflate(layoutId, parent, attachToParent);
@@ -56,22 +100,23 @@ public class DataBindingUtil {
             final int childrenAdded = endChildren - startChildren;
             if (childrenAdded == 1) {
                 final View childView = parent.getChildAt(endChildren - 1);
-                return bind(childView, layoutId);
+                return bind(bindingComponent, childView, layoutId);
             } else {
                 final View[] children = new View[childrenAdded];
                 for (int i = 0; i < childrenAdded; i++) {
                     children[i] = parent.getChildAt(i + startChildren);
                 }
-                return bind(children, layoutId);
+                return bind(bindingComponent, children, layoutId);
             }
         } else {
-            return bind(view, layoutId);
+            return bind(bindingComponent, view, layoutId);
         }
     }
 
     /**
      * Returns the binding for the given layout root or creates a binding if one
-     * does not exist.
+     * does not exist. This uses the DataBindingComponent set in
+     * {@link #setDefaultComponent(DataBindingComponent)}.
      *
      * @param root The root View of the inflated binding layout.
      * @return A ViewDataBinding for the given root View. If one already exists, the
@@ -81,6 +126,23 @@ public class DataBindingUtil {
      */
     @SuppressWarnings("unchecked")
     public static <T extends ViewDataBinding> T bind(View root) {
+        return bind(root, sDefaultComponent);
+    }
+
+    /**
+     * Returns the binding for the given layout root or creates a binding if one
+     * does not exist.
+     *
+     * @param root The root View of the inflated binding layout.
+     * @param bindingComponent The DataBindingComponent to use in data binding.
+     * @return A ViewDataBinding for the given root View. If one already exists, the
+     * existing one will be returned.
+     * @throws IllegalArgumentException when root is not from an inflated binding layout.
+     * @see #getBinding(View)
+     */
+    @SuppressWarnings("unchecked")
+    public static <T extends ViewDataBinding> T bind(View root,
+            DataBindingComponent bindingComponent) {
         T binding = getBinding(root);
         if (binding != null) {
             return binding;
@@ -94,17 +156,19 @@ public class DataBindingUtil {
             if (layoutId == 0) {
                 throw new IllegalArgumentException("View is not a binding layout");
             }
-            return (T) sMapper.getDataBinder(root, layoutId);
+            return (T) sMapper.getDataBinder(bindingComponent, root, layoutId);
         }
     }
 
     @SuppressWarnings("unchecked")
-    static <T extends ViewDataBinding> T bind(View[] roots, int layoutId) {
-        return (T) sMapper.getDataBinder(roots, layoutId);
+    static <T extends ViewDataBinding> T bind(DataBindingComponent bindingComponent, View[] roots,
+            int layoutId) {
+        return (T) sMapper.getDataBinder(bindingComponent, roots, layoutId);
     }
 
-    static <T extends ViewDataBinding> T bind(View root, int layoutId) {
-        return (T) sMapper.getDataBinder(root, layoutId);
+    static <T extends ViewDataBinding> T bind(DataBindingComponent bindingComponent, View root,
+            int layoutId) {
+        return (T) sMapper.getDataBinder(bindingComponent, root, layoutId);
     }
 
     /**
@@ -159,7 +223,8 @@ public class DataBindingUtil {
 
     /**
      * Retrieves the binding responsible for the given View layout root. If there is no binding,
-     * <code>null</code> will be returned.
+     * <code>null</code> will be returned. This uses the DataBindingComponent set in
+     * {@link #setDefaultComponent(DataBindingComponent)}.
      *
      * @param view The root <code>View</code> in the layout with binding.
      * @return The ViewDataBinding associated with the given view or <code>null</code> if
@@ -179,10 +244,26 @@ public class DataBindingUtil {
      * @return The binding associated with the inflated content view.
      */
     public static <T extends ViewDataBinding> T setContentView(Activity activity, int layoutId) {
+        return setContentView(activity, layoutId, sDefaultComponent);
+    }
+
+    /**
+     * Set the Activity's content view to the given layout and return the associated binding.
+     * The given layout resource must not be a merge layout.
+     *
+     * @param bindingComponent The DataBindingComponent to use in data binding.
+     * @param activity The Activity whose content View should change.
+     * @param layoutId The resource ID of the layout to be inflated, bound, and set as the
+     *                 Activity's content.
+     * @return The binding associated with the inflated content view.
+     */
+    public static <T extends ViewDataBinding> T setContentView(Activity activity, int layoutId,
+            DataBindingComponent bindingComponent) {
         // Force the content view to exist if it didn't already.
         View decorView = activity.getWindow().getDecorView();
         ViewGroup contentView = (ViewGroup) decorView.findViewById(android.R.id.content);
-        T binding = inflate(activity.getLayoutInflater(), layoutId, contentView, false);
+        T binding = inflate(activity.getLayoutInflater(), layoutId, contentView, false,
+                bindingComponent);
         activity.setContentView(binding.getRoot(), binding.getRoot().getLayoutParams());
         return binding;
     }

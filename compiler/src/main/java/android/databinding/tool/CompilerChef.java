@@ -79,6 +79,11 @@ public class CompilerChef {
             }
         }
     }
+
+    public void sealModels() {
+        ensureDataBinder();
+        mDataBinder.sealModels();
+    }
     
     public void writeViewBinderInterfaces(boolean isLibrary) {
         ensureDataBinder();
@@ -88,6 +93,11 @@ public class CompilerChef {
     public void writeViewBinders(int minSdk) {
         ensureDataBinder();
         mDataBinder.writeBinders(minSdk);
+    }
+
+    public void writeComponent() {
+        ensureDataBinder();
+        mDataBinder.writeComponent();
     }
 
     public Set<String> getWrittenClassNames() {

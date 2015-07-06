@@ -27,16 +27,16 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
             }
             tab("}")
             nl("")
-            tab("public android.databinding.ViewDataBinding getDataBinder(android.view.View view, int layoutId) {") {
+            tab("public android.databinding.ViewDataBinding getDataBinder(android.databinding.DataBindingComponent bindingComponent, android.view.View view, int layoutId) {") {
                 tab("switch(layoutId) {") {
                     layoutBinders.groupBy{it.getLayoutname()}.forEach {
                         val firstVal = it.value.get(0)
                         tab("case ${firstVal.getModulePackage()}.R.layout.${firstVal.getLayoutname()}:") {
                             if (it.value.size() == 1) {
                                 if (firstVal.isMerge()) {
-                                    tab("return new ${firstVal.getPackage()}.${firstVal.getImplementationName()}(new android.view.View[]{view});")
+                                    tab("return new ${firstVal.getPackage()}.${firstVal.getImplementationName()}(bindingComponent, new android.view.View[]{view});")
                                 } else {
-                                    tab("return ${firstVal.getPackage()}.${firstVal.getImplementationName()}.bind(view);")
+                                    tab("return ${firstVal.getPackage()}.${firstVal.getImplementationName()}.bind(view, bindingComponent);")
                                 }
                             } else {
                                 // we should check the tag to decide which layout we need to inflate
@@ -46,9 +46,9 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
                                     it.value.forEach {
                                         tab("if (\"${it.getTag()}_0\".equals(tag)) {") {
                                             if (it.isMerge()) {
-                                                tab("return new ${it.getPackage()}.${it.getImplementationName()}(new android.view.View[]{view});")
+                                                tab("return new ${it.getPackage()}.${it.getImplementationName()}(bindingComponent, new android.view.View[]{view});")
                                             } else {
-                                                tab("return new ${it.getPackage()}.${it.getImplementationName()}(view);")
+                                                tab("return new ${it.getPackage()}.${it.getImplementationName()}(bindingComponent, view);")
                                             }
                                         } tab("}")
                                     }
@@ -63,13 +63,13 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
             }
             tab("}")
 
-            tab("android.databinding.ViewDataBinding getDataBinder(android.view.View[] views, int layoutId) {") {
+            tab("android.databinding.ViewDataBinding getDataBinder(android.databinding.DataBindingComponent bindingComponent, android.view.View[] views, int layoutId) {") {
                 tab("switch(layoutId) {") {
                     layoutBinders.filter{it.isMerge()}.groupBy{it.getLayoutname()}.forEach {
                         val firstVal = it.value.get(0)
                         tab("case ${firstVal.getModulePackage()}.R.layout.${firstVal.getLayoutname()}:") {
                             if (it.value.size() == 1) {
-                                tab("return new ${firstVal.getPackage()}.${firstVal.getImplementationName()}(views);")
+                                tab("return new ${firstVal.getPackage()}.${firstVal.getImplementationName()}(bindingComponent, views);")
                             } else {
                                 // we should check the tag to decide which layout we need to inflate
                                 tab("{") {
@@ -77,7 +77,7 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
                                     tab("if(tag == null) throw new java.lang.RuntimeException(\"view must have a tag\");")
                                     it.value.forEach {
                                         tab("if (\"${it.getTag()}_0\".equals(tag)) {") {
-                                            tab("return new ${it.getPackage()}.${it.getImplementationName()}(views);")
+                                            tab("return new ${it.getPackage()}.${it.getImplementationName()}(bindingComponent, views);")
                                         } tab("}")
                                     }
                                 }tab("}")
