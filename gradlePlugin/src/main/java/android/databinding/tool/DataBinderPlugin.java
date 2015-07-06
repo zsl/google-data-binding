@@ -47,6 +47,7 @@ import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.AbstractCompile;
 
+import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.JavaFileWriter;
 
@@ -63,7 +64,11 @@ import javax.xml.bind.JAXBException;
 
 public class DataBinderPlugin implements Plugin<Project> {
 
+    private static final String INVOKED_FROM_IDE_PROPERTY = "android.injected.invoked.from.ide";
+    private static final String PRINT_ENCODED_ERRORS_PROPERTY
+            = "android.databinding.injected.print.encoded.errors";
     private Logger logger;
+    private boolean printEncodedErrors = false;
 
     class GradleFileWriter extends JavaFileWriter {
 
@@ -93,6 +98,26 @@ public class DataBinderPlugin implements Plugin<Project> {
         }
     }
 
+    private boolean safeGetBooleanProperty(Project project, String property) {
+        boolean hasProperty = project.hasProperty(property);
+        if (!hasProperty) {
+            return false;
+        }
+        try {
+            if (Boolean.parseBoolean(String.valueOf(project.getProperties().get(property)))) {
+                return true;
+            }
+        } catch (Throwable t) {
+            L.w("unable to read property %s", project);
+        }
+        return false;
+    }
+
+    private boolean resolvePrintEncodedErrors(Project project) {
+        return safeGetBooleanProperty(project, INVOKED_FROM_IDE_PROPERTY) ||
+                safeGetBooleanProperty(project, PRINT_ENCODED_ERRORS_PROPERTY);
+    }
+
     @Override
     public void apply(Project project) {
         if (project == null) {
@@ -105,7 +130,8 @@ public class DataBinderPlugin implements Plugin<Project> {
         if (StringUtils.isEmpty(myVersion)) {
             throw new IllegalStateException("cannot read version of the plugin :/");
         }
-
+        printEncodedErrors = resolvePrintEncodedErrors(project);
+        ScopedException.encodeOutput(printEncodedErrors);
         project.getDependencies().add("compile", "com.android.databinding:library:" + myVersion);
         boolean addAdapters = true;
         if (project.hasProperty("ext")) {
@@ -308,7 +334,9 @@ public class DataBinderPlugin implements Plugin<Project> {
                         task.setSdkDir(sdkDir);
                         task.setXmlOutFolder(xmlOutDir);
                         task.setExportClassListTo(generatedClassListOut);
+                        task.setPrintEncodedErrors(printEncodedErrors);
                         task.setEnableDebugLogs(logger.isEnabled(LogLevel.DEBUG));
+
                         variantData.registerJavaGeneratingTask(task, codeGenTargetFolder);
                     }
                 });

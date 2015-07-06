@@ -49,6 +49,9 @@ import static org.junit.Assert.assertTrue;
 
 
 public class BaseCompilationTest {
+
+    private static final String PRINT_ENCODED_ERRORS_PROPERTY
+            = "android.databinding.injected.print.encoded.errors";
     @Rule
     public TestName name = new TestName();
     static Pattern VARIABLES = Pattern.compile("!@\\{([A-Za-z0-9_-]*)}");
@@ -92,8 +95,9 @@ public class BaseCompilationTest {
 
     /**
      * Extracts the text in the given location from the the at the given application path.
+     *
      * @param pathInApp The path, relative to the root of the application under test
-     * @param location The location to extract
+     * @param location  The location to extract
      * @return The string that is contained in the given location
      * @throws IOException If file is invalid.
      */
@@ -102,7 +106,7 @@ public class BaseCompilationTest {
         assertTrue(file.exists());
         StringBuilder result = new StringBuilder();
         List<String> lines = FileUtils.readLines(file);
-        for (int i = location.startLine; i <= location.endLine; i ++) {
+        for (int i = location.startLine; i <= location.endLine; i++) {
             if (i > location.startLine) {
                 result.append("\n");
             }
@@ -133,7 +137,7 @@ public class BaseCompilationTest {
     protected static Map<String, String> toMap(String... keysAndValues) {
         assertEquals(0, keysAndValues.length % 2);
         Map<String, String> map = new HashMap<>();
-        for (int i = 0; i < keysAndValues.length; i+=2) {
+        for (int i = 0; i < keysAndValues.length; i += 2) {
             map.put(keysAndValues[i], keysAndValues[i + 1]);
         }
         return map;
@@ -192,7 +196,8 @@ public class BaseCompilationTest {
         replacements = addDefaults(replacements);
         // how to get build folder, pass from gradle somehow ?
         FileUtils.forceMkdir(testFolder);
-        copyResourceTo("/AndroidManifest.xml", new File(testFolder, "app/src/main/AndroidManifest.xml"), replacements);
+        copyResourceTo("/AndroidManifest.xml",
+                new File(testFolder, "app/src/main/AndroidManifest.xml"), replacements);
         copyResourceTo("/project_build.gradle", new File(testFolder, "build.gradle"), replacements);
         copyResourceTo("/app_build.gradle", new File(testFolder, "app/build.gradle"), replacements);
         copyResourceTo("/settings.gradle", new File(testFolder, "settings.gradle"), replacements);
@@ -215,21 +220,24 @@ public class BaseCompilationTest {
         FileUtils.forceMkdir(moduleFolder);
         copyResourceTo("/AndroidManifest.xml",
                 new File(moduleFolder, "src/main/AndroidManifest.xml"), replacements);
-        copyResourceTo("/module_build.gradle", new File(moduleFolder, "build.gradle"), replacements);
+        copyResourceTo("/module_build.gradle", new File(moduleFolder, "build.gradle"),
+                replacements);
     }
 
-    protected CompilationResult runGradle(String... params) throws IOException, InterruptedException {
+    protected CompilationResult runGradle(String... params)
+            throws IOException, InterruptedException {
         setExecutable();
         File pathToExecutable = new File(testFolder, "gradlew");
         List<String> args = new ArrayList<>();
         args.add(pathToExecutable.getAbsolutePath());
+        args.add("-P" + PRINT_ENCODED_ERRORS_PROPERTY + "=true");
         args.add("--project-cache-dir");
         args.add(new File("../.caches/", name.getMethodName()).getAbsolutePath());
         Collections.addAll(args, params);
         ProcessBuilder builder = new ProcessBuilder(args);
         builder.environment().putAll(System.getenv());
         builder.directory(testFolder);
-        Process process =  builder.start();
+        Process process = builder.start();
         String output = IOUtils.toString(process.getInputStream());
         String error = IOUtils.toString(process.getErrorStream());
         int result = process.waitFor();
@@ -246,7 +254,8 @@ public class BaseCompilationTest {
         perms.add(PosixFilePermission.GROUP_READ);
         //add others permissions
         perms.add(PosixFilePermission.OTHERS_READ);
-        Files.setPosixFilePermissions(Paths.get(new File(testFolder, "gradlew").getAbsolutePath()), perms);
+        Files.setPosixFilePermissions(Paths.get(new File(testFolder, "gradlew").getAbsolutePath()),
+                perms);
     }
 
 

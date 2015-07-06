@@ -66,7 +66,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         CompilationResult result = runGradle("assembleDebug");
         assertNotEquals(0, result.resultCode);
         ScopedException scopedException = result.getBindingException();
-        assertNotNull(scopedException);
+        assertNotNull(result.error, scopedException);
         ScopedErrorReport report = scopedException.getScopedErrorReport();
         assertNotNull(report);
         assertEquals(1, report.getLocations().size());

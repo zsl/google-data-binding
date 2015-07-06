@@ -15,6 +15,7 @@
  */
 package android.databinding.tool;
 
+import android.databinding.tool.processing.Scope;
 import android.databinding.tool.util.L;
 
 import org.gradle.api.DefaultTask;
@@ -47,6 +48,7 @@ public class DataBindingProcessLayoutsTask extends DefaultTask {
             IOException {
         L.d("running process layouts task %s", getName());
         xmlProcessor.processResources(minSdk);
+        Scope.assertNoError();
     }
 
     public void writeLayoutXmls() throws JAXBException {
