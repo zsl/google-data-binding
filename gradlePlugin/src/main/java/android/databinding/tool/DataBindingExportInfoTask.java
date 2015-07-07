@@ -15,9 +15,11 @@
  */
 package android.databinding.tool;
 
-import android.databinding.tool.util.L;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
+
+import android.databinding.tool.processing.Scope;
+
 import java.io.File;
 
 /**
@@ -28,10 +30,13 @@ public class DataBindingExportInfoTask extends DefaultTask {
     private File sdkDir;
     private File xmlOutFolder;
     private File exportClassListTo;
+    private boolean printEncodedErrors;
     private boolean enableDebugLogs = false;
     @TaskAction
     public void exportInfo() {
-        xmlProcessor.writeInfoClass(sdkDir, xmlOutFolder, exportClassListTo, enableDebugLogs);
+        xmlProcessor.writeInfoClass(sdkDir, xmlOutFolder, exportClassListTo, enableDebugLogs,
+                printEncodedErrors);
+        Scope.assertNoError();
     }
 
     public LayoutXmlProcessor getXmlProcessor() {
@@ -64,6 +69,14 @@ public class DataBindingExportInfoTask extends DefaultTask {
 
     public void setExportClassListTo(File exportClassListTo) {
         this.exportClassListTo = exportClassListTo;
+    }
+
+    public boolean isPrintEncodedErrors() {
+        return printEncodedErrors;
+    }
+
+    public void setPrintEncodedErrors(boolean printEncodedErrors) {
+        this.printEncodedErrors = printEncodedErrors;
     }
 
     public boolean isEnableDebugLogs() {

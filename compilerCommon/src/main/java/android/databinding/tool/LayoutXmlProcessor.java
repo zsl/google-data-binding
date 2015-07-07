@@ -163,11 +163,11 @@ public class LayoutXmlProcessor {
 
     public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir,
             /*Nullable*/ File exportClassListTo) {
-        writeInfoClass(sdkDir, xmlOutDir, exportClassListTo, false);
+        writeInfoClass(sdkDir, xmlOutDir, exportClassListTo, false, false);
     }
 
     public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir, File exportClassListTo,
-            boolean enableDebugLogs) {
+            boolean enableDebugLogs, boolean printEncodedErrorLogs) {
         final String sdkPath = sdkDir == null ? null : StringEscapeUtils.escapeJava(sdkDir.getAbsolutePath());
         final Class annotation = BindingBuildInfo.class;
         final String layoutInfoPath = StringEscapeUtils.escapeJava(xmlOutDir.getAbsolutePath());
@@ -182,7 +182,8 @@ public class LayoutXmlProcessor {
                 "exportClassListTo=\"" + exportClassListToPath + "\"," +
                 "isLibrary=" + mIsLibrary + "," +
                 "minSdk=" + mMinSdk + "," +
-                "enableDebugLogs=" + enableDebugLogs + ")\n" +
+                "enableDebugLogs=" + enableDebugLogs + "," +
+                "printEncodedError=" + printEncodedErrorLogs + ")\n" +
                 "public class " + CLASS_NAME + " {}\n";
         mFileWriter.writeToFile(RESOURCE_BUNDLE_PACKAGE + "." + CLASS_NAME, classString);
     }

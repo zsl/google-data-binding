@@ -35,6 +35,7 @@ public class ScopedException extends RuntimeException {
     public static final String MSG_KEY = "msg:";
     public static final String LOCATION_KEY = "loc:";
     public static final String FILE_KEY = "file:";
+    private static boolean sEncodeOutput = false;
     private ScopedErrorReport mScopedErrorReport;
     private String mScopeLog;
 
@@ -55,6 +56,23 @@ public class ScopedException extends RuntimeException {
 
     @Override
     public String getMessage() {
+        return sEncodeOutput ? createEncodedMessage() : createHumanReadableMessage();
+    }
+
+    private String createHumanReadableMessage() {
+        ScopedErrorReport scopedError = getScopedErrorReport();
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.getMessage()).append("\n")
+                .append("file://").append(scopedError.getFilePath());
+        if (scopedError.getLocations() != null && scopedError.getLocations().size() > 0) {
+            sb.append(" Line:");
+            sb.append(scopedError.getLocations().get(0).startLine);
+        }
+        sb.append("\n");
+        return sb.toString();
+    }
+
+    private String createEncodedMessage() {
         ScopedErrorReport scopedError = getScopedErrorReport();
         StringBuilder sb = new StringBuilder();
         sb.append(ERROR_LOG_PREFIX)
@@ -134,5 +152,9 @@ public class ScopedException extends RuntimeException {
             }
         }
         return errors;
+    }
+
+    public static void encodeOutput(boolean encodeOutput) {
+        sEncodeOutput = encodeOutput;
     }
 }

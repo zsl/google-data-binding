@@ -17,6 +17,7 @@
 package android.databinding.annotationprocessor;
 
 import android.databinding.BindingBuildInfo;
+import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 
@@ -32,6 +33,7 @@ public class BuildInfoUtil {
             sCached = extractNotNull(roundEnvironment, BindingBuildInfo.class);
             if (sCached != null) {
                 L.setDebugLog(sCached.enableDebugLogs());
+                ScopedException.encodeOutput(sCached.printEncodedError());
             }
         }
         return sCached;

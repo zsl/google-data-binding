@@ -39,4 +39,5 @@ public @interface BindingBuildInfo {
     String exportClassListTo();
     boolean isLibrary();
     boolean enableDebugLogs() default false;
+    boolean printEncodedError() default false;
 }

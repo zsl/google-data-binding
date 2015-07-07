@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.bundling.Jar;
 
+import android.databinding.tool.processing.Scope;
 import android.databinding.tool.util.L;
 
 import java.io.File;
@@ -92,6 +93,7 @@ public class DataBindingExcludeGeneratedTask extends DefaultTask {
                 exclude(klass.replace('.', '/') + ".class");
             }
         }
+        Scope.assertNoError();
         L.d("Excluding generated classes from library jar is done.");
     }
 
