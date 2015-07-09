@@ -52,7 +52,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
     public void testEmptyCompilation() throws IOException, URISyntaxException, InterruptedException {
         prepareProject();
         CompilationResult result = runGradle("assembleDebug");
-        assertEquals(0, result.resultCode);
+        assertEquals(result.error, 0, result.resultCode);
         assertTrue("there should not be any errors " + result.error, StringUtils.isEmpty(result.error));
         assertTrue("Test sanity, should compile fine",
                 result.resultContainsText("BUILD SUCCESSFUL"));
@@ -94,9 +94,9 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         copyResourceTo("/layout/invalid_setter_binding.xml",
                 "/app/src/main/res/layout/invalid_setter.xml");
         CompilationResult result = runGradle("assembleDebug");
-        assertNotEquals(0, result.resultCode);
+        assertNotEquals(result.output, 0, result.resultCode);
         List<ScopedException> bindingExceptions = result.getBindingExceptions();
-        assertEquals(2, bindingExceptions.size());
+        assertEquals(result.error, 2, bindingExceptions.size());
         File broken = new File(testFolder, "/app/src/main/res/layout/broken.xml");
         File invalidSetter = new File(testFolder, "/app/src/main/res/layout/invalid_setter.xml");
         for (ScopedException exception : bindingExceptions) {

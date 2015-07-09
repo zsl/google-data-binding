@@ -47,7 +47,7 @@ public class CompilationResult {
         if (errors.isEmpty()) {
             return null;
         }
-        assertEquals(1, errors.size());
+        assertEquals(error, 1, errors.size());
         return errors.get(0);
     }
 

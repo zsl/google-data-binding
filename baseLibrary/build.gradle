@@ -16,21 +16,9 @@
 
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'com.android.databinding.bintray'
 
 sourceCompatibility = config.javaTargetCompatibility
 targetCompatibility = config.javaSourceCompatibility
-
-buildscript {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-}
-
-repositories {
-    mavenCentral()
-}
 
 sourceSets {
     main {
@@ -46,7 +34,7 @@ sourceSets {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.12'
 }
 
 def javadocTask = project.tasks.create(name: "javadocBaseLibrary", type: Javadoc) {
