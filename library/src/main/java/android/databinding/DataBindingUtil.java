@@ -32,17 +32,30 @@ public class DataBindingUtil {
     private static DataBindingComponent sDefaultComponent = null;
 
     /**
-     * Set the default {@link DataBindingComponent} to use for data binding. When instance
-     * method BindingAdapters are used, the class instance for the binding adapter is retrieved
-     * from the DataBindingComponent.
+     * Prevent DataBindingUtil from being instantiated.
+     */
+    private DataBindingUtil() {}
+
+    /**
+     * Set the default {@link DataBindingComponent} to use for data binding.
+     * <p>
+     * <code>bindingComponent</code> may be passed as the first parameter of binding adapters.
+     * <p>
+     * When instance method BindingAdapters are used, the class instance for the binding adapter
+     * is retrieved from the DataBindingComponent.
      */
     public static void setDefaultComponent(DataBindingComponent bindingComponent) {
         sDefaultComponent = bindingComponent;
     }
 
     /**
-     * @return the default {@link DataBindingComponent} used in data binding. Can be <code>null</code>
-     * if no default was set in {@link #setDefaultComponent(DataBindingComponent)}.
+     * Returns the default {@link DataBindingComponent} used in data binding. This can be
+     * <code>null</code> if no default was set in
+     * {@link #setDefaultComponent(DataBindingComponent)}.
+     *
+     * @return the default {@link DataBindingComponent} used in data binding. This can be
+     * <code>null</code> if no default was set in
+     * {@link #setDefaultComponent(DataBindingComponent)}.
      */
     public static DataBindingComponent getDefaultComponent() {
         return sDefaultComponent;
@@ -52,6 +65,9 @@ public class DataBindingUtil {
      * Inflates a binding layout and returns the newly-created binding for that layout.
      * This uses the DataBindingComponent set in
      * {@link #setDefaultComponent(DataBindingComponent)}.
+     * <p>
+     * Use this version only if <code>layoutId</code> is unknown in advance. Otherwise, use
+     * the generated Binding's inflate method to ensure type-safe inflation.
      *
      * @param inflater The LayoutInflater used to inflate the binding layout.
      * @param layoutId The layout resource ID of the layout to inflate.
@@ -74,6 +90,9 @@ public class DataBindingUtil {
 
     /**
      * Inflates a binding layout and returns the newly-created binding for that layout.
+     * <p>
+     * Use this version only if <code>layoutId</code> is unknown in advance. Otherwise, use
+     * the generated Binding's inflate method to ensure type-safe inflation.
      *
      * @param inflater The LayoutInflater used to inflate the binding layout.
      * @param layoutId The layout resource ID of the layout to inflate.
@@ -117,6 +136,9 @@ public class DataBindingUtil {
      * Returns the binding for the given layout root or creates a binding if one
      * does not exist. This uses the DataBindingComponent set in
      * {@link #setDefaultComponent(DataBindingComponent)}.
+     * <p>
+     * Prefer using the generated Binding's <code>bind</code> method to ensure type-safe inflation
+     * when it is known that <code>root</code> has not yet been bound.
      *
      * @param root The root View of the inflated binding layout.
      * @return A ViewDataBinding for the given root View. If one already exists, the
@@ -132,6 +154,9 @@ public class DataBindingUtil {
     /**
      * Returns the binding for the given layout root or creates a binding if one
      * does not exist.
+     * <p>
+     * Prefer using the generated Binding's <code>bind</code> method to ensure type-safe inflation
+     * when it is known that <code>root</code> has not yet been bound.
      *
      * @param root The root View of the inflated binding layout.
      * @param bindingComponent The DataBindingComponent to use in data binding.
@@ -177,7 +202,7 @@ public class DataBindingUtil {
      * <code>null</code> will be returned.
      * <p>
      * This differs from {@link #getBinding(View)} in that findBinding takes any view in the
-     * layout and searches for the binding associated with the root <code>getBinding</code>
+     * layout and searches for the binding associated with the root. <code>getBinding</code>
      * takes only the root view.
      *
      * @param view A <code>View</code> in the bound layout.

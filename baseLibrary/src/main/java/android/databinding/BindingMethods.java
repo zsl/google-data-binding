@@ -18,6 +18,11 @@ package android.databinding;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;
 
+/**
+ * Used to enumerate attribute-to-setter renaming. By default, an attribute is associated with
+ * setAttribute setter. If there is a simple rename, enumerate them in an array of
+ * {@link BindingMethod} annotations in the value.
+ */
 @Target({ElementType.TYPE})
 public @interface BindingMethods {
     BindingMethod[] value();

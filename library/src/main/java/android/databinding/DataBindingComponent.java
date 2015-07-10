@@ -15,6 +15,10 @@
  */
 package android.databinding;
 
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
 /**
  * This interface is generated during compilation to contain getters for all used instance
  * BindingAdapters. When a BindingAdapter is an instance method, an instance of the class
@@ -25,8 +29,12 @@ package android.databinding;
  * An instance of this class may also be passed into static or instance BindingAdapters as the
  * first parameter.
  * <p>
- * If you are using Dagger 2, you should extend this interface and annotate the extended interface
+ * If using Dagger 2, the developer should extend this interface and annotate the extended interface
  * as a Component.
+ *
+ * @see DataBindingUtil#setDefaultComponent(DataBindingComponent)
+ * @see DataBindingUtil#inflate(LayoutInflater, int, ViewGroup, boolean, DataBindingComponent)
+ * @see DataBindingUtil#bind(View, DataBindingComponent)
  */
 public interface DataBindingComponent {
 }

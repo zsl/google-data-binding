@@ -34,9 +34,7 @@ public class ListenerUtil {
      * so will not keep a strong reference to either.
      *
      * Example usage:
-     * <pre>
-     * {@code
-     * @BindingAdapter("onFoo")
+     *<pre><code>@BindingAdapter("onFoo")
      * public static void addFooListener(MyView view, OnFooListener listener) {
      *     OnFooListener oldValue = ListenerUtil.trackListener(view, listener, R.id.fooListener);
      *     if (oldValue != null) {
@@ -45,9 +43,7 @@ public class ListenerUtil {
      *     if (listener != null) {
      *         view.addOnFooListener(listener);
      *     }
-     * }
-     * }
-     * </pre>
+     * }</code></pre>
      *
      * @param view The View that will have this listener
      * @param listener The listener to keep track of. May be null if the listener is being removed.

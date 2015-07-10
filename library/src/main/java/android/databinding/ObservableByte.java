@@ -23,6 +23,13 @@ import java.io.Serializable;
 /**
  * An observable class that holds a primitive byte.
  * <p>
+ * Observable field classes may be used instead of creating an Observable object:
+ * <pre><code>public class MyDataObject {
+ *     public final ObservableByte flags = new ObservableByte();
+ * }</code></pre>
+ * Fields of this type should be declared final because bindings only detect changes in the
+ * field's value, not of the field itself.
+ * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
  * data binding framework always re-registers callbacks when the view is bound.
@@ -46,10 +53,16 @@ public class ObservableByte extends BaseObservable implements Parcelable, Serial
     public ObservableByte() {
     }
 
+    /**
+     * @return the stored value.
+     */
     public byte get() {
         return mValue;
     }
 
+    /**
+     * Set the stored value.
+     */
     public void set(byte value) {
         if (value != mValue) {
             mValue = value;

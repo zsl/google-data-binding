@@ -22,6 +22,7 @@ import android.view.View;
  * This class will be stripped from the jar and then replaced by the annotation processor
  * as part of the code generation step. This class's existence is just to ensure that
  * compile works and no reflection is needed to access the generated class.
+ * @hide
  */
 class DataBinderMapper {
     public ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View view,

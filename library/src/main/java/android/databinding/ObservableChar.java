@@ -23,6 +23,13 @@ import java.io.Serializable;
 /**
  * An observable class that holds a primitive char.
  * <p>
+ * Observable field classes may be used instead of creating an Observable object:
+ * <pre><code>public class MyDataObject {
+ *     public final ObservableChar firstInitial = new ObservableChar();
+ * }</code></pre>
+ * Fields of this type should be declared final because bindings only detect changes in the
+ * field's value, not of the field itself.
+ * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
  * data binding framework always re-registers callbacks when the view is bound.
@@ -46,10 +53,16 @@ public class ObservableChar extends BaseObservable implements Parcelable, Serial
     public ObservableChar() {
     }
 
+    /**
+     * @return the stored value.
+     */
     public char get() {
         return mValue;
     }
 
+    /**
+     * Set the stored value.
+     */
     public void set(char value) {
         if (value != mValue) {
             mValue = value;

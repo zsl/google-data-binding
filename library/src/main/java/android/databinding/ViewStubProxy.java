@@ -21,8 +21,9 @@ import android.view.ViewStub.OnInflateListener;
 
 /**
  * This class represents a ViewStub before and after inflation. Before inflation,
- * the ViewStub is accessible. After inflation, the ViewDataBinding is accessible
- * if the inflated View has bindings. If not, the root View will be accessible.
+ * the ViewStub is accessible. After inflation, the root View of the inflated layout
+ * will be available. If the inflated layout has data binding, the ViewDataBinding for the inflated
+ * View is accessible.
  */
 public class ViewStubProxy {
     private ViewStub mViewStub;
@@ -58,31 +59,42 @@ public class ViewStubProxy {
     }
 
     /**
-     * @return <code>true</code> if the ViewStub has replaced itself with the inflated layout
+     * Returns <code>true</code> if the ViewStub has replaced itself with the inflated layout
      * or <code>false</code> if not.
+     *
+     * @return <code>true</code> if the ViewStub has replaced itself with the inflated layout
+     * or <code>false</code> if not
      */
     public boolean isInflated() {
         return mRoot != null;
     }
 
     /**
-     * @return The root View of the layout replacing the ViewStub once it has been inflated.
+     * Returns the root View of the layout replacing the ViewStub once it has been inflated.
      * <code>null</code> is returned prior to inflation.
+     *
+     * @return the root View of the layout replacing the ViewStub once it has been inflated.
+     * <code>null</code> is returned prior to inflation
      */
     public View getRoot() {
         return mRoot;
     }
 
     /**
-     * @return The data binding associated with the inflated layout once it has been inflated.
+     * Returns the data binding associated with the inflated layout once it has been inflated.
      * <code>null</code> prior to inflation or if there is no binding associated with the layout.
+     *
+     * @return the data binding associated with the inflated layout once it has been inflated.
+     * <code>null</code> prior to inflation or if there is no binding associated with the layout
      */
     public ViewDataBinding getBinding() {
         return mViewDataBinding;
     }
 
     /**
-     * @return The ViewStub in the layout or <code>null</code> if the ViewStub has been inflated.
+     * Returns the ViewStub in the layout or <code>null</code> if the ViewStub has been inflated.
+     *
+     * @return the ViewStub in the layout or <code>null</code> if the ViewStub has been inflated.
      */
     public ViewStub getViewStub() {
         return mViewStub;
