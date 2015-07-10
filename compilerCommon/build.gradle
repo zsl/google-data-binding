@@ -15,7 +15,7 @@
  */
 
 apply plugin: 'java'
-
+apply plugin: 'com.android.databinding.bintray'
 
 sourceCompatibility = config.javaTargetCompatibility
 targetCompatibility = config.javaSourceCompatibility
