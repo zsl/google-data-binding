@@ -191,6 +191,14 @@ val Expr.conditionalFlags by Delegates.lazy { expr : Expr ->
             FlagSet(expr.getRequirementFlagIndex(true)))
 }
 
+val LayoutBinder.requiredComponent by Delegates.lazy { layoutBinder: LayoutBinder ->
+    val required = layoutBinder.
+            getBindingTargets().
+            flatMap { it.getBindings() }.
+            firstOrNull { it.getBindingAdapterInstanceClass() != null }
+    required?.getBindingAdapterInstanceClass()
+}
+
 fun Expr.getRequirementFlagSet(expected : Boolean) : FlagSet = conditionalFlags[if(expected) 1 else 0]
 
 fun FlagSet.notEmpty(cb : (suffix : String, value : Long) -> Unit) {
@@ -405,12 +413,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         val rootTagsSupported = minSdk >= 14
         if (layoutBinder.hasVariations()) {
             nl("")
-            nl("public ${className}(${parameterType} root) {") {
-                tab("this(${superParam}, mapBindings(root, ${bindingCount}, sIncludes, sViewsWithIds));")
+            nl("public ${className}(android.databinding.DataBindingComponent bindingComponent, ${parameterType} root) {") {
+                tab("this(bindingComponent, ${superParam}, mapBindings(bindingComponent, root, ${bindingCount}, sIncludes, sViewsWithIds));")
             }
             nl("}")
-            nl("private ${className}(${parameterType} root, Object[] bindings) {") {
-                tab("super(${superParam}, ${model.getObservables().size()}") {
+            nl("private ${className}(android.databinding.DataBindingComponent bindingComponent, ${parameterType} root, Object[] bindings) {") {
+                tab("super(bindingComponent, ${superParam}, ${model.getObservables().size()}") {
                     layoutBinder.getSortedTargets().filter { it.getId() != null }.forEach {
                         tab(", ${fieldConversion(it)}")
                     }
@@ -418,10 +426,13 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
             }
         } else {
-            nl("public ${baseClassName}(${parameterType} root) {") {
-                tab("super(${superParam}, ${model.getObservables().size()});")
-                tab("final Object[] bindings = mapBindings(root, ${bindingCount}, sIncludes, sViewsWithIds);")
+            nl("public ${baseClassName}(android.databinding.DataBindingComponent bindingComponent, ${parameterType} root) {") {
+                tab("super(bindingComponent, ${superParam}, ${model.getObservables().size()});")
+                tab("final Object[] bindings = mapBindings(bindingComponent, root, ${bindingCount}, sIncludes, sViewsWithIds);")
             }
+        }
+        if (layoutBinder.requiredComponent != null) {
+            tab("ensureBindingComponentIsNotNull(${layoutBinder.requiredComponent}.class);")
         }
         val taggedViews = layoutBinder.getSortedTargets().filter{it.isUsed()}
         taggedViews.forEach {
@@ -749,7 +760,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                 } else {
                                     fieldName = "((${binding.getTarget().getViewClass()}) this.${binding.getTarget().fieldName})"
                                 }
-                                val bindingCode = binding.toJavaCode(fieldName)
+                                val bindingCode = binding.toJavaCode(fieldName, "this.mBindingComponent")
                                 if (binding.getMinApi() > 1) {
                                     tab("if(getBuildSdkInt() >= ${binding.getMinApi()}) {") {
                                         tab("$bindingCode;")
@@ -944,20 +955,32 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     fun declareFactories() = kcode("") {
         nl("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
-            tab("return android.databinding.DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot);")
+            tab("return inflate(inflater, root, attachToRoot, android.databinding.DataBindingUtil.getDefaultComponent());")
+        }
+        nl("}")
+        nl("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot, android.databinding.DataBindingComponent bindingComponent) {") {
+            tab("return android.databinding.DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot, bindingComponent);")
         }
         nl("}")
         if (!layoutBinder.isMerge()) {
             nl("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {
-                tab("return bind(inflater.inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false));")
+                tab("return inflate(inflater, android.databinding.DataBindingUtil.getDefaultComponent());")
+            }
+            nl("}")
+            nl("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.databinding.DataBindingComponent bindingComponent) {") {
+                tab("return bind(inflater.inflate(${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false), bindingComponent);")
             }
             nl("}")
             nl("public static ${baseClassName} bind(android.view.View view) {") {
+                tab("return bind(view, android.databinding.DataBindingUtil.getDefaultComponent());")
+            }
+            nl("}")
+            nl("public static ${baseClassName} bind(android.view.View view, android.databinding.DataBindingComponent bindingComponent) {") {
                 tab("if (!\"${layoutBinder.getTag()}_0\".equals(view.getTag())) {") {
                     tab("throw new RuntimeException(\"view tag isn't correct on view:\" + view.getTag());")
                 }
                 tab("}")
-                tab("return new ${baseClassName}(view);")
+                tab("return new ${baseClassName}(bindingComponent, view);")
             }
             nl("}")
         }
@@ -976,13 +999,13 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab("public final ${it.interfaceType} ${it.fieldName};")
             }
             nl("")
-            tab("protected ${baseClassName}(android.view.View root_, int localFieldCount") {
+            tab("protected ${baseClassName}(android.databinding.DataBindingComponent bindingComponent, android.view.View root_, int localFieldCount") {
                 layoutBinder.getSortedTargets().filter{it.getId() != null}.forEach {
                     tab(", ${it.interfaceType} ${it.constructorParamName}")
                 }
             }
             tab(") {") {
-                tab("super(root_, localFieldCount);")
+                tab("super(bindingComponent, root_, localFieldCount);")
                 layoutBinder.getSortedTargets().filter{it.getId() != null}.forEach {
                     tab("this.${it.fieldName} = ${it.constructorParamName};")
                 }
@@ -996,26 +1019,42 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
             }
             tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {
-                if (forLibrary) {
-                    tab("return null;")
-                } else {
-                    tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot);")
-                }
+                tab("return inflate(inflater, root, attachToRoot, android.databinding.DataBindingUtil.getDefaultComponent());")
             }
             tab("}")
             tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater) {") {
-                if (forLibrary) {
-                    tab("return null;")
-                } else {
-                    tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false);")
-                }
+                tab("return inflate(inflater, android.databinding.DataBindingUtil.getDefaultComponent());")
             }
             tab("}")
             tab("public static ${baseClassName} bind(android.view.View view) {") {
                 if (forLibrary) {
                     tab("return null;")
                 } else {
-                    tab("return (${baseClassName})bind(view, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()});")
+                    tab("return bind(view, android.databinding.DataBindingUtil.getDefaultComponent());")
+                }
+            }
+            tab("}")
+            tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot, android.databinding.DataBindingComponent bindingComponent) {") {
+                if (forLibrary) {
+                    tab("return null;")
+                } else {
+                    tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, root, attachToRoot, bindingComponent);")
+                }
+            }
+            tab("}")
+            tab("public static ${baseClassName} inflate(android.view.LayoutInflater inflater, android.databinding.DataBindingComponent bindingComponent) {") {
+                if (forLibrary) {
+                    tab("return null;")
+                } else {
+                    tab("return DataBindingUtil.<${baseClassName}>inflate(inflater, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()}, null, false, bindingComponent);")
+                }
+            }
+            tab("}")
+            tab("public static ${baseClassName} bind(android.view.View view, android.databinding.DataBindingComponent bindingComponent) {") {
+                if (forLibrary) {
+                    tab("return null;")
+                } else {
+                    tab("return (${baseClassName})bind(bindingComponent, view, ${layoutBinder.getModulePackage()}.R.layout.${layoutBinder.getLayoutname()});")
                 }
             }
             tab("}")

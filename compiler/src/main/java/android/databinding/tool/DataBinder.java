@@ -20,6 +20,7 @@ import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
+import android.databinding.tool.writer.ComponentWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.Set;
  */
 public class DataBinder {
     List<LayoutBinder> mLayoutBinders = new ArrayList<LayoutBinder>();
+    private static final String COMPONENT_CLASS = "android.databinding.DataBindingComponent";
 
     private JavaFileWriter mFileWriter;
 
@@ -53,6 +55,12 @@ public class DataBinder {
     }
     public List<LayoutBinder> getLayoutBinders() {
         return mLayoutBinders;
+    }
+
+    public void sealModels() {
+        for (LayoutBinder layoutBinder : mLayoutBinders) {
+            layoutBinder.sealModel();
+        }
     }
 
     public void writerBaseClasses(boolean isLibrary) {
@@ -93,6 +101,13 @@ public class DataBinder {
                 Scope.exit();
             }
         }
+    }
+
+    public void writeComponent() {
+        ComponentWriter componentWriter = new ComponentWriter(mLayoutBinders);
+
+        writtenClasses.add(COMPONENT_CLASS);
+        mFileWriter.writeToFile(COMPONENT_CLASS, componentWriter.createComponent());
     }
 
     public Set<String> getWrittenClassNames() {

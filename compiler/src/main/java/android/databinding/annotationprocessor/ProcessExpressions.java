@@ -26,7 +26,6 @@ import android.databinding.tool.reflection.SdkUtil;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
-import android.databinding.tool.writer.BRWriter;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -122,6 +121,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             throws JAXBException {
         final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle, getWriter());
         if (compilerChef.hasAnythingToGenerate()) {
+            compilerChef.sealModels();
+            compilerChef.writeComponent();
             compilerChef.writeViewBinderInterfaces(forLibraryModule);
             if (!forLibraryModule) {
                 compilerChef.writeViewBinders(minSdk);

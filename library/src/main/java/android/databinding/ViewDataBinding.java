@@ -194,7 +194,20 @@ public abstract class ViewDataBinding {
     // null api >= 16
     private Handler mUIThreadHandler;
 
-    protected ViewDataBinding(View root, int localFieldCount) {
+    /**
+     * The DataBindingComponent used by this data binding. This is used for BindingAdapters
+     * that are instance methods to retrieve the class instance that implements the
+     * adapter.
+     *
+     * @hide
+     */
+    protected final DataBindingComponent mBindingComponent;
+
+    /**
+     * @hide
+     */
+    protected ViewDataBinding(DataBindingComponent bindingComponent, View root, int localFieldCount) {
+        mBindingComponent = bindingComponent;
         mLocalFieldObservers = new WeakListener[localFieldCount];
         this.mRoot = root;
         if (Looper.myLooper() == null) {
@@ -214,6 +227,9 @@ public abstract class ViewDataBinding {
         }
     }
 
+    /**
+     * @hide
+     */
     protected void setRootTag(View view) {
         if (USE_TAG_ID) {
             view.setTag(R.id.dataBinding, this);
@@ -222,6 +238,9 @@ public abstract class ViewDataBinding {
         }
     }
 
+    /**
+     * @hide
+     */
     protected void setRootTag(View[] views) {
         if (USE_TAG_ID) {
             for (View view : views) {
@@ -234,6 +253,9 @@ public abstract class ViewDataBinding {
         }
     }
 
+    /**
+     * @hide
+     */
     public static int getBuildSdkInt() {
         return SDK_INT;
     }
@@ -324,6 +346,9 @@ public abstract class ViewDataBinding {
         executeBindings();
     }
 
+    /**
+     * @hide
+     */
     protected abstract void executeBindings();
 
     /**
@@ -383,6 +408,9 @@ public abstract class ViewDataBinding {
         }
     }
 
+    /**
+     * @hide
+     */
     protected boolean unregisterFrom(int localFieldId) {
         WeakListener listener = mLocalFieldObservers[localFieldId];
         if (listener != null) {
@@ -391,6 +419,9 @@ public abstract class ViewDataBinding {
         return false;
     }
 
+    /**
+     * @hide
+     */
     protected void requestRebind() {
         synchronized (this) {
             if (mPendingRebind) {
@@ -406,6 +437,9 @@ public abstract class ViewDataBinding {
 
     }
 
+    /**
+     * @hide
+     */
     protected Object getObservedField(int localFieldId) {
         WeakListener listener = mLocalFieldObservers[localFieldId];
         if (listener == null) {
@@ -432,18 +466,46 @@ public abstract class ViewDataBinding {
         return true;
     }
 
+    /**
+     * @hide
+     */
     protected boolean updateRegistration(int localFieldId, Observable observable) {
         return updateRegistration(localFieldId, observable, CREATE_PROPERTY_LISTENER);
     }
 
+    /**
+     * @hide
+     */
     protected boolean updateRegistration(int localFieldId, ObservableList observable) {
         return updateRegistration(localFieldId, observable, CREATE_LIST_LISTENER);
     }
 
+    /**
+     * @hide
+     */
     protected boolean updateRegistration(int localFieldId, ObservableMap observable) {
         return updateRegistration(localFieldId, observable, CREATE_MAP_LISTENER);
     }
 
+    /**
+     * @hide
+     */
+    protected void ensureBindingComponentIsNotNull(Class<?> oneExample) {
+        if (mBindingComponent == null) {
+            String errorMessage = "Required DataBindingComponent is null in class " +
+                    getClass().getSimpleName() + ". A BindingAdapter in " +
+                    oneExample.getCanonicalName() +
+                    " is not static and requires an object to use, retrieved from the " +
+                    "DataBindingComponent. If you don't use an inflation method taking a " +
+                    "DataBindingComponent, use DataBindingUtil.setDefaultComponent or " +
+                    "make all BindingAdapter methods static.";
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    /**
+     * @hide
+     */
     protected void registerTo(int localFieldId, Object observable,
             CreateWeakListener listenerCreator) {
         if (observable == null) {
@@ -457,8 +519,12 @@ public abstract class ViewDataBinding {
         listener.setTarget(observable);
     }
 
-    protected static ViewDataBinding bind(View view, int layoutId) {
-        return DataBindingUtil.bind(view, layoutId);
+    /**
+     * @hide
+     */
+    protected static ViewDataBinding bind(DataBindingComponent bindingComponent, View view,
+            int layoutId) {
+        return DataBindingUtil.bind(bindingComponent, view, layoutId);
     }
 
     /**
@@ -466,6 +532,7 @@ public abstract class ViewDataBinding {
      * IDs into an Object[] that is returned. This is used to walk the view hierarchy once to find
      * all bound and ID'd views.
      *
+     * @param bindingComponent The binding component to use with this binding.
      * @param root The root of the view hierarchy to walk.
      * @param numBindings The total number of ID'd views, views with expressions, and includes
      * @param includes The include layout information, indexed by their container's index.
@@ -474,10 +541,10 @@ public abstract class ViewDataBinding {
      * (with elements in viewsWithIds), are tagged containing expressions, or the bindings for
      * included layouts.
      */
-    protected static Object[] mapBindings(View root, int numBindings,
-            IncludedLayouts includes, SparseIntArray viewsWithIds) {
+    protected static Object[] mapBindings(DataBindingComponent bindingComponent, View root,
+            int numBindings, IncludedLayouts includes, SparseIntArray viewsWithIds) {
         Object[] bindings = new Object[numBindings];
-        mapBindings(root, bindings, includes, viewsWithIds, true);
+        mapBindings(bindingComponent, root, bindings, includes, viewsWithIds, true);
         return bindings;
     }
 
@@ -486,6 +553,7 @@ public abstract class ViewDataBinding {
      * IDs into an Object[] that is returned. This is used to walk the view hierarchy once to find
      * all bound and ID'd views.
      *
+     * @param bindingComponent The binding component to use with this binding.
      * @param roots The root Views of the view hierarchy to walk. This is used with merge tags.
      * @param numBindings The total number of ID'd views, views with expressions, and includes
      * @param includes The include layout information, indexed by their container's index.
@@ -493,18 +561,20 @@ public abstract class ViewDataBinding {
      * @return An array of size numBindings containing all Views in the hierarchy that have IDs
      * (with elements in viewsWithIds), are tagged containing expressions, or the bindings for
      * included layouts.
+     * @hide
      */
-    protected static Object[] mapBindings(View[] roots, int numBindings,
-            IncludedLayouts includes, SparseIntArray viewsWithIds) {
+    protected static Object[] mapBindings(DataBindingComponent bindingComponent, View[] roots,
+            int numBindings, IncludedLayouts includes, SparseIntArray viewsWithIds) {
         Object[] bindings = new Object[numBindings];
         for (int i = 0; i < roots.length; i++) {
-            mapBindings(roots[i], bindings, includes, viewsWithIds, true);
+            mapBindings(bindingComponent, roots[i], bindings, includes, viewsWithIds, true);
         }
         return bindings;
     }
 
-    private static void mapBindings(View view, Object[] bindings,
-            IncludedLayouts includes, SparseIntArray viewsWithIds, boolean isRoot) {
+    private static void mapBindings(DataBindingComponent bindingComponent, View view,
+            Object[] bindings, IncludedLayouts includes, SparseIntArray viewsWithIds,
+            boolean isRoot) {
         final int indexInIncludes;
         final ViewDataBinding existingBinding = getBinding(view);
         if (existingBinding != null) {
@@ -567,21 +637,23 @@ public abstract class ViewDataBinding {
                             final int layoutId = includes.layoutIds[indexInIncludes][includeIndex];
                             int lastMatchingIndex = findLastMatching(viewGroup, i);
                             if (lastMatchingIndex == i) {
-                                bindings[index] = DataBindingUtil.bind(child, layoutId);
+                                bindings[index] = DataBindingUtil.bind(bindingComponent, child,
+                                        layoutId);
                             } else {
                                 final int includeCount =  lastMatchingIndex - i + 1;
                                 final View[] included = new View[includeCount];
                                 for (int j = 0; j < includeCount; j++) {
                                     included[j] = viewGroup.getChildAt(i + j);
                                 }
-                                bindings[index] = DataBindingUtil.bind(included, layoutId);
+                                bindings[index] = DataBindingUtil.bind(bindingComponent, included,
+                                        layoutId);
                                 i += includeCount - 1;
                             }
                         }
                     }
                 }
                 if (!isInclude) {
-                    mapBindings(child, bindings, includes, viewsWithIds, false);
+                    mapBindings(bindingComponent, child, bindings, includes, viewsWithIds, false);
                 }
             }
         }

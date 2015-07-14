@@ -24,10 +24,11 @@ import android.view.View;
  * compile works and no reflection is needed to access the generated class.
  */
 class DataBinderMapper {
-    public ViewDataBinding getDataBinder(View view, int layoutId) {
+    public ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View view,
+            int layoutId) {
         return null;
     }
-    ViewDataBinding getDataBinder(View[] view, int layoutId) {
+    ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View[] view, int layoutId) {
         return null;
     }
     public int getLayoutId(String tag) { return 0; }

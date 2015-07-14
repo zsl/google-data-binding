@@ -75,6 +75,16 @@ public class MergedBinding extends Binding {
     }
 
     @Override
+    public String getBindingAdapterInstanceClass() {
+        return mMultiAttributeSetter.getBindingAdapterInstanceClass();
+    }
+
+    @Override
+    public void setBindingAdapterCall(String method) {
+        mMultiAttributeSetter.setBindingAdapterCall(method);
+    }
+
+    @Override
     public boolean requiresOldValue() {
         return mMultiAttributeSetter.requiresOldValue();
     }
@@ -85,7 +95,7 @@ public class MergedBinding extends Binding {
     }
 
     @Override
-    public String toJavaCode(String targetViewName) {
+    public String toJavaCode(String targetViewName, String bindingComponent) {
         final ArgListExpr args = (ArgListExpr) getExpr();
         final List<String> newValues = new ArrayList<>();
         for (Expr expr : args.getChildren()) {
@@ -102,7 +112,7 @@ public class MergedBinding extends Binding {
         }
         final String[] expressions = concat(oldValues, newValues, String.class);
         L.d("merged binding arg: %s", args.getUniqueKey());
-        return mMultiAttributeSetter.toJava(targetViewName, expressions);
+        return mMultiAttributeSetter.toJava(bindingComponent, targetViewName, expressions);
     }
 
     private static <T> T[] concat(List<T> l1, List<T> l2, Class<T> klass) {

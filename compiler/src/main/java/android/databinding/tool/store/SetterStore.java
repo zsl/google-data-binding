@@ -39,6 +39,7 @@ import java.util.TreeMap;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
@@ -169,14 +170,14 @@ public class SetterStore {
             renamed = new HashMap<String, MethodDescription>();
             mStore.renamedMethods.put(attribute, renamed);
         }
-        MethodDescription methodDescription =
-                new MethodDescription(declaredOn.getQualifiedName().toString(), method, false);
+        MethodDescription methodDescription = new MethodDescription(
+                declaredOn.getQualifiedName().toString(), method);
         L.d("STORE addmethod desc %s", methodDescription);
         renamed.put(declaringClass, methodDescription);
     }
 
     public void addBindingAdapter(ProcessingEnvironment processingEnv, String attribute,
-            ExecutableElement bindingMethod) {
+            ExecutableElement bindingMethod, boolean takesComponent) {
         attribute = stripNamespace(attribute);
         L.d("STORE addBindingAdapter %s %s", attribute, bindingMethod);
         HashMap<AccessorKey, MethodDescription> adapters = mStore.adapterMethods.get(attribute);
@@ -186,9 +187,10 @@ public class SetterStore {
             mStore.adapterMethods.put(attribute, adapters);
         }
         List<? extends VariableElement> parameters = bindingMethod.getParameters();
-        TypeMirror viewType = eraseType(processingEnv, parameters.get(0).asType());
+        final int viewIndex = takesComponent ? 1 : 0;
+        TypeMirror viewType = eraseType(processingEnv, parameters.get(viewIndex).asType());
         String view = getQualifiedName(viewType);
-        TypeMirror parameterType = eraseType(processingEnv, parameters.get(1).asType());
+        TypeMirror parameterType = eraseType(processingEnv, parameters.get(viewIndex + 1).asType());
         String value = getQualifiedName(parameterType);
 
         AccessorKey key = new AccessorKey(view, value);
@@ -196,7 +198,7 @@ public class SetterStore {
             throw new IllegalArgumentException("Already exists!");
         }
 
-        adapters.put(key, new MethodDescription(bindingMethod, 1));
+        adapters.put(key, new MethodDescription(bindingMethod, 1, takesComponent));
     }
 
     private static TypeMirror eraseType(ProcessingEnvironment processingEnv,
@@ -259,12 +261,12 @@ public class SetterStore {
     }
 
     public void addBindingAdapter(ProcessingEnvironment processingEnv, String[] attributes,
-            ExecutableElement bindingMethod) {
+            ExecutableElement bindingMethod, boolean takesComponent) {
         L.d("STORE add multi-value BindingAdapter %d %s", attributes.length, bindingMethod);
         MultiValueAdapterKey key = new MultiValueAdapterKey(processingEnv, bindingMethod,
-                attributes);
+                attributes, takesComponent);
         MethodDescription methodDescription = new MethodDescription(bindingMethod,
-                attributes.length);
+                attributes.length, takesComponent);
         mStore.multiValueAdapters.put(key, methodDescription);
     }
 
@@ -285,23 +287,10 @@ public class SetterStore {
     }
 
     private static String getQualifiedName(TypeMirror type) {
-        switch (type.getKind()) {
-            case BOOLEAN:
-            case BYTE:
-            case SHORT:
-            case INT:
-            case LONG:
-            case CHAR:
-            case FLOAT:
-            case DOUBLE:
-            case VOID:
-                return type.toString();
-            case ARRAY:
-                return getQualifiedName(((ArrayType) type).getComponentType()) + "[]";
-            case DECLARED:
-                return type.toString();
-            default:
-                return "-- no type --";
+        if (type.getKind() == TypeKind.ARRAY) {
+            return getQualifiedName(((ArrayType) type).getComponentType()) + "[]";
+        } else {
+            return type.toString();
         }
     }
 
@@ -310,7 +299,7 @@ public class SetterStore {
         List<? extends VariableElement> parameters = conversionMethod.getParameters();
         String fromType = getQualifiedName(parameters.get(0).asType());
         String toType = getQualifiedName(conversionMethod.getReturnType());
-        MethodDescription methodDescription = new MethodDescription(conversionMethod, 1);
+        MethodDescription methodDescription = new MethodDescription(conversionMethod, 1, false);
         HashMap<String, MethodDescription> convertTo = mStore.conversionMethods.get(fromType);
         if (convertTo == null) {
             convertTo = new HashMap<String, MethodDescription>();
@@ -742,6 +731,30 @@ public class SetterStore {
         }
     }
 
+    private static String createAdapterCall(MethodDescription adapter, String bindingAdapterCall,
+            String componentExpression, String viewExpression, String... args) {
+        StringBuilder sb = new StringBuilder();
+
+        if (adapter.isStatic) {
+            sb.append(adapter.type);
+        } else {
+            sb.append(componentExpression).append('.').append(bindingAdapterCall);
+        }
+        sb.append('.').append(adapter.method).append('(');
+        if (adapter.componentClass != null) {
+            if (!"DataBindingComponent".equals(adapter.componentClass)) {
+                sb.append('(').append(adapter.componentClass).append(") ");
+            }
+            sb.append(componentExpression).append(", ");
+        }
+        sb.append(viewExpression);
+        for (String arg: args) {
+            sb.append(", ").append(arg);
+        }
+        sb.append(')');
+        return sb.toString();
+    }
+
     private static class MultiValueAdapterKey implements Serializable {
         private static final long serialVersionUID = 1;
 
@@ -754,13 +767,16 @@ public class SetterStore {
         public final TreeMap<String, Integer> attributeIndices = new TreeMap<String, Integer>();
 
         public MultiValueAdapterKey(ProcessingEnvironment processingEnv,
-                ExecutableElement method, String[] attributes) {
+                ExecutableElement method, String[] attributes, boolean takesComponent) {
             this.attributes = stripAttributes(attributes);
             List<? extends VariableElement> parameters = method.getParameters();
-            this.viewType = getQualifiedName(eraseType(processingEnv, parameters.get(0).asType()));
-            this.parameterTypes = new String[parameters.size() - 1];
+            final int argStart = 1 + (takesComponent ? 1 : 0);
+            this.viewType = getQualifiedName(eraseType(processingEnv,
+                    parameters.get(argStart - 1).asType()));
+            this.parameterTypes = new String[parameters.size() - argStart];
             for (int i = 0; i < attributes.length; i++) {
-                TypeMirror typeMirror = eraseType(processingEnv, parameters.get(i + 1).asType());
+                TypeMirror typeMirror = eraseType(processingEnv,
+                        parameters.get(i + argStart).asType());
                 this.parameterTypes[i] = getQualifiedName(typeMirror);
                 attributeIndices.put(this.attributes[i], i);
             }
@@ -809,18 +825,31 @@ public class SetterStore {
 
         public final boolean requiresOldValue;
 
-        public MethodDescription(String type, String method, boolean requiresOldValue) {
+        public final boolean isStatic;
+
+        public final String componentClass;
+
+        public MethodDescription(String type, String method) {
             this.type = type;
             this.method = method;
-            this.requiresOldValue = requiresOldValue;
+            this.requiresOldValue = false;
+            this.isStatic = true;
+            this.componentClass = null;
             L.d("BINARY created method desc 1 %s %s", type, method );
         }
 
-        public MethodDescription(ExecutableElement method, int numAttributes) {
+        public MethodDescription(ExecutableElement method, int numAttributes,
+                boolean takesComponent) {
             TypeElement enclosingClass = (TypeElement) method.getEnclosingElement();
             this.type = enclosingClass.getQualifiedName().toString();
             this.method = method.getSimpleName().toString();
-            this.requiresOldValue = method.getParameters().size() == (numAttributes * 2) + 1;
+            final int argStart = 1 + (takesComponent ? 1 : 0);
+            this.requiresOldValue = method.getParameters().size() - argStart == numAttributes * 2;
+            this.isStatic = method.getModifiers().contains(Modifier.STATIC);
+            this.componentClass = takesComponent
+                    ? getQualifiedName(method.getParameters().get(0).asType())
+                    : null;
+
             L.d("BINARY created method desc 2 %s %s, %s", type, this.method, method);
         }
 
@@ -912,13 +941,14 @@ public class SetterStore {
         }
 
         @Override
-        public String toJavaInternal(String viewExpression, String valueExpression) {
+        public String toJavaInternal(String componentExpression, String viewExpression,
+                String valueExpression) {
             return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
         }
 
         @Override
-        public String toJavaInternal(String viewExpression, String oldValue,
-                String valueExpression) {
+        public String toJavaInternal(String componentExpression, String viewExpression,
+                String oldValue, String valueExpression) {
             return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
         }
 
@@ -938,11 +968,21 @@ public class SetterStore {
                     ModelAnalyzer.getInstance().findClass(Object.class)
             };
         }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return null;
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
+        }
     }
 
     public static class AdapterSetter extends SetterCall {
         final MethodDescription mAdapter;
         final ModelClass mParameterType;
+        String mBindingAdapterCall;
 
         public AdapterSetter(MethodDescription adapter, ModelClass parameterType) {
             mAdapter = adapter;
@@ -950,17 +990,17 @@ public class SetterStore {
         }
 
         @Override
-        public String toJavaInternal(String viewExpression, String valueExpression) {
-            return mAdapter.type + "." + mAdapter.method + "(" + viewExpression + ", " +
-                    mCastString + valueExpression + ")";
+        public String toJavaInternal(String componentExpression, String viewExpression,
+                String valueExpression) {
+            return createAdapterCall(mAdapter, mBindingAdapterCall, componentExpression,
+                    viewExpression, mCastString + valueExpression);
         }
 
         @Override
-        protected String toJavaInternal(String viewExpression, String oldValue,
-                String valueExpression) {
-            return mAdapter.type + "." + mAdapter.method + "(" +
-                    mCastString + viewExpression + ", " + oldValue + ", " +
-                    mCastString + valueExpression + ")";
+        protected String toJavaInternal(String componentExpression, String viewExpression,
+                String oldValue, String valueExpression) {
+            return createAdapterCall(mAdapter, mBindingAdapterCall, componentExpression,
+                    viewExpression, mCastString + oldValue, mCastString + valueExpression);
         }
 
         @Override
@@ -977,6 +1017,16 @@ public class SetterStore {
         public ModelClass[] getParameterTypes() {
             return new ModelClass[] { mParameterType };
         }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return mAdapter.isStatic ? null : mAdapter.type;
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
+            mBindingAdapterCall = method;
+        }
     }
 
     public static class ModelMethodSetter extends SetterCall {
@@ -987,14 +1037,15 @@ public class SetterStore {
         }
 
         @Override
-        public String toJavaInternal(String viewExpression, String valueExpression) {
+        public String toJavaInternal(String componentExpression, String viewExpression,
+                String valueExpression) {
             return viewExpression + "." + mModelMethod.getName() + "(" + mCastString +
                     valueExpression + ")";
         }
 
         @Override
-        protected String toJavaInternal(String viewExpression, String oldValue,
-                String valueExpression) {
+        protected String toJavaInternal(String componentExpression, String viewExpression,
+                String oldValue, String valueExpression) {
             return viewExpression + "." + mModelMethod.getName() + "(" +
                     mCastString + oldValue + ", " + mCastString + valueExpression + ")";
         }
@@ -1013,16 +1064,30 @@ public class SetterStore {
         public ModelClass[] getParameterTypes() {
             return new ModelClass[] { mModelMethod.getParameterTypes()[0] };
         }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return null;
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
+        }
     }
 
     public interface BindingSetterCall {
-        String toJava(String viewExpression, String... valueExpressions);
+        String toJava(String componentExpression, String viewExpression,
+                String... valueExpressions);
 
         int getMinApi();
 
         boolean requiresOldValue();
 
         ModelClass[] getParameterTypes();
+
+        String getBindingAdapterInstanceClass();
+
+        void setBindingAdapterCall(String method);
     }
 
     public static abstract class SetterCall implements BindingSetterCall {
@@ -1036,19 +1101,22 @@ public class SetterStore {
             mConverter = converter;
         }
 
-        protected abstract String toJavaInternal(String viewExpression, String converted);
-
-        protected abstract String toJavaInternal(String viewExpression, String oldValue,
+        protected abstract String toJavaInternal(String componentExpression, String viewExpression,
                 String converted);
 
+        protected abstract String toJavaInternal(String componentExpression, String viewExpression,
+                String oldValue, String converted);
+
         @Override
-        public final String toJava(String viewExpression, String... valueExpression) {
+        public final String toJava(String componentExpression, String viewExpression,
+                String... valueExpression) {
             Preconditions.check(valueExpression.length == 2, "value expressions size must be 2");
             if (requiresOldValue()) {
-                return toJavaInternal(viewExpression, convertValue(valueExpression[0]),
-                        convertValue(valueExpression[1]));
+                return toJavaInternal(componentExpression, viewExpression,
+                        convertValue(valueExpression[0]), convertValue(valueExpression[1]));
             } else {
-                return toJavaInternal(viewExpression, convertValue(valueExpression[1]));
+                return toJavaInternal(componentExpression, viewExpression,
+                        convertValue(valueExpression[1]));
             }
         }
 
@@ -1070,6 +1138,7 @@ public class SetterStore {
         private final MethodDescription[] mConverters;
         private final String[] mCasts;
         private final MultiValueAdapterKey mKey;
+        String mBindingAdapterCall;
 
         public MultiAttributeSetter(MultiValueAdapterKey key, String[] attributes,
                 MethodDescription adapter, MethodDescription[] converters, String[] casts) {
@@ -1085,22 +1154,21 @@ public class SetterStore {
         }
 
         @Override
-        public final String toJava(String viewExpression, String[] valueExpressions) {
+        public final String toJava(String componentExpression, String viewExpression,
+                String[] valueExpressions) {
             Preconditions.check(valueExpressions.length == attributes.length * 2,
                     "MultiAttributeSetter needs %s items, received %s",
                     Arrays.toString(attributes), Arrays.toString(valueExpressions));
-            StringBuilder sb = new StringBuilder();
-            sb.append(mAdapter.type)
-                    .append('.')
-                    .append(mAdapter.method)
-                    .append('(')
-                    .append(viewExpression);
+            final int numAttrs = attributes.length;
+            String[] args = new String[numAttrs + (requiresOldValue() ? numAttrs : 0)];
+
             final int startIndex = mAdapter.requiresOldValue ? 0 : attributes.length;
+            StringBuilder argBuilder = new StringBuilder();
             for (int i = startIndex; i < valueExpressions.length; i++) {
-                sb.append(',');
+                argBuilder.setLength(0);
                 if (mConverters[i % attributes.length] != null) {
                     final MethodDescription converter = mConverters[i % attributes.length];
-                    sb.append(converter.type)
+                    argBuilder.append(converter.type)
                             .append('.')
                             .append(converter.method)
                             .append('(')
@@ -1108,15 +1176,16 @@ public class SetterStore {
                             .append(')');
                 } else {
                     if (mCasts[i % attributes.length] != null) {
-                        sb.append('(')
+                        argBuilder.append('(')
                                 .append(mCasts[i % attributes.length])
                                 .append(')');
                     }
-                    sb.append(valueExpressions[i]);
+                    argBuilder.append(valueExpressions[i]);
                 }
+                args[i - startIndex] = argBuilder.toString();
             }
-            sb.append(')');
-            return sb.toString();
+            return createAdapterCall(mAdapter, mBindingAdapterCall, componentExpression,
+                    viewExpression, args);
         }
 
         @Override
@@ -1138,6 +1207,16 @@ public class SetterStore {
                 parameters[i] = modelAnalyzer.findClass(paramTypeStrings[i], null);
             }
             return parameters;
+        }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return mAdapter.isStatic ? null : mAdapter.type;
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
+            mBindingAdapterCall = method;
         }
 
         @Override
