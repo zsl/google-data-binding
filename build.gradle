@@ -1,47 +1,41 @@
-Properties databindingProperties = new Properties()
-databindingProperties.load(new FileInputStream("${projectDir}/databinding.properties"))
-def repoBase = databindingProperties.mavenRepoAbsolutePath == "." ? projectDir : databindingProperties.mavenRepoAbsolutePath
-databindingProperties.mavenRepoDir = "${repoBase}/${databindingProperties.mavenRepoName}"
-databindingProperties.extraPluginsRepoDir = "${projectDir}/${databindingProperties.extraPluginsRepoName}"
 
-databindingProperties.eapOutDir = "${projectDir}/${databindingProperties.eapOutFolderName}"
-databindingProperties.prebuildFolder = "${projectDir}/${databindingProperties.prebuildFolderName}" +
-        "/${databindingProperties.releaseVersion}"
-ext.config = databindingProperties
-
-println "local maven repo is ${ext.config.mavenRepoDir}."
-println "local pre-build folder is ${ext.config.prebuildFolder}."
-
-new File(ext.config.mavenRepoDir).mkdir()
-new File(ext.config.prebuildFolder).mkdir()
-
+buildscript {
+    ext.rootFolder = project.projectDir
+    apply from: 'propLoader.gradle'
+    ext.addRepos(repositories)
+    if (ext.config.addRemoteRepos) {
+        dependencies {
+            classpath "com.android.databinding:localizemaven:${config.extraPluginsVersion}"
+        }
+    }
+}
 subprojects {
     apply plugin: 'maven'
-    group = config.group
-    version = config.version
-    buildscript {
-        repositories {
-            maven {
-                url "file://${config.extraPluginsRepoDir}"
-            }
-        }
-        dependencies {
-            classpath "com.android.databinding:bintray:${config.extraPluginsVersion}"
-        }
+    if (config.addRemoteRepos) {
+        apply plugin: 'com.android.databinding.localizemaven'
     }
 
-    repositories {
-        mavenCentral()
-        maven {
-            url "file://${config.mavenRepoDir}"
-        }
-    }
+    group = config.group
+    version = config.version
     uploadArchives {
         repositories {
             mavenDeployer {
                 repository(url: "file://${config.mavenRepoDir}")
             }
         }
+    }
+    buildscript {
+        addRepos(repositories)
+        dependencies {
+            classpath "com.android.databinding:bintray:${config.extraPluginsVersion}"
+        }
+    }
+}
+
+if (config.addRemoteRepos) {
+    localizeMaven {
+        localRepoDir = file(config.megaRepoDir)
+        otherRepoDirs = config.localRepositories
     }
 }
 

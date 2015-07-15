@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-apply plugin: 'groovy'
-apply plugin: 'maven'
-Properties databindingProperties = new Properties()
-databindingProperties.load(new FileInputStream("${projectDir}/../databinding.properties"))
-databindingProperties.extraPluginsRepoDir = "${projectDir}/../${databindingProperties.extraPluginsRepoName}"
 
-version databindingProperties.extraPluginsVersion
-group databindingProperties.group
-ext.config = databindingProperties
+apply plugin: 'groovy'
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
     compile gradleApi()
-    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile localGroovy()
+    compile 'commons-io:commons-io:2.4'
+    compile 'org.apache.maven:maven-aether-provider:3.3.3'
+    compile 'org.eclipse.aether:aether-transport-http:1.0.2.v20150114'
+    compile 'org.eclipse.aether:aether:1.0.2.v20150114'
+    compile 'org.eclipse.aether:aether-connector-basic:1.0.2.v20150114'
+    compile 'org.eclipse.aether:aether-transport-file:1.0.2.v20150114'
+
 }
 
 uploadArchives {
     repositories {
         mavenDeployer {
-            pom.artifactId = 'bintray'
+            pom.artifactId = 'localizemaven'
             repository(url: "file://${config.extraPluginsRepoDir}")
         }
     }

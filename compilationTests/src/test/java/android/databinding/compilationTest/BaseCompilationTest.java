@@ -216,6 +216,7 @@ public class BaseCompilationTest {
         if (localProperties.exists()) {
             FileUtils.copyFile(localProperties, new File(testFolder, "local.properties"));
         }
+        FileUtils.copyFile(new File("../propLoader.gradle"), new File(testFolder, "propLoaderClone.gradle"));
         FileUtils.copyFile(new File("../gradlew"), new File(testFolder, "gradlew"));
         FileUtils.copyDirectory(new File("../gradle"), new File(testFolder, "gradle"));
     }

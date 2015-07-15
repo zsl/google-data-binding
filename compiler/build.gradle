@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import android.databinding.LicenseCollector
 apply plugin: 'java'
 apply plugin: "kotlin"
 apply plugin: 'com.android.databinding.bintray'
@@ -23,12 +22,9 @@ sourceCompatibility = config.javaTargetCompatibility
 targetCompatibility = config.javaSourceCompatibility
 
 buildscript {
-    repositories {
-        mavenCentral()
-    }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${config.kotlinVersion}"
-        classpath 'org.apache.commons:commons-io:1.3.2'
+        classpath 'commons-io:commons-io:2.4'
     }
 }
 
@@ -70,15 +66,7 @@ project(':library').afterEvaluate { libProject ->
 task fatJar(type: Jar) {
     baseName = project.name + '-all'
     doFirst {
-        def LicenseCollector allLicenses = new LicenseCollector();
-        configurations.compile.getResolvedConfiguration().getResolvedArtifacts().each {
-            allLicenses.add(it)
-        }
-        def notice = allLicenses.buildNotice()
-        def noticeFile = new File(project.buildDir,'NOTICE.txt')
-        noticeFile.delete()
-        println ("writing notice file to: ${noticeFile.getAbsolutePath()}")
-        noticeFile << notice
+        tasks.findByName("buildLicenseNoticeFor${project.name.capitalize()}").execute()
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     from new File(project.buildDir,'NOTICE.txt')

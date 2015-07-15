@@ -19,11 +19,6 @@ apply plugin: 'com.android.databinding.bintray'
 sourceCompatibility = config.javaTargetCompatibility
 targetCompatibility = config.javaSourceCompatibility
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
 
 tasks.create(name : 'copyBuildVersion') << {
     def buildVersionFile = new File(sourceSets.main.output.resourcesDir,"data_binding_build_info")
