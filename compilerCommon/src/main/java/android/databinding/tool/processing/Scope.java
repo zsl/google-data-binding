@@ -24,6 +24,7 @@ import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -97,8 +98,13 @@ public class Scope {
             return;
         }
         StringBuilder sb = new StringBuilder();
+        HashSet<String> messages = new HashSet<String>();
         for (ScopedException ex : sDeferredExceptions) {
-            sb.append(ex.getMessage()).append("\n");
+            final String message = ex.getMessage();
+            if (!messages.contains(message)) {
+                sb.append(message).append("\n");
+                messages.add(message);
+            }
         }
         throw new RuntimeException("Found data binding errors.\n" + sb.toString());
     }

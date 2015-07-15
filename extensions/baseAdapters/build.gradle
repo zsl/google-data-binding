@@ -71,6 +71,7 @@ android.libraryVariants.all { variant ->
     jarTask.exclude("android/databinding/layouts/*.*")
     jarTask.exclude("$appPkgAsClass/databinding/*")
     jarTask.exclude("$appPkgAsClass/BR.*")
+    jarTask.exclude("android/databinding/DataBindingComponent.*")
     artifacts.add('jarArchives', jarTask);
 
     def javadocTask = project.tasks.create(name: "javadoc${suffix}", type: Javadoc) {

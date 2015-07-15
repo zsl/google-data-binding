@@ -120,9 +120,9 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             final int minSdk, String exportClassNamesTo)
             throws JAXBException {
         final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle, getWriter());
+        compilerChef.sealModels();
+        compilerChef.writeComponent();
         if (compilerChef.hasAnythingToGenerate()) {
-            compilerChef.sealModels();
-            compilerChef.writeComponent();
             compilerChef.writeViewBinderInterfaces(forLibraryModule);
             if (!forLibraryModule) {
                 compilerChef.writeViewBinders(minSdk);
