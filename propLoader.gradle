@@ -23,7 +23,7 @@ println "mega-repo folder is ${ext.config.megaRepoDir}."
 new File(ext.config.mavenRepoDir).mkdir()
 new File(ext.config.prebuildFolder).mkdir()
 
-def addRemoteRepos = !project.hasProperty('addRemoteRepos') || project.getProperty('addRemoteRepos').equals("true")
+def addRemoteRepos = project.hasProperty('addRemoteRepos') && project.getProperty('addRemoteRepos').equals("true")
 ext.config.addRemoteRepos = addRemoteRepos
 def config = ext.config
 def localRepositories = ["${config.extraPluginsRepoDir}",
