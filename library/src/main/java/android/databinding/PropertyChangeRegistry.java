@@ -15,6 +15,9 @@
  */
 package android.databinding;
 
+/**
+ * Utility class for managing Observable callbacks.
+ */
 public class PropertyChangeRegistry extends
         CallbackRegistry<Observable.OnPropertyChangedCallback, Observable, Void> {
 
@@ -30,6 +33,13 @@ public class PropertyChangeRegistry extends
         super(NOTIFIER_CALLBACK);
     }
 
+    /**
+     * Notifies registered callbacks that a specific property has changed.
+     *
+     * @param observable The Observable that has changed.
+     * @param propertyId The BR id of the property that has changed or BR._all if the entire
+     *                   Observable has changed.
+     */
     public void notifyChange(Observable observable, int propertyId) {
         notifyCallbacks(observable, propertyId, null);
     }

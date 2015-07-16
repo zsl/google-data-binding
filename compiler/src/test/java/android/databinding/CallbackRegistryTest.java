@@ -59,29 +59,29 @@ public class CallbackRegistryTest {
         registry = new CallbackRegistry<Integer, CallbackRegistryTest, Integer>(notifier);
         Integer callback = 0;
 
-        assertNotNull(registry.copyListeners());
-        assertEquals(0, registry.copyListeners().size());
+        assertNotNull(registry.copyCallbacks());
+        assertEquals(0, registry.copyCallbacks().size());
 
         registry.add(callback);
-        ArrayList<Integer> callbacks = registry.copyListeners();
+        ArrayList<Integer> callbacks = registry.copyCallbacks();
         assertEquals(1, callbacks.size());
         assertEquals(callback, callbacks.get(0));
 
         registry.add(callback);
-        callbacks = registry.copyListeners();
+        callbacks = registry.copyCallbacks();
         assertEquals(1, callbacks.size());
         assertEquals(callback, callbacks.get(0));
 
         Integer otherListener = 1;
         registry.add(otherListener);
-        callbacks = registry.copyListeners();
+        callbacks = registry.copyCallbacks();
         assertEquals(2, callbacks.size());
         assertEquals(callback, callbacks.get(0));
         assertEquals(otherListener, callbacks.get(1));
 
         registry.remove(callback);
         registry.add(callback);
-        callbacks = registry.copyListeners();
+        callbacks = registry.copyCallbacks();
         assertEquals(2, callbacks.size());
         assertEquals(callback, callbacks.get(1));
         assertEquals(otherListener, callbacks.get(0));
@@ -130,7 +130,7 @@ public class CallbackRegistryTest {
         assertEquals(1, notify2);
         assertEquals(1, notify3);
 
-        ArrayList<Integer> callbacks = registry.copyListeners();
+        ArrayList<Integer> callbacks = registry.copyCallbacks();
         assertEquals(1, callbacks.size());
         assertEquals(callback3, callbacks.get(0));
     }
@@ -156,7 +156,7 @@ public class CallbackRegistryTest {
         assertEquals(2, notify2);
         assertEquals(3, notify3);
 
-        ArrayList<Integer> callbacks = registry.copyListeners();
+        ArrayList<Integer> callbacks = registry.copyCallbacks();
         assertEquals(0, callbacks.size());
     }
 
@@ -183,7 +183,7 @@ public class CallbackRegistryTest {
         registry.add(callback3);
         registry.notifyCallbacks(this, 0, null);
 
-        ArrayList<Integer> callbacks = registry.copyListeners();
+        ArrayList<Integer> callbacks = registry.copyCallbacks();
         assertEquals(3, callbacks.size());
         assertEquals(callback1, callbacks.get(0));
         assertEquals(callback3, callbacks.get(1));
@@ -220,7 +220,7 @@ public class CallbackRegistryTest {
             assertEquals(expectedCount, deepNotifyCount[i]);
         }
 
-        ArrayList<Integer> callbackList = registry.copyListeners();
+        ArrayList<Integer> callbackList = registry.copyCallbacks();
         assertEquals(0, callbackList.size());
     }
 
@@ -240,7 +240,7 @@ public class CallbackRegistryTest {
         }
         registry.clear();
 
-        ArrayList<Integer> callbackList = registry.copyListeners();
+        ArrayList<Integer> callbackList = registry.copyCallbacks();
         assertEquals(0, callbackList.size());
 
         registry.notifyCallbacks(this, 0, null);
@@ -269,7 +269,7 @@ public class CallbackRegistryTest {
             assertEquals(1, deepNotifyCount[i]);
         }
 
-        ArrayList<Integer> callbackList = registry.copyListeners();
+        ArrayList<Integer> callbackList = registry.copyCallbacks();
         assertEquals(0, callbackList.size());
     }
 

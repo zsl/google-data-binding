@@ -18,6 +18,9 @@ package android.databinding;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * An {@link ObservableList} implementation using ArrayList as an implementation.
+ */
 public class ObservableArrayList<T> extends ArrayList<T> implements ObservableList<T> {
     private transient ListChangeRegistry mListeners = new ListChangeRegistry();
 

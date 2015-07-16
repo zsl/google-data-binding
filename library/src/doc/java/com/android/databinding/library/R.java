@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package android.databinding;
-
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Target;
+package com.android.databinding.library;
 
 /**
- * Annotate methods that are used to automatically convert from the expression type to the value
- * used in the setter. The converter should take one parameter, the expression type, and the
- * return value should be the target value type used in the setter. Converters are used
- * whenever they can be applied and are not specific to any attribute.
+ * This is only here to allow building the javadoc without building the rest of
+ * data binding.
+ *
+ * This should be removed when data binding is included in the framework build.
+ *
+ * @hide
  */
-@Target({ElementType.METHOD})
-public @interface BindingConversion {
+public class R {
+    public static class id {
+        public static int dataBinding = 0;
+    }
 }

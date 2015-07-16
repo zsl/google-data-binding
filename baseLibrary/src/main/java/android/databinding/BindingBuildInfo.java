@@ -20,6 +20,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * @hide
+ */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.SOURCE)
 public @interface BindingBuildInfo {

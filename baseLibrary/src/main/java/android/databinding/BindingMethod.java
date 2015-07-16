@@ -15,8 +15,26 @@
  */
 package android.databinding;
 
+/**
+ * Used within an {@link BindingMethods} annotation to describe a renaming of an attribute to
+ * the setter used to set that attribute. By default, an attribute attr will be associated with
+ * setter setAttr.
+ */
 public @interface BindingMethod {
+
+    /**
+     * @return the View Class that the attribute is associated with.
+     */
     Class type();
+
+    /**
+     * @return The attribute to rename. Use android: namespace for all android attributes or
+     * no namespace for application attributes.
+     */
     String attribute();
+
+    /**
+     * @return The method to call to set the attribute value.
+     */
     String method();
 }

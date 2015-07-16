@@ -15,11 +15,20 @@
  */
 package android.databinding;
 
+import android.databinding.Observable.OnPropertyChangedCallback;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * The Bindable annotation should be applied to any getter accessor method of an
+ * {@link Observable} class. Bindable will generate a field in the BR class to identify
+ * the field that has changed.
+ *
+ * @see OnPropertyChangedCallback#onPropertyChanged(Observable, int)
+ */
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME) // this is necessary for java analyzer to work
 public @interface Bindable {

@@ -21,7 +21,14 @@ import android.os.Parcelable;
 import java.io.Serializable;
 
 /**
- * An observable class that holds a primitive int.
+ * An observable class that holds a primitive boolean.
+ * <p>
+ * Observable field classes may be used instead of creating an Observable object:
+ * <pre><code>public class MyDataObject {
+ *     public final ObservableBoolean isAdult = new ObservableBoolean();
+ * }</code></pre>
+ * Fields of this type should be declared final because bindings only detect changes in the
+ * field's value, not of the field itself.
  * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
@@ -46,10 +53,16 @@ public class ObservableBoolean extends BaseObservable implements Parcelable, Ser
     public ObservableBoolean() {
     }
 
+    /**
+     * @return the stored value.
+     */
     public boolean get() {
         return mValue;
     }
 
+    /**
+     * Set the stored value.
+     */
     public void set(boolean value) {
         if (value != mValue) {
             mValue = value;

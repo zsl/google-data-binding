@@ -24,6 +24,14 @@ import java.io.Serializable;
 /**
  * An observable class that holds a parcelable object.
  * <p>
+ * Observable field classes may be used instead of creating an Observable object:
+ * <pre><code>public class MyDataObject {
+ *     public final ObservableParcelable&lt;String> name = new ObservableParcelable&lt;String>();
+ *     public final ObservableInt age = new ObservableInt();
+ * }</code></pre>
+ * Fields of this type should be declared final because bindings only detect changes in the
+ * field's value, not of the field itself.
+ * <p>
  * This class is parcelable but you should keep in mind that listeners are ignored when the object
  * is parcelled. Unless you add custom observers, this should not be an issue because data binding
  * framework always re-registers observers when the view is bound.
