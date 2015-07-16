@@ -43,15 +43,9 @@ android {
 }
 
 dependencies {
-    // TODO make these provided when gradle build supports them
-    // see: https://code.google.com/p/android/issues/detail?id=149268
-    compile 'com.android.support:support-v4:+'
-    compile 'com.android.support:cardview-v7:+'
-    compile 'com.android.support:appcompat-v7:+'
-}
-
-configurations {
-    jarArchives
+    provided 'com.android.support:support-v4:+'
+    provided 'com.android.support:cardview-v7:+'
+    provided 'com.android.support:appcompat-v7:+'
 }
 
 //create jar tasks
@@ -62,25 +56,9 @@ android.libraryVariants.all { variant ->
         return; // Skip debug builds.
     }
     def suffix = name.capitalize()
-    // @Jar version is needed to run compiler tests
-    def jarTask = project.tasks.create "jar${suffix}", Jar
-    jarTask.dependsOn variant.javaCompile
-    jarTask.from variant.javaCompile.destinationDir
-    def packageName = "com.android.databinding.library.baseAdapters"
-    def appPkgAsClass = packageName.replace('.', '/')
-    jarTask.exclude("android/databinding/layouts/*.*")
-    jarTask.exclude("$appPkgAsClass/databinding/*")
-    jarTask.exclude("$appPkgAsClass/BR.*")
-    jarTask.exclude("android/databinding/DataBindingComponent.*")
-    artifacts.add('jarArchives', jarTask);
 
     def javadocTask = project.tasks.create(name: "javadoc${suffix}", type: Javadoc) {
         source variant.javaCompile.source
-        exclude("android/databinding/layouts/*.*")
-        exclude("$appPkgAsClass/databinding/*")
-        exclude("$appPkgAsClass/BR.*")
-        exclude("$appPkgAsClass/R.*")
-        exclude("$appPkgAsClass/BuildConfig.*")
         classpath = files(variant.javaCompile.classpath.files) + files(
                 "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
     }
@@ -96,22 +74,15 @@ android.libraryVariants.all { variant ->
         from android.sourceSets.main.java.srcDirs
     }
 
-    artifacts.add('jarArchives', javadocJarTask);
-    artifacts.add('jarArchives', sourcesJarTask);
+    artifacts.add('archives', javadocJarTask);
+    artifacts.add('archives', sourcesJarTask);
 }
 
 uploadArchives {
-}
-
-uploadJarArchives {
     repositories {
         mavenDeployer {
             repository(url: "file://${config.mavenRepoDir}")
             pom.artifactId = "adapters"
-            pom.whenConfigured {
-                println("configured pom, $it")
-                it.dependencies.clear()
-            }
             pom.project {
                 licenses {
                     license {
@@ -125,7 +96,7 @@ uploadJarArchives {
     }
 }
 
-uploadArchives.dependsOn uploadJarArchives
+
 task prebuild(type : Copy) {
     dependsOn uploadArchives
     from "$buildDir/outputs/aar/baseAdapters-release.aar"

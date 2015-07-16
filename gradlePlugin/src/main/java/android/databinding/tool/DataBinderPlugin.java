@@ -346,7 +346,7 @@ public class DataBinderPlugin implements Plugin<Project> {
             String removeGeneratedTaskName = "dataBindingExcludeGeneratedFrom" +
                     StringUtils.capitalize(packageTask.getName());
             if (project.getTasks().findByName(removeGeneratedTaskName) == null) {
-                final AbstractCompile javaCompileTask = variantData.javaCompileTask;
+                final AbstractCompile javaCompileTask = variantData.javacTask;
                 Preconditions.checkNotNull(javaCompileTask);
 
                 project.getTasks().create(removeGeneratedTaskName,
