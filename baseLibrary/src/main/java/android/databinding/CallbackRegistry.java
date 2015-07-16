@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tracks callbacks for the event. This class supports reentrant modification
+ * A utility for storing and notifying callbacks. This class supports reentrant modification
  * of the callbacks during notification without adversely disrupting notifications.
  * A common pattern for callbacks is to receive a notification and then remove
  * themselves. This class handles this behavior with constant memory under
@@ -27,11 +27,13 @@ import java.util.List;
  *
  * <p>A subclass of {@link CallbackRegistry.NotifierCallback} must be passed to
  * the constructor to define how notifications should be called. That implementation
- * does the actual notification on the listener.</p>
+ * does the actual notification on the listener. It is typically a static instance
+ * that can be reused for all similar CallbackRegistries.</p>
  *
- * <p>This class supports only callbacks with at most two parameters.
- * Typically, these are the notification originator and a parameter, but these may
- * be used as required. If more than two parameters are required or primitive types
+ * <p>This class supports only callbacks with at most three parameters.
+ * Typically, these are the notification originator and a parameter, with another to
+ * indicate which method to call, but these may be used as required. If more than
+ * three parameters are required or primitive types other than the single int provided
  * must be used, <code>A</code> should be some kind of containing structure that
  * the subclass may reuse between notifications.</p>
  *
@@ -78,11 +80,11 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
      * Notify all callbacks.
      *
      * @param sender The originator. This is an opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg2 An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      */
     public synchronized void notifyCallbacks(T sender, int arg, A arg2) {
         mNotificationLevel++;
@@ -109,11 +111,11 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
      * Notify up to the first Long.SIZE callbacks that don't have a bit set in <code>removed</code>.
      *
      * @param sender The originator. This is an opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg2 An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      */
     private void notifyFirst64(T sender, int arg, A arg2) {
         final int maxNotified = Math.min(Long.SIZE, mCallbacks.size());
@@ -128,11 +130,11 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
      * <p>Recursion is used to avoid allocating temporary state on the heap.</p>
      *
      * @param sender The originator. This is an opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg2 An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      */
     private void notifyRecurse(T sender, int arg, A arg2) {
         final int callbackCount = mCallbacks.size();
@@ -155,11 +157,11 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
      * remainderIndex is -1, the first 64 will be notified instead.
      *
      * @param sender The originator. This is an opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg2 An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param remainderIndex The index into mRemainderRemoved that should be notified.
      */
     private void notifyRemainder(T sender, int arg, A arg2, int remainderIndex) {
@@ -181,11 +183,11 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
      * endIndex should be notified.
      *
      * @param sender The originator. This is an opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param arg2 An opaque parameter passed to
-     *      {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, A)}
+     * {@link CallbackRegistry.NotifierCallback#onNotifyCallback(Object, Object, int, Object)}
      * @param startIndex The index into the mCallbacks to start notifying.
      * @param endIndex One past the last index into mCallbacks to notify.
      * @param bits A bit field indicating which callbacks have been removed and shouldn't
@@ -245,6 +247,7 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
     /**
      * Removes callbacks from startIndex to startIndex + Long.SIZE, based
      * on the bits set in removed.
+     *
      * @param startIndex The index into the mCallbacks to start removing callbacks.
      * @param removed The bits indicating removal, where each bit is set for one callback
      *                to be removed.
@@ -264,6 +267,7 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
 
     /**
      * Remove a callback. This callback won't be notified after this call completes.
+     *
      * @param callback The callback to remove.
      */
     public synchronized void remove(C callback) {
@@ -297,29 +301,12 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
         }
     }
 
-    /*
-    private void clearRemovalBit(int index) {
-        if (index < Long.SIZE) {
-            // It is in the first 64 callbacks, just check the bit.
-            final long bitMask = 1L << index;
-            mFirst64Removed &= ~bitMask;
-        } else if (mRemainderRemoved != null) {
-            final int maskIndex = (index / Long.SIZE) - 1;
-            if (maskIndex < mRemainderRemoved.length) {
-                // There is something marked for removal, so we have to check the bit.
-                final long bitMask = 1L << (index % Long.SIZE);
-                mRemainderRemoved[maskIndex] &= ~bitMask;
-            }
-        }
-    }
-    */
-
     /**
      * Makes a copy of the registered callbacks and returns it.
      *
      * @return a copy of the registered callbacks.
      */
-    public synchronized ArrayList<C> copyListeners() {
+    public synchronized ArrayList<C> copyCallbacks() {
         ArrayList<C> callbacks = new ArrayList<C>(mCallbacks.size());
         int numListeners = mCallbacks.size();
         for (int i = 0; i < numListeners; i++) {
@@ -328,6 +315,21 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
             }
         }
         return callbacks;
+    }
+
+    /**
+     * Modifies <code>callbacks</code> to contain all callbacks in the CallbackRegistry.
+     *
+     * @param callbacks modified to contain all callbacks registered to receive events.
+     */
+    public synchronized void copyCallbacks(List<C> callbacks) {
+        callbacks.clear();
+        int numListeners = mCallbacks.size();
+        for (int i = 0; i < numListeners; i++) {
+            if (!isRemoved(i)) {
+                callbacks.add(mCallbacks.get(i));
+            }
+        }
     }
 
     /**
@@ -364,6 +366,10 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
         }
     }
 
+    /**
+     * @return A copy of the CallbackRegistry with all callbacks listening to both instances.
+     */
+    @SuppressWarnings("unchecked")
     public synchronized CallbackRegistry<C, T, A> clone() {
         CallbackRegistry<C, T, A> clone = null;
         try {
@@ -393,7 +399,8 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
      */
     public abstract static class NotifierCallback<C, T, A> {
         /**
-         * Used to notify the callback.
+         * Called by CallbackRegistry during
+         * {@link CallbackRegistry#notifyCallbacks(Object, int, Object)}} to notify the callback.
          *
          * @param callback The callback to notify.
          * @param sender The opaque sender object.

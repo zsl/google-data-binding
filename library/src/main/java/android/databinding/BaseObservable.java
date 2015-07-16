@@ -18,7 +18,7 @@ package android.databinding;
 
 /**
  * A convenience class that implements {@link android.databinding.Observable} interface and provides
- * {@link #notifyPropertyChanged(int)} and @{link #notifyChange} methods.
+ * {@link #notifyPropertyChanged(int)} and {@link #notifyChange} methods.
  */
 public class BaseObservable implements Observable {
     private transient PropertyChangeRegistry mCallbacks;
@@ -27,26 +27,36 @@ public class BaseObservable implements Observable {
     }
 
     @Override
-    public synchronized void addOnPropertyChangedCallback(OnPropertyChangedCallback listener) {
+    public synchronized void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
         if (mCallbacks == null) {
             mCallbacks = new PropertyChangeRegistry();
         }
-        mCallbacks.add(listener);
+        mCallbacks.add(callback);
     }
 
     @Override
-    public synchronized void removeOnPropertyChangedCallback(OnPropertyChangedCallback listener) {
+    public synchronized void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
         if (mCallbacks != null) {
-            mCallbacks.remove(listener);
+            mCallbacks.remove(callback);
         }
     }
 
+    /**
+     * Notifies listeners that all properties of this instance have changed.
+     */
     public synchronized void notifyChange() {
         if (mCallbacks != null) {
             mCallbacks.notifyCallbacks(this, 0, null);
         }
     }
 
+    /**
+     * Notifies listeners that a specific property has changed. The getter for the property
+     * that changes should be marked with {@link Bindable} to generate a field in
+     * <code>BR</code> to be used as <code>fieldId</code>.
+     *
+     * @param fieldId The generated BR id for the Bindable field.
+     */
     public void notifyPropertyChanged(int fieldId) {
         if (mCallbacks != null) {
             mCallbacks.notifyCallbacks(this, fieldId, null);

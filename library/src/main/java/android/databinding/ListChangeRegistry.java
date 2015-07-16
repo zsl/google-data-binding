@@ -17,6 +17,9 @@ package android.databinding;
 
 import android.support.v4.util.Pools;
 
+/**
+ * Utility class for managing ObservableList callbacks.
+ */
 public class ListChangeRegistry
         extends
         CallbackRegistry<ObservableList.OnListChangedCallback, ObservableList,
@@ -57,25 +60,59 @@ public class ListChangeRegistry
         }
     };
 
+    /**
+     * Notify registered callbacks that there was an unknown or whole-list change.
+     *
+     * @param list The list that changed.
+     */
     public void notifyChanged(ObservableList list) {
         notifyCallbacks(list, ALL, null);
     }
 
+    /**
+     * Notify registered callbacks that some elements have changed.
+     *
+     * @param list The list that changed.
+     * @param start The index of the first changed element.
+     * @param count The number of changed elements.
+     */
     public void notifyChanged(ObservableList list, int start, int count) {
         ListChanges listChanges = acquire(start, 0, count);
         notifyCallbacks(list, CHANGED, listChanges);
     }
 
+    /**
+     * Notify registered callbacks that elements were inserted.
+     *
+     * @param list The list that changed.
+     * @param start The index where the elements were inserted.
+     * @param count The number of elements that were inserted.
+     */
     public void notifyInserted(ObservableList list, int start, int count) {
         ListChanges listChanges = acquire(start, 0, count);
         notifyCallbacks(list, INSERTED, listChanges);
     }
 
+    /**
+     * Notify registered callbacks that elements were moved.
+     *
+     * @param list The list that changed.
+     * @param from The index of the first element moved.
+     * @param to The index of where the element was moved to.
+     * @param count The number of elements moved.
+     */
     public void notifyMoved(ObservableList list, int from, int to, int count) {
         ListChanges listChanges = acquire(from, to, count);
         notifyCallbacks(list, MOVED, listChanges);
     }
 
+    /**
+     * Notify registered callbacks that elements were deleted.
+     *
+     * @param list The list that changed.
+     * @param start The index of the first element to be removed.
+     * @param count The number of elements removed.
+     */
     public void notifyRemoved(ObservableList list, int start, int count) {
         ListChanges listChanges = acquire(start, 0, count);
         notifyCallbacks(list, REMOVED, listChanges);
@@ -101,9 +138,6 @@ public class ListChangeRegistry
         }
     }
 
-    /**
-     * Creates an EventRegistry that notifies the event with notifier.
-     */
     public ListChangeRegistry() {
         super(NOTIFIER_CALLBACK);
     }

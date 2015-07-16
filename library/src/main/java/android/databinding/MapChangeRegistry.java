@@ -15,6 +15,9 @@
  */
 package android.databinding;
 
+/**
+ * Utility class for managing ObservableMap callbacks.
+ */
 public class MapChangeRegistry
         extends CallbackRegistry<ObservableMap.OnMapChangedCallback, ObservableMap, Object> {
 
@@ -31,6 +34,12 @@ public class MapChangeRegistry
         super(NOTIFIER_CALLBACK);
     }
 
+    /**
+     * Notifies registered callbacks that an element has been added, removed, or changed.
+     *
+     * @param sender The map that has changed.
+     * @param key The key of the element that changed.
+     */
     public void notifyChange(ObservableMap sender, Object key) {
         notifyCallbacks(sender, 0, key);
     }

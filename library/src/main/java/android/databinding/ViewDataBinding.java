@@ -27,12 +27,19 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
 import android.view.Choreographer;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
 
+/**
+ * Base class for generated data binding classes. If possible, the generated binding should
+ * be instantiated using one of its generated static bind or inflate methods. If the specific
+ * binding is unknown, {@link DataBindingUtil#bind(View)} or
+ * {@link DataBindingUtil#inflate(LayoutInflater, int, ViewGroup, boolean)} should be used.
+ */
 public abstract class ViewDataBinding {
 
     /**
@@ -48,6 +55,8 @@ public abstract class ViewDataBinding {
     /**
      * Prefix for android:tag on Views with binding. The root View and include tags will not have
      * android:tag attributes and will use ids instead.
+     *
+     * @hide
      */
     public static final String BINDING_TAG_PREFIX = "binding_";
 
@@ -267,6 +276,7 @@ public abstract class ViewDataBinding {
      * @param fieldId The BR ID of the field being changed or _all if
      *                no specific field is being notified.
      * @return true if this change should cause a change to the UI.
+     * @hide
      */
     protected abstract boolean onFieldChange(int localFieldId, Object object, int fieldId);
 
@@ -394,7 +404,9 @@ public abstract class ViewDataBinding {
     }
 
     /**
-     * Returns the outermost View in the layout file associated with the Binding.
+     * Returns the outermost View in the layout file associated with the Binding. If this
+     * binding is for a merge layout file, this will return the first root in the merge tag.
+     *
      * @return the outermost View in the layout file associated with the Binding.
      */
     public View getRoot() {
@@ -540,6 +552,7 @@ public abstract class ViewDataBinding {
      * @return An array of size numBindings containing all Views in the hierarchy that have IDs
      * (with elements in viewsWithIds), are tagged containing expressions, or the bindings for
      * included layouts.
+     * @hide
      */
     protected static Object[] mapBindings(DataBindingComponent bindingComponent, View root,
             int numBindings, IncludedLayouts includes, SparseIntArray viewsWithIds) {
