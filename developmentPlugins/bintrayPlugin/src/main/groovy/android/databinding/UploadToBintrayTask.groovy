@@ -64,7 +64,7 @@ public class UploadToBintrayTask extends DefaultTask {
         for (File localFile : localFiles) {
             def p = ['curl', '-u', "$username:$apiKey", "-H",
                      "$PACKAGE_HEADER: $pkg", "-H", "$VERSION_HEADER: $version",
-                     "-X", "PUT", "-F", "file=@${localFile.getAbsolutePath()}",
+                     "-X", "PUT", "--data-binary", "@${localFile.getAbsolutePath()}",
                      "$API_URL/$CONTENT_PREFIX/$targetPath/${localFile.name}"]
             println("executing $p")
             def execute = p.execute()
