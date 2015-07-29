@@ -18,6 +18,7 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.writer.KCode;
 
 import java.util.List;
 
@@ -54,5 +55,13 @@ public class CastExpr extends Expr {
 
     public String getCastType() {
         return getResolvedType().toJavaCode();
+    }
+
+    @Override
+    protected KCode generateCode() {
+        return new KCode()
+                .app("(")
+                .app(getCastType())
+                .app(") ", getCastExpr().toCode());
     }
 }

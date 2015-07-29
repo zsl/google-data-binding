@@ -32,6 +32,7 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.java.JavaAnalyzer;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
+import android.databinding.tool.writer.KCode;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,6 +71,11 @@ public class ExprModelTest {
         @Override
         protected String computeUniqueKey() {
             return mKey + super.computeUniqueKey();
+        }
+
+        @Override
+        protected KCode generateCode() {
+            return new KCode();
         }
     }
 

@@ -18,6 +18,7 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.writer.KCode;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -74,6 +75,15 @@ public class TernaryExpr extends Expr {
     @Override
     protected BitSet getPredicateInvalidFlags() {
         return getPred().getInvalidFlags();
+    }
+
+    @Override
+    protected KCode generateCode() {
+        return new KCode()
+                .app("", getPred().toCode())
+                .app(" ? ", getIfTrue().toCode())
+                .app(" : ", getIfFalse().toCode());
+
     }
 
     @Override

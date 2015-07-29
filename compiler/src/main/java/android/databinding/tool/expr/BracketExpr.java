@@ -18,6 +18,7 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.writer.KCode;
 
 import java.util.List;
 
@@ -75,5 +76,24 @@ public class BracketExpr extends Expr {
 
     public boolean argCastsInteger() {
         return Object.class.equals(getArg().getResolvedType());
+    }
+
+    @Override
+    protected KCode generateCode() {
+        KCode code = new KCode()
+                .app("", getTarget().toCode());
+        switch (getAccessor()) {
+            case ARRAY:
+                return code.app("[", getArg().toCode()).app("]");
+            case LIST:
+                code.app(".get(");
+                if (argCastsInteger()) {
+                    code.app("(Integer)");
+                }
+                return code.app("", getArg().toCode()).app(")");
+            case MAP:
+                return code.app(".get(", getArg().toCode()).app(")");
+        }
+        throw new IllegalStateException("Invalid BracketAccessor type");
     }
 }

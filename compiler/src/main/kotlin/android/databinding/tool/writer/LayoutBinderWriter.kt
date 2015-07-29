@@ -168,8 +168,6 @@ val Expr.dirtyFlagName by Delegates.lazy { expr : Expr ->
 }
 
 
-fun Expr.toCode(full : Boolean = false) : KCode = CodeGenUtil.toCode(this, full)
-
 fun Expr.isVariable() = this is IdentifierExpr && this.isDynamic()
 
 fun Expr.conditionalFlagName(output : Boolean, suffix : String) = "${dirtyFlagName}_${output}$suffix"
@@ -739,7 +737,8 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             val batch = ExprModel.filterShouldRead(model.getPendingExpressions()).toArrayList()
             if (batch.isNotEmpty()) {
                 L.e("could not generate code for %s. This might be caused by circular dependencies."
-                        + "Please report on b.android.com", layoutBinder.getLayoutname())
+                        + "Please report on b.android.com. %d %s %s", layoutBinder.getLayoutname(),
+                        batch.size(), batch.get(0), batch.get(0).toCode().generate())
             }
             //
             layoutBinder.getSortedTargets().filter { it.isUsed() }
@@ -785,7 +784,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                         }.joinToString(" || ")
                         }) {") {
                             it.value.first().getComponentExpressions().forEach { expr ->
-                                tab("this.${expr.oldValueName} = ${expr.toCode(false).generate()};")
+                                tab("this.${expr.oldValueName} = ${expr.toCode().generate()};")
                             }
                         }
                         tab("}")
@@ -827,11 +826,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }.map { it.getOther() }
                 if (!expr.isEqualityCheck() && nullables.isNotEmpty()) {
                     tab ("if ( ${nullables.map { "${it.executePendingLocalName} != null" }.joinToString(" && ")}) {") {
-                        tab("${expr.executePendingLocalName}").app(" = ", expr.toCode(true)).app(";")
+                        tab("${expr.executePendingLocalName}").app(" = ", expr.toFullCode()).app(";")
                     }
                     tab("}")
                 } else {
-                    tab("${expr.executePendingLocalName}").app(" = ", expr.toCode(true)).app(";")
+                    tab("${expr.executePendingLocalName}").app(" = ", expr.toFullCode()).app(";")
                 }
                 if (expr.isObservable()) {
                     tab("updateRegistration(${expr.getId()}, ${expr.executePendingLocalName});")
@@ -932,7 +931,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             if (expr.getChild().isDynamic()) {
                                 obj = "this.value"
                             } else {
-                                obj = expr.getChild().toCode(false).generate();
+                                obj = expr.getChild().toCode().generate();
                             }
                             val returnStr : String
                             if (!returnType.isVoid()) {

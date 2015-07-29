@@ -22,7 +22,6 @@ import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
-import android.databinding.tool.writer.CodeGenUtil;
 import android.databinding.tool.writer.WriterPackage;
 
 import java.lang.reflect.Array;
@@ -99,7 +98,7 @@ public class MergedBinding extends Binding {
         final ArgListExpr args = (ArgListExpr) getExpr();
         final List<String> newValues = new ArrayList<>();
         for (Expr expr : args.getChildren()) {
-            newValues.add(CodeGenUtil.Companion.toCode(expr, false).generate());
+            newValues.add(expr.toCode().generate());
         }
         final List<String> oldValues;
         if (requiresOldValue()) {

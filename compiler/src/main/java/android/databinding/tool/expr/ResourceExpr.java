@@ -17,7 +17,7 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
-import android.databinding.tool.writer.WriterPackage;
+import android.databinding.tool.writer.KCode;
 
 import java.util.HashMap;
 import java.util.List;
@@ -129,6 +129,11 @@ public class ResourceExpr extends Expr {
         return join(base, computeChildrenKey());
     }
 
+    @Override
+    protected KCode generateCode() {
+        return new KCode(toJava());
+    }
+
     public String getResourceId() {
         return mPackage + "R." + getResourceObject() + "." + mResourceId;
     }
@@ -179,7 +184,7 @@ public class ResourceExpr extends Expr {
         if (getChildren().size() <= childIndex) {
             return defaultValue;
         } else {
-            return WriterPackage.toCode(getChildren().get(childIndex), false).generate();
+            return getChildren().get(childIndex).toCode().generate();
         }
     }
 
@@ -187,7 +192,7 @@ public class ResourceExpr extends Expr {
         StringBuilder sb = new StringBuilder("getRoot().getResources().");
         sb.append(methodCall).append("(").append(resourceName);
         for (Expr expr : getChildren()) {
-            sb.append(", ").append(WriterPackage.toCode(expr, false).generate());
+            sb.append(", ").append(expr.toCode().generate());
         }
         sb.append(")");
         return sb.toString();

@@ -18,6 +18,7 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.writer.KCode;
 
 import java.util.List;
 
@@ -34,6 +35,11 @@ public class GroupExpr extends Expr {
     @Override
     protected List<Dependency> constructDependencies() {
         return getWrapped().constructDependencies();
+    }
+
+    @Override
+    protected KCode generateCode() {
+        return new KCode().app("(", getWrapped().toCode()).app(")");
     }
 
     public Expr getWrapped() {

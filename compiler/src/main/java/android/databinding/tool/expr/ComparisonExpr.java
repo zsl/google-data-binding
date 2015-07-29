@@ -18,6 +18,7 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.writer.KCode;
 
 import java.util.List;
 
@@ -58,5 +59,12 @@ public class ComparisonExpr extends Expr {
     @Override
     public boolean isEqualityCheck() {
         return "==".equals(mOp.trim());
+    }
+
+    @Override
+    protected KCode generateCode() {
+        return new KCode().app("", getLeft().toCode())
+        .app(" ").app(getOp()).app(" ")
+        .app("", getRight().toCode());
     }
 }

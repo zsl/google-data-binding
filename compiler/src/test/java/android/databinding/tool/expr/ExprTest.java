@@ -24,6 +24,7 @@ import android.databinding.tool.MockLayoutBinder;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.java.JavaAnalyzer;
+import android.databinding.tool.writer.KCode;
 
 import java.util.BitSet;
 import java.util.List;
@@ -55,6 +56,11 @@ public class ExprTest{
         }
 
         @Override
+        protected KCode generateCode() {
+            return new KCode();
+        }
+
+        @Override
         public boolean isDynamic() {
             return true;
         }
@@ -76,6 +82,11 @@ public class ExprTest{
             @Override
             protected List<Dependency> constructDependencies() {
                 return constructDynamicChildrenDependencies();
+            }
+
+            @Override
+            protected KCode generateCode() {
+                return new KCode();
             }
         };
         expr.getUniqueKey();

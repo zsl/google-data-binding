@@ -21,12 +21,13 @@ import org.antlr.v4.runtime.misc.Nullable;
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
-import android.databinding.tool.processing.scopes.ScopeProvider;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.writer.KCode;
+import android.databinding.tool.writer.WriterPackage;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -647,6 +648,19 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     public List<Location> provideScopeLocation() {
         return mLocations;
     }
+
+    public KCode toCode() {
+        if (isDynamic()) {
+            return new KCode(WriterPackage.getExecutePendingLocalName(this));
+        }
+        return generateCode();
+    }
+
+    public KCode toFullCode() {
+        return generateCode();
+    }
+
+    protected abstract KCode generateCode();
 
     static class Node {
 

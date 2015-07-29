@@ -16,6 +16,8 @@
 
 package android.databinding.tool.expr;
 
+import android.databinding.tool.writer.KCode;
+
 public class StaticIdentifierExpr extends IdentifierExpr {
 
     StaticIdentifierExpr(String name) {
@@ -30,5 +32,10 @@ public class StaticIdentifierExpr extends IdentifierExpr {
     @Override
     public boolean isDynamic() {
         return false;
+    }
+
+    @Override
+    protected KCode generateCode() {
+        return new KCode(getResolvedType().toJavaCode());
     }
 }

@@ -23,6 +23,8 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.util.L;
+import android.databinding.tool.writer.KCode;
+import android.databinding.tool.writer.WriterPackage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -262,5 +264,36 @@ public class FieldAccessExpr extends Expr {
     protected String asPackage() {
         String parentPackage = getChild().asPackage();
         return parentPackage == null ? null : parentPackage + "." + mName;
+    }
+
+    @Override
+    protected KCode generateCode() {
+        if (isListener()) {
+            KCode code = new KCode();
+            code.app("(");
+            final int minApi = getMinApi();
+            if (minApi > 1) {
+                code.app("(getBuildSdkInt() < " + minApi + ") ? null : ");
+            }
+            final String fieldName = WriterPackage.getFieldName(this);
+            final String listenerClassName = WriterPackage.getListenerClassName(this);
+            if (getChild().isDynamic()) {
+                final String value = getChild().toCode().generate();
+                code.app("((" + fieldName + " == null) ? (" + fieldName + " = (new " +
+                        listenerClassName + "()).setValue(" + value + ")) : " + fieldName +
+                        ".setValue(" + value + "))");
+            } else {
+                code.app("((" + fieldName + " == null) ? (" + fieldName + " = new "
+                        + listenerClassName + "()) : " + fieldName + ")");
+            }
+            return code.app(")");
+        } else {
+            KCode code = new KCode().app("", getChild().toCode()).app(".");
+            if (getGetter().type == Callable.Type.FIELD) {
+                return code.app(getGetter().name);
+            } else {
+                return code.app(getGetter().name).app("()");
+            }
+        }
     }
 }

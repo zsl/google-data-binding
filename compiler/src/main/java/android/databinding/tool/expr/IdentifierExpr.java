@@ -19,8 +19,9 @@ package android.databinding.tool.expr;
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
-import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.writer.KCode;
+import android.databinding.tool.writer.WriterPackage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,5 +73,10 @@ public class IdentifierExpr extends Expr {
     @Override
     protected String asPackage() {
         return mUserDefinedType == null ? mName : null;
+    }
+
+    @Override
+    protected KCode generateCode() {
+        return new KCode(WriterPackage.getExecutePendingLocalName(this));
     }
 }

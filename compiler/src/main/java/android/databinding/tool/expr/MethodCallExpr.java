@@ -23,13 +23,13 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.util.L;
+import android.databinding.tool.writer.KCode;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import static android.databinding.tool.reflection.Callable.STATIC;
+
 import static android.databinding.tool.reflection.Callable.DYNAMIC;
-import static android.databinding.tool.reflection.Callable.CAN_BE_INVALIDATED;
+import static android.databinding.tool.reflection.Callable.STATIC;
 
 
 public class MethodCallExpr extends Expr {
@@ -58,6 +58,26 @@ public class MethodCallExpr extends Expr {
         } finally {
             Scope.exit();
         }
+    }
+
+    @Override
+    protected KCode generateCode() {
+        KCode code = new KCode()
+        .app("", getTarget().toCode())
+        .app(".")
+        .app(getGetter().name)
+        .app("(");
+        boolean first = true;
+        for (Expr arg : getArgs()) {
+            if (first) {
+                first = false;
+            } else {
+                code.app(", ");
+            }
+            code.app("", arg.toCode());
+        }
+        code.app(")");
+        return code;
     }
 
     @Override
