@@ -133,7 +133,7 @@ public class ViewBindingAdapter {
     }
 
     @BindingAdapter({"android:onLongClickListener", "android:longClickable"})
-    public static void setListener(View view, View.OnLongClickListener clickListener,
+    public static void setOnLongClickListener(View view, View.OnLongClickListener clickListener,
             boolean clickable) {
         view.setOnLongClickListener(clickListener);
         view.setLongClickable(clickable);
@@ -146,19 +146,10 @@ public class ViewBindingAdapter {
         view.setLongClickable(clickable);
     }
 
-    @BindingAdapter("android:onViewAttachedToWindow")
-    public static void setListener(View view, OnViewAttachedToWindow attached) {
-        setListener(view, null, attached);
-    }
-
-    @BindingAdapter("android:onViewDetachedFromWindow")
-    public static void setListener(View view, OnViewDetachedFromWindow detached) {
-        setListener(view, detached, null);
-    }
-
-    @BindingAdapter({"android:onViewDetachedFromWindow", "android:onViewAttachedToWindow"})
-    public static void setListener(View view, final OnViewDetachedFromWindow detach,
-            final OnViewAttachedToWindow attach) {
+    @BindingAdapter(value = {"android:onViewDetachedFromWindow", "android:onViewAttachedToWindow"},
+            requireAll = false)
+    public static void setOnAttachStateChangeListener(View view,
+            final OnViewDetachedFromWindow detach, final OnViewAttachedToWindow attach) {
         if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB_MR1) {
             final OnAttachStateChangeListener newListener;
             if (detach == null && attach == null) {

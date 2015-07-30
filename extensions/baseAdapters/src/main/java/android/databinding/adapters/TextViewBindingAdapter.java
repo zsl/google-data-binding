@@ -286,41 +286,9 @@ public class TextViewBindingAdapter {
         view.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
     }
 
-    @BindingAdapter("android:afterTextChanged")
-    public static void setListener(TextView view, AfterTextChanged after) {
-        setListener(view, null, null, after);
-    }
-
-    @BindingAdapter("android:beforeTextChanged")
-    public static void setListener(TextView view, BeforeTextChanged before) {
-        setListener(view, before, null, null);
-    }
-
-    @BindingAdapter("android:onTextChanged")
-    public static void setListener(TextView view, OnTextChanged onTextChanged) {
-        setListener(view, null, onTextChanged, null);
-    }
-
-    @BindingAdapter({"android:beforeTextChanged", "android:afterTextChanged"})
-    public static void setListener(TextView view, final BeforeTextChanged before,
-            final AfterTextChanged after) {
-        setListener(view, before, null, after);
-    }
-
-    @BindingAdapter({"android:beforeTextChanged", "android:onTextChanged"})
-    public static void setListener(TextView view, final BeforeTextChanged before,
-            final OnTextChanged on) {
-        setListener(view, before, on, null);
-    }
-
-    @BindingAdapter({"android:onTextChanged", "android:afterTextChanged"})
-    public static void setListener(TextView view,final OnTextChanged on,
-            final AfterTextChanged after) {
-        setListener(view, null, on, after);
-    }
-
-    @BindingAdapter({"android:beforeTextChanged", "android:onTextChanged", "android:afterTextChanged"})
-    public static void setListener(TextView view, final BeforeTextChanged before,
+    @BindingAdapter(value = {"android:beforeTextChanged", "android:onTextChanged",
+            "android:afterTextChanged"}, requireAll = false)
+    public static void setTextWatcher(TextView view, final BeforeTextChanged before,
             final OnTextChanged on, final AfterTextChanged after) {
         final TextWatcher newValue;
         if (before == null && after == null && on == null) {

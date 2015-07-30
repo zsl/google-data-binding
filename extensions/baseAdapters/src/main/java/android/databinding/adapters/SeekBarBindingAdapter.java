@@ -20,41 +20,9 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
 public class SeekBarBindingAdapter {
-    @BindingAdapter("android:onProgressChanged")
-    public static void setListener(SeekBar view, OnProgressChanged listener) {
-        setListener(view, null, null, listener);
-    }
-
-    @BindingAdapter("android:onStartTrackingTouch")
-    public static void setListener(SeekBar view, OnStartTrackingTouch listener) {
-        setListener(view, listener, null, null);
-    }
-
-    @BindingAdapter("android:onStopTrackingTouch")
-    public static void setListener(SeekBar view, OnStopTrackingTouch listener) {
-        setListener(view, null, listener, null);
-    }
-
-    @BindingAdapter({"android:onStartTrackingTouch", "android:onStopTrackingTouch"})
-    public static void setListener(SeekBar view, final OnStartTrackingTouch start,
-            final OnStopTrackingTouch stop) {
-        setListener(view, start, stop, null);
-    }
-
-    @BindingAdapter({"android:onStartTrackingTouch", "android:onProgressChanged"})
-    public static void setListener(SeekBar view, final OnStartTrackingTouch start,
-            final OnProgressChanged progressChanged) {
-        setListener(view, start, null, progressChanged);
-    }
-
-    @BindingAdapter({"android:onStopTrackingTouch", "android:onProgressChanged"})
-    public static void setListener(SeekBar view, final OnStopTrackingTouch stop,
-            final OnProgressChanged progressChanged) {
-        setListener(view, null, stop, progressChanged);
-    }
-
-    @BindingAdapter({"android:onStartTrackingTouch", "android:onStopTrackingTouch", "android:onProgressChanged"})
-    public static void setListener(SeekBar view, final OnStartTrackingTouch start,
+    @BindingAdapter(value = {"android:onStartTrackingTouch", "android:onStopTrackingTouch",
+            "android:onProgressChanged"}, requireAll = false)
+    public static void setOnSeekBarChangeListener(SeekBar view, final OnStartTrackingTouch start,
             final OnStopTrackingTouch stop, final OnProgressChanged progressChanged) {
         if (start == null && stop == null && progressChanged == null) {
             view.setOnSeekBarChangeListener(null);

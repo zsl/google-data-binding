@@ -28,18 +28,9 @@ import android.widget.AdapterView.OnItemSelectedListener;
 })
 public class AdapterViewBindingAdapter {
 
-    @BindingAdapter("android:onItemSelected")
-    public static void setListener(AdapterView view, OnItemSelected listener) {
-        setListener(view, listener, null);
-    }
-
-    @BindingAdapter("android:onNothingSelected")
-    public static void setListener(AdapterView view, OnNothingSelected listener) {
-        setListener(view, null, listener);
-    }
-
-    @BindingAdapter({"android:onItemSelected", "android:onNothingSelected"})
-    public static void setListener(AdapterView view, final OnItemSelected selected,
+    @BindingAdapter(value = {"android:onItemSelected", "android:onNothingSelected"},
+            requireAll = false)
+    public static void setOnItemSelectedListener(AdapterView view, final OnItemSelected selected,
             final OnNothingSelected nothingSelected) {
         if (selected == null && nothingSelected == null) {
             view.setOnItemSelectedListener(null);

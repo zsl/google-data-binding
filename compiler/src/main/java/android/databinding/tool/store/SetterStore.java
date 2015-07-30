@@ -261,10 +261,10 @@ public class SetterStore {
     }
 
     public void addBindingAdapter(ProcessingEnvironment processingEnv, String[] attributes,
-            ExecutableElement bindingMethod, boolean takesComponent) {
+            ExecutableElement bindingMethod, boolean takesComponent, boolean requireAll) {
         L.d("STORE add multi-value BindingAdapter %d %s", attributes.length, bindingMethod);
         MultiValueAdapterKey key = new MultiValueAdapterKey(processingEnv, bindingMethod,
-                attributes, takesComponent);
+                attributes, takesComponent, requireAll);
         MethodDescription methodDescription = new MethodDescription(bindingMethod,
                 attributes.length, takesComponent);
         mStore.multiValueAdapters.put(key, methodDescription);
@@ -428,7 +428,7 @@ public class SetterStore {
             ModelClass viewType, ModelClass[] valueType) {
         final ArrayList<MultiAttributeSetter> setters = new ArrayList<MultiAttributeSetter>();
         for (MultiValueAdapterKey adapter : mStore.multiValueAdapters.keySet()) {
-            if (adapter.attributes.length > attributes.length) {
+            if (adapter.requireAll && adapter.attributes.length > attributes.length) {
                 continue;
             }
             ModelClass viewClass = mClassAnalyzer.findClass(adapter.viewType, null);
@@ -453,10 +453,12 @@ public class SetterStore {
         int matchingAttributes = 0;
         String[] casts = new String[adapter.attributes.length];
         MethodDescription[] conversions = new MethodDescription[adapter.attributes.length];
+        boolean[] supplied = new boolean[adapter.attributes.length];
 
         for (int i = 0; i < allAttributes.length; i++) {
             Integer index = adapter.attributeIndices.get(allAttributes[i]);
             if (index != null) {
+                supplied[index] = true;
                 matchingAttributes++;
                 final String parameterTypeStr = adapter.parameterTypes[index];
                 final ModelClass parameterType = eraseType(
@@ -485,11 +487,11 @@ public class SetterStore {
             }
         }
 
-        if (matchingAttributes != adapter.attributes.length) {
+        if ((adapter.requireAll && matchingAttributes != adapter.attributes.length) ||
+                matchingAttributes == 0) {
             return null;
         } else {
-            return new MultiAttributeSetter(adapter, adapter.attributes, method, conversions,
-                    casts);
+            return new MultiAttributeSetter(adapter, supplied, method, conversions, casts);
         }
     }
 
@@ -764,11 +766,15 @@ public class SetterStore {
 
         public final String[] parameterTypes;
 
+        public final boolean requireAll;
+
         public final TreeMap<String, Integer> attributeIndices = new TreeMap<String, Integer>();
 
         public MultiValueAdapterKey(ProcessingEnvironment processingEnv,
-                ExecutableElement method, String[] attributes, boolean takesComponent) {
+                ExecutableElement method, String[] attributes, boolean takesComponent,
+                boolean requireAll) {
             this.attributes = stripAttributes(attributes);
+            this.requireAll = requireAll;
             List<? extends VariableElement> parameters = method.getParameters();
             final int argStart = 1 + (takesComponent ? 1 : 0);
             this.viewType = getQualifiedName(eraseType(processingEnv,
@@ -1138,19 +1144,42 @@ public class SetterStore {
         private final MethodDescription[] mConverters;
         private final String[] mCasts;
         private final MultiValueAdapterKey mKey;
+        private final boolean[] mSupplied;
         String mBindingAdapterCall;
 
-        public MultiAttributeSetter(MultiValueAdapterKey key, String[] attributes,
+        public MultiAttributeSetter(MultiValueAdapterKey key, boolean[] supplied,
                 MethodDescription adapter, MethodDescription[] converters, String[] casts) {
             Preconditions.check(converters != null &&
-                    converters.length == attributes.length &&
-                    casts != null && casts.length == attributes.length,
+                    converters.length == key.attributes.length &&
+                    casts != null && casts.length == key.attributes.length &&
+                    supplied.length == key.attributes.length,
                     "invalid arguments to create multi attr setter");
-            this.attributes = attributes;
             this.mAdapter = adapter;
             this.mConverters = converters;
             this.mCasts = casts;
             this.mKey = key;
+            this.mSupplied = supplied;
+            if (key.requireAll) {
+                this.attributes = key.attributes;
+            } else {
+                int numSupplied = 0;
+                for (int i = 0; i < mKey.attributes.length; i++) {
+                    if (supplied[i]) {
+                        numSupplied++;
+                    }
+                }
+                if (numSupplied == key.attributes.length) {
+                    this.attributes = key.attributes;
+                } else {
+                    this.attributes = new String[numSupplied];
+                    int attrIndex = 0;
+                    for (int i = 0; i < key.attributes.length; i++) {
+                        if (supplied[i]) {
+                            attributes[attrIndex++] = key.attributes[i];
+                        }
+                    }
+                }
+            }
         }
 
         @Override
@@ -1159,30 +1188,43 @@ public class SetterStore {
             Preconditions.check(valueExpressions.length == attributes.length * 2,
                     "MultiAttributeSetter needs %s items, received %s",
                     Arrays.toString(attributes), Arrays.toString(valueExpressions));
-            final int numAttrs = attributes.length;
+            final int numAttrs = mKey.attributes.length;
             String[] args = new String[numAttrs + (requiresOldValue() ? numAttrs : 0)];
 
-            final int startIndex = mAdapter.requiresOldValue ? 0 : attributes.length;
+            final int startIndex = mAdapter.requiresOldValue ? 0 : numAttrs;
+            int attrIndex = mAdapter.requiresOldValue ? 0 : attributes.length;
+            final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
             StringBuilder argBuilder = new StringBuilder();
-            for (int i = startIndex; i < valueExpressions.length; i++) {
+            final int endIndex = numAttrs * 2;
+            for (int i = startIndex; i < endIndex; i++) {
                 argBuilder.setLength(0);
-                if (mConverters[i % attributes.length] != null) {
-                    final MethodDescription converter = mConverters[i % attributes.length];
-                    argBuilder.append(converter.type)
-                            .append('.')
-                            .append(converter.method)
-                            .append('(')
-                            .append(valueExpressions[i])
-                            .append(')');
+                if (!mSupplied[i % numAttrs]) {
+                    final String paramType = mKey.parameterTypes[i % numAttrs];
+                    final String defaultValue = modelAnalyzer.getDefaultValue(paramType);
+                    argBuilder.append('(')
+                            .append(paramType)
+                            .append(')')
+                            .append(defaultValue);
                 } else {
-                    if (mCasts[i % attributes.length] != null) {
-                        argBuilder.append('(')
-                                .append(mCasts[i % attributes.length])
+                    if (mConverters[i % numAttrs] != null) {
+                        final MethodDescription converter = mConverters[i % numAttrs];
+                        argBuilder.append(converter.type)
+                                .append('.')
+                                .append(converter.method)
+                                .append('(')
+                                .append(valueExpressions[attrIndex])
                                 .append(')');
+                    } else {
+                        if (mCasts[i % numAttrs] != null) {
+                            argBuilder.append('(')
+                                    .append(mCasts[i % numAttrs])
+                                    .append(')');
+                        }
+                        argBuilder.append(valueExpressions[attrIndex]);
                     }
-                    argBuilder.append(valueExpressions[i]);
+                    args[i - startIndex] = argBuilder.toString();
+                    attrIndex++;
                 }
-                args[i - startIndex] = argBuilder.toString();
             }
             return createAdapterCall(mAdapter, mBindingAdapterCall, componentExpression,
                     viewExpression, args);
@@ -1203,8 +1245,11 @@ public class SetterStore {
             ModelClass[] parameters = new ModelClass[attributes.length];
             String[] paramTypeStrings = mKey.parameterTypes;
             ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
-            for (int i = 0; i < attributes.length; i++) {
-                parameters[i] = modelAnalyzer.findClass(paramTypeStrings[i], null);
+            int attrIndex = 0;
+            for (int i = 0; i < mKey.attributes.length; i++) {
+                if (mSupplied[i]) {
+                    parameters[attrIndex++] = modelAnalyzer.findClass(paramTypeStrings[i], null);
+                }
             }
             return parameters;
         }

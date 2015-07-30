@@ -132,7 +132,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                             takesComponent);
                 } else {
                     store.addBindingAdapter(processingEnv, bindingAdapter.value(),
-                            executableElement, takesComponent);
+                            executableElement, takesComponent, bindingAdapter.requireAll());
                 }
             } catch (IllegalArgumentException e) {
                 L.e(e, "@BindingAdapter for duplicate View and parameter type: %s", element);
