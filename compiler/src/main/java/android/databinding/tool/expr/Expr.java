@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
@@ -168,17 +169,13 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         return getResolvedType().isObservable();
     }
 
-    public boolean resolveListeners(ModelClass valueType) {
-        boolean resetResolvedType = false;
-        for (Expr child : getChildren()) {
-            if (child.resolveListeners(valueType)) {
-                resetResolvedType = true;
-            }
+    public Expr resolveListeners(ModelClass valueType, Expr parent) {
+        for (int i = mChildren.size() - 1; i >= 0; i--) {
+            Expr child = mChildren.get(i);
+            child.resolveListeners(valueType, this);
         }
-        if (resetResolvedType) {
-            mResolvedType = null;
-        }
-        return resetResolvedType;
+        resetResolvedType();
+        return this;
     }
 
     protected void resetResolvedType() {
@@ -613,6 +610,13 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     }
 
     public void updateExpr(ModelAnalyzer modelAnalyzer) {
+        final Map<String, Expr> exprMap = mModel.getExprMap();
+        for (int i = mParents.size() - 1; i >= 0; i--) {
+            final Expr parent = mParents.get(i);
+            if (exprMap.get(parent.getUniqueKey()) != parent) {
+                mParents.remove(i);
+            }
+        }
         for (Expr child : mChildren) {
             child.updateExpr(modelAnalyzer);
         }

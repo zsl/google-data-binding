@@ -24,19 +24,14 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.KCode;
-import android.databinding.tool.writer.WriterPackage;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class FieldAccessExpr extends Expr {
     String mName;
     Callable mGetter;
     final boolean mIsObservableField;
-    private List<ModelMethod> mListenerMethods;
-    private List<ModelMethod> mCalledMethods;
-    private List<ModelClass> mListenerTypes;
-    private List<ModelMethod> mPotentialListeners;
+    boolean mIsListener;
 
     FieldAccessExpr(Expr parent, String name) {
         super(parent);
@@ -61,29 +56,7 @@ public class FieldAccessExpr extends Expr {
         return mGetter;
     }
 
-    public List<ModelMethod> getListenerMethods() {
-        return mListenerMethods;
-    }
-
-    public List<ModelMethod> getCalledMethods() {
-        return mCalledMethods;
-    }
-
-    public List<ModelClass> getListenerTypes() { return mListenerTypes; }
-
-    public boolean isListener() {
-        return mListenerMethods != null && !mListenerMethods.isEmpty();
-    }
-
     public int getMinApi() {
-        if (isListener()) {
-            int minApi = 1;
-            for (ModelClass listener : mListenerTypes) {
-                int listenerApi = listener.getMinApi();
-                minApi = Math.max(minApi, listenerApi);
-            }
-            return minApi;
-        }
         return mGetter.getMinApi();
     }
 
@@ -93,7 +66,7 @@ public class FieldAccessExpr extends Expr {
             getResolvedType();
         }
         if (mGetter == null || mGetter.type == Type.METHOD) {
-            return !isListener();
+            return true;
         }
         // if it is static final, gone
         if (getChild().isDynamic()) {
@@ -110,55 +83,71 @@ public class FieldAccessExpr extends Expr {
     }
 
     @Override
-    public boolean resolveListeners(ModelClass listener) {
-        if (mPotentialListeners == null) {
-            return false;
+    public Expr resolveListeners(ModelClass listener, Expr parent) {
+        if (mName == null || mName.isEmpty()) {
+            return this; // ObservableFields aren't listeners
         }
-
+        final ModelClass childType = getChild().getResolvedType();
+        if (getGetter() == null) {
+            if (listener == null || !mIsListener) {
+                L.e("Could not resolve %s.%s as an accessor or listener on the attribute.",
+                        childType.getCanonicalName(), mName);
+                return this;
+            }
+            getChild().getParents().remove(this);
+        } else if (listener == null) {
+            return this; // Not a listener, but we have a getter.
+        }
         List<ModelMethod> abstractMethods = listener.getAbstractMethods();
         int numberOfAbstractMethods = abstractMethods == null ? 0 : abstractMethods.size();
         if (numberOfAbstractMethods != 1) {
             if (mGetter == null) {
                 L.e("Could not find accessor %s.%s and %s has %d abstract methods, so is" +
                                 " not resolved as a listener",
-                        getChild().getResolvedType().getCanonicalName(), mName,
+                        childType.getCanonicalName(), mName,
                         listener.getCanonicalName(), numberOfAbstractMethods);
             }
-            return false;
-        }
-
-        // See if we've already resolved this listener type
-        if (mListenerMethods == null) {
-            mListenerMethods = new ArrayList<ModelMethod>();
-            mCalledMethods = new ArrayList<ModelMethod>();
-            mListenerTypes = new ArrayList<ModelClass>();
-        } else {
-            for (ModelClass previousListeners : mListenerTypes) {
-                if (previousListeners.equals(listener)) {
-                    return false;
-                }
-            }
+            return this;
         }
 
         // Look for a signature matching the abstract method
         final ModelMethod listenerMethod = abstractMethods.get(0);
         final ModelClass[] listenerParameters = listenerMethod.getParameterTypes();
-        for (ModelMethod method : mPotentialListeners) {
-            if (acceptsParameters(method, listenerParameters)) {
-                mListenerTypes.add(listener);
-                mListenerMethods.add(listenerMethod);
-                mCalledMethods.add(method);
+        boolean isStatic = getChild() instanceof StaticIdentifierExpr;
+        List<ModelMethod> methods = childType.findMethods(mName, isStatic);
+        if (methods == null) {
+            return this;
+        }
+        for (ModelMethod method : methods) {
+            if (acceptsParameters(method, listenerParameters) &&
+                    method.getReturnType(null).equals(listenerMethod.getReturnType(null))) {
                 resetResolvedType();
-                return true;
+                // replace this with ListenerExpr in parent
+                Expr listenerExpr = getModel().listenerExpr(getChild(), mName, listener,
+                        listenerMethod);
+                if (parent != null) {
+                    int index;
+                    while ((index = parent.getChildren().indexOf(this)) != -1) {
+                        parent.getChildren().set(index, listenerExpr);
+                    }
+                }
+                if (getModel().mBindingExpressions.contains(this)) {
+                    getModel().bindingExpr(listenerExpr);
+                }
+                getParents().remove(parent);
+                if (getParents().isEmpty()) {
+                    getModel().removeExpr(this);
+                }
+                return listenerExpr;
             }
         }
 
         if (mGetter == null) {
             L.e("Listener class %s with method %s did not match signature of any method %s.%s",
                     listener.getCanonicalName(), listenerMethod.getName(),
-                    getChild().getResolvedType().getCanonicalName(), mName);
+                    childType.getCanonicalName(), mName);
         }
-        return false;
+        return this;
     }
 
     private boolean acceptsParameters(ModelMethod method, ModelClass[] listenerParameters) {
@@ -210,10 +199,10 @@ public class FieldAccessExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
+        if (mIsListener) {
+            return modelAnalyzer.findClass(Object.class);
+        }
         if (mGetter == null) {
-            if (mPotentialListeners != null) {
-                return modelAnalyzer.findClass(Object.class);
-            }
             Expr child = getChild();
             child.getResolvedType();
             boolean isStatic = child instanceof StaticIdentifierExpr;
@@ -221,10 +210,10 @@ public class FieldAccessExpr extends Expr {
             L.d("resolving %s. Resolved class type: %s", this, resolvedType);
 
             mGetter = resolvedType.findGetterOrField(mName, isStatic);
-            mPotentialListeners = resolvedType.findMethods(mName, isStatic);
 
             if (mGetter == null) {
-                if (mPotentialListeners == null) {
+                mIsListener = resolvedType.findMethods(mName, isStatic) != null;
+                if (!mIsListener) {
                     L.e("Could not find accessor %s.%s", resolvedType.getCanonicalName(), mName);
                 }
                 return modelAnalyzer.findClass(Object.class);
@@ -254,9 +243,6 @@ public class FieldAccessExpr extends Expr {
                 mName = "";
             }
         }
-        if (isListener()) {
-            return modelAnalyzer.findClass(Object.class);
-        }
         return mGetter.resolvedType;
     }
 
@@ -268,32 +254,11 @@ public class FieldAccessExpr extends Expr {
 
     @Override
     protected KCode generateCode() {
-        if (isListener()) {
-            KCode code = new KCode();
-            code.app("(");
-            final int minApi = getMinApi();
-            if (minApi > 1) {
-                code.app("(getBuildSdkInt() < " + minApi + ") ? null : ");
-            }
-            final String fieldName = WriterPackage.getFieldName(this);
-            final String listenerClassName = WriterPackage.getListenerClassName(this);
-            if (getChild().isDynamic()) {
-                final String value = getChild().toCode().generate();
-                code.app("((" + fieldName + " == null) ? (" + fieldName + " = (new " +
-                        listenerClassName + "()).setValue(" + value + ")) : " + fieldName +
-                        ".setValue(" + value + "))");
-            } else {
-                code.app("((" + fieldName + " == null) ? (" + fieldName + " = new "
-                        + listenerClassName + "()) : " + fieldName + ")");
-            }
-            return code.app(")");
+        KCode code = new KCode().app("", getChild().toCode()).app(".");
+        if (getGetter().type == Callable.Type.FIELD) {
+            return code.app(getGetter().name);
         } else {
-            KCode code = new KCode().app("", getChild().toCode()).app(".");
-            if (getGetter().type == Callable.Type.FIELD) {
-                return code.app(getGetter().name);
-            } else {
-                return code.app(getGetter().name).app("()");
-            }
+            return code.app(getGetter().name).app("()");
         }
     }
 }

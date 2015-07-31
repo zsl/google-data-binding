@@ -21,7 +21,6 @@ import org.antlr.v4.runtime.misc.Nullable;
 import android.databinding.tool.expr.Dependency;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
-import android.databinding.tool.expr.ExprModel.ResolveListenersCallback;
 import android.databinding.tool.expr.IdentifierExpr;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.scopes.FileScopeProvider;
@@ -41,7 +40,7 @@ import java.util.List;
 /**
  * Keeps all information about the bindings per layout file
  */
-public class LayoutBinder implements ResolveListenersCallback, FileScopeProvider {
+public class LayoutBinder implements FileScopeProvider {
     private static final Comparator<BindingTarget> COMPARE_FIELD_NAME = new Comparator<BindingTarget>() {
         @Override
         public int compare(BindingTarget first, BindingTarget second) {
@@ -276,7 +275,7 @@ public class LayoutBinder implements ResolveListenersCallback, FileScopeProvider
     }
 
     public void sealModel() {
-        mExprModel.seal(this);
+        mExprModel.seal();
     }
 
     public String writeViewBinderBaseClass(boolean forLibrary) {
@@ -325,15 +324,6 @@ public class LayoutBinder implements ResolveListenersCallback, FileScopeProvider
 
     public boolean hasVariations() {
         return mBundle.hasVariations();
-    }
-
-    @Override
-    public void resolveListeners() {
-        for (BindingTarget target : mBindingTargets) {
-            for (Binding binding : target.getBindings()) {
-                binding.resolveListeners();
-            }
-        }
     }
 
     @Override

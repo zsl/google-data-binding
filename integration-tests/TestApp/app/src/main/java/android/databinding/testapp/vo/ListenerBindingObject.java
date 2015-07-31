@@ -20,7 +20,6 @@ import android.databinding.ObservableBoolean;
 import android.graphics.Outline;
 import android.media.MediaPlayer;
 import android.text.Editable;
-import android.view.ActionMode;
 import android.view.ContextMenu;
 import android.view.DragEvent;
 import android.view.KeyEvent;
@@ -248,6 +247,12 @@ public class ListenerBindingObject {
     }
 
     public void onFoo() {
+    }
+
+    public void onBar() {}
+
+    public boolean onBar(View view) {
+        return true;
     }
 
 }

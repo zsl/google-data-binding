@@ -20,6 +20,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
@@ -275,26 +276,24 @@ public class ExprModel {
         return bindingExpr;
     }
 
+    public void removeExpr(Expr expr) {
+        mBindingExpressions.remove(expr);
+        mExprMap.remove(expr.computeUniqueKey());
+    }
+
     public List<Expr> getObservables() {
         return mObservables;
     }
 
-    public void seal() {
-        seal(null);
-    }
     /**
      * Give id to each expression. Will be useful if we serialize.
      */
-    public void seal(ResolveListenersCallback resolveListeners) {
+    public void seal() {
         L.d("sealing model");
         List<Expr> notifiableExpressions = new ArrayList<Expr>();
         //ensure class analyzer. We need to know observables at this point
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         updateExpressions(modelAnalyzer);
-
-        if (resolveListeners != null) {
-            resolveListeners.resolveListeners();
-        }
 
         int counter = 0;
         final Iterable<Expr> observables = filterObservables(modelAnalyzer);
@@ -602,7 +601,8 @@ public class ExprModel {
         mCurrentLocationInFile = location;
     }
 
-    public interface ResolveListenersCallback {
-        void resolveListeners();
+    public Expr listenerExpr(Expr expression, String name, ModelClass listenerType,
+            ModelMethod listenerMethod) {
+        return register(new ListenerExpr(expression, name, listenerType, listenerMethod));
     }
 }

@@ -321,6 +321,19 @@ public abstract class ModelClass {
     }
 
     /**
+     * @return The class or interface name of this type or the primitive type if it isn't a
+     * reference type.
+     */
+    public String getSimpleName() {
+        final String canonicalName = getCanonicalName();
+        final int dotIndex = canonicalName.lastIndexOf('.');
+        if (dotIndex >= 0) {
+            return canonicalName.substring(dotIndex + 1);
+        }
+        return canonicalName;
+    }
+
+    /**
      * Returns this class type without any generic type arguments.
      * @return this class type without any generic type arguments.
      */

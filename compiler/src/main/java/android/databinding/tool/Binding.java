@@ -40,19 +40,18 @@ public class Binding implements LocationScopeProvider {
     public Binding(BindingTarget target, String name, Expr expr) {
         mTarget = target;
         mName = name;
+        final ModelClass listenerParameter = getListenerParameter(target, name, expr);
+        Expr listenerExpr = expr.resolveListeners(listenerParameter, null);
+        if (listenerExpr != expr) {
+            listenerExpr.setBindingExpression(true);
+            expr = listenerExpr;
+        }
         mExpr = expr;
     }
 
     @Override
     public List<Location> provideScopeLocation() {
         return mExpr.getLocations();
-    }
-
-    public void resolveListeners() {
-        ModelClass listenerParameter = getListenerParameter();
-        if (listenerParameter != null) {
-            mExpr.resolveListeners(listenerParameter);
-        }
     }
 
     private SetterStore.BindingSetterCall getSetterCall() {
@@ -75,19 +74,20 @@ public class Binding implements LocationScopeProvider {
     private void resolveSetterCall() {
         ModelClass viewType = mTarget.getResolvedType();
         if (viewType != null && viewType.extendsViewStub()) {
-            if (isListenerAttribute()) {
+            if (isListenerAttribute(mName)) {
                 ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
                 ModelClass viewStubProxy = modelAnalyzer.
                         findClass("android.databinding.ViewStubProxy", null);
                 mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
                         viewStubProxy, mExpr.getResolvedType(), mExpr.getModel().getImports());
-            } else if (isViewStubAttribute()) {
+            } else if (isViewStubAttribute(mName)) {
                 mSetterCall = new ViewStubDirectCall(mName, viewType, mExpr);
             } else {
                 mSetterCall = new ViewStubSetterCall(mName);
             }
         } else {
-            mSetterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
+            final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+            mSetterCall = setterStore.getSetterCall(mName,
                     viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
         }
     }
@@ -95,31 +95,38 @@ public class Binding implements LocationScopeProvider {
     /**
      * Similar to getSetterCall, but assumes an Object parameter to find the best matching listener.
      */
-    private ModelClass getListenerParameter() {
-        ModelClass viewType = mTarget.getResolvedType();
+    private static ModelClass getListenerParameter(BindingTarget target, String name, Expr expr) {
+        ModelClass viewType = target.getResolvedType();
         SetterCall setterCall;
         ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         ModelClass objectParameter = modelAnalyzer.findClass(Object.class);
+        SetterStore setterStore = SetterStore.get(modelAnalyzer);
         if (viewType != null && viewType.extendsViewStub()) {
-            if (isListenerAttribute()) {
+            if (isListenerAttribute(name)) {
                 ModelClass viewStubProxy = modelAnalyzer.
                         findClass("android.databinding.ViewStubProxy", null);
-                setterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
-                        viewStubProxy, objectParameter, mExpr.getModel().getImports());
-            } else if (isViewStubAttribute()) {
-                setterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
-                        viewType, objectParameter, mExpr.getModel().getImports());
+                setterCall = SetterStore.get(modelAnalyzer).getSetterCall(name,
+                        viewStubProxy, objectParameter, expr.getModel().getImports());
+            } else if (isViewStubAttribute(name)) {
+                setterCall = new ViewStubDirectCall(name, viewType, expr);
             } else {
-                setterCall = new ViewStubSetterCall(mName);
+                setterCall = new ViewStubSetterCall(name);
             }
         } else {
-            setterCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(mName,
-                    viewType, objectParameter, mExpr.getModel().getImports());
+            setterCall = setterStore.getSetterCall(name, viewType, objectParameter,
+                    expr.getModel().getImports());
         }
-        if (setterCall == null) {
+        if (setterCall != null) {
+            return setterCall.getParameterTypes()[0];
+        }
+        List<SetterStore.MultiAttributeSetter> setters =
+                setterStore.getMultiAttributeSetterCalls(new String[]{name}, viewType,
+                new ModelClass[] {modelAnalyzer.findClass(Object.class)});
+        if (setters.isEmpty()) {
             return null;
+        } else {
+            return setters.get(0).getParameterTypes()[0];
         }
-        return setterCall.getParameterTypes()[0];
     }
 
     public BindingTarget getTarget() {
@@ -167,17 +174,16 @@ public class Binding implements LocationScopeProvider {
         return mExpr;
     }
 
-    private boolean isViewStubAttribute() {
-        return ("android:inflatedId".equals(mName) ||
-                "android:layout".equals(mName) ||
-                "android:visibility".equals(mName) ||
-                "android:layoutInflater".equals(mName));
+    private static boolean isViewStubAttribute(String name) {
+        return ("android:inflatedId".equals(name) ||
+                "android:layout".equals(name) ||
+                "android:visibility".equals(name) ||
+                "android:layoutInflater".equals(name));
     }
 
-    private boolean isListenerAttribute() {
-        return ("android:onInflate".equals(mName) ||
-                "android:onInflateListener".equals(mName));
-
+    private static boolean isListenerAttribute(String name) {
+        return ("android:onInflate".equals(name) ||
+                "android:onInflateListener".equals(name));
     }
 
     private static class ViewStubSetterCall extends SetterCall {

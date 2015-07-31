@@ -317,5 +317,11 @@
               android:onFoo="@{obj.onFoo}"
               android:onFoo2="@{obj.onFoo}"
                 />
+        <View android:id="@+id/listener2"
+              android:layout_width="10dp"
+              android:layout_height="10dp"
+              android:onBar1="@{obj.onBar}"
+              android:onBar2="@{obj.onBar}"
+                />
     </LinearLayout>
 </layout>

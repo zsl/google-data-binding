@@ -1222,9 +1222,9 @@ public class SetterStore {
                         }
                         argBuilder.append(valueExpressions[attrIndex]);
                     }
-                    args[i - startIndex] = argBuilder.toString();
                     attrIndex++;
                 }
+                args[i - startIndex] = argBuilder.toString();
             }
             return createAdapterCall(mAdapter, mBindingAdapterCall, componentExpression,
                     viewExpression, args);

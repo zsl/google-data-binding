@@ -19,7 +19,6 @@ package android.databinding.tool;
 import android.databinding.tool.expr.ArgListExpr;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
-import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.WriterPackage;
@@ -57,15 +56,6 @@ public class MergedBinding extends Binding {
             sb.append(binding.getName());
         }
         return sb.toString();
-    }
-
-    @Override
-    public void resolveListeners() {
-        ModelClass[] params = mMultiAttributeSetter.getParameterTypes();
-        List<Expr> expressions = getExpr().getChildren();
-        for (int i = 0; i < params.length; i++) {
-            expressions.get(i).resolveListeners(params[i]);
-        }
     }
 
     public Expr[] getComponentExpressions() {

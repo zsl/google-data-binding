@@ -19,6 +19,7 @@ import android.databinding.tool.expr.Expr
 import android.databinding.tool.expr.ExprModel
 import android.databinding.tool.expr.FieldAccessExpr
 import android.databinding.tool.expr.IdentifierExpr
+import android.databinding.tool.expr.ListenerExpr
 import android.databinding.tool.expr.TernaryExpr
 import android.databinding.tool.ext.androidId
 import android.databinding.tool.ext.br
@@ -53,17 +54,21 @@ class ExprModelExt {
 
     fun localizeFlag(set : FlagSet, name:String) : FlagSet {
         localizedFlags.add(set)
-        val result = getUniqueName(name, Scope.FLAG)
+        val result = getUniqueName(name, Scope.FLAG, false)
         set.setLocalName(result)
         return set
     }
 
-    fun getUniqueName(base : String, scope : Scope) : String {
-        var candidate = base
+    fun getUniqueName(base : String, scope : Scope, isPublic : kotlin.Boolean) : String {
+        var candidateBase = base
+        if (!isPublic && candidateBase.length() > 20) {
+            candidateBase = candidateBase.substring(0, 20);
+        }
+        var candidate = candidateBase
         var i = 0
         while (usedFieldNames[scope].contains(candidate)) {
             i ++
-            candidate = base + i
+            candidate = candidateBase + i
         }
         usedFieldNames[scope].add(candidate)
         return candidate
@@ -74,10 +79,10 @@ val ExprModel.ext by Delegates.lazy { target : ExprModel ->
     ExprModelExt()
 }
 
-fun ExprModel.getUniqueFieldName(base : String) : String = ext.getUniqueName(base, Scope.FIELD)
-fun ExprModel.getUniqueMethodName(base : String) : String = ext.getUniqueName(base, Scope.METHOD)
-fun ExprModel.getUniqueFlagName(base : String) : String = ext.getUniqueName(base, Scope.FLAG)
-fun ExprModel.getConstructorParamName(base : String) : String = ext.getUniqueName(base, Scope.CONSTRUCTOR_PARAM)
+fun ExprModel.getUniqueFieldName(base : String, isPublic : kotlin.Boolean) : String = ext.getUniqueName(base, Scope.FIELD, isPublic)
+fun ExprModel.getUniqueMethodName(base : String, isPublic : kotlin.Boolean) : String = ext.getUniqueName(base, Scope.METHOD, isPublic)
+fun ExprModel.getUniqueFlagName(base : String) : String = ext.getUniqueName(base, Scope.FLAG, false)
+fun ExprModel.getConstructorParamName(base : String) : String = ext.getUniqueName(base, Scope.CONSTRUCTOR_PARAM, false)
 
 fun ExprModel.localizeFlag(set : FlagSet, base : String) : FlagSet = ext.localizeFlag(set, base)
 
@@ -100,12 +105,15 @@ fun BindingTarget.superConversion(variable : String) : String {
 
 val BindingTarget.fieldName : String by Delegates.lazy { target : BindingTarget ->
     val name : String
+    val isPublic : kotlin.Boolean
     if (target.getId() == null) {
         name = "m${target.readableName}"
+        isPublic = false
     } else {
         name = target.readableName
+        isPublic = true
     }
-    target.getModel().getUniqueFieldName(name)
+    target.getModel().getUniqueFieldName(name, isPublic)
 }
 
 val BindingTarget.androidId by Delegates.lazy { target : BindingTarget ->
@@ -136,31 +144,31 @@ val Expr.readableName by Delegates.lazy { expr : Expr ->
 }
 
 val Expr.fieldName by Delegates.lazy { expr : Expr ->
-    expr.getModel().getUniqueFieldName("m${expr.readableName.capitalize()}")
+    expr.getModel().getUniqueFieldName("m${expr.readableName.capitalize()}", false)
 }
 
 val Expr.listenerClassName by Delegates.lazy { expr : Expr ->
-    expr.getModel().getUniqueFieldName("${expr.readableName.capitalize()}Impl")
+    expr.getModel().getUniqueFieldName("${expr.getResolvedType().getSimpleName()}Impl", false)
 }
 
 val Expr.oldValueName by Delegates.lazy { expr : Expr ->
-    expr.getModel().getUniqueFieldName("mOld${expr.readableName.capitalize()}")
+    expr.getModel().getUniqueFieldName("mOld${expr.readableName.capitalize()}", false)
 }
 
 val Expr.executePendingLocalName by Delegates.lazy { expr : Expr ->
-    "${expr.getModel().ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD)}"
+    "${expr.getModel().ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD, false)}"
 }
 
 val Expr.setterName by Delegates.lazy { expr : Expr ->
-    expr.getModel().getUniqueMethodName("set${expr.readableName.capitalize()}")
+    expr.getModel().getUniqueMethodName("set${expr.readableName.capitalize()}", true)
 }
 
 val Expr.onChangeName by Delegates.lazy { expr : Expr ->
-    expr.getModel().getUniqueMethodName("onChange${expr.readableName.capitalize()}")
+    expr.getModel().getUniqueMethodName("onChange${expr.readableName.capitalize()}", false)
 }
 
 val Expr.getterName by Delegates.lazy { expr : Expr ->
-    expr.getModel().getUniqueMethodName("get${expr.readableName.capitalize()}")
+    expr.getModel().getUniqueMethodName("get${expr.readableName.capitalize()}", true)
 }
 
 val Expr.dirtyFlagName by Delegates.lazy { expr : Expr ->
@@ -670,9 +678,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     fun declareListeners() = kcode("// listeners") {
         model.getExprMap().values().filter {
-            it is FieldAccessExpr && it.isListener()
+            it is ListenerExpr
         }.groupBy { it }.forEach {
-            val expr = it.key as FieldAccessExpr
+            val expr = it.key as ListenerExpr
             nl("private ${expr.listenerClassName} ${expr.fieldName};")
         }
     }
@@ -921,23 +929,17 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     fun declareListenerImpls() = kcode("// Listener Stub Implementations") {
         model.getExprMap().values().filter {
-            it.isUsed() && it is FieldAccessExpr && it.isListener()
+            it.isUsed() && it is ListenerExpr
         }.groupBy { it }.forEach {
-            val expr = it.key as FieldAccessExpr
-            val listeners = expr.getListenerTypes()
-            val extends = listeners.firstOrNull{ !it.isInterface() }
-            val extendsImplements = StringBuilder()
-            if (extends != null) {
-                extendsImplements.append("extends ${extends.toJavaCode()} ");
+            val expr = it.key as ListenerExpr
+            val listenerType = expr.getResolvedType();
+            val extendsImplements : String
+            if (listenerType.isInterface()) {
+                extendsImplements = "implements"
+            } else {
+                extendsImplements = "extends"
             }
-            val implements = expr.getListenerTypes().filter{ it.isInterface() }.map {
-                it.toJavaCode()
-            }.joinToString(", ")
-            if (!implements.isEmpty()) {
-                extendsImplements.append("implements ${implements}")
-            }
-            nl("public static class ${expr.listenerClassName} ${extendsImplements} {") {
-                tab("public ${expr.listenerClassName}() {}")
+            nl("public static class ${expr.listenerClassName} ${extendsImplements} ${listenerType.getCanonicalName()}{") {
                 if (expr.getChild().isDynamic()) {
                     tab("private ${expr.getChild().getResolvedType().toJavaCode()} value;")
                     tab("public ${expr.listenerClassName} setValue(${expr.getChild().getResolvedType().toJavaCode()} value) {") {
@@ -946,41 +948,33 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     }
                     tab("}")
                 }
-                val signatures = HashSet<String>()
-                expr.getListenerMethods().withIndex().forEach {
-                    val listener = it.value
-                    val calledMethod = expr.getCalledMethods().get(it.index)
-                    val parameterTypes = listener.getParameterTypes()
-                    val returnType = listener.getReturnType(parameterTypes.toArrayList())
-                    val signature = "public ${returnType} ${listener.getName()}(${
+                val listenerMethod = expr.getMethod()
+                val parameterTypes = listenerMethod.getParameterTypes()
+                val returnType = listenerMethod.getReturnType(parameterTypes.toArrayList())
+                tab("@Override")
+                tab("public ${returnType} ${listenerMethod.getName()}(${
                     parameterTypes.withIndex().map {
                         "${it.value.toJavaCode()} arg${it.index}"
                     }.joinToString(", ")
-                    }) {"
-                    if (!signatures.contains(signature)) {
-                        signatures.add(signature)
-                        tab("@Override")
-                        tab(signature) {
-                            val obj : String
-                            if (expr.getChild().isDynamic()) {
-                                obj = "this.value"
-                            } else {
-                                obj = expr.getChild().toCode().generate();
-                            }
-                            val returnStr : String
-                            if (!returnType.isVoid()) {
-                                returnStr = "return "
-                            } else {
-                                returnStr = ""
-                            }
-                            val args = parameterTypes.withIndex().map {
-                                "arg${it.index}"
-                            }.joinToString(", ")
-                            tab("${returnStr}${obj}.${calledMethod.getName()}(${args});")
-                        }
-                        tab("}")
+                }) {") {
+                    val obj : String
+                    if (expr.getChild().isDynamic()) {
+                        obj = "this.value"
+                    } else {
+                        obj = expr.getChild().toCode().generate();
                     }
+                    val returnStr : String
+                    if (!returnType.isVoid()) {
+                        returnStr = "return "
+                    } else {
+                        returnStr = ""
+                    }
+                    val args = parameterTypes.withIndex().map {
+                        "arg${it.index}"
+                    }.joinToString(", ")
+                    tab("${returnStr}${obj}.${expr.getName()}(${args});")
                 }
+                tab("}")
             }
             nl("}")
         }
