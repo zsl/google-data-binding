@@ -711,28 +711,25 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     tab("${mDirtyFlags.localValue(i)} = 0;")
                 }
             } tab("}")
-            model.getPendingExpressions().filterNot {!it.canBeEvaluatedToAVariable() || (it.isVariable() && !it.isUsed())}.forEach {
-                tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${if(it.isVariable()) it.fieldName else it.getDefaultValue()};")
+            model.getPendingExpressions().filterNot { !it.canBeEvaluatedToAVariable() || (it.isVariable() && !it.isUsed()) }.forEach {
+                tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${if (it.isVariable()) it.fieldName else it.getDefaultValue()};")
             }
             L.d("writing executePendingBindings for %s", className)
             do {
                 val batch = ExprModel.filterShouldRead(model.getPendingExpressions()).toArrayList()
+                val justRead = arrayListOf<Expr>()
                 L.d("batch: %s", batch)
-                val mJustRead = arrayListOf<Expr>()
                 while (!batch.none()) {
-                    val readNow = batch.filter { it.shouldReadNow(mJustRead) }
+                    val readNow = batch.filter { it.shouldReadNow(justRead) }
                     if (readNow.isEmpty()) {
                         throw IllegalStateException("do not know what I can read. bailing out ${batch.joinToString("\n")}")
                     }
                     L.d("new read now. batch size: %d, readNow size: %d", batch.size(), readNow.size())
-
-                    readNow.forEach {
-                        nl(readWithDependants(it, mJustRead, batch, tmpDirtyFlags))
-                    }
-                    batch.removeAll(mJustRead)
+                    nl(readWithDependants(readNow, justRead, batch, tmpDirtyFlags))
+                    batch.removeAll(justRead)
                 }
                 tab("// batch finished")
-            } while(model.markBitsRead())
+            } while (model.markBitsRead())
             // verify everything is read.
             val batch = ExprModel.filterShouldRead(model.getPendingExpressions()).toArrayList()
             if (batch.isNotEmpty()) {
@@ -743,52 +740,56 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             //
             layoutBinder.getSortedTargets().filter { it.isUsed() }
                     .flatMap { it.getBindings() }
-                    .groupBy { it.getExpr() }
-                    .forEach {
-                        val flagSet = it.key.dirtyFlagSet
-                        tab("if (${tmpDirtyFlags.mapOr(flagSet){ suffix, index ->
-                            "(${tmpDirtyFlags.localValue(index)} & ${flagSet.localValue(index)}) != 0"
-                        }.joinToString(" || ")
-                        }) {") {
+                    .groupBy {
+                        "${tmpDirtyFlags.mapOr(it.getExpr().dirtyFlagSet) { suffix, index ->
+                            "(${tmpDirtyFlags.localValue(index)} & ${it.getExpr().dirtyFlagSet.localValue(index)}) != 0"
+                        }.joinToString(" || ") }"
+                    }.forEach {
+                tab("if (${it.key}) {") {
+                    it.value.groupBy { Math.max(1, it.getMinApi()) }.forEach {
+                        val setterValues = kcode("") {
                             it.value.forEach { binding ->
-                                tab("// api target ${binding.getMinApi()}")
-                                val fieldName : String
+                                val fieldName: String
                                 if (binding.getTarget().getViewClass().
                                         equals(binding.getTarget().getInterfaceType())) {
                                     fieldName = "this.${binding.getTarget().fieldName}"
                                 } else {
                                     fieldName = "((${binding.getTarget().getViewClass()}) this.${binding.getTarget().fieldName})"
                                 }
-                                val bindingCode = binding.toJavaCode(fieldName, "this.mBindingComponent")
-                                if (binding.getMinApi() > 1) {
-                                    tab("if(getBuildSdkInt() >= ${binding.getMinApi()}) {") {
-                                        tab("$bindingCode;")
-                                    }
-                                    tab("}")
-                                } else {
-                                    tab("$bindingCode;")
-                                }
+                                tab(binding.toJavaCode(fieldName, "this.mBindingComponent")).app(";")
                             }
                         }
-                        tab("}")
+                        tab("// api target ${it.key}")
+                        if (it.key > 1) {
+                            tab("if(getBuildSdkInt() >= ${it.key}) {") {
+                                app("", setterValues)
+                            }
+                            tab("}")
+                        } else {
+                            app("", setterValues)
+                        }
                     }
+                }
+                tab("}")
+            }
+
 
             layoutBinder.getSortedTargets().filter { it.isUsed() }
                     .flatMap { it.getBindings() }
                     .filter { it.requiresOldValue() }
-                    .groupBy { it.getExpr() }
-                    .forEach {
-                        val flagSet = it.key.dirtyFlagSet
-                        tab("if (${tmpDirtyFlags.mapOr(flagSet) { suffix, index ->
-                            "(${tmpDirtyFlags.localValue(index)} & ${flagSet.localValue(index)}) != 0"
-                        }.joinToString(" || ")
-                        }) {") {
-                            it.value.first().getComponentExpressions().forEach { expr ->
-                                tab("this.${expr.oldValueName} = ${expr.toCode().generate()};")
-                            }
+                    .groupBy {"${tmpDirtyFlags.mapOr(it.getExpr().dirtyFlagSet) { suffix, index ->
+                        "(${tmpDirtyFlags.localValue(index)} & ${it.getExpr().dirtyFlagSet.localValue(index)}) != 0"
+                    }.joinToString(" || ")
+                    }"}.forEach {
+                tab("if (${it.key}) {") {
+                    it.value.groupBy { it.getExpr() }.map { it.value.first() }.forEach {
+                        it.getComponentExpressions().forEach { expr ->
+                            tab("this.${expr.oldValueName} = ${expr.toCode().generate()};")
                         }
-                        tab("}")
                     }
+                }
+                tab("}")
+            }
             includedBinders.filter{it.isUsed()}.forEach { binder ->
                 tab("${binder.fieldName}.executePendingBindings();")
             }
@@ -804,84 +805,117 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         nl("}")
     }
 
-    fun readWithDependants(expr : Expr, mJustRead : MutableList<Expr>, batch : MutableList<Expr>,
-            tmpDirtyFlags : FlagSet, inheritedFlags : FlagSet? = null) : KCode = kcode("") {
-        mJustRead.add(expr)
-        L.d("%s / readWithDependants %s", className, expr.getUniqueKey());
-        val flagSet = expr.shouldReadFlagSet
-        val needsIfWrapper = inheritedFlags == null || !flagSet.bitsEqual(inheritedFlags)
-        L.d("flag set:%s . inherited flags: %s. need another if: %s", flagSet, inheritedFlags, needsIfWrapper);
-        val ifClause = "if (${tmpDirtyFlags.mapOr(flagSet){ suffix, index ->
-            "(${tmpDirtyFlags.localValue(index)} & ${flagSet.localValue(index)}) != 0"
-        }.joinToString(" || ")
-        })"
-
-        val readCode = kcode("") {
-            if (expr.canBeEvaluatedToAVariable() && !expr.isVariable()) {
-                // it is not a variable read it.
-                tab("// read ${expr.getUniqueKey()}")
-                // create an if case for all dependencies that might be null
-                val nullables = expr.getDependencies().filter {
-                    it.isMandatory() && it.getOther().getResolvedType().isNullable()
-                }.map { it.getOther() }
-                if (!expr.isEqualityCheck() && nullables.isNotEmpty()) {
-                    tab ("if ( ${nullables.map { "${it.executePendingLocalName} != null" }.joinToString(" && ")}) {") {
-                        tab("${expr.executePendingLocalName}").app(" = ", expr.toFullCode()).app(";")
+    fun readWithDependants(expressionList: List<Expr>, justRead: MutableList<Expr>,
+            batch: MutableList<Expr>, tmpDirtyFlags: FlagSet,
+            inheritedFlags: FlagSet? = null) : KCode = kcode("") {
+        expressionList.groupBy { it.shouldReadFlagSet }.forEach {
+            val flagSet = it.key
+            val needsIfWrapper = inheritedFlags == null || !flagSet.bitsEqual(inheritedFlags)
+            val expressions = it.value
+            val ifClause = "if (${tmpDirtyFlags.mapOr(flagSet){ suffix, index ->
+                "(${tmpDirtyFlags.localValue(index)} & ${flagSet.localValue(index)}) != 0"
+            }.joinToString(" || ")
+            })"
+            val readCode = kcode("") {
+                val dependants = ArrayList<Expr>()
+                expressions.groupBy { condition(it) }.forEach {
+                    val condition = it.key
+                    val assignedValues = it.value.filter {
+                        it.canBeEvaluatedToAVariable() && !it.isVariable()
                     }
-                    tab("}")
-                } else {
-                    tab("${expr.executePendingLocalName}").app(" = ", expr.toFullCode()).app(";")
-                }
-                if (expr.isObservable()) {
-                    tab("updateRegistration(${expr.getId()}, ${expr.executePendingLocalName});")
-                }
-            }
+                    if (!assignedValues.isEmpty()) {
+                        val assignment = kcode("") {
+                            assignedValues.forEach { expr: Expr ->
+                                tab("// read ${expr.getUniqueKey()}")
+                                tab("${expr.executePendingLocalName}").app(" = ", expr.toFullCode()).app(";")
+                            }
+                        }
+                        if (condition != null) {
+                            tab("if (${condition}) {") {
+                                app("", assignment)
+                            }
+                            tab ("}")
+                        } else {
+                            app("", assignment)
+                        }
+                    }
+                    it.value.filter { it.isObservable() }.forEach { expr: Expr ->
+                        tab("updateRegistration(${expr.getId()}, ${expr.executePendingLocalName});")
+                    }
 
-            // if I am the condition for an expression, set its flag
-            val conditionals = expr.getDependants().filter { !it.isConditional()
-                    && it.getDependant() is TernaryExpr && (it.getDependant() as TernaryExpr).getPred() == expr }
-                    .map { it.getDependant() }
-            if (conditionals.isNotEmpty()) {
-                tab("// setting conditional flags")
-                tab("if (${expr.executePendingLocalName}) {") {
-                    conditionals.forEach {
-                        val set = it.getRequirementFlagSet(true)
-                        mDirtyFlags.mapOr(set) { suffix , index ->
-                            tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                    it.value.forEach { expr: Expr ->
+                        justRead.add(expr)
+                        L.d("%s / readWithDependants %s", className, expr.getUniqueKey());
+                        L.d("flag set:%s . inherited flags: %s. need another if: %s", flagSet, inheritedFlags, needsIfWrapper);
+
+                        // if I am the condition for an expression, set its flag
+                        val conditionals = expr.getDependants().filter {
+                            !it.isConditional() && it.getDependant() is TernaryExpr &&
+                                    (it.getDependant() as TernaryExpr).getPred() == expr
+                        }.map { it.getDependant() }
+                        if (conditionals.isNotEmpty()) {
+                            tab("// setting conditional flags")
+                            tab("if (${expr.executePendingLocalName}) {") {
+                                conditionals.forEach {
+                                    val set = it.getRequirementFlagSet(true)
+                                    mDirtyFlags.mapOr(set) { suffix, index ->
+                                        tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                                    }
+                                }
+                            }
+                            tab("} else {") {
+                                conditionals.forEach {
+                                    val set = it.getRequirementFlagSet(false)
+                                    mDirtyFlags.mapOr(set) { suffix, index ->
+                                        tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                                    }
+                                }
+                            }
+                            tab("}")
+                        }
+
+                        val chosen = expr.getDependants().filter {
+                            val dependant = it.getDependant()
+                            batch.contains(dependant) &&
+                                    dependant.shouldReadFlagSet.andNot(flagSet).isEmpty() &&
+                                    dependant.shouldReadNow(justRead)
+                        }
+                        if (chosen.isNotEmpty()) {
+                            dependants.addAll(chosen.map { it.getDependant() })
                         }
                     }
                 }
-                tab("} else {") {
-                    conditionals.forEach {
-                        val set = it.getRequirementFlagSet(false)
-                        mDirtyFlags.mapOr(set) { suffix , index ->
-                            tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
-                        }
-                    }
-                } tab("}")
+                if (dependants.isNotEmpty()) {
+                    val nextInheritedFlags = if (needsIfWrapper) flagSet else inheritedFlags
+                    nl(readWithDependants(dependants, justRead, batch, tmpDirtyFlags, nextInheritedFlags))
+                }
             }
 
-            val chosen = expr.getDependants().filter {
-                val dependant = it.getDependant()
-                batch.contains(dependant) &&
-                        dependant.shouldReadFlagSet.andNot(flagSet).isEmpty() &&
-                        dependant.shouldReadNow(mJustRead)
-            }
-            if (chosen.isNotEmpty()) {
-                val nextInheritedFlags = if (needsIfWrapper) flagSet else inheritedFlags
-                chosen.forEach {
-                    nl(readWithDependants(it.getDependant(), mJustRead, batch, tmpDirtyFlags, nextInheritedFlags))
+            if (needsIfWrapper) {
+                tab(ifClause) {
+                    app(" {")
+                    app("", readCode)
                 }
+                tab("}")
+            } else {
+                app("", readCode)
             }
         }
-        if (needsIfWrapper) {
-            tab(ifClause) {
-                app(" {")
-                nl(readCode)
+    }
+
+    fun condition(expr : Expr) : String? {
+        if (expr.canBeEvaluatedToAVariable() && !expr.isVariable()) {
+            // create an if case for all dependencies that might be null
+            val nullables = expr.getDependencies().filter {
+                it.isMandatory() && it.getOther().getResolvedType().isNullable()
+            }.map { it.getOther() }
+            if (!expr.isEqualityCheck() && nullables.isNotEmpty()) {
+                return "${nullables.map { "${it.executePendingLocalName} != null" }.joinToString(" && ")}"
+            } else {
+                return null
             }
-            tab("}")
         } else {
-            nl(readCode)
+            return null
         }
     }
 

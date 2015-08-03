@@ -16,7 +16,6 @@
 
 package android.databinding.tool.writer;
 
-import java.util.Arrays;
 import java.util.BitSet;
 
 /**
@@ -138,5 +137,33 @@ public class FlagSet {
             }
         }
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1;
+        for (long bucket : buckets) {
+            hash = (hash * 7) ^ (int)(bucket >>> 32);
+            hash = (hash * 13) ^ (int)(bucket & 0xFFFF);
+        }
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof FlagSet) {
+            FlagSet other = (FlagSet) obj;
+            if (other.buckets.length != buckets.length) {
+                return false;
+            }
+            for (int i = 0; i < buckets.length; i++) {
+                if (buckets[i] != other.buckets[i]) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 }
