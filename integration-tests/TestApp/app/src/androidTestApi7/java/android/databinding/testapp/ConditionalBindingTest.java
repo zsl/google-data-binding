@@ -1,6 +1,7 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ConditionalBindingBinding;
+import android.databinding.testapp.vo.ConditionalVo;
 import android.databinding.testapp.vo.NotBindableVo;
 
 import android.test.UiThreadTest;
@@ -15,6 +16,18 @@ public class ConditionalBindingTest extends BaseDataBinderTest<ConditionalBindin
     public void test1() {
         initBinder();
         testCorrectness(true, true);
+    }
+
+    @UiThreadTest
+    public void testTernary() throws Throwable {
+        ConditionalVo obj4 = new ConditionalVo();
+        initBinder();
+        mBinder.setObj4(obj4);
+        mBinder.executePendingBindings();
+        assertEquals("hello", mBinder.textView1.getText().toString());
+        obj4.setUseHello(true);
+        mBinder.executePendingBindings();
+        assertEquals("Hello World", mBinder.textView1.getText().toString());
     }
 
     private void testCorrectness(boolean cond1, boolean cond2) {

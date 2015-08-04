@@ -495,7 +495,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
                 // read myself
                 clone.andNot(readForConditional);
                 final BitSet invalidFlags = (BitSet) getInvalidFlags().clone();
-                invalidFlags.andNot(readForConditional);
+                invalidFlags.xor(readForConditional);
                 mRead = invalidFlags.isEmpty() || clone.isEmpty();
                 if (mRead) {
                     break;

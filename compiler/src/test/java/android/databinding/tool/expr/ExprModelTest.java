@@ -24,6 +24,7 @@ import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
 import android.databinding.BaseObservable;
+import android.databinding.Bindable;
 import android.databinding.tool.LayoutBinder;
 import android.databinding.tool.MockLayoutBinder;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -392,9 +393,9 @@ public class ExprModelTest {
         // actually, there is no real case to read u1 anymore because if b>c was not true,
         // u1.getCond(d) will never be set. Right now, we don't have mechanism to figure this out
         // and also it does not affect correctness (just an unnecessary if stmt)
-        assertExactMatch(shouldRead, u2, u1LastName, u2LastName, bcTernary.getIfTrue(), bcTernary);
+        assertExactMatch(shouldRead, u1, u2, u1LastName, u2LastName, bcTernary.getIfTrue(), bcTernary);
         firstRead = getReadFirst(shouldRead);
-        assertExactMatch(firstRead, u1LastName, u2);
+        assertExactMatch(firstRead, u1, u2);
 
         assertFlags(u1LastName, bcTernary.getIfTrue().getRequirementFlagIndex(true));
         assertFlags(u2LastName, bcTernary.getIfTrue().getRequirementFlagIndex(false));
@@ -443,6 +444,22 @@ public class ExprModelTest {
         assertFlags(c, a3Ternary.getRequirementFlagIndex(true),
                 a3Ternary.getRequirementFlagIndex(false));
         assertFlags(c4Ternary.getPred(), a3Ternary.getRequirementFlagIndex(true));
+    }
+
+    @Test
+    public void testInterExprDependency() {
+        LayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        IdentifierExpr u = lb.addVariable("u", User.class.getCanonicalName(),
+                null);
+        final Expr uComment = parse(lb, "u.comment", FieldAccessExpr.class);
+        final TernaryExpr uTernary = parse(lb, "u.useComment ? u.comment : `xx`", TernaryExpr.class);
+        mExprModel.seal();
+        List<Expr> shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, u, uComment, uTernary.getPred());
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, u, uComment, uTernary);
     }
 
     @Test
@@ -938,6 +955,13 @@ public class ExprModelTest {
         }
 
         public static boolean ourStaticMethod() {
+            return true;
+        }
+
+        public String comment;
+
+        @Bindable
+        public boolean useComment() {
             return true;
         }
 
