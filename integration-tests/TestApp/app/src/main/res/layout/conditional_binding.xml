@@ -39,5 +39,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{obj4.useHello ? obj4.text : `hello`}"/>
+        <View
+                android:id="@+id/view1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="@{cond1 ? obj4.clicked : null}"/>
     </LinearLayout>
 </layout>

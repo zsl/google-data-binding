@@ -48,8 +48,21 @@ public class TernaryExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
+        final Expr ifTrue = getIfTrue();
+        final Expr ifFalse = getIfFalse();
+        if (isNullLiteral(ifTrue)) {
+            return ifFalse.getResolvedType();
+        } else if (isNullLiteral(ifFalse)) {
+            return ifTrue.getResolvedType();
+        }
         return modelAnalyzer.findCommonParentOf(getIfTrue().getResolvedType(),
                 getIfFalse().getResolvedType());
+    }
+
+    private static boolean isNullLiteral(Expr expr) {
+        final ModelClass type = expr.getResolvedType();
+        return (type.isObject() && (expr instanceof SymbolExpr) &&
+                "null".equals(((SymbolExpr)expr).getText()));
     }
 
     @Override

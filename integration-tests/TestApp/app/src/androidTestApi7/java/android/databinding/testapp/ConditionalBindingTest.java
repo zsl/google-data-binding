@@ -30,6 +30,20 @@ public class ConditionalBindingTest extends BaseDataBinderTest<ConditionalBindin
         assertEquals("Hello World", mBinder.textView1.getText().toString());
     }
 
+    @UiThreadTest
+    public void testNullListener() throws Throwable {
+        ConditionalVo obj4 = new ConditionalVo();
+        initBinder();
+        mBinder.setObj4(obj4);
+        mBinder.executePendingBindings();
+        mBinder.view1.callOnClick();
+        assertFalse(obj4.wasClicked);
+        mBinder.setCond1(true);
+        mBinder.executePendingBindings();
+        mBinder.view1.callOnClick();
+        assertTrue(obj4.wasClicked);
+    }
+
     private void testCorrectness(boolean cond1, boolean cond2) {
         NotBindableVo o1 = new NotBindableVo("a");
         NotBindableVo o2 = new NotBindableVo("b");

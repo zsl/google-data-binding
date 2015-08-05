@@ -17,11 +17,13 @@ package android.databinding.testapp.vo;
 
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
-import android.databinding.ObservableBoolean;
 import android.databinding.testapp.BR;
+import android.view.View;
 
 public class ConditionalVo extends BaseObservable {
     private boolean useHello;
+    public String text = "Hello World";
+    public boolean wasClicked;
 
     @Bindable
     public boolean getUseHello() {
@@ -33,5 +35,7 @@ public class ConditionalVo extends BaseObservable {
         notifyPropertyChanged(BR.useHello);
     }
 
-    public String text = "Hello World";
+    public void clicked(View view) {
+        wasClicked = true;
+    }
 }
