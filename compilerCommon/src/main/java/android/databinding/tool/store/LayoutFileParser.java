@@ -140,7 +140,7 @@ public class LayoutFileParser {
                     bindingElements.add(ctx);
                 } else {
                     String name = ctx.elmName.getText();
-                    if (!"include".equals(name) && !"fragment".equals(name) &&
+                    if (!"fragment".equals(name) &&
                             attributeMap(ctx).containsKey("android:id")) {
                         otherElementsWithIds.add(ctx);
                     }
@@ -266,6 +266,8 @@ public class LayoutFileParser {
                 L.e("No class attribute for 'view' node");
             }
             viewName = classNode;
+        } else if ("include".equals(viewName) && !XmlEditor.hasExpressionAttributes(elm)) {
+            viewName = "android.view.View";
         }
         return viewName;
     }
