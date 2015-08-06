@@ -158,4 +158,14 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals(mBinder.getBool1() ? appName : mBinder.getBool2() ? rain : "",
                 mBinder.textView18.getText().toString());
     }
+
+    @UiThreadTest
+    public void testBoundTag() throws Throwable {
+        mBinder.setBool1(false);
+        mBinder.executePendingBindings();
+        assertEquals("bar", mBinder.textView19.getTag());
+        mBinder.setBool1(true);
+        mBinder.executePendingBindings();
+        assertEquals("foo", mBinder.textView19.getTag());
+    }
 }

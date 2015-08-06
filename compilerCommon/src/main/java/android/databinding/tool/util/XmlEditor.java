@@ -269,9 +269,16 @@ public class XmlEditor {
     public static boolean hasExpressionAttributes(XMLParser.ElementContext context) {
         List<? extends AttributeContext> expressions = expressionAttributes(context);
         int size = expressions.size();
-        //noinspection ConstantConditions
-        return size > 1 || (size == 1 &&
-                !expressions.get(0).attrName.getText().equals("android:tag"));
+        if (size == 0) {
+            return false;
+        } else if (size > 1) {
+            return true;
+        } else {
+            // android:tag is included, regardless, so we must only count as an expression
+            // if android:tag has a binding expression.
+            String value = expressions.get(0).attrValue.getText();
+            return value.startsWith("\"@{") || value.startsWith("'@{");
+        }
     }
 
     private static int recurseReplace(XMLParser.ElementContext node, ArrayList<String> lines,

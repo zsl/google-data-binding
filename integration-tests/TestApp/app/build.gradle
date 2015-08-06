@@ -30,6 +30,9 @@ android {
         api7 {
             minSdkVersion 7
         }
+        api14 {
+            minSdkVersion 14
+        }
     }
 }
 

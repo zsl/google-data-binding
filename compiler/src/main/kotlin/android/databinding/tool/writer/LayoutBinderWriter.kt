@@ -26,13 +26,13 @@ import android.databinding.tool.ext.br
 import android.databinding.tool.ext.joinToCamelCaseAsVar
 import android.databinding.tool.ext.lazy
 import android.databinding.tool.ext.versionedLazy
+import android.databinding.tool.processing.ErrorMessages
 import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.util.L
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.BitSet
 import java.util.HashMap
-import java.util.HashSet
 import kotlin.properties.Delegates
 
 fun String.stripNonJava() = this.split("[^a-zA-Z0-9]".toRegex()).map{ it.trim() }.joinToCamelCaseAsVar()
@@ -453,7 +453,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                         (rootTagsSupported || it.getTag().startsWith("binding_"))) {
                     val originalTag = it.getOriginalTag();
                     var tagValue = "null"
-                    if (originalTag != null) {
+                    if (originalTag != null && !originalTag.startsWith("@{")) {
                         tagValue = "\"${originalTag}\""
                         if (originalTag.startsWith("@")) {
                             var packageName = layoutBinder.getModulePackage()
@@ -466,6 +466,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                         }
                     }
                     tab("this.${it.fieldName}.setTag(${tagValue});")
+                } else if (it.getTag() != null && !it.getTag().startsWith("binding_") &&
+                    it.getOriginalTag() != null) {
+                    L.e(ErrorMessages.ROOT_TAG_NOT_SUPPORTED, it.getOriginalTag())
                 }
             }
         }

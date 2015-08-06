@@ -36,4 +36,7 @@ public class ErrorMessages {
                     + " configurations";
     public static final String MULTI_CONFIG_ID_USED_AS_IMPORT =
             "Cannot use the same id (%s) for a View and an include tag.";
+    public static final String ROOT_TAG_NOT_SUPPORTED = "android:tag is not supported on root " +
+            "elements of data bound layouts unless targeting API version 14 or greater. Value " +
+            "is '%s'";
 }
