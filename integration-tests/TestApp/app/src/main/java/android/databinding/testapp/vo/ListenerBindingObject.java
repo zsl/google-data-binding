@@ -16,6 +16,7 @@
 package android.databinding.testapp.vo;
 
 import android.content.Context;
+import android.databinding.BaseObservable;
 import android.databinding.ObservableBoolean;
 import android.graphics.Outline;
 import android.media.MediaPlayer;
@@ -255,4 +256,10 @@ public class ListenerBindingObject {
         return true;
     }
 
+    public static class Inner extends BaseObservable {
+        public boolean clicked;
+        public void onClick(View view) {
+            clicked = true;
+        }
+    }
 }
