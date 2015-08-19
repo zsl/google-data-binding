@@ -676,6 +676,9 @@ public class SetterStore {
     private MethodDescription getConversionMethod(ModelClass from, ModelClass to,
             Map<String, String> imports) {
         if (from != null && to != null) {
+            if (to.isObject()) {
+                return null;
+            }
             for (String fromClassName : mStore.conversionMethods.keySet()) {
                 try {
                     ModelClass convertFrom = mClassAnalyzer.findClass(fromClassName, imports);
