@@ -143,6 +143,11 @@ public abstract class ModelClass {
     public abstract boolean isTypeVar();
 
     /**
+     * @return whether this is a wildcard type argument or not.
+     */
+    public abstract boolean isWildcard();
+
+    /**
      * @return whether or not this ModelClass is java.lang.Object and not a primitive or subclass.
      */
     public boolean isObject() {
@@ -475,6 +480,21 @@ public abstract class ModelClass {
             return null;
         }
         return matching;
+    }
+
+    public boolean isIncomplete() {
+        if (isTypeVar() || isWildcard()) {
+            return true;
+        }
+        List<ModelClass> typeArgs = getTypeArguments();
+        if (typeArgs != null) {
+            for (ModelClass typeArg : typeArgs) {
+                if (typeArg.isIncomplete()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     protected abstract ModelField[] getDeclaredFields();

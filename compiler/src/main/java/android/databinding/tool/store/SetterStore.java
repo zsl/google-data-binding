@@ -287,11 +287,34 @@ public class SetterStore {
     }
 
     private static String getQualifiedName(TypeMirror type) {
-        if (type.getKind() == TypeKind.ARRAY) {
+        final TypeKind kind = type.getKind();
+        if (kind == TypeKind.ARRAY) {
             return getQualifiedName(((ArrayType) type).getComponentType()) + "[]";
+        } else if (kind == TypeKind.DECLARED && isIncompleteType(type)) {
+            DeclaredType declaredType = (DeclaredType) type;
+            return declaredType.asElement().toString();
         } else {
             return type.toString();
         }
+    }
+
+    private static boolean isIncompleteType(TypeMirror type) {
+        final TypeKind kind = type.getKind();
+        if (kind == TypeKind.TYPEVAR || kind == TypeKind.WILDCARD) {
+            return true;
+        } else if (kind == TypeKind.DECLARED) {
+            DeclaredType declaredType = (DeclaredType) type;
+            List<? extends TypeMirror> typeArgs = declaredType.getTypeArguments();
+            if (typeArgs == null) {
+                return false;
+            }
+            for (TypeMirror arg : typeArgs) {
+                if (isIncompleteType(arg)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public void addConversionMethod(ExecutableElement conversionMethod) {
@@ -706,6 +729,10 @@ public class SetterStore {
     }
 
     private boolean canUseForConversion(ModelClass from, ModelClass to) {
+        if (from.isIncomplete() || to.isIncomplete()) {
+            from = from.erasure();
+            to = to.erasure();
+        }
         return from.equals(to) || ModelMethod.isBoxingConversion(from, to) ||
                 to.isAssignableFrom(from);
     }
