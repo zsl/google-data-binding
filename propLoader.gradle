@@ -29,6 +29,7 @@ def config = ext.config
 def localRepositories = ["${config.extraPluginsRepoDir}",
                          "${config.megaRepoDir}",
                          "${config.mavenRepoDir}",
+                         "${config.externalPrebuiltsBase}/tools/common/offline-m2",
                          "${config.externalPrebuiltsBase}/maven_repo/android",
                          "${config.externalPrebuiltsBase}/gradle-plugin",
                          "${config.externalPrebuiltsBase}/tools/common/m2/repository"]

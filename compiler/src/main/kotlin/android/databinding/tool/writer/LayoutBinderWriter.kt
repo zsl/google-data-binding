@@ -849,9 +849,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                         } else {
                             app("", assignment)
                         }
-                    }
-                    it.value.filter { it.isObservable() }.forEach { expr: Expr ->
-                        tab("updateRegistration(${expr.getId()}, ${expr.executePendingLocalName});")
+                        it.value.filter { it.isObservable() }.forEach { expr: Expr ->
+                            tab("updateRegistration(${expr.getId()}, ${expr.executePendingLocalName});")
+                        }
                     }
 
                     it.value.forEach { expr: Expr ->
