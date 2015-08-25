@@ -55,7 +55,13 @@ public class BracketExpr extends Expr {
 
     @Override
     protected List<Dependency> constructDependencies() {
-        return constructDynamicChildrenDependencies();
+        final List<Dependency> dependencies = constructDynamicChildrenDependencies();
+        for (Dependency dependency : dependencies) {
+            if (dependency.getOther() == getTarget()) {
+                dependency.setMandatory(true);
+            }
+        }
+        return dependencies;
     }
 
     protected String computeUniqueKey() {

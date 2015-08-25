@@ -69,4 +69,9 @@ public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
         assertEquals("true", mBinder.sparseBooleanArrayText.getText().toString());
         assertEquals("5", mBinder.sparseLongArrayText.getText().toString());
     }
+
+    @UiThreadTest
+    public void testBracketObj() {
+        assertEquals("", mBinder.bracketMap.getText().toString());
+    }
 }
