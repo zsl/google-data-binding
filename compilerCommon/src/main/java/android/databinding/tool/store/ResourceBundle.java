@@ -116,7 +116,7 @@ public class ResourceBundle implements Serializable {
                     bundles.getValue(), ErrorMessages.MULTI_CONFIG_VARIABLE_TYPE_MISMATCH,
                     new ValidateAndFilterCallback() {
                         @Override
-                        public List<NameTypeLocation> get(LayoutFileBundle bundle) {
+                        public List<? extends NameTypeLocation> get(LayoutFileBundle bundle) {
                             return bundle.mVariables;
                         }
                     });
@@ -136,7 +136,8 @@ public class ResourceBundle implements Serializable {
                         bundle.mConfigName);
                 for (Map.Entry<String, NameTypeLocation> variable : variableTypes.entrySet()) {
                     if (!NameTypeLocation.contains(bundle.mVariables, variable.getKey())) {
-                        bundle.mVariables.add(variable.getValue());
+                        NameTypeLocation orig = variable.getValue();
+                        bundle.addVariable(orig.name, orig.type, orig.location, false);
                         L.d("adding missing variable %s to %s / %s", variable.getKey(),
                                 bundle.mFileName, bundle.mConfigName);
                     }
@@ -386,7 +387,7 @@ public class ResourceBundle implements Serializable {
         public boolean mHasVariations;
 
         @XmlElement(name="Variables")
-        public List<NameTypeLocation> mVariables = new ArrayList<>();
+        public List<VariableDeclaration> mVariables = new ArrayList<>();
 
         @XmlElement(name="Imports")
         public List<NameTypeLocation> mImports = new ArrayList<>();
@@ -421,10 +422,10 @@ public class ResourceBundle implements Serializable {
             return mClassNameLocationProvider;
         }
 
-        public void addVariable(String name, String type, Location location) {
+        public void addVariable(String name, String type, Location location, boolean declared) {
             Preconditions.check(!NameTypeLocation.contains(mVariables, name),
                     "Cannot use same variable name twice. %s in %s", name, location);
-            mVariables.add(new NameTypeLocation(name, type, location));
+            mVariables.add(new VariableDeclaration(name, type, location, declared));
         }
 
         public void addImport(String alias, String type, Location location) {
@@ -470,7 +471,7 @@ public class ResourceBundle implements Serializable {
             return mHasVariations;
         }
 
-        public List<NameTypeLocation> getVariables() {
+        public List<VariableDeclaration> getVariables() {
             return mVariables;
         }
 
@@ -646,13 +647,28 @@ public class ResourceBundle implements Serializable {
             return result;
         }
 
-        public static boolean contains(List<NameTypeLocation> list, String name) {
+        public static boolean contains(List<? extends NameTypeLocation> list, String name) {
             for (NameTypeLocation ntl : list) {
                 if (name.equals(ntl.name)) {
                     return true;
                 }
             }
             return false;
+        }
+    }
+
+    @XmlAccessorType(XmlAccessType.NONE)
+    public static class VariableDeclaration extends NameTypeLocation {
+        @XmlAttribute(name="declared", required = false)
+        public boolean declared;
+
+        public VariableDeclaration() {
+
+        }
+
+        public VariableDeclaration(String name, String type, Location location, boolean declared) {
+            super(name, type, location);
+            this.declared = declared;
         }
     }
 
@@ -836,6 +852,6 @@ public class ResourceBundle implements Serializable {
      * Just an inner callback class to process imports and variables w/ the same code.
      */
     private interface ValidateAndFilterCallback {
-        List<NameTypeLocation> get(LayoutFileBundle bundle);
+        List<? extends NameTypeLocation> get(LayoutFileBundle bundle);
     }
 }

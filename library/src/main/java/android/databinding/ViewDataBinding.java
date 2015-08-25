@@ -292,8 +292,8 @@ public abstract class ViewDataBinding {
      * @param variableId the BR id of the variable to be set. For example, if the variable is
      *                   <code>x</code>, then variableId will be <code>BR.x</code>.
      * @param value The new value of the variable to be set.
-     * @return <code>true</code> if the variable exists in the binding or <code>false</code>
-     * otherwise.
+     * @return <code>true</code> if the variable is declared or used in the binding or
+     * <code>false</code> otherwise.
      */
     public abstract boolean setVariable(int variableId, Object value);
 

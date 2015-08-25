@@ -543,6 +543,14 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                         tab("return true;")
                     }
                 }
+                val declaredOnly = variables.filter { !it.isUsed() && it.isDeclared() };
+                declaredOnly.forEachIndexed { i, identifierExpr ->
+                    tab ("case ${identifierExpr.getName().br()} :") {
+                        if (i == declaredOnly.size() - 1) {
+                            tab("return true;")
+                        }
+                    }
+                }
             }
             tab("}")
             tab("return false;")

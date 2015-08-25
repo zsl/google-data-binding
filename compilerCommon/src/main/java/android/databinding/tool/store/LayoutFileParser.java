@@ -298,7 +298,7 @@ public class LayoutFileParser {
                     variable.toStringTree(), xml);
             Preconditions.checkNotNull(name, "variable must have a name %s in %s",
                     variable.toStringTree(), xml);
-            bundle.addVariable(name, type, new Location(variable));
+            bundle.addVariable(name, type, new Location(variable), true);
         }
         final XMLParser.AttributeContext className = findAttribute(data, "class");
         if (className != null) {

@@ -172,8 +172,8 @@ public class LayoutBinder implements FileScopeProvider {
             mBundle = layoutBundle;
             mModulePackage = layoutBundle.getModulePackage();
             // copy over data.
-            for (ResourceBundle.NameTypeLocation variable : mBundle.getVariables()) {
-                addVariable(variable.name, variable.type, variable.location);
+            for (ResourceBundle.VariableDeclaration variable : mBundle.getVariables()) {
+                addVariable(variable.name, variable.type, variable.location, variable.declared);
             }
 
             for (ResourceBundle.NameTypeLocation userImport : mBundle.getImports()) {
@@ -222,7 +222,8 @@ public class LayoutBinder implements FileScopeProvider {
         }
     }
 
-    public IdentifierExpr addVariable(String name, String type, Location location) {
+    public IdentifierExpr addVariable(String name, String type, Location location,
+            boolean declared) {
         Preconditions.check(!mUserDefinedVariables.containsKey(name),
                 "%s has already been defined as %s", name, type);
         final IdentifierExpr id = mExprModel.identifier(name);
@@ -232,6 +233,9 @@ public class LayoutBinder implements FileScopeProvider {
             id.addLocation(location);
         }
         mUserDefinedVariables.put(name, type);
+        if (declared) {
+            id.setDeclared();
+        }
         return id;
     }
 

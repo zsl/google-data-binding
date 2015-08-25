@@ -29,6 +29,8 @@ import java.util.List;
 public class IdentifierExpr extends Expr {
     String mName;
     String mUserDefinedType;
+    private boolean mIsDeclared;
+
     IdentifierExpr(String name) {
         mName = name;
     }
@@ -78,5 +80,13 @@ public class IdentifierExpr extends Expr {
     @Override
     protected KCode generateCode() {
         return new KCode(WriterPackage.getExecutePendingLocalName(this));
+    }
+
+    public void setDeclared() {
+        mIsDeclared = true;
+    }
+
+    public boolean isDeclared() {
+        return mIsDeclared;
     }
 }
