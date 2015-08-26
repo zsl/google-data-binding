@@ -55,7 +55,25 @@ class AnnotationClass extends ModelClass {
 
     @Override
     public String toJavaCode() {
+        if (isIncomplete(mTypeMirror)) {
+            return getCanonicalName();
+        }
         return mTypeMirror.toString();
+    }
+
+    private static boolean isIncomplete(TypeMirror typeMirror) {
+        final TypeKind typeKind = typeMirror.getKind();
+        if (typeKind == TypeKind.DECLARED) {
+            DeclaredType declaredType = (DeclaredType) typeMirror;
+            for (TypeMirror typeArg : declaredType.getTypeArguments()) {
+                if (isIncomplete(typeArg)) {
+                    return true;
+                }
+            }
+        } else if (typeKind == TypeKind.TYPEVAR) {
+            return true;
+        }
+        return false;
     }
 
     @Override
