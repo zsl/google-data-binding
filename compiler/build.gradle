@@ -63,19 +63,4 @@ project(':library').afterEvaluate { libProject ->
     tasks['compileTestKotlin'].dependsOn libProject.tasks['uploadJarArchives']
 }
 
-task fatJar(type: Jar) {
-    baseName = project.name + '-all'
-    doFirst {
-        tasks.findByName("buildLicenseNoticeFor${project.name.capitalize()}").execute()
-    }
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    from new File(project.buildDir,'NOTICE.txt')
-    archiveName "databinding-studio-bundle.jar"
-    destinationDir = new File(config.prebuildFolder)
-    with jar
-}
-
-task prebuild() {
-    dependsOn fatJar
-}
-
+fullJar(project)
