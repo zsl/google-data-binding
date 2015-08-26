@@ -42,4 +42,8 @@ public class BasicObject extends BaseObservable {
         this.mField2 = field2;
         notifyPropertyChanged(BR.field1);
     }
+
+    public String boolMethod(boolean value) {
+        return value ? "true" : "false";
+    }
 }

@@ -138,7 +138,7 @@ public class ExprModelTest {
 
     @Test
     public void testShouldRead() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", "java.lang.String", null);
         IdentifierExpr b = lb.addVariable("b", "java.lang.String", null);
@@ -160,7 +160,7 @@ public class ExprModelTest {
 
     @Test
     public void testTernaryWithPlus() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr user = lb
                 .addVariable("user", "android.databinding.tool.expr.ExprModelTest.User",
@@ -215,7 +215,7 @@ public class ExprModelTest {
 
     @Test
     public void testTernaryInsideTernary() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr cond1 = lb.addVariable("cond1", "boolean", null);
         IdentifierExpr cond2 = lb.addVariable("cond2", "boolean", null);
@@ -260,7 +260,7 @@ public class ExprModelTest {
 
     @Test
     public void testRequirementFlags() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", "java.lang.String", null);
         IdentifierExpr b = lb.addVariable("b", "java.lang.String", null);
@@ -332,7 +332,7 @@ public class ExprModelTest {
 
     @Test
     public void testPostConditionalDependencies() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
 
         IdentifierExpr u1 = lb.addVariable("u1", User.class.getCanonicalName(), null);
@@ -396,24 +396,26 @@ public class ExprModelTest {
         assertTrue(mExprModel.markBitsRead());
 
         shouldRead = getShouldRead();
-        // actually, there is no real case to read u1 anymore because if b>c was not true,
+        // FIXME: there is no real case to read u1 anymore because if b>c was not true,
         // u1.getCond(d) will never be set. Right now, we don't have mechanism to figure this out
         // and also it does not affect correctness (just an unnecessary if stmt)
         assertExactMatch(shouldRead, u1, u2, u1LastName, u2LastName, bcTernary.getIfTrue(), bcTernary);
         firstRead = getReadFirst(shouldRead);
         assertExactMatch(firstRead, u1, u2);
-
+        assertFlags(u1, bcTernary.getIfTrue().getRequirementFlagIndex(true));
+        assertFlags(u2, bcTernary.getIfTrue().getRequirementFlagIndex(false));
         assertFlags(u1LastName, bcTernary.getIfTrue().getRequirementFlagIndex(true));
         assertFlags(u2LastName, bcTernary.getIfTrue().getRequirementFlagIndex(false));
-        assertFlags(u2, bcTernary.getIfTrue().getRequirementFlagIndex(false));
 
         assertFlags(bcTernary.getIfTrue(), bcTernary.getRequirementFlagIndex(true));
         assertFlags(bcTernary, b, c, u1, u2, d, u1LastName, u2LastName, e);
+
+        assertFalse(mExprModel.markBitsRead());
     }
 
     @Test
     public void testCircularDependency() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName(),
                 null);
@@ -431,7 +433,7 @@ public class ExprModelTest {
 
     @Test
     public void testNestedCircularDependency() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName(),
                 null);
@@ -454,23 +456,24 @@ public class ExprModelTest {
 
     @Test
     public void testInterExprDependency() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr u = lb.addVariable("u", User.class.getCanonicalName(),
                 null);
         final Expr uComment = parse(lb, "u.comment", FieldAccessExpr.class);
         final TernaryExpr uTernary = parse(lb, "u.useComment ? u.comment : `xx`", TernaryExpr.class);
         mExprModel.seal();
+        assertTrue(uTernary.getPred().canBeInvalidated());
         List<Expr> shouldRead = getShouldRead();
         assertExactMatch(shouldRead, u, uComment, uTernary.getPred());
         assertTrue(mExprModel.markBitsRead());
         shouldRead = getShouldRead();
-        assertExactMatch(shouldRead, u, uComment, uTernary);
+        assertExactMatch(shouldRead, uComment, uTernary);
     }
 
     @Test
     public void testInterExprCircularDependency() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", int.class.getCanonicalName(),
                 null);
@@ -488,7 +491,7 @@ public class ExprModelTest {
 
     @Test
     public void testInterExprCircularDependency2() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(),
                 null);
@@ -499,20 +502,15 @@ public class ExprModelTest {
         mExprModel.seal();
         List<Expr> shouldRead = getShouldRead();
         assertExactMatch(shouldRead, a, b);
+        assertFlags(a, a, b);
+        assertFlags(b, a, b);
         List<Expr> readFirst = getReadFirst(shouldRead);
         assertExactMatch(readFirst, a, b);
         assertTrue(mExprModel.markBitsRead());
         shouldRead = getShouldRead();
-        // read a and b again, this time for their dependencies and also the rest since everything
-        // is ready to be read
-        assertExactMatch(shouldRead, a, b, abTernary, baTernary);
-        List<Expr> justRead = new ArrayList<Expr>();
+        assertExactMatch(shouldRead, abTernary, baTernary);
         readFirst = getReadFirst(shouldRead);
-        assertExactMatch(readFirst, a, b);
-        Collections.addAll(justRead, a, b);
-        readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
         assertExactMatch(readFirst, abTernary, baTernary);
-
         assertFalse(mExprModel.markBitsRead());
         shouldRead = getShouldRead();
         assertEquals(0, shouldRead.size());
@@ -520,7 +518,7 @@ public class ExprModelTest {
 
     @Test
     public void testInterExprCircularDependency3() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(),
                 null);
@@ -537,7 +535,7 @@ public class ExprModelTest {
         shouldRead = getShouldRead();
         // read a and b again, this time for their dependencies and also the rest since everything
         // is ready to be read
-        assertExactMatch(shouldRead, a, b, c, abTernary, abTernary2);
+        assertExactMatch(shouldRead, c, abTernary, abTernary2);
         mExprModel.markBitsRead();
         shouldRead = getShouldRead();
         assertEquals(0, shouldRead.size());
@@ -545,7 +543,7 @@ public class ExprModelTest {
 
     @Test
     public void testInterExprCircularDependency4() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(),
                 null);
@@ -560,6 +558,8 @@ public class ExprModelTest {
         final TernaryExpr baTernary = parse(lb, "b ? a : false", TernaryExpr.class);
         mExprModel.seal();
         List<Expr> shouldRead = getShouldRead();
+        // check if a,b or c should be read. these are easily calculated from binding expressions'
+        // invalidation
         assertExactMatch(shouldRead, c, a, b);
 
         List<Expr> justRead = new ArrayList<Expr>();
@@ -569,16 +569,36 @@ public class ExprModelTest {
         assertEquals(0, filterOut(getReadFirst(shouldRead, justRead), justRead).size());
         assertTrue(mExprModel.markBitsRead());
         shouldRead = getShouldRead();
-        assertExactMatch(shouldRead, a, b, d, cTernary.getIfTrue(), cTernary, abTernary, baTernary);
+        // if a and b are not invalid, a won't be read in the first step. But if c's expression
+        // is invalid and c == true, a must be read. Depending on a, d might be read as well.
+        // don't need to read b anymore because `a ? b : true` and `b ? a : false` has the same
+        // invalidation flags.
+        assertExactMatch(shouldRead, a, abTernary, baTernary);
         justRead.clear();
 
         readFirst = getReadFirst(shouldRead);
-        assertExactMatch(readFirst, a, b, d);
-        Collections.addAll(justRead, a, b, d);
+        // first must read `a`.
+        assertExactMatch(readFirst, a);
+        Collections.addAll(justRead, a);
 
         readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
-        assertExactMatch(readFirst, cTernary.getIfTrue(), abTernary, baTernary);
-        Collections.addAll(justRead, cTernary.getIfTrue(), abTernary, baTernary);
+        assertExactMatch(readFirst, abTernary, baTernary);
+        Collections.addAll(justRead, abTernary, baTernary);
+
+        readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
+        assertEquals(0, filterOut(getReadFirst(shouldRead, justRead), justRead).size());
+        assertTrue(mExprModel.markBitsRead());
+
+        shouldRead = getShouldRead();
+        // now we can read adf ternary and c ternary
+        justRead.clear();
+        assertExactMatch(shouldRead, d, cTernary.getIfTrue(), cTernary);
+        readFirst = getReadFirst(shouldRead);
+        assertExactMatch(readFirst, d);
+        Collections.addAll(justRead, d);
+        readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
+        assertExactMatch(readFirst, cTernary.getIfTrue());
+        Collections.addAll(justRead, cTernary.getIfTrue());
 
         readFirst = filterOut(getReadFirst(shouldRead, justRead), justRead);
         assertExactMatch(readFirst, cTernary);
@@ -590,8 +610,33 @@ public class ExprModelTest {
     }
 
     @Test
+    public void testInterExprDeepDependency() {
+        MockLayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(), null);
+        IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName(), null);
+        IdentifierExpr c = lb.addVariable("c", boolean.class.getCanonicalName(), null);
+        final TernaryExpr t1 = parse(lb, "c ? (a ? b : true) : false", TernaryExpr.class);
+        final TernaryExpr t2 = parse(lb, "c ? (b ? a : false) : true", TernaryExpr.class);
+        final TernaryExpr abTernary = (TernaryExpr) t1.getIfTrue();
+        final TernaryExpr baTernary = (TernaryExpr) t2.getIfTrue();
+        mExprModel.seal();
+        List<Expr> shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, c);
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, a, b);
+        assertTrue(mExprModel.markBitsRead());
+        shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, a, b, t1.getIfTrue(), t2.getIfTrue(), t1, t2);
+        assertFlags(b, abTernary.getRequirementFlagIndex(true));
+        assertFlags(a, baTernary.getRequirementFlagIndex(true));
+        assertFalse(mExprModel.markBitsRead());
+    }
+
+    @Test
     public void testInterExprDependencyNotReadyYet() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr a = lb.addVariable("a", boolean.class.getCanonicalName(), null);
         IdentifierExpr b = lb.addVariable("b", boolean.class.getCanonicalName(), null);
@@ -615,7 +660,7 @@ public class ExprModelTest {
 
     @Test
     public void testNoFlagsForNonBindingStatic() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         lb.addVariable("a", int.class.getCanonicalName(), null);
         final MathExpr parsed = parse(lb, "a * (3 + 2)", MathExpr.class);
@@ -630,7 +675,7 @@ public class ExprModelTest {
 
     @Test
     public void testFlagsForBindingStatic() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         lb.addVariable("a", int.class.getCanonicalName(), null);
         final Expr staticParsed = parse(lb, "3 + 2", MathExpr.class);
@@ -648,7 +693,7 @@ public class ExprModelTest {
 
     @Test
     public void testFinalFieldOfAVariable() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         IdentifierExpr user = lb.addVariable("user", User.class.getCanonicalName(),
                 null);
@@ -664,7 +709,7 @@ public class ExprModelTest {
 
     @Test
     public void testFinalFieldOfAField() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         lb.addVariable("user", User.class.getCanonicalName(), null);
         Expr finalFieldGet = parse(lb, "user.subObj.finalField", FieldAccessExpr.class);
@@ -683,7 +728,7 @@ public class ExprModelTest {
 
     @Test
     public void testFinalFieldOfAMethod() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         lb.addVariable("user", User.class.getCanonicalName(), null);
         Expr finalFieldGet = parse(lb, "user.anotherSubObj.finalField", FieldAccessExpr.class);
@@ -702,7 +747,7 @@ public class ExprModelTest {
 
     @Test
     public void testFinalOfAClass() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         mExprModel.addImport("View", "android.view.View", null);
         FieldAccessExpr fieldAccess = parse(lb, "View.VISIBLE", FieldAccessExpr.class);
@@ -713,7 +758,7 @@ public class ExprModelTest {
 
     @Test
     public void testStaticFieldOfInstance() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         lb.addVariable("myView", "android.view.View", null);
         FieldAccessExpr fieldAccess = parse(lb, "myView.VISIBLE", FieldAccessExpr.class);
@@ -730,7 +775,7 @@ public class ExprModelTest {
 
     @Test
     public void testOnDemandImportConflict() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         final IdentifierExpr myView = lb.addVariable("u", "android.view.View",
                 null);
@@ -745,7 +790,7 @@ public class ExprModelTest {
 
     @Test
     public void testOnDemandImportAlreadyImported() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         final StaticIdentifierExpr ux = mExprModel.addImport("UX", User.class.getCanonicalName(),
                 null);
@@ -759,7 +804,7 @@ public class ExprModelTest {
 
     @Test
     public void testStaticMethodOfInstance() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         lb.addVariable("user", User.class.getCanonicalName(), null);
         MethodCallExpr methodCall = parse(lb, "user.ourStaticMethod()", MethodCallExpr.class);
@@ -773,7 +818,7 @@ public class ExprModelTest {
 
     @Test
     public void testFinalOfStaticField() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         mExprModel.addImport("UX", User.class.getCanonicalName(), null);
         FieldAccessExpr fieldAccess = parse(lb, "UX.innerStaticInstance.finalStaticField",
@@ -786,7 +831,7 @@ public class ExprModelTest {
 
     @Test
     public void testFinalOfFinalStaticField() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         mExprModel.addImport("User", User.class.getCanonicalName(), null);
         FieldAccessExpr fieldAccess = parse(lb, "User.innerFinalStaticInstance.finalStaticField",
@@ -798,7 +843,7 @@ public class ExprModelTest {
 
     @Test
     public void testLocationTracking() {
-        LayoutBinder lb = new MockLayoutBinder();
+        MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
         final String input = "a > 3 ? b : c";
         TernaryExpr ternaryExpr = parse(lb, input, TernaryExpr.class);
@@ -849,7 +894,7 @@ public class ExprModelTest {
 //    TODO uncomment when we have inner static access
 //    @Test
 //    public void testFinalOfInnerStaticClass() {
-//        LayoutBinder lb = new MockLayoutBinder();
+//        MockLayoutBinder lb = new MockLayoutBinder();
 //        mExprModel = lb.getModel();
 //        mExprModel.addImport("User", User.class.getCanonicalName());
 //        FieldAccessExpr fieldAccess = parse(lb, "User.InnerStaticClass.finalStaticField", FieldAccessExpr.class);
@@ -884,7 +929,9 @@ public class ExprModelTest {
 
     private void assertExactMatch(List<Expr> iterable, Expr... exprs) {
         int i = 0;
-        String log = Arrays.toString(iterable.toArray());
+        String listLog = Arrays.toString(iterable.toArray());
+        String itemsLog = Arrays.toString(exprs);
+        String log = "list: " + listLog + "\nitems: " + itemsLog;
         log("list", iterable);
         for (Expr expr : exprs) {
             assertTrue((i++) + ":must contain " + expr.getUniqueKey() + "\n" + log,
@@ -892,7 +939,7 @@ public class ExprModelTest {
         }
         i = 0;
         for (Expr expr : iterable) {
-            assertTrue((i++) + ":must be expected " + expr.getUniqueKey(),
+            assertTrue((i++) + ":must be expected " + expr.getUniqueKey() + "\n" + log,
                     ArrayUtils.contains(exprs, expr));
         }
     }

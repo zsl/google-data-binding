@@ -34,7 +34,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class LayoutBinderTest {
-    LayoutBinder mLayoutBinder;
+    MockLayoutBinder mLayoutBinder;
     ExprModel mExprModel;
     @Before
     public void setUp() throws Exception {

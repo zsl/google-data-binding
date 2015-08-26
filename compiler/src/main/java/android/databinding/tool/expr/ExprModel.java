@@ -53,6 +53,7 @@ public class ExprModel {
      * Any expression can be invalidated by invalidating this flag.
      */
     private BitSet mInvalidateAnyFlags;
+    private int mInvalidateAnyFlagIndex;
 
     /**
      * Used by code generation. Keeps the list of expressions that are waiting to be evaluated.
@@ -356,7 +357,7 @@ public class ExprModel {
         for (Expr expr : mExprMap.values()) {
             expr.getDependencies();
         }
-        final int invalidateAnyFlagIndex = counter ++;
+        mInvalidateAnyFlagIndex = counter ++;
         flagMapping.add("INVALIDATE ANY");
         mInvalidateableFieldLimit = counter;
         mInvalidateableFlags = new BitSet();
@@ -393,7 +394,7 @@ public class ExprModel {
 
         mFlagBucketCount = 1 + (getTotalFlagCount() / FlagSet.sBucketSize);
         mInvalidateAnyFlags = new BitSet();
-        mInvalidateAnyFlags.set(invalidateAnyFlagIndex, true);
+        mInvalidateAnyFlags.set(mInvalidateAnyFlagIndex, true);
 
         for (Expr expr : mExprMap.values()) {
             expr.getShouldReadFlagsWithConditionals();
@@ -515,14 +516,15 @@ public class ExprModel {
             }
         }
         for (Expr partialRead : markedSomeFlagsAsRead) {
-            boolean allPathsAreSatisfied = partialRead.getAllCalculationPaths()
-                    .areAllPathsSatisfied(partialRead.mReadSoFar);
-            if (!allPathsAreSatisfied) {
-                continue;
-            }
+            // even if all paths are not satisfied, we can elevate certain conditional dependencies
+            // if all of their paths are satisfied.
             for (Dependency dependency : partialRead.getDependants()) {
-                if (dependency.getDependant().considerElevatingConditionals(partialRead)) {
-                    elevated = true;
+                Expr dependant = dependency.getDependant();
+                if (dependant.isConditional() && dependant.getAllCalculationPaths()
+                        .areAllPathsSatisfied(partialRead.mReadSoFar)) {
+                    if (dependant.considerElevatingConditionals(partialRead)) {
+                        elevated = true;
+                    }
                 }
             }
         }
@@ -591,6 +593,10 @@ public class ExprModel {
 
     public BitSet getInvalidateAnyBitSet() {
         return mInvalidateAnyFlags;
+    }
+
+    public int getInvalidateAnyFlagIndex() {
+        return mInvalidateAnyFlagIndex;
     }
 
     public Expr argListExpr(Iterable<Expr> expressions) {

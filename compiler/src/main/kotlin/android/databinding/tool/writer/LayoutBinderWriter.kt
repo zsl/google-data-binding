@@ -192,6 +192,10 @@ val Expr.shouldReadFlagSet by Delegates.versionedLazy { expr : Expr ->
     FlagSet(expr.getShouldReadFlags(), expr.getModel().getFlagBucketCount())
 }
 
+val Expr.shouldReadWithConditionalsFlagSet by Delegates.versionedLazy { expr : Expr ->
+    FlagSet(expr.getShouldReadFlagsWithConditionals(), expr.getModel().getFlagBucketCount())
+}
+
 val Expr.conditionalFlags by Delegates.lazy { expr : Expr ->
     arrayListOf(FlagSet(expr.getRequirementFlagIndex(false)),
             FlagSet(expr.getRequirementFlagIndex(true)))
@@ -868,31 +872,66 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                         L.d("flag set:%s . inherited flags: %s. need another if: %s", flagSet, inheritedFlags, needsIfWrapper);
 
                         // if I am the condition for an expression, set its flag
-                        val conditionals = expr.getDependants().filter {
+                        expr.getDependants().filter {
                             !it.isConditional() && it.getDependant() is TernaryExpr &&
                                     (it.getDependant() as TernaryExpr).getPred() == expr
-                        }.map { it.getDependant() }
-                        if (conditionals.isNotEmpty()) {
-                            tab("// setting conditional flags")
-                            tab("if (${expr.executePendingLocalName}) {") {
-                                conditionals.forEach {
-                                    val set = it.getRequirementFlagSet(true)
-                                    mDirtyFlags.mapOr(set) { suffix, index ->
-                                        tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                        }.map { it.getDependant() }.groupBy {
+                            // group by when those ternaries will be evaluated (e.g. don't set conditional flags for no reason)
+                            val ternaryBitSet = it.getShouldReadFlagsWithConditionals()
+                            val isBehindTernary = ternaryBitSet.nextSetBit(model.getInvalidateAnyFlagIndex()) == -1
+                            if (!isBehindTernary) {
+                                val ternaryFlags = it.shouldReadWithConditionalsFlagSet
+                                "if(${tmpDirtyFlags.mapOr(ternaryFlags){ suffix, index ->
+                                    "(${tmpDirtyFlags.localValue(index)} & ${ternaryFlags.localValue(index)}) != 0"
+                                }.joinToString(" || ")}) {"
+                            } else {
+                                // TODO if it is behind a ternary, we should set it when its predicate is elevated
+                                // Normally, this would mean that there is another code path to re-read our current expression.
+                                // Unfortunately, this may not be true due to the coverage detection in `expr#markAsReadIfDone`, this may never happen.
+                                // for v1.0, we'll go with always setting it and suffering an unnecessary calculation for this edge case.
+                                // we can solve this by listening to elevation events from the model.
+                                ""
+                            }
+                        }.forEach {
+                            val hasAnotherIf = it.key != ""
+                            if (hasAnotherIf) {
+                                tab(it.key) {
+                                    tab("if (${expr.executePendingLocalName}) {") {
+                                        it.value.forEach {
+                                            val set = it.getRequirementFlagSet(true)
+                                            mDirtyFlags.mapOr(set) { suffix, index ->
+                                                tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                                            }
+                                        }
+                                    }
+                                    tab("} else {") {
+                                        it.value.forEach {
+                                            val set = it.getRequirementFlagSet(false)
+                                            mDirtyFlags.mapOr(set) { suffix, index ->
+                                                tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                                            }
+                                        }
+                                    }.tab("}")
+                                }.app("}")
+                            } else {
+                                tab("if (${expr.executePendingLocalName}) {") {
+                                    it.value.forEach {
+                                        val set = it.getRequirementFlagSet(true)
+                                        mDirtyFlags.mapOr(set) { suffix, index ->
+                                            tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                                        }
                                     }
                                 }
-                            }
-                            tab("} else {") {
-                                conditionals.forEach {
-                                    val set = it.getRequirementFlagSet(false)
-                                    mDirtyFlags.mapOr(set) { suffix, index ->
-                                        tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                                tab("} else {") {
+                                    it.value.forEach {
+                                        val set = it.getRequirementFlagSet(false)
+                                        mDirtyFlags.mapOr(set) { suffix, index ->
+                                            tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
+                                        }
                                     }
-                                }
+                                } app("}")
                             }
-                            tab("}")
                         }
-
                         val chosen = expr.getDependants().filter {
                             val dependant = it.getDependant()
                             batch.contains(dependant) &&

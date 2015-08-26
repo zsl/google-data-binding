@@ -210,7 +210,6 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         }
 
         for (Dependency dependency : getDependants()) {
-            // first traverse non-conditionals because we'll avoid adding conditionals if we are get because of these anyways
             if (dependency.getCondition() == null) {
                 bitSet.or(dependency.getDependant().getShouldReadFlagsWithConditionals());
             } else {
@@ -474,6 +473,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
         clone.andNot(mReadSoFar);
         mRead = clone.isEmpty();
+
         if (!mRead && !mReadSoFar.isEmpty()) {
             // check if remaining dependencies can be satisfied w/ existing values
             // for predicate flags, this expr may already be calculated to get the predicate
@@ -481,25 +481,29 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
             // them. If any of them is completely covered w/ our non-conditional flags, no reason
             // to add them to the list since we'll already be calculated due to our non-conditional
             // flags
-
+            boolean allCovered = true;
             for (int i = clone.nextSetBit(0); i != -1; i = clone.nextSetBit(i + 1)) {
                 final Expr expr = mModel.findFlagExpression(i);
-                if (expr == null || !expr.isConditional()) {
+                if (expr == null) {
                     continue;
                 }
-                final BitSet readForConditional = expr.findConditionalFlags();
+                if (!expr.isConditional()) {
+                    allCovered = false;
+                    break;
+                }
+                final BitSet readForConditional = (BitSet) expr.findConditionalFlags().clone();
+
+                // FIXME: this does not do full traversal so misses some cases
                 // to calculate that conditional, i should've read /readForConditional/ flags
-                // if my read-so-far bits has any common w/ that; that means i would've already
+                // if my read-so-far bits cover that; that means i would've already
                 // read myself
-                clone.andNot(readForConditional);
-                final BitSet invalidFlags = (BitSet) getInvalidFlags().clone();
-                invalidFlags.xor(readForConditional);
-                mRead = invalidFlags.isEmpty() || clone.isEmpty();
-                if (mRead) {
+                readForConditional.andNot(mReadSoFar);
+                if (!readForConditional.isEmpty()) {
+                    allCovered = false;
                     break;
                 }
             }
-
+            mRead = allCovered;
         }
         if (mRead) {
             mShouldReadFlags = null; // if we've been marked as read, clear should read flags
@@ -543,10 +547,12 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     private Node mCalculationPaths = null;
 
+    /**
+     * All flag paths that will result in calculation of this expression.
+     */
     protected Node getAllCalculationPaths() {
         if (mCalculationPaths == null) {
             Node node = new Node();
-            // TODO distant parent w/ conditionals are still not traversed :/
             if (isConditional()) {
                 node.mBitSet.or(getPredicateInvalidFlags());
             } else {
@@ -559,6 +565,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
                     cond.setConditionFlag(
                             dependant.getRequirementFlagIndex(dependency.getExpectedOutput()));
                     cond.mParents.add(dependant.getAllCalculationPaths());
+                    node.mParents.add(cond);
                 } else {
                     node.mParents.add(dependant.getAllCalculationPaths());
                 }
@@ -674,19 +681,24 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
         public boolean areAllPathsSatisfied(BitSet readSoFar) {
             if (mConditionFlag != -1) {
-                return readSoFar.get(mConditionFlag) || mParents.get(0)
-                        .areAllPathsSatisfied(readSoFar);
+                return readSoFar.get(mConditionFlag)
+                        || mParents.get(0).areAllPathsSatisfied(readSoFar);
             } else {
-                final BitSet clone = (BitSet) readSoFar.clone();
-                clone.and(mBitSet);
-                if (!clone.isEmpty()) {
-                    return true;
-                }
-                if (mParents.isEmpty()) {
+                final BitSet myBitsClone = (BitSet) mBitSet.clone();
+                myBitsClone.andNot(readSoFar);
+                if (!myBitsClone.isEmpty()) {
+                    // read so far does not cover all of my invalidation. The only way I could be
+                    // covered is that I only have 1 conditional dependent which is covered by this.
+                    if (mParents.size() == 1 && mParents.get(0).mConditionFlag != -1) {
+                        return mParents.get(0).areAllPathsSatisfied(readSoFar);
+                    }
                     return false;
                 }
+                if (mParents.isEmpty()) {
+                    return true;
+                }
                 for (Node parent : mParents) {
-                    if (!parent.areAllPathsSatisfied(clone)) {
+                    if (!parent.areAllPathsSatisfied(readSoFar)) {
                         return false;
                     }
                 }
