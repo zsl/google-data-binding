@@ -33,6 +33,7 @@ import android.view.View.OnAttachStateChangeListener;
 import android.view.ViewGroup;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 /**
  * Base class for generated data binding classes. If possible, the generated binding should
@@ -559,6 +560,86 @@ public abstract class ViewDataBinding {
         Object[] bindings = new Object[numBindings];
         mapBindings(bindingComponent, root, bindings, includes, viewsWithIds, true);
         return bindings;
+    }
+
+    /** @hide */
+    protected static <T> T getFromArray(T[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return null;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static boolean getFromArray(boolean[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return false;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static byte getFromArray(byte[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return 0;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static short getFromArray(short[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return 0;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static char getFromArray(char[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return 0;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static int getFromArray(int[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return 0;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static long getFromArray(long[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return 0;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static float getFromArray(float[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return 0;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static double getFromArray(double[] arr, int index) {
+        if (index < 0 || index >= arr.length) {
+            return 0;
+        }
+        return arr[index];
+    }
+
+    /** @hide */
+    protected static <T> T getFromList(List<T> list, int index) {
+        if (index < 0 || index >= list.size()) {
+            return null;
+        }
+        return list.get(index);
     }
 
     /**

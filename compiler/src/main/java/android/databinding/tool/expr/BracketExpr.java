@@ -81,24 +81,42 @@ public class BracketExpr extends Expr {
     }
 
     public boolean argCastsInteger() {
-        return Object.class.equals(getArg().getResolvedType());
+        return getArg().getResolvedType().isObject();
     }
 
     @Override
     protected KCode generateCode() {
-        KCode code = new KCode()
-                .app("", getTarget().toCode());
+        String cast = argCastsInteger() ? "(Integer) " : "";
         switch (getAccessor()) {
-            case ARRAY:
-                return code.app("[", getArg().toCode()).app("]");
-            case LIST:
-                code.app(".get(");
-                if (argCastsInteger()) {
-                    code.app("(Integer)");
+            case ARRAY: {
+                return new KCode().
+                        app("getFromArray(", getTarget().toCode()).
+                        app(", ").
+                        app(cast, getArg().toCode()).app(")");
+            }
+            case LIST: {
+                ModelClass listType = ModelAnalyzer.getInstance().findClass(java.util.List.class).
+                        erasure();
+                ModelClass targetType = getTarget().getResolvedType().erasure();
+                if (listType.isAssignableFrom(targetType)) {
+                    return new KCode().
+                            app("getFromList(", getTarget().toCode()).
+                            app(", ").
+                            app(cast, getArg().toCode()).
+                            app(")");
+                } else {
+                    return new KCode().
+                            app("", getTarget().toCode()).
+                            app(".get(").
+                            app(cast, getArg().toCode()).
+                            app(")");
                 }
-                return code.app("", getArg().toCode()).app(")");
+            }
             case MAP:
-                return code.app(".get(", getArg().toCode()).app(")");
+                return new KCode().
+                        app("", getTarget().toCode()).
+                        app(".get(", getArg().toCode()).
+                        app(")");
         }
         throw new IllegalStateException("Invalid BracketAccessor type");
     }
