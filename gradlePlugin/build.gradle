@@ -33,7 +33,10 @@ tasks['copyBuildVersion'].dependsOn('processResources')
 dependencies {
     compile "com.android.tools.build:gradle:${config.androidPluginVersion}"
     compile gradleApi()
+    compile project(":baseLibrary")
     compile project(":compilerCommon")
+    compile 'org.apache.commons:commons-lang3:3.3.2'
+    compile 'commons-io:commons-io:2.4'
 }
 
 compileJava {
@@ -56,3 +59,5 @@ uploadArchives {
         }
     }
 }
+
+fullJar(project)
