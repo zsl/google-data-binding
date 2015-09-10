@@ -214,7 +214,9 @@ public class LayoutFileParser {
                 //noinspection SuspiciousMethodCalls
                 tag = nodeTagMap.get(grandParent);
             } else if ("fragment".equals(nodeName)) {
-                L.e("fragments do not support data binding expressions.");
+                if (XmlEditor.hasExpressionAttributes(parent)) {
+                    L.e("fragments do not support data binding expressions.");
+                }
                 continue;
             } else {
                 viewName = getViewName(parent);
