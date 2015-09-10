@@ -112,28 +112,40 @@ public class TextViewBindingAdapter {
         }
     }
 
+    private static void setIntrinsicBounds(Drawable drawable) {
+        if (drawable != null) {
+            drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        }
+    }
+
     @BindingAdapter({"android:drawableBottom"})
     public static void setDrawableBottom(TextView view, Drawable drawable) {
+        setIntrinsicBounds(drawable);
         Drawable[] drawables = view.getCompoundDrawables();
         view.setCompoundDrawables(drawables[0], drawables[1], drawables[2], drawable);
     }
 
     @BindingAdapter({"android:drawableLeft"})
     public static void setDrawableLeft(TextView view, Drawable drawable) {
+        setIntrinsicBounds(drawable);
         Drawable[] drawables = view.getCompoundDrawables();
         view.setCompoundDrawables(drawable, drawables[1], drawables[2], drawables[3]);
     }
 
     @BindingAdapter({"android:drawableRight"})
     public static void setDrawableRight(TextView view, Drawable drawable) {
+        setIntrinsicBounds(drawable);
         Drawable[] drawables = view.getCompoundDrawables();
-        view.setCompoundDrawables(drawables[0], drawables[1], drawable, drawables[3]);
+        view.setCompoundDrawables(drawables[0], drawables[1], drawable,
+                drawables[3]);
     }
 
     @BindingAdapter({"android:drawableTop"})
     public static void setDrawableTop(TextView view, Drawable drawable) {
+        setIntrinsicBounds(drawable);
         Drawable[] drawables = view.getCompoundDrawables();
-        view.setCompoundDrawables(drawables[0], drawable, drawables[2], drawables[3]);
+        view.setCompoundDrawables(drawables[0], drawable, drawables[2],
+                drawables[3]);
     }
 
     @BindingAdapter({"android:drawableStart"})
@@ -141,6 +153,7 @@ public class TextViewBindingAdapter {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
             setDrawableLeft(view, drawable);
         } else {
+            setIntrinsicBounds(drawable);
             Drawable[] drawables = view.getCompoundDrawablesRelative();
             view.setCompoundDrawablesRelative(drawable, drawables[1], drawables[2], drawables[3]);
         }
@@ -151,6 +164,7 @@ public class TextViewBindingAdapter {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1) {
             setDrawableRight(view, drawable);
         } else {
+            setIntrinsicBounds(drawable);
             Drawable[] drawables = view.getCompoundDrawablesRelative();
             view.setCompoundDrawablesRelative(drawables[0], drawables[1], drawable, drawables[3]);
         }
