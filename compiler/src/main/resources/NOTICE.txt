@@ -1,6 +1,6 @@
 List of 3rd party licenses:
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@130e114 name:antlr4 classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@3e7607b6 name:antlr4 classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@7b725d5c name:commons-io classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@7f8915e2 name:commons-io classifier:null extension:jar type:jar]
 
  ****** NOTICE:
 Apache Commons IO
@@ -252,7 +252,7 @@ The Apache Software Foundation (http://www.apache.org/).
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@1d24faef name:antlr4-annotations classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@6698ee3c name:antlr4-annotations classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -286,7 +286,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@746f3f71 name:kotlin-stdlib classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@71642838 name:kotlin-stdlib classifier:null extension:jar type:jar]
 
  ****** NOTICE:
    =========================================================================
@@ -523,7 +523,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@631e4e63 name:kotlin-runtime classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@5ac787b0 name:kotlin-runtime classifier:null extension:jar type:jar]
 
  ****** NOTICE:
    =========================================================================
@@ -760,7 +760,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@703ee6e4 name:commons-codec classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@28712258 name:commons-codec classifier:null extension:jar type:jar]
 
  ****** NOTICE:
 Apache Commons Codec
@@ -989,7 +989,7 @@ Copyright (c) 2008 Alexander Beider & Stephen P. Morse.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@4d64ef89 name:antlr-runtime classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@220e3cec name:antlr-runtime classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -1023,7 +1023,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@4f6e3d9d name:org.abego.treelayout.core classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@2c1af6aa name:org.abego.treelayout.core classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -1058,7 +1058,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@712e0625 name:antlr4-runtime classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@a8ffb40 name:antlr4-runtime classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -1092,7 +1092,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@5af1416b name:ST4 classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@64186e7b name:ST4 classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -1126,7 +1126,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@38d7ef18 name:commons-lang3 classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@531f73a0 name:commons-lang3 classifier:null extension:jar type:jar]
 
  ****** NOTICE:
 Apache Commons Lang

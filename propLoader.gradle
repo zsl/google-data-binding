@@ -40,8 +40,10 @@ def addRepos(RepositoryHandler handler) {
             url repo
         }
     }
-    handler.jcenter()
-    handler.mavenCentral()
+    if (config.addRemoteRepos) {
+        handler.jcenter()
+        handler.mavenCentral()
+    }
 }
 ext.addRepos = this.&addRepos
 subprojects {
