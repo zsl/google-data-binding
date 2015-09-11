@@ -81,7 +81,7 @@ android.libraryVariants.all { variant ->
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://${config.mavenRepoDir}")
+            repository(url: "file://${config.inReleaseBuild ? config.sharedSupportRepoDir : config.mavenRepoDir}")
             pom.artifactId = "adapters"
             pom.project {
                 licenses {

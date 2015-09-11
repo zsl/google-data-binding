@@ -1,9 +1,13 @@
 /**
  * Helper build script that reads data binding variables and sets up the projects.
  */
+def forceReleaseVersion = project.hasProperty('useReleaseVersion') && project.getProperty('useReleaseVersion').equals("true")
 def root = ext.rootFolder
 Properties databindingProperties = new Properties()
 databindingProperties.load(new FileInputStream("${root}/databinding.properties"))
+if (forceReleaseVersion) {
+    databindingProperties.version = databindingProperties.releaseVersion
+}
 def repoBase = databindingProperties.mavenRepoAbsolutePath == "." ? root : databindingProperties.mavenRepoAbsolutePath
 databindingProperties.mavenRepoDir = "${repoBase}/${databindingProperties.mavenRepoName}"
 databindingProperties.extraPluginsRepoDir = "${root}/${databindingProperties.extraPluginsRepoName}"
@@ -25,12 +29,14 @@ new File(ext.config.prebuildFolder).mkdir()
 
 def addRemoteRepos = project.hasProperty('addRemoteRepos') && project.getProperty('addRemoteRepos').equals("true")
 ext.config.addRemoteRepos = addRemoteRepos
+ext.config.sharedSupportRepoDir = "${ext.config.externalPrebuiltsBase}/maven_repo/android"
+ext.config.inReleaseBuild = !databindingProperties.version.endsWith("SNAPSHOT")
 def config = ext.config
 def localRepositories = ["${config.extraPluginsRepoDir}",
                          "${config.megaRepoDir}",
                          "${config.mavenRepoDir}",
                          "${config.externalPrebuiltsBase}/tools/common/offline-m2",
-                         "${config.externalPrebuiltsBase}/maven_repo/android",
+                         config.sharedSupportRepoDir,
                          "${config.externalPrebuiltsBase}/gradle-plugin",
                          "${config.externalPrebuiltsBase}/tools/common/m2/repository"]
 ext.config.localRepositories = localRepositories
@@ -70,3 +76,4 @@ subprojects {
         }
     }
 }
+
