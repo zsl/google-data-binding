@@ -2,6 +2,7 @@
 buildscript {
     ext.rootFolder = project.projectDir
     apply from: 'propLoader.gradle'
+    apply from: 'supportBundle.gradle'
     ext.addRepos(repositories)
     if (ext.config.addRemoteRepos) {
         dependencies {
@@ -20,10 +21,11 @@ subprojects {
 
     group = config.group
     version = config.version
+    def url = (config.inReleaseBuild && it.name == "library") ? "file://${config.sharedSupportRepoDir}" : "file://${config.mavenRepoDir}"
     uploadArchives {
         repositories {
             mavenDeployer {
-                repository(url: "file://${config.mavenRepoDir}")
+                repository(url: url)
             }
         }
     }
@@ -58,13 +60,15 @@ task deleteEap(type: Delete) {
 def buildExtensionsTask = project.tasks.create "buildExtensionsTask", Exec
 buildExtensionsTask.workingDir file('extensions').getAbsolutePath()
 buildExtensionsTask.commandLine './gradlew'
-buildExtensionsTask.args 'clean', 'uploadArchives', '--info', '--stacktrace'
+buildExtensionsTask.args 'clean', 'uploadArchives', '--info', '--stacktrace', "-PuseReleaseVersion=${config.inReleaseBuild ? 'true' : 'false'}"
 buildExtensionsTask.dependsOn subprojects.uploadArchives
+
+tasks['bundleSupportLib'].dependsOn buildExtensionsTask
 
 def prepareExtensionPrebuilds = project.tasks.create "prepareExtensionPrebuilds", Exec
 prepareExtensionPrebuilds.workingDir file('extensions').getAbsolutePath()
 prepareExtensionPrebuilds.commandLine './gradlew'
-prepareExtensionPrebuilds.args 'clean', 'preparePrebuilds', '--info', '--stacktrace'
+prepareExtensionPrebuilds.args 'clean', 'preparePrebuilds', '--info', '--stacktrace', "-PuseReleaseVersion=${config.inReleaseBuild ? 'true' : 'false'}"
 prepareExtensionPrebuilds.dependsOn subprojects.uploadArchives
 
 file('integration-tests').listFiles().findAll { it.isDirectory() }.each {
@@ -73,7 +77,7 @@ file('integration-tests').listFiles().findAll { it.isDirectory() }.each {
     testTask.workingDir it.getAbsolutePath()
     //on linux
     testTask.commandLine './gradlew'
-    testTask.args 'clean', 'connectedCheck', '--info', '--stacktrace'
+    testTask.args 'clean', 'connectedCheck', '--info', '--stacktrace', "-PuseReleaseVersion=${config.inReleaseBuild ? 'true' : 'false'}"
     testTask.dependsOn subprojects.uploadArchives
     testTask.dependsOn buildExtensionsTask
 }
@@ -150,7 +154,7 @@ def fullJar(project) {
         localizeTask.dependsOn project.tasks.findByName('buildLicenseNotice')
     }
 
-    if (config.version.endsWith('SNAPSHOT')) {
+    if (!config.inReleaseBuild) {
         return
     }
     def jarName = project.uploadArchives.repositories.mavenDeployer.pom.artifactId
