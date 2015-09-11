@@ -33,7 +33,7 @@ public class FlagSet {
         buckets = new long[bucketCount];
         for (int i = bitSet.nextSetBit(0);
                 i != -1; i = bitSet.nextSetBit(i + 1)) {
-            buckets[i / sBucketSize] |= 1 << (i % sBucketSize);
+            buckets[i / sBucketSize] |= 1L << (i % sBucketSize);
         }
         type = "long";
     }
@@ -58,7 +58,7 @@ public class FlagSet {
         buckets = new long[1 + (max / sBucketSize)];
         for (int x = 0 ; x < bits.length; x ++) {
             final int i = bits[x];
-            buckets[i / sBucketSize] |= 1 << (i % sBucketSize);
+            buckets[i / sBucketSize] |= 1L << (i % sBucketSize);
         }
         type = "long";
     }
