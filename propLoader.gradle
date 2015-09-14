@@ -8,6 +8,7 @@ databindingProperties.load(new FileInputStream("${root}/databinding.properties")
 if (forceReleaseVersion) {
     databindingProperties.version = databindingProperties.releaseVersion
 }
+databindingProperties.compileSdkVersion = Integer.parseInt(databindingProperties.compileSdkVersionStr)
 def repoBase = databindingProperties.mavenRepoAbsolutePath == "." ? root : databindingProperties.mavenRepoAbsolutePath
 databindingProperties.mavenRepoDir = "${repoBase}/${databindingProperties.mavenRepoName}"
 databindingProperties.extraPluginsRepoDir = "${root}/${databindingProperties.extraPluginsRepoName}"
