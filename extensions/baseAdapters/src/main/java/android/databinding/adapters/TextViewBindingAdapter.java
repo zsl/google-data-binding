@@ -15,14 +15,21 @@
  */
 package android.databinding.adapters;
 
+import com.android.databinding.library.baseAdapters.R;
+
 import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.databinding.InverseBindingAdapter;
+import android.databinding.InverseBindingListener;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.text.Spanned;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.text.method.DialerKeyListener;
 import android.text.method.DigitsKeyListener;
@@ -32,8 +39,6 @@ import android.text.method.TextKeyListener;
 import android.util.Log;
 import android.util.TypedValue;
 import android.widget.TextView;
-
-import com.android.databinding.library.baseAdapters.R;
 
 @BindingMethods({
         @BindingMethod(type = TextView.class, attribute = "android:autoLink", method = "setAutoLinkMask"),
@@ -50,12 +55,30 @@ import com.android.databinding.library.baseAdapters.R;
 public class TextViewBindingAdapter {
 
     private static final String TAG = "TextViewBindingAdapters";
-
     public static final int INTEGER = 0x01;
-
     public static final int SIGNED = 0x03;
-
     public static final int DECIMAL = 0x05;
+
+    @BindingAdapter("android:text")
+    public static void setText(TextView view, CharSequence text) {
+        final CharSequence oldText = view.getText();
+        if (text == oldText || (text == null && oldText.length() == 0)) {
+            return;
+        }
+        if (text instanceof Spanned) {
+            if (text.equals(oldText)) {
+                return; // No change in the spans, so don't set anything.
+            }
+        } else if (!haveContentsChanged(text, oldText)) {
+            return; // No content changes, so don't set anything.
+        }
+        view.setText(text);
+    }
+
+    @InverseBindingAdapter(attribute = "android:text", event = "android:textAttrChanged")
+    public static String getTextString(TextView view) {
+        return view.getText().toString();
+    }
 
     @BindingAdapter({"android:autoText"})
     public static void setAutoText(TextView view, boolean autoText) {
@@ -300,12 +323,31 @@ public class TextViewBindingAdapter {
         view.setTextSize(TypedValue.COMPLEX_UNIT_PX, size);
     }
 
+    private static boolean haveContentsChanged(CharSequence str1, CharSequence str2) {
+        if ((str1 == null) != (str2 == null)) {
+            return true;
+        } else if (str1 == null) {
+            return false;
+        }
+        final int length = str1.length();
+        if (length != str2.length()) {
+            return true;
+        }
+        for (int i = 0; i < length; i++) {
+            if (str1.charAt(i) != str2.charAt(i)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @BindingAdapter(value = {"android:beforeTextChanged", "android:onTextChanged",
-            "android:afterTextChanged"}, requireAll = false)
+            "android:afterTextChanged", "android:textAttrChanged"}, requireAll = false)
     public static void setTextWatcher(TextView view, final BeforeTextChanged before,
-            final OnTextChanged on, final AfterTextChanged after) {
+            final OnTextChanged on, final AfterTextChanged after,
+            final InverseBindingListener textAttrChanged) {
         final TextWatcher newValue;
-        if (before == null && after == null && on == null) {
+        if (before == null && after == null && on == null && textAttrChanged == null) {
             newValue = null;
         } else {
             newValue = new TextWatcher() {
@@ -320,6 +362,9 @@ public class TextViewBindingAdapter {
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
                     if (on != null) {
                         on.onTextChanged(s, start, before, count);
+                    }
+                    if (textAttrChanged != null) {
+                        textAttrChanged.onChange();
                     }
                 }
 

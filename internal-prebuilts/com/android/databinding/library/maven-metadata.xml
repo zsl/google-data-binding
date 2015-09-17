@@ -2,11 +2,12 @@
 <metadata>
   <groupId>com.android.databinding</groupId>
   <artifactId>library</artifactId>
-  <version>1.0-rc5</version>
   <versioning>
+    <release>1.1</release>
     <versions>
       <version>1.0-rc5</version>
+      <version>1.1</version>
     </versions>
-    <lastUpdated>20151103182638</lastUpdated>
+    <lastUpdated>20160114222429</lastUpdated>
   </versioning>
 </metadata>

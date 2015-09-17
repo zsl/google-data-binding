@@ -68,7 +68,7 @@ public class AutoCompleteTextViewBindingAdapter {
             view.setOnItemSelectedListener(null);
         } else {
             view.setOnItemSelectedListener(
-                    new OnItemSelectedComponentListener(selected, nothingSelected));
+                    new OnItemSelectedComponentListener(selected, nothingSelected, null));
         }
     }
 
