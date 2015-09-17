@@ -98,6 +98,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
      */
     private boolean mRead;
     private boolean mIsUsed = false;
+    private boolean mIsTwoWay = false;
 
     Expr(Iterable<Expr> children) {
         for (Expr expr : children) {
@@ -178,6 +179,14 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         return this;
     }
 
+    public Expr resolveTwoWayExpressions(Expr parent) {
+        for (int i = mChildren.size() - 1; i >= 0; i--) {
+            final Expr child = mChildren.get(i);
+            child.resolveTwoWayExpressions(this);
+        }
+        return this;
+    }
+
     protected void resetResolvedType() {
         mResolvedType = null;
     }
@@ -199,6 +208,22 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     public void setModel(ExprModel model) {
         mModel = model;
+    }
+
+    public void setTwoWay(boolean isTwoWay) {
+        mIsTwoWay = isTwoWay;
+    }
+
+    public boolean isTwoWay() {
+        return mIsTwoWay;
+    }
+
+    protected String addTwoWay(String uniqueKey) {
+        if (mIsTwoWay) {
+            return "twoWay(" + uniqueKey + ")";
+        } else {
+            return "oneWay(" + uniqueKey + ")";
+        }
     }
 
     private BitSet resolveShouldReadWithConditionals() {
@@ -661,17 +686,38 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     }
 
     public KCode toCode() {
-        if (isDynamic()) {
+        return toCode(false);
+    }
+
+    protected KCode toCode(boolean expand) {
+        if (!expand && isDynamic()) {
             return new KCode(LayoutBinderWriterKt.getExecutePendingLocalName(this));
         }
-        return generateCode();
+        return generateCode(expand);
     }
 
     public KCode toFullCode() {
-        return generateCode();
+        return generateCode(false);
     }
 
-    protected abstract KCode generateCode();
+    protected abstract KCode generateCode(boolean expand);
+
+    public KCode toInverseCode(KCode value) {
+        throw new IllegalStateException("expression does not support two-way binding");
+    }
+
+    public void assertIsInvertible() {
+        final String errorMessage = getInvertibleError();
+        if (errorMessage != null) {
+            L.e(ErrorMessages.EXPRESSION_NOT_INVERTIBLE, toFullCode().generate(),
+                    errorMessage);
+        }
+    }
+
+    /**
+     * @return The reason the expression wasn't invertible or null if it was invertible.
+     */
+    protected abstract String getInvertibleError();
 
     /**
      * This expression is the predicate for 1 or more ternary expressions.

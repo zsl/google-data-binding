@@ -38,11 +38,22 @@ public class GroupExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
-        return new KCode().app("(", getWrapped().toCode()).app(")");
+    protected KCode generateCode(boolean expand) {
+        return new KCode().app("(", getWrapped().toCode(expand)).app(")");
     }
 
     public Expr getWrapped() {
         return getChildren().get(0);
+    }
+
+    @Override
+    public KCode toInverseCode(KCode value) {
+        // Nothing to do here. Other expressions should automatically take care of grouping.
+        return getWrapped().toInverseCode(value);
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return getWrapped().getInvertibleError();
     }
 }

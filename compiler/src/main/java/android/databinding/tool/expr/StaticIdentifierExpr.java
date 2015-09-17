@@ -35,7 +35,17 @@ public class StaticIdentifierExpr extends IdentifierExpr {
     }
 
     @Override
-    protected KCode generateCode() {
+    public String getInvertibleError() {
+        return "Class " + getResolvedType().toJavaCode() +
+                " may not be the target of a two-way binding expression";
+    }
+
+    @Override
+    public KCode toInverseCode(KCode value) {
+        throw new IllegalStateException("StaticIdentifierExpr is not invertible.");
+    }
+    @Override
+    protected KCode generateCode(boolean expand) {
         return new KCode(getResolvedType().toJavaCode());
     }
 }

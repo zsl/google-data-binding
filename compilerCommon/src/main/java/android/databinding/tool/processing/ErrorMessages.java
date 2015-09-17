@@ -40,4 +40,10 @@ public class ErrorMessages {
             "elements of data bound layouts unless targeting API version 14 or greater. Value " +
             "is '%s'";
     public static final String SYNTAX_ERROR = "Syntax error: %s";
+    public static final String CANNOT_FIND_GETTER_CALL =
+            "Cannot find the getter for attribute '%s' with value type %s on %s.";
+    public static final String EXPRESSION_NOT_INVERTIBLE =
+            "The expression %s cannot cannot be inverted: %s";
+    public static final String TWO_WAY_EVENT_ATTRIBUTE =
+            "The attribute %s is a two-way binding event attribute and cannot be assigned.";
 }

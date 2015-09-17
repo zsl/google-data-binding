@@ -17,6 +17,9 @@
 package android.databinding.tool.expr;
 
 import android.databinding.tool.ext.ExtKt;
+import android.databinding.tool.Binding;
+import android.databinding.tool.BindingTarget;
+import android.databinding.tool.InverseBinding;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
@@ -24,6 +27,8 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.util.BrNameUtil;
+import android.databinding.tool.store.SetterStore;
+import android.databinding.tool.store.SetterStore.BindingGetterCall;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.KCode;
@@ -37,6 +42,7 @@ public class FieldAccessExpr extends Expr {
     Callable mGetter;
     final boolean mIsObservableField;
     boolean mIsListener;
+    boolean mIsViewAttributeAccess;
 
     FieldAccessExpr(Expr parent, String name) {
         super(parent);
@@ -61,6 +67,19 @@ public class FieldAccessExpr extends Expr {
         return mGetter;
     }
 
+    @Override
+    public String getInvertibleError() {
+        if (getGetter().setterName == null) {
+            return "Two-way binding cannot resolve a setter for " + getResolvedType().toJavaCode() +
+                    " property '" + mName + "'";
+        }
+        if (!mGetter.isDynamic()) {
+            return "Cannot change a final field in " + getResolvedType().toJavaCode() +
+                    " property " + mName;
+        }
+        return null;
+    }
+
     public int getMinApi() {
         return mGetter.getMinApi();
     }
@@ -77,6 +96,10 @@ public class FieldAccessExpr extends Expr {
         if (getChild().isDynamic()) {
             // if owner is dynamic, then we can be dynamic unless we are static final
             return !mGetter.isStatic() || mGetter.isDynamic();
+        }
+
+        if (mIsViewAttributeAccess) {
+            return true; // must be able to invalidate this
         }
 
         // if owner is NOT dynamic, we can be dynamic if an only if getter is dynamic
@@ -182,9 +205,9 @@ public class FieldAccessExpr extends Expr {
     @Override
     protected String computeUniqueKey() {
         if (mIsObservableField) {
-            return join(mName, "..", super.computeUniqueKey());
+            return addTwoWay(join(mName, "..", super.computeUniqueKey()));
         }
-        return join(mName, ".", super.computeUniqueKey());
+        return addTwoWay(join(mName, ".", super.computeUniqueKey()));
     }
 
     public String getName() {
@@ -257,7 +280,7 @@ public class FieldAccessExpr extends Expr {
 
                 getChildren().add(observableField);
                 observableField.getParents().add(this);
-                mGetter = mGetter.resolvedType.findGetterOrField("get", false);
+                mGetter = mGetter.resolvedType.findGetterOrField("", false);
                 mName = "";
                 mBrName = ExtKt.br(mName);
             } else if (hasBindableAnnotations()) {
@@ -268,18 +291,123 @@ public class FieldAccessExpr extends Expr {
     }
 
     @Override
+    public Expr resolveTwoWayExpressions(Expr parent) {
+        final Expr child = getChild();
+        if (!(child instanceof ViewFieldExpr)) {
+            return this;
+        }
+        final ViewFieldExpr expr = (ViewFieldExpr) child;
+        final BindingTarget bindingTarget = expr.getBindingTarget();
+
+        // This is a binding to a View's attribute, so look for matching attribute
+        // on that View's BindingTarget. If there is an expression, we simply replace
+        // the binding with that binding expression.
+        for (Binding binding : bindingTarget.getBindings()) {
+            if (attributeMatchesName(binding.getName(), mName)) {
+                final Expr replacement = binding.getExpr();
+                replaceExpression(parent, replacement);
+                return replacement;
+            }
+        }
+
+        // There was no binding expression to bind to. This should be a two-way binding.
+        // This is a synthesized two-way binding because we must capture the events from
+        // the View and change the value when the target View's attribute changes.
+        final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+        final ModelClass targetClass = expr.getResolvedType();
+        BindingGetterCall getter = setterStore.getGetterCall(mName, targetClass, null, null);
+        if (getter == null) {
+            getter = setterStore.getGetterCall("android:" + mName, targetClass, null, null);
+            if (getter == null) {
+                L.e("Could not resolve the two-way binding attribute '%s' on type '%s'",
+                        mName, targetClass);
+            }
+        }
+        InverseBinding inverseBinding = null;
+        for (Binding binding : bindingTarget.getBindings()) {
+            final Expr testExpr = binding.getExpr();
+            if (testExpr instanceof TwoWayListenerExpr &&
+                    getter.getEventAttribute().equals(binding.getName())) {
+                inverseBinding = ((TwoWayListenerExpr) testExpr).mInverseBinding;
+                break;
+            }
+        }
+        if (inverseBinding == null) {
+            inverseBinding = bindingTarget.addInverseBinding(mName, getter);
+        }
+        inverseBinding.addChainedExpression(this);
+        mIsViewAttributeAccess = true;
+        enableDirectInvalidation();
+        return this;
+    }
+
+    private static boolean attributeMatchesName(String attribute, String field) {
+        int colonIndex = attribute.indexOf(':');
+        return attribute.substring(colonIndex + 1).equals(field);
+    }
+
+    private void replaceExpression(Expr parent, Expr replacement) {
+        if (parent != null) {
+            List<Expr> children = parent.getChildren();
+            int index;
+            while ((index = children.indexOf(this)) >= 0) {
+                children.set(index, replacement);
+                replacement.getParents().add(parent);
+            }
+            while (getParents().remove(parent)) {
+                // just remove all copies of parent.
+            }
+        }
+        if (getParents().isEmpty()) {
+            getModel().removeExpr(this);
+        }
+    }
+
+    @Override
     protected String asPackage() {
         String parentPackage = getChild().asPackage();
         return parentPackage == null ? null : parentPackage + "." + mName;
     }
 
     @Override
-    protected KCode generateCode() {
-        KCode code = new KCode().app("", getChild().toCode()).app(".");
+    protected KCode generateCode(boolean expand) {
+        KCode code = new KCode();
+        if (expand) {
+            String defaultValue = ModelAnalyzer.getInstance().getDefaultValue(
+                    getResolvedType().toJavaCode());
+            code.app("(", getChild().toCode(true))
+                    .app(" == null) ? ")
+                    .app(defaultValue)
+                    .app(" : ");
+        }
+        code.app("", getChild().toCode(expand)).app(".");
         if (getGetter().type == Callable.Type.FIELD) {
             return code.app(getGetter().name);
         } else {
             return code.app(getGetter().name).app("()");
         }
+    }
+
+    @Override
+    public KCode toInverseCode(KCode value) {
+        if (mGetter.setterName == null) {
+            throw new IllegalStateException("There is no inverse for " + toCode().generate());
+        }
+        KCode castValue = new KCode("(").app(getResolvedType().toJavaCode() + ")(", value).app(")");
+        String type = getChild().getResolvedType().toJavaCode();
+        KCode code = new KCode("targetObj_.");
+        if (getGetter().type == Callable.Type.FIELD) {
+            code.app(getGetter().setterName).app(" = ", castValue).app(";");
+        } else {
+            code.app(getGetter().setterName).app("(", castValue).app(")").app(";");
+        }
+        return new KCode()
+                .app("final ")
+                .app(type)
+                .app(" targetObj_ = ", getChild().toCode(true))
+                .app(";")
+                .nl(new KCode("if (targetObj_ != null) {"))
+                .tab(code)
+                .nl(new KCode("}"));
     }
 }

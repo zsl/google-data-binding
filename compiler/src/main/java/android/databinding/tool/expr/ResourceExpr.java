@@ -130,12 +130,18 @@ public class ResourceExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
+    protected KCode generateCode(boolean expand) {
         return new KCode(toJava());
     }
 
     public String getResourceId() {
         return mPackage + "R." + getResourceObject() + "." + mResourceId;
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return "Resources may not be the target of a two-way binding expression: " +
+                computeUniqueKey();
     }
 
     public String toJava() {

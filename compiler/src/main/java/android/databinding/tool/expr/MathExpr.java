@@ -31,7 +31,7 @@ public class MathExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(getLeft().getUniqueKey(), mOp, getRight().getUniqueKey());
+        return addTwoWay(join(getLeft().getUniqueKey(), mOp, getRight().getUniqueKey()));
     }
 
     @Override
@@ -65,7 +65,81 @@ public class MathExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
-        return new KCode().app("", getLeft().toCode()).app(mOp, getRight().toCode());
+    protected KCode generateCode(boolean expand) {
+        return new KCode().app("", getLeft().toCode(expand)).app(mOp, getRight().toCode(expand));
+    }
+
+    @Override
+    public String getInvertibleError() {
+        if (mOp.equals("%")) {
+            return "The modulus operator (%) is not supported in two-way binding.";
+        } else if (getResolvedType().isString()) {
+            return "String concatenation operator (+) is not supported in two-way binding.";
+        }
+        if (!getLeft().isDynamic()) {
+            return getRight().getInvertibleError();
+        } else if (!getRight().isDynamic()) {
+            return getLeft().getInvertibleError();
+        } else {
+            return "Arithmetic operator " + mOp + " is not supported with two dynamic expressions.";
+        }
+    }
+
+    private String inverseCast() {
+        if (!getLeft().isDynamic()) {
+            return inverseCast(getRight());
+        } else {
+            return inverseCast(getLeft());
+        }
+    }
+
+    private String inverseCast(Expr expr) {
+        if (!expr.getResolvedType().isAssignableFrom(getResolvedType())) {
+            return "(" + getResolvedType() + ")";
+        }
+        return null;
+    }
+
+    @Override
+    public KCode toInverseCode(KCode value) {
+        if (!isDynamic()) {
+            return toCode();
+        }
+        final Expr left = getLeft();
+        final Expr right = getRight();
+        final Expr constExpr = left.isDynamic() ? right : left;
+        final Expr varExpr = left.isDynamic() ? left : right;
+        final String cast = inverseCast();
+        if (cast != null) {
+            value = new KCode(cast).app("(", value).app(")");
+        }
+        switch (mOp.charAt(0)) {
+            case '+': // const + x = value  => x = value - const
+                return varExpr.toInverseCode(value.app(" - (", constExpr.toCode()).app(")"));
+            case '*': // const * x = value => x = value / const
+                return varExpr.toInverseCode(value.app(" / (", constExpr.toCode()).app(")"));
+            case '-':
+                if (!left.isDynamic()) { // const - x = value => x = const - value)
+                    return varExpr.toInverseCode(new KCode()
+                            .app("(", constExpr.toCode())
+                            .app(") - (", value)
+                            .app(")"));
+                } else { // x - const = value => x = value + const)
+                    return varExpr.toInverseCode(value.app(" + ", constExpr.toCode()));
+                }
+            case '/':
+                if (!left.isDynamic()) { // const / x = value => x = const / value
+                    return varExpr.toInverseCode(new KCode("(")
+                            .app("", constExpr.toCode())
+                            .app(") / (", value)
+                            .app(")"));
+                } else { // x / const = value => x = value * const
+                    return varExpr.toInverseCode(new KCode("(")
+                            .app("", value)
+                            .app(") * (", constExpr.toCode())
+                            .app(")"));
+                }
+        }
+        throw new IllegalStateException("Invalid math operation is not invertible: " + mOp);
     }
 }

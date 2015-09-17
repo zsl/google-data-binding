@@ -42,7 +42,7 @@ public class ArgListExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
+    protected KCode generateCode(boolean expand) {
         throw new IllegalStateException("should never try to convert an argument expressions"
                 + " into code");
     }
@@ -60,5 +60,10 @@ public class ArgListExpr extends Expr {
     @Override
     public boolean canBeEvaluatedToAVariable() {
         return false;
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return "Merged bindings are not invertible.";
     }
 }

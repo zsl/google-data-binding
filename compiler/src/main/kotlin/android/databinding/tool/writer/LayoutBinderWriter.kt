@@ -14,19 +14,20 @@
 package android.databinding.tool.writer
 
 import android.databinding.tool.BindingTarget
+import android.databinding.tool.InverseBinding
 import android.databinding.tool.LayoutBinder
 import android.databinding.tool.expr.Expr
 import android.databinding.tool.expr.ExprModel
 import android.databinding.tool.expr.FieldAccessExpr
 import android.databinding.tool.expr.IdentifierExpr
 import android.databinding.tool.expr.ListenerExpr
-import android.databinding.tool.expr.TernaryExpr
 import android.databinding.tool.expr.ResourceExpr
+import android.databinding.tool.expr.TernaryExpr
 import android.databinding.tool.ext.androidId
+import android.databinding.tool.ext.br
 import android.databinding.tool.ext.joinToCamelCaseAsVar
 import android.databinding.tool.ext.lazyProp
 import android.databinding.tool.ext.versionedLazy
-import android.databinding.tool.ext.br
 import android.databinding.tool.processing.ErrorMessages
 import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.util.L
@@ -151,6 +152,12 @@ val Expr.fieldName by lazyProp { expr : Expr ->
     expr.model.getUniqueFieldName("m${expr.readableName.capitalize()}", false)
 }
 
+val InverseBinding.fieldName by lazyProp { inverseBinding : InverseBinding ->
+    val targetName = inverseBinding.getTarget().fieldName;
+    val eventName = inverseBinding.getEventAttribute().stripNonJava()
+    inverseBinding.getModel().getUniqueFieldName("${targetName}${eventName}", false)
+}
+
 val Expr.listenerClassName by lazyProp { expr : Expr ->
     expr.model.getUniqueFieldName("${expr.resolvedType.simpleName}Impl", false)
 }
@@ -200,11 +207,15 @@ val Expr.conditionalFlags by lazyProp { expr : Expr ->
 }
 
 val LayoutBinder.requiredComponent by lazyProp { layoutBinder: LayoutBinder ->
-    val required = layoutBinder.
+    val requiredFromBindings = layoutBinder.
             bindingTargets.
             flatMap { it.bindings }.
-            firstOrNull { it.bindingAdapterInstanceClass != null }
-    required?.bindingAdapterInstanceClass
+            firstOrNull { it.bindingAdapterInstanceClass != null }?.bindingAdapterInstanceClass
+    val requiredFromInverse = layoutBinder.
+            bindingTargets.
+            flatMap { it.inverseBindings }.
+            firstOrNull { it.bindingAdapterInstanceClass != null }?.bindingAdapterInstanceClass
+    requiredFromBindings ?: requiredFromInverse
 }
 
 fun Expr.getRequirementFlagSet(expected : Boolean) : FlagSet = conditionalFlags[if(expected) 1 else 0]
@@ -298,6 +309,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab(declareVariables())
                 tab(declareBoundValues())
                 tab(declareListeners())
+                tab(declareInverseBindingImpls());
                 tab(declareConstructor(minSdk))
                 tab(declareInvalidateAll())
                 tab(declareHasPendingBindings())
@@ -577,6 +589,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             tab("${mDirtyFlags.localName}$suffix |= ${flagSet.localValue(index)};")
                         }
                     } tab ("}")
+                    // TODO: Remove this condition after releasing version 1.1 of SDK
+                    if (ModelAnalyzer.getInstance().findClass("android.databinding.ViewDataBinding", null).isObservable) {
+                        tab("notifyPropertyChanged(${it.name.br()});")
+                    }
                     tab("super.requestRebind();")
                 }
                 nl("}")
@@ -686,6 +702,29 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         }
     }
 
+    fun declareInverseBindingImpls() = kcode("// Inverse Binding Event Handlers") {
+        layoutBinder.getSortedTargets().filter { it.isUsed() }.forEach { target ->
+            target.getInverseBindings().forEach { inverseBinding ->
+                val className : String
+                val param : String
+                if (inverseBinding.isOnBinder()) {
+                    className = "android.databinding.ViewDataBinding.PropertyChangedInverseListener"
+                    param = "BR.${inverseBinding.eventAttribute}"
+                } else {
+                    className = "android.databinding.InverseBindingListener"
+                    param = ""
+                }
+                nl("private ${className} ${inverseBinding.fieldName} = new ${className}(${param}) {") {
+                    tab("@Override")
+                    tab("public void onChange() {") {
+                        tab(inverseBinding.toJavaCode("mBindingComponent", mDirtyFlags)).app(";");
+                    }
+                    tab("}")
+                }
+                nl("};")
+            }
+        }
+    }
     fun declareDirtyFlags() = kcode("// dirty flag") {
         model.ext.localizedFlags.forEach { flag ->
             flag.notEmpty { suffix, value ->

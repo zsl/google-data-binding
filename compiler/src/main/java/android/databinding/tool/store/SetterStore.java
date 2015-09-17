@@ -15,6 +15,7 @@
  */
 package android.databinding.tool.store;
 
+import android.databinding.InverseBindingListener;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
@@ -50,9 +51,10 @@ import javax.lang.model.type.TypeMirror;
 public class SetterStore {
     private static SetterStore sStore;
 
-    private final IntermediateV1 mStore;
+    private final IntermediateV2 mStore;
     private final ModelAnalyzer mClassAnalyzer;
     private HashMap<String, List<String>> mInstanceAdapters;
+    private final HashSet<String> mInverseEventAttributes = new HashSet<String>();
 
     private Comparator<MultiAttributeSetter> COMPARE_MULTI_ATTRIBUTE_SETTERS =
             new Comparator<MultiAttributeSetter>() {
@@ -141,9 +143,19 @@ public class SetterStore {
                 }
             };
 
-    private SetterStore(ModelAnalyzer modelAnalyzer, IntermediateV1 store) {
+    private SetterStore(ModelAnalyzer modelAnalyzer, IntermediateV2 store) {
         mClassAnalyzer = modelAnalyzer;
         mStore = store;
+        for (HashMap<AccessorKey, InverseDescription> adapter : mStore.inverseAdapters.values()) {
+            for (InverseDescription inverseDescription : adapter.values()) {
+                mInverseEventAttributes.add(inverseDescription.event);
+            }
+        }
+        for (HashMap<String, InverseDescription> method : mStore.inverseMethods.values()) {
+            for (InverseDescription inverseDescription : method.values()) {
+                mInverseEventAttributes.add(inverseDescription.event);
+            }
+        }
     }
 
     public static SetterStore get(ModelAnalyzer modelAnalyzer) {
@@ -154,7 +166,7 @@ public class SetterStore {
     }
 
     private static SetterStore load(ModelAnalyzer modelAnalyzer) {
-        IntermediateV1 store = new IntermediateV1();
+        IntermediateV2 store = new IntermediateV2();
         List<Intermediate> previousStores = GenerationalClassUtil
                 .loadObjects(GenerationalClassUtil.ExtensionFilter.SETTER_STORE);
         for (Intermediate intermediate : previousStores) {
@@ -175,6 +187,21 @@ public class SetterStore {
                 declaredOn.getQualifiedName().toString(), method);
         L.d("STORE addmethod desc %s", methodDescription);
         renamed.put(declaringClass, methodDescription);
+    }
+
+    public void addInverseMethod(String attribute, String event, String declaringClass,
+            String method, TypeElement declaredOn) {
+        attribute = stripNamespace(attribute);
+        event = stripNamespace(event);
+        HashMap<String, InverseDescription> inverseMethods = mStore.inverseMethods.get(attribute);
+        if (inverseMethods == null) {
+            inverseMethods = new HashMap<String, InverseDescription>();
+            mStore.inverseMethods.put(attribute, inverseMethods);
+        }
+        InverseDescription methodDescription = new InverseDescription(
+                declaredOn.getQualifiedName().toString(), method, event);
+        L.d("STORE addInverseMethod desc %s", methodDescription);
+        inverseMethods.put(declaringClass, methodDescription);
     }
 
     public void addBindingAdapter(ProcessingEnvironment processingEnv, String attribute,
@@ -200,6 +227,32 @@ public class SetterStore {
         }
 
         adapters.put(key, new MethodDescription(bindingMethod, 1, takesComponent));
+    }
+
+    public void addInverseAdapter(ProcessingEnvironment processingEnv, String attribute,
+            String event, ExecutableElement bindingMethod, boolean takesComponent) {
+        attribute = stripNamespace(attribute);
+        event = stripNamespace(event);
+        L.d("STORE addInverseAdapter %s %s", attribute, bindingMethod);
+        HashMap<AccessorKey, InverseDescription> adapters = mStore.inverseAdapters.get(attribute);
+
+        if (adapters == null) {
+            adapters = new HashMap<AccessorKey, InverseDescription>();
+            mStore.inverseAdapters.put(attribute, adapters);
+        }
+        List<? extends VariableElement> parameters = bindingMethod.getParameters();
+        final int viewIndex = takesComponent ? 1 : 0;
+        TypeMirror viewType = eraseType(processingEnv, parameters.get(viewIndex).asType());
+        String view = getQualifiedName(viewType);
+        TypeMirror returnType = eraseType(processingEnv, bindingMethod.getReturnType());
+        String value = getQualifiedName(returnType);
+
+        AccessorKey key = new AccessorKey(view, value);
+        if (adapters.containsKey(key)) {
+            throw new IllegalArgumentException("Already exists!");
+        }
+
+        adapters.put(key, new InverseDescription(bindingMethod, event, takesComponent));
     }
 
     private static TypeMirror eraseType(ProcessingEnvironment processingEnv,
@@ -274,7 +327,9 @@ public class SetterStore {
     private static String[] stripAttributes(String[] attributes) {
         String[] strippedAttributes = new String[attributes.length];
         for (int i = 0; i < attributes.length; i++) {
-            strippedAttributes[i] = stripNamespace(attributes[i]);
+            if (attributes[i] != null) {
+                strippedAttributes[i] = stripNamespace(attributes[i]);
+            }
         }
         return strippedAttributes;
     }
@@ -398,6 +453,10 @@ public class SetterStore {
         return attribute;
     }
 
+    public boolean isTwoWayEventAttribute(String attribute) {
+        attribute = stripNamespace(attribute);
+        return mInverseEventAttributes.contains(attribute);
+    }
     public List<MultiAttributeSetter> getMultiAttributeSetterCalls(String[] attributes,
             ModelClass viewType, ModelClass[] valueType) {
         attributes = stripAttributes(attributes);
@@ -459,6 +518,13 @@ public class SetterStore {
             for (MethodDescription method : mStore.multiValueAdapters.values()) {
                 if (!method.isStatic) {
                     adapters.add(method.type);
+                }
+            }
+            for (Map<AccessorKey, InverseDescription> methods : mStore.inverseAdapters.values()) {
+                for (InverseDescription method : methods.values()) {
+                    if (!method.isStatic) {
+                        adapters.add(method.type);
+                    }
                 }
             }
             mInstanceAdapters = new HashMap<String, List<String>>();
@@ -609,7 +675,7 @@ public class SetterStore {
                                         adapters.get(key).method, adapterValueType.toJavaCode(),
                                         valueType.toJavaCode());
                                 boolean isBetterView = bestViewType == null ||
-                                        bestValueType.isAssignableFrom(adapterValueType);
+                                        bestViewType.isAssignableFrom(adapterViewType);
                                 if (isBetterParameter(valueType, adapterValueType, bestValueType,
                                         isBetterView, imports)) {
                                     bestViewType = adapterViewType;
@@ -641,6 +707,76 @@ public class SetterStore {
         }
         setterCall.setConverter(conversionMethod);
         return setterCall;
+    }
+
+    public BindingGetterCall getGetterCall(String attribute, ModelClass viewType,
+            ModelClass valueType, Map<String, String> imports) {
+        if (viewType == null) {
+            return null;
+        } else if (viewType.isViewDataBinding()) {
+            return new ViewDataBindingGetterCall(attribute);
+        }
+
+        attribute = stripNamespace(attribute);
+        viewType = viewType.erasure();
+
+        InverseMethod bestMethod = getBestGetter(viewType, valueType, attribute, imports);
+        HashMap<AccessorKey, InverseDescription> adapters = mStore.inverseAdapters.get(attribute);
+        if (adapters != null) {
+            for (AccessorKey key : adapters.keySet()) {
+                try {
+                    ModelClass adapterViewType = mClassAnalyzer
+                            .findClass(key.viewType, imports).erasure();
+                    if (adapterViewType != null && adapterViewType.isAssignableFrom(viewType)) {
+                        try {
+                            L.d("getter return type is %s", key.valueType);
+                            final ModelClass adapterValueType = eraseType(mClassAnalyzer
+                                    .findClass(key.valueType, imports));
+                            L.d("getter %s returns type %s, compared to %s",
+                                    adapters.get(key).method, adapterValueType.toJavaCode(),
+                                    valueType);
+                            boolean isBetterView = bestMethod.viewType == null ||
+                                    bestMethod.viewType.isAssignableFrom(adapterViewType);
+                            if (valueType == null ||
+                                    isBetterParameter(adapterValueType, valueType,
+                                            bestMethod.returnType, isBetterView, imports)) {
+                                bestMethod.viewType = adapterViewType;
+                                bestMethod.returnType = adapterValueType;
+                                InverseDescription inverseDescription = adapters.get(key);
+                                ModelClass listenerType = ModelAnalyzer.getInstance().findClass(
+                                        InverseBindingListener.class);
+                                BindingSetterCall eventCall = getSetterCall(
+                                        inverseDescription.event, viewType, listenerType, imports);
+                                if (eventCall == null) {
+                                    List<MultiAttributeSetter> setters =
+                                            getMultiAttributeSetterCalls(
+                                                    new String[]{inverseDescription.event},
+                                                    viewType, new ModelClass[] {listenerType});
+                                    if (setters.size() != 1) {
+                                        L.e("Could not find event '%s' on View type '%s'",
+                                                inverseDescription.event,
+                                                viewType.getCanonicalName());
+                                    } else {
+                                        bestMethod.call = new AdapterGetter(inverseDescription,
+                                                setters.get(0));
+                                    }
+                                } else {
+                                    bestMethod.call = new AdapterGetter(inverseDescription,
+                                            eventCall);
+                                }
+                            }
+
+                        } catch (Exception e) {
+                            L.e(e, "Unknown class: %s", key.valueType);
+                        }
+                    }
+                } catch (Exception e) {
+                    L.e(e, "Unknown class: %s", key.viewType);
+                }
+            }
+        }
+
+        return bestMethod.call;
     }
 
     public boolean isUntaggable(String viewType) {
@@ -689,6 +825,72 @@ public class SetterStore {
             }
         }
         return bestMethod;
+    }
+
+    private InverseMethod getBestGetter(ModelClass viewType, ModelClass valueType,
+            String attribute, Map<String, String> imports) {
+        if (viewType.isGeneric()) {
+            if (valueType != null) {
+                valueType = eraseType(valueType, viewType.getTypeArguments());
+            }
+            viewType = viewType.erasure();
+        }
+        ModelClass bestReturnType = null;
+        InverseDescription bestDescription = null;
+        ModelClass bestViewType = null;
+        ModelMethod bestMethod = null;
+
+        HashMap<String, InverseDescription> inverseMethods = mStore.inverseMethods.get(attribute);
+        if (inverseMethods != null) {
+            for (String className : inverseMethods.keySet()) {
+                try {
+                    ModelClass methodViewType = mClassAnalyzer.findClass(className, imports);
+                    if (methodViewType.erasure().isAssignableFrom(viewType)) {
+                        boolean isBetterViewType = bestViewType == null ||
+                                bestViewType.isAssignableFrom(methodViewType);
+                        final InverseDescription inverseDescription = inverseMethods.get(className);
+                        final String name =  inverseDescription.method.isEmpty() ?
+                                trimAttributeNamespace(attribute) : inverseDescription.method;
+                        ModelMethod method = methodViewType.findInstanceGetter(name);
+                        ModelClass returnType = method.getReturnType(null); // no parameters
+                        if (valueType == null || bestReturnType == null ||
+                                isBetterParameter(returnType, valueType, bestReturnType,
+                                        isBetterViewType, imports)) {
+                            bestDescription = inverseDescription;
+                            bestReturnType = returnType;
+                            bestViewType = methodViewType;
+                            bestMethod = method;
+                        }
+                    }
+                } catch (Exception e) {
+                    //printMessage(Diagnostic.Kind.NOTE, "Unknown class: " + className);
+                }
+            }
+        }
+
+        BindingGetterCall call = null;
+        if (bestDescription != null) {
+            final ModelClass listenerType = ModelAnalyzer.getInstance().findClass(
+                    InverseBindingListener.class);
+            SetterCall eventSetter = getSetterCall(bestDescription.event, viewType,
+                    listenerType, imports);
+            if (eventSetter == null) {
+                List<MultiAttributeSetter> setters = getMultiAttributeSetterCalls(
+                        new String[] {bestDescription.event}, viewType,
+                        new ModelClass[] {listenerType});
+                if (setters.size() != 1) {
+                    L.e("Could not find event '%s' on View type '%s'", bestDescription.event,
+                            viewType.getCanonicalName());
+                    bestViewType = null;
+                    bestReturnType = null;
+                } else {
+                    call = new ViewGetterCall(bestDescription, bestMethod, setters.get(0));
+                }
+            } else {
+                call = new ViewGetterCall(bestDescription, bestMethod, eventSetter);
+            }
+        }
+        return new InverseMethod(call, bestReturnType, bestViewType);
     }
 
     private static ModelClass eraseType(ModelClass type, List<ModelClass> typeParameters) {
@@ -797,20 +999,22 @@ public class SetterStore {
                 to.isAssignableFrom(from);
     }
 
-    private static void merge(IntermediateV1 store, Intermediate dumpStore) {
-        IntermediateV1 intermediateV1 = (IntermediateV1) dumpStore.upgrade();
-        merge(store.adapterMethods, intermediateV1.adapterMethods);
-        merge(store.renamedMethods, intermediateV1.renamedMethods);
-        merge(store.conversionMethods, intermediateV1.conversionMethods);
-        store.multiValueAdapters.putAll(intermediateV1.multiValueAdapters);
-        store.untaggableTypes.putAll(intermediateV1.untaggableTypes);
+    private static void merge(IntermediateV2 store, Intermediate dumpStore) {
+        IntermediateV2 intermediateV2 = (IntermediateV2) dumpStore.upgrade();
+        merge(store.adapterMethods, intermediateV2.adapterMethods);
+        merge(store.renamedMethods, intermediateV2.renamedMethods);
+        merge(store.conversionMethods, intermediateV2.conversionMethods);
+        store.multiValueAdapters.putAll(intermediateV2.multiValueAdapters);
+        store.untaggableTypes.putAll(intermediateV2.untaggableTypes);
+        merge(store.inverseAdapters, intermediateV2.inverseAdapters);
+        merge(store.inverseMethods, intermediateV2.inverseMethods);
     }
 
-    private static <K, V> void merge(HashMap<K, HashMap<V, MethodDescription>> first,
-            HashMap<K, HashMap<V, MethodDescription>> second) {
+    private static <K, V, D> void merge(HashMap<K, HashMap<V, D>> first,
+            HashMap<K, HashMap<V, D>> second) {
         for (K key : second.keySet()) {
-            HashMap<V, MethodDescription> firstVals = first.get(key);
-            HashMap<V, MethodDescription> secondVals = second.get(key);
+            HashMap<V, D> firstVals = first.get(key);
+            HashMap<V, D> secondVals = second.get(key);
             if (firstVals == null) {
                 first.put(key, secondVals);
             } else {
@@ -972,6 +1176,35 @@ public class SetterStore {
         }
     }
 
+    private static class InverseDescription extends MethodDescription {
+        private static final long serialVersionUID = 1;
+
+        public final String event;
+
+        public InverseDescription(String type, String method, String event) {
+            super(type, method);
+            this.event = event;
+        }
+
+        public InverseDescription(ExecutableElement method, String event, boolean takesComponent) {
+            super(method, 1, takesComponent);
+            this.event = event;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!super.equals(obj) || !(obj instanceof InverseDescription)) {
+                return false;
+            }
+            return event.equals(((InverseDescription) obj).event);
+        }
+
+        @Override
+        public int hashCode() {
+            return mergedHashCode(type, method, event);
+        }
+    }
+
     private static class AccessorKey implements Serializable {
 
         private static final long serialVersionUID = 1;
@@ -1024,6 +1257,24 @@ public class SetterStore {
 
         public IntermediateV1() {
         }
+
+        @Override
+        public Intermediate upgrade() {
+            IntermediateV2 v2 = new IntermediateV2();
+            v2.adapterMethods.putAll(adapterMethods);
+            v2.renamedMethods.putAll(renamedMethods);
+            v2.conversionMethods.putAll(conversionMethods);
+            v2.untaggableTypes.putAll(untaggableTypes);
+            v2.multiValueAdapters.putAll(multiValueAdapters);
+            return v2;
+        }
+    }
+
+    private static class IntermediateV2 extends IntermediateV1 {
+        public final HashMap<String, HashMap<AccessorKey, InverseDescription>> inverseAdapters =
+                new HashMap<String, HashMap<AccessorKey, InverseDescription>>();
+        public final HashMap<String, HashMap<String, InverseDescription>> inverseMethods =
+                new HashMap<String, HashMap<String, InverseDescription>>();
 
         @Override
         public Intermediate upgrade() {
@@ -1342,6 +1593,208 @@ public class SetterStore {
                     ", mCasts=" + Arrays.toString(mCasts) +
                     ", mKey=" + mKey +
                     '}';
+        }
+    }
+
+    public static class ViewDataBindingEventSetter implements BindingSetterCall {
+
+        public ViewDataBindingEventSetter() {
+        }
+
+        @Override
+        public String toJava(String componentExpression, String viewExpression,
+                String... valueExpressions) {
+            return "setBindingInverseListener(" + viewExpression + ", " +
+                    valueExpressions[0] + ", " + valueExpressions[1] + ")";
+        }
+
+        @Override
+        public int getMinApi() {
+            return 0;
+        }
+
+        @Override
+        public boolean requiresOldValue() {
+            return true;
+        }
+
+        @Override
+        public ModelClass[] getParameterTypes() {
+            ModelClass[] parameterTypes = new ModelClass[1];
+            parameterTypes[0] = ModelAnalyzer.getInstance().findClass(
+                    "android.databinding.ViewDataBinder.PropertyChangedInverseListener", null);
+            return parameterTypes;
+        }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return null;
+        }
+    }
+
+    public interface BindingGetterCall {
+        String toJava(String componentExpression, String viewExpression);
+
+        int getMinApi();
+
+        String getBindingAdapterInstanceClass();
+
+        void setBindingAdapterCall(String method);
+
+        BindingSetterCall getEvent();
+
+        String getEventAttribute();
+    }
+
+    public static class ViewDataBindingGetterCall implements BindingGetterCall {
+        private final String mGetter;
+        private final BindingSetterCall mEventSetter;
+        private final String mAttribute;
+
+        public ViewDataBindingGetterCall(String attribute) {
+            final int colonIndex = attribute.indexOf(':');
+            mAttribute = attribute.substring(colonIndex + 1);
+            mGetter = "get" + StringUtils.capitalize(mAttribute);
+            mEventSetter = new ViewDataBindingEventSetter();
+        }
+
+        @Override
+        public String toJava(String componentExpression, String viewExpression) {
+            return viewExpression + "." + mGetter + "()";
+        }
+
+        @Override
+        public int getMinApi() {
+            return 0;
+        }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return null;
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
+        }
+
+        @Override
+        public BindingSetterCall getEvent() {
+            return mEventSetter;
+        }
+
+        @Override
+        public String getEventAttribute() {
+            return mAttribute;
+        }
+    }
+
+    public static class ViewGetterCall implements BindingGetterCall {
+        private final InverseDescription mInverseDescription;
+        private final BindingSetterCall mEventCall;
+        private final ModelMethod mMethod;
+
+        public ViewGetterCall(InverseDescription inverseDescription, ModelMethod method,
+                BindingSetterCall eventCall) {
+            mInverseDescription = inverseDescription;
+            mEventCall = eventCall;
+            mMethod = method;
+        }
+
+        @Override
+        public BindingSetterCall getEvent() {
+            return mEventCall;
+        }
+
+        @Override
+        public String getEventAttribute() {
+            return mInverseDescription.event;
+        }
+
+        @Override
+        public String toJava(String componentExpression, String viewExpression) {
+            return viewExpression + "." + mMethod.getName() + "()";
+        }
+
+        @Override
+        public int getMinApi() {
+            return mMethod.getMinApi();
+        }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return null;
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
+        }
+    }
+
+    public static class AdapterGetter implements BindingGetterCall {
+        private final InverseDescription mInverseDescription;
+        private String mBindingAdapterCall;
+        private final BindingSetterCall mEventCall;
+
+        public AdapterGetter(InverseDescription description, BindingSetterCall eventCall) {
+            mInverseDescription = description;
+            mEventCall = eventCall;
+        }
+
+        @Override
+        public String toJava(String componentExpression, String viewExpression) {
+            StringBuilder sb = new StringBuilder();
+
+            if (mInverseDescription.isStatic) {
+                sb.append(mInverseDescription.type);
+            } else {
+                sb.append(componentExpression).append('.').append(mBindingAdapterCall);
+            }
+            sb.append('.').append(mInverseDescription.method).append('(');
+            if (mInverseDescription.componentClass != null) {
+                if (!"DataBindingComponent".equals(mInverseDescription.componentClass)) {
+                    sb.append('(').append(mInverseDescription.componentClass).append(") ");
+                }
+                sb.append(componentExpression).append(", ");
+            }
+            sb.append(viewExpression).append(')');
+            return sb.toString();
+        }
+
+        @Override
+        public int getMinApi() {
+            return 1;
+        }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return mInverseDescription.isStatic ? null : mInverseDescription.type;
+        }
+
+        @Override
+        public void setBindingAdapterCall(String method) {
+            mBindingAdapterCall = method;
+        }
+
+        @Override
+        public BindingSetterCall getEvent() {
+            return mEventCall;
+        }
+
+        @Override
+        public String getEventAttribute() {
+            return mInverseDescription.event;
+        }
+    }
+
+    private static class InverseMethod {
+        public BindingGetterCall call;
+        public ModelClass returnType;
+        public ModelClass viewType;
+
+        public InverseMethod(BindingGetterCall call, ModelClass returnType, ModelClass viewType) {
+            this.call = call;
+            this.returnType = returnType;
+            this.viewType = viewType;
         }
     }
 }

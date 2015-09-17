@@ -16,8 +16,8 @@
 
 package android.databinding.tool.expr;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
+import android.databinding.tool.BindingTarget;
+import android.databinding.tool.InverseBinding;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
@@ -25,6 +25,8 @@ import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.FlagSet;
+
+import org.antlr.v4.runtime.ParserRuleContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,10 +120,6 @@ public class ExprModel {
         mCurrentParserContext = currentParserContext;
     }
 
-    public void unregister(Expr expr) {
-        mExprMap.remove(expr.getUniqueKey());
-    }
-
     public Map<String, Expr> getExprMap() {
         return mExprMap;
     }
@@ -164,6 +162,10 @@ public class ExprModel {
 
     public BuiltInVariableExpr builtInVariable(String name, String type, String accessCode) {
         return register(new BuiltInVariableExpr(name, type, accessCode));
+    }
+
+    public ViewFieldExpr viewFieldExpr(BindingTarget bindingTarget) {
+        return register(new ViewFieldExpr(bindingTarget));
     }
 
     /**
@@ -246,6 +248,9 @@ public class ExprModel {
         return register(new CastExpr(type, expr));
     }
 
+    public TwoWayListenerExpr twoWayListenerExpr(InverseBinding inverseBinding) {
+        return register(new TwoWayListenerExpr(inverseBinding));
+    }
     public List<Expr> getBindingExpressions() {
         return mBindingExpressions;
     }
@@ -282,6 +287,7 @@ public class ExprModel {
     }
 
     public void removeExpr(Expr expr) {
+        Preconditions.check(!mSealed, "Can't modify the expression list after sealing the model.");
         mBindingExpressions.remove(expr);
         mExprMap.remove(expr.computeUniqueKey());
     }
@@ -341,6 +347,17 @@ public class ExprModel {
                                 expr.getUniqueKey(),
                                 Integer.toHexString(System.identityHashCode(expr)));
                     }
+                }
+            }
+        }
+
+        // now all 2-way bound view fields
+        for (Expr expr : mExprMap.values()) {
+            if (expr instanceof FieldAccessExpr) {
+                FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) expr;
+                if (fieldAccessExpr.getChild() instanceof ViewFieldExpr) {
+                    flagMapping.add(fieldAccessExpr.getUniqueKey());
+                    fieldAccessExpr.setId(counter++);
                 }
             }
         }

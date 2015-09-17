@@ -63,7 +63,7 @@ class KCode (private val s : String? = null){
         return tab(c)
     }
 
-    private fun tab(c : KCode?) : KCode {
+    fun tab(c : KCode?) : KCode {
         if (c == null || isNull(c)) {
             return this
         }

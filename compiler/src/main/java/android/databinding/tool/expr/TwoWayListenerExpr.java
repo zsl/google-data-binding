@@ -13,30 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package android.databinding.tool.expr;
 
+import android.databinding.InverseBindingListener;
+import android.databinding.tool.InverseBinding;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.writer.KCode;
+import android.databinding.tool.writer.LayoutBinderWriterKt;
 
 import java.util.List;
 
-public class ComparisonExpr extends Expr {
-    final String mOp;
-    ComparisonExpr(String op, Expr left, Expr right) {
-        super(left, right);
-        mOp = op;
-    }
+/**
+ * TwoWayListenerExpr is used to set the event listener for a two-way binding expression.
+ */
+public class TwoWayListenerExpr extends Expr {
+    final InverseBinding mInverseBinding;
 
-    @Override
-    protected String computeUniqueKey() {
-        return join(mOp, super.computeUniqueKey());
+    public TwoWayListenerExpr(InverseBinding inverseBinding) {
+        mInverseBinding = inverseBinding;
     }
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
-        return modelAnalyzer.loadPrimitive("boolean");
+        return modelAnalyzer.findClass(InverseBindingListener.class);
     }
 
     @Override
@@ -44,32 +44,20 @@ public class ComparisonExpr extends Expr {
         return constructDynamicChildrenDependencies();
     }
 
-    public String getOp() {
-        return mOp;
-    }
-
-    public Expr getLeft() {
-        return getChildren().get(0);
-    }
-
-    public Expr getRight() {
-        return getChildren().get(1);
-    }
-
-    @Override
-    public boolean isEqualityCheck() {
-        return "==".equals(mOp.trim());
-    }
-
     @Override
     protected KCode generateCode(boolean expand) {
-        return new KCode().app("", getLeft().toCode(expand))
-        .app(" ").app(getOp()).app(" ")
-        .app("", getRight().toCode(expand));
+        final String fieldName = LayoutBinderWriterKt.getFieldName(mInverseBinding);
+        return new KCode(fieldName);
+    }
+
+    @Override
+    protected String computeUniqueKey() {
+        return "event(" + mInverseBinding.getEventAttribute() + ", " +
+                System.identityHashCode(mInverseBinding) + ")";
     }
 
     @Override
     public String getInvertibleError() {
-        return "Comparison operators are not valid as targets of two-way binding";
+        return "Inverted expressions are already inverted!";
     }
 }

@@ -16,12 +16,6 @@
 
 package android.databinding.tool.expr;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-
 import android.databinding.Bindable;
 import android.databinding.Observable;
 import android.databinding.tool.LayoutBinder;
@@ -32,6 +26,12 @@ import android.databinding.tool.reflection.java.JavaAnalyzer;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.KCode;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,8 +73,13 @@ public class ExprModelTest {
         }
 
         @Override
-        protected KCode generateCode() {
+        protected KCode generateCode(boolean full) {
             return new KCode();
+        }
+
+        @Override
+        protected String getInvertibleError() {
+            return "DummyExpr cannot be 2-way.";
         }
     }
 
@@ -142,7 +147,7 @@ public class ExprModelTest {
         IdentifierExpr a = lb.addVariable("a", "java.lang.String", null);
         IdentifierExpr b = lb.addVariable("b", "java.lang.String", null);
         IdentifierExpr c = lb.addVariable("c", "java.lang.String", null);
-        lb.parse("a == null ? b : c", null);
+        lb.parse("a == null ? b : c", false, null);
         mExprModel.comparison("==", a, mExprModel.symbol("null", Object.class));
         lb.getModel().seal();
         List<Expr> shouldRead = getShouldRead();
@@ -291,7 +296,7 @@ public class ExprModelTest {
         IdentifierExpr c = lb.addVariable("c", "java.lang.String", null);
         IdentifierExpr d = lb.addVariable("d", "java.lang.String", null);
         IdentifierExpr e = lb.addVariable("e", "java.lang.String", null);
-        final Expr aTernary = lb.parse("a == null ? b == null ? c : d : e", null);
+        final Expr aTernary = lb.parse("a == null ? b == null ? c : d : e", false, null);
         assertTrue(aTernary instanceof TernaryExpr);
         final Expr bTernary = ((TernaryExpr) aTernary).getIfTrue();
         assertTrue(bTernary instanceof TernaryExpr);
@@ -969,7 +974,7 @@ public class ExprModelTest {
     }
 
     private <T extends Expr> T parse(LayoutBinder binder, String input, Class<T> klass) {
-        final Expr parsed = binder.parse(input, null);
+        final Expr parsed = binder.parse(input, false, null);
         assertTrue(klass.isAssignableFrom(parsed.getClass()));
         return (T) parsed;
     }
