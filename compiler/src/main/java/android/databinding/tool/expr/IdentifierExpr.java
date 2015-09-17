@@ -78,8 +78,12 @@ public class IdentifierExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
-        return new KCode(LayoutBinderWriterKt.getExecutePendingLocalName(this));
+    protected KCode generateCode(boolean expand) {
+        if (expand) {
+            return new KCode(LayoutBinderWriterKt.getFieldName(this));
+        } else {
+            return new KCode(LayoutBinderWriterKt.getExecutePendingLocalName(this));
+        }
     }
 
     public void setDeclared() {
@@ -88,5 +92,15 @@ public class IdentifierExpr extends Expr {
 
     public boolean isDeclared() {
         return mIsDeclared;
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return null;
+    }
+
+    @Override
+    public KCode toInverseCode(KCode value) {
+        return new KCode().app(LayoutBinderWriterKt.getSetterName(this)).app("(", value).app(");");
     }
 }

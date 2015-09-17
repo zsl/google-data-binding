@@ -584,12 +584,9 @@ public class ResourceBundle implements Serializable {
                     : bundle.mDirectory != null) {
                 return false;
             }
-            if (mFileName != null ? !mFileName.equals(bundle.mFileName)
-                    : bundle.mFileName != null) {
-                return false;
-            }
+            return !(mFileName != null ? !mFileName.equals(bundle.mFileName)
+                    : bundle.mFileName != null);
 
-            return true;
         }
 
         @Override
@@ -702,11 +699,8 @@ public class ResourceBundle implements Serializable {
             if (!name.equals(that.name)) {
                 return false;
             }
-            if (!type.equals(that.type)) {
-                return false;
-            }
+            return type.equals(that.type);
 
-            return true;
         }
 
         @Override
@@ -782,8 +776,9 @@ public class ResourceBundle implements Serializable {
             mLocation = location;
         }
 
-        public void addBinding(String name, String expr, Location location, Location valueLocation) {
-            mBindingBundleList.add(new BindingBundle(name, expr, location, valueLocation));
+        public void addBinding(String name, String expr, boolean isTwoWay, Location location,
+                Location valueLocation) {
+            mBindingBundleList.add(new BindingBundle(name, expr, isTwoWay, location, valueLocation));
         }
 
         public void setIncludedLayout(String includedLayout) {
@@ -869,14 +864,16 @@ public class ResourceBundle implements Serializable {
             private String mExpr;
             private Location mLocation;
             private Location mValueLocation;
+            private boolean mIsTwoWay;
 
             public BindingBundle() {}
 
-            public BindingBundle(String name, String expr, Location location,
+            public BindingBundle(String name, String expr, boolean isTwoWay, Location location,
                     Location valueLocation) {
                 mName = name;
                 mExpr = expr;
                 mLocation = location;
+                mIsTwoWay = isTwoWay;
                 mValueLocation = valueLocation;
             }
 
@@ -898,6 +895,10 @@ public class ResourceBundle implements Serializable {
                 mExpr = expr;
             }
 
+            public void setTwoWay(boolean isTwoWay) {
+                mIsTwoWay = isTwoWay;
+            }
+
             @XmlElement(name="Location")
             public Location getLocation() {
                 return mLocation;
@@ -910,6 +911,11 @@ public class ResourceBundle implements Serializable {
             @XmlElement(name="ValueLocation")
             public Location getValueLocation() {
                 return mValueLocation;
+            }
+
+            @XmlElement(name="TwoWay")
+            public boolean isTwoWay() {
+                return mIsTwoWay;
             }
 
             public void setValueLocation(Location valueLocation) {

@@ -25,10 +25,13 @@ import org.junit.rules.TestName;
 
 import android.databinding.tool.store.Location;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -258,8 +261,8 @@ public class BaseCompilationTest {
         }
         builder.directory(testFolder);
         Process process = builder.start();
-        String output = IOUtils.toString(process.getInputStream());
-        String error = IOUtils.toString(process.getErrorStream());
+        String output = collect(process.getInputStream());
+        String error = collect(process.getErrorStream());
         int result = process.waitFor();
         return new CompilationResult(result, output, error);
     }
@@ -269,5 +272,16 @@ public class BaseCompilationTest {
         gw.setExecutable(true);
     }
 
-
+    /**
+     * Use this instead of IO utils so that we can easily log the output when necessary
+     */
+    private static String collect(InputStream stream) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        String line;
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        while ((line = reader.readLine()) != null) {
+            sb.append(line).append("\n");
+        }
+        return sb.toString();
+    }
 }

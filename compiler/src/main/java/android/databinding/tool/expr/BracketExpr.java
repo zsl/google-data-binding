@@ -24,7 +24,7 @@ import java.util.List;
 
 public class BracketExpr extends Expr {
 
-    public static enum BracketAccessor {
+    public enum BracketAccessor {
         ARRAY,
         LIST,
         MAP,
@@ -65,7 +65,13 @@ public class BracketExpr extends Expr {
     }
 
     protected String computeUniqueKey() {
-        return join(getTarget().computeUniqueKey(), "$", getArg().computeUniqueKey(), "$");
+        final String targetKey = getTarget().computeUniqueKey();
+        return addTwoWay(join(targetKey, "$", getArg().computeUniqueKey(), "$"));
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return null;
     }
 
     public Expr getTarget() {
@@ -81,11 +87,11 @@ public class BracketExpr extends Expr {
     }
 
     public boolean argCastsInteger() {
-        return getArg().getResolvedType().isObject();
+        return mAccessor != BracketAccessor.MAP && getArg().getResolvedType().isObject();
     }
 
     @Override
-    protected KCode generateCode() {
+    protected KCode generateCode(boolean expand) {
         String cast = argCastsInteger() ? "(Integer) " : "";
         switch (getAccessor()) {
             case ARRAY: {
@@ -119,5 +125,15 @@ public class BracketExpr extends Expr {
                         app(")");
         }
         throw new IllegalStateException("Invalid BracketAccessor type");
+    }
+
+    @Override
+    public KCode toInverseCode(KCode value) {
+        String cast = argCastsInteger() ? "(Integer) " : "";
+        return new KCode().
+                app("setTo(", getTarget().toCode(true)).
+                app(", ").
+                app(cast, getArg().toCode(true)).
+                app(", ", value).app(");");
     }
 }

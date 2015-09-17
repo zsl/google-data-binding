@@ -16,15 +16,15 @@
 
 package android.databinding.tool.expr;
 
-import org.junit.Before;
-import org.junit.Test;
-
 import android.databinding.tool.LayoutBinder;
 import android.databinding.tool.MockLayoutBinder;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.java.JavaAnalyzer;
 import android.databinding.tool.writer.KCode;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.BitSet;
 import java.util.List;
@@ -56,8 +56,13 @@ public class ExprTest{
         }
 
         @Override
-        protected KCode generateCode() {
+        protected KCode generateCode(boolean full) {
             return new KCode();
+        }
+
+        @Override
+        protected String getInvertibleError() {
+            return null;
         }
 
         @Override
@@ -85,8 +90,13 @@ public class ExprTest{
             }
 
             @Override
-            protected KCode generateCode() {
+            protected KCode generateCode(boolean full) {
                 return new KCode();
+            }
+
+            @Override
+            protected String getInvertibleError() {
+                return null;
             }
         };
         expr.getUniqueKey();

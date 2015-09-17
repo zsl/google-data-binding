@@ -16,6 +16,9 @@
 
 package android.databinding.tool.expr;
 
+import static android.databinding.tool.reflection.Callable.DYNAMIC;
+import static android.databinding.tool.reflection.Callable.STATIC;
+
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
@@ -27,9 +30,6 @@ import android.databinding.tool.writer.KCode;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.databinding.tool.reflection.Callable.DYNAMIC;
-import static android.databinding.tool.reflection.Callable.STATIC;
 
 
 public class MethodCallExpr extends Expr {
@@ -61,9 +61,9 @@ public class MethodCallExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
+    protected KCode generateCode(boolean expand) {
         KCode code = new KCode()
-        .app("", getTarget().toCode())
+        .app("", getTarget().toCode(expand))
         .app(".")
         .app(getGetter().name)
         .app("(");
@@ -74,7 +74,7 @@ public class MethodCallExpr extends Expr {
             } else {
                 code.app(", ");
             }
-            code.app("", arg.toCode());
+            code.app("", arg.toCode(expand));
         }
         code.app(")");
         return code;
@@ -114,7 +114,7 @@ public class MethodCallExpr extends Expr {
             if (method.isStatic()) {
                 flags |= STATIC;
             }
-            mGetter = new Callable(Type.METHOD, method.getName(), method.getReturnType(args),
+            mGetter = new Callable(Type.METHOD, method.getName(), null, method.getReturnType(args),
                     method.getParameterTypes().length, flags);
         }
         return mGetter.resolvedType;
@@ -151,5 +151,10 @@ public class MethodCallExpr extends Expr {
 
     public Callable getGetter() {
         return mGetter;
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return "Method calls may not be used in two-way expressions";
     }
 }

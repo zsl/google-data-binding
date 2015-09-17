@@ -16,6 +16,13 @@
 
 package android.databinding.tool.util;
 
+import android.databinding.parser.BindingExpressionLexer;
+import android.databinding.parser.BindingExpressionParser;
+import android.databinding.parser.XMLLexer;
+import android.databinding.parser.XMLParser;
+import android.databinding.parser.XMLParser.AttributeContext;
+import android.databinding.parser.XMLParser.ElementContext;
+
 import com.google.common.base.Joiner;
 import com.google.common.xml.XmlEscapers;
 
@@ -24,13 +31,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.io.FileUtils;
-
-import android.databinding.parser.BindingExpressionLexer;
-import android.databinding.parser.BindingExpressionParser;
-import android.databinding.parser.XMLLexer;
-import android.databinding.parser.XMLParser;
-import android.databinding.parser.XMLParser.AttributeContext;
-import android.databinding.parser.XMLParser.ElementContext;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -191,14 +191,23 @@ public class XmlEditor {
         List<AttributeContext> result = new ArrayList<AttributeContext>();
         for (AttributeContext input : attributes(elementContext)) {
             String attrName = input.attrName.getText();
-            String value = input.attrValue.getText();
-            if (attrName.equals("android:tag") ||
-                    (value.startsWith("\"@{") && value.endsWith("}\"")) ||
-                    (value.startsWith("'@{") && value.endsWith("}'"))) {
+            boolean isExpression = attrName.equals("android:tag");
+            if (!isExpression) {
+                final String value = input.attrValue.getText();
+                isExpression = isExpressionText(input.attrValue.getText());
+            }
+            if (isExpression) {
                 result.add(input);
             }
         }
         return result;
+    }
+
+    private static boolean isExpressionText(String value) {
+        // Check if the expression ends with "}" and starts with "@{" or "@={", ignoring
+        // the surrounding quotes.
+        return (value.length() > 5 && value.charAt(value.length() - 2) == '}' &&
+                ("@{".equals(value.substring(1, 3)) || "@={".equals(value.substring(1, 4))));
     }
 
     private static Position endTagPosition(ElementContext context) {
@@ -272,8 +281,7 @@ public class XmlEditor {
         } else {
             // android:tag is included, regardless, so we must only count as an expression
             // if android:tag has a binding expression.
-            String value = expressions.get(0).attrValue.getText();
-            return value.startsWith("\"@{") || value.startsWith("'@{");
+            return isExpressionText(expressions.get(0).attrValue.getText());
         }
     }
 
@@ -322,10 +330,14 @@ public class XmlEditor {
     private static String defaultReplacement(XMLParser.AttributeContext attr) {
         String textWithQuotes = attr.attrValue.getText();
         String escapedText = textWithQuotes.substring(1, textWithQuotes.length() - 1);
-        if (!escapedText.startsWith("@{") || !escapedText.endsWith("}")) {
+        final boolean isTwoWay = escapedText.startsWith("@={");
+        final boolean isOneWay = escapedText.startsWith("@{");
+        if ((!isTwoWay && !isOneWay) || !escapedText.endsWith("}")) {
             return null;
         }
-        String text = StringUtils.unescapeXml(escapedText.substring(2, escapedText.length() - 1));
+        final int startIndex = isTwoWay ? 3 : 2;
+        final int endIndex = escapedText.length() - 1;
+        String text = StringUtils.unescapeXml(escapedText.substring(startIndex, endIndex));
         ANTLRInputStream inputStream = new ANTLRInputStream(text);
         BindingExpressionLexer lexer = new BindingExpressionLexer(inputStream);
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);

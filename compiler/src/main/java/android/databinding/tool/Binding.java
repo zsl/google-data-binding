@@ -24,6 +24,7 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.store.SetterStore;
+import android.databinding.tool.store.SetterStore.BindingSetterCall;
 import android.databinding.tool.store.SetterStore.SetterCall;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.LayoutBinderWriterKt;
@@ -35,12 +36,17 @@ public class Binding implements LocationScopeProvider {
     private final String mName;
     private Expr mExpr;
     private final BindingTarget mTarget;
-    private SetterStore.SetterCall mSetterCall;
+    private BindingSetterCall mSetterCall;
 
     public Binding(BindingTarget target, String name, Expr expr) {
+        this(target, name, expr, null);
+    }
+
+    public Binding(BindingTarget target, String name, Expr expr, BindingSetterCall setterCall) {
         mTarget = target;
         mName = name;
         mExpr = expr;
+        mSetterCall = setterCall;
     }
 
     @Override
@@ -54,6 +60,13 @@ public class Binding implements LocationScopeProvider {
         if (listenerExpr != mExpr) {
             listenerExpr.setBindingExpression(true);
             mExpr = listenerExpr;
+        }
+    }
+
+    public void resolveTwoWayExpressions() {
+        Expr expr = mExpr.resolveTwoWayExpressions(null);
+        if (expr != mExpr) {
+            mExpr = expr;
         }
     }
 

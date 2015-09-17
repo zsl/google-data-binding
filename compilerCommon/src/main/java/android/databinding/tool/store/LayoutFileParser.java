@@ -13,19 +13,6 @@
 
 package android.databinding.tool.store;
 
-import com.google.common.base.Strings;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.apache.commons.io.FileUtils;
-import org.mozilla.universalchardet.UniversalDetector;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
 import android.databinding.parser.XMLLexer;
 import android.databinding.parser.XMLParser;
 import android.databinding.parser.XMLParserBaseVisitor;
@@ -38,6 +25,19 @@ import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
 import android.databinding.tool.util.XmlEditor;
+
+import com.google.common.base.Strings;
+
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
+import org.apache.commons.io.FileUtils;
+import org.mozilla.universalchardet.UniversalDetector;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -243,9 +243,15 @@ public class LayoutFileParser {
 
             for (XMLParser.AttributeContext attr : XmlEditor.expressionAttributes(parent)) {
                 String value = escapeQuotes(attr.attrValue.getText(), true);
-                if (value.charAt(0) == '@' && value.charAt(1) == '{' &&
-                        value.charAt(value.length() - 1) == '}') {
-                    final String strippedValue = value.substring(2, value.length() - 1);
+                final boolean isOneWay = value.startsWith("@{");
+                final boolean isTwoWay = value.startsWith("@={");
+                if (isOneWay || isTwoWay) {
+                    if (value.charAt(value.length() - 1) != '}') {
+                        L.e("Expecting '}' in expression '%s'", attr.attrValue.getText());
+                    }
+                    final int startIndex = isTwoWay ? 3 : 2;
+                    final int endIndex = value.length() - 1;
+                    final String strippedValue = value.substring(startIndex, endIndex);
                     Location attrLocation = new Location(attr);
                     Location valueLocation = new Location();
                     // offset to 0 based
@@ -254,8 +260,8 @@ public class LayoutFileParser {
                             attr.attrValue.getText().indexOf(strippedValue);
                     valueLocation.endLine = attrLocation.endLine;
                     valueLocation.endOffset = attrLocation.endOffset - 2; // account for: "}
-                    bindingTargetBundle.addBinding(escapeQuotes(attr.attrName.getText(), false)
-                            , strippedValue, attrLocation, valueLocation);
+                    bindingTargetBundle.addBinding(escapeQuotes(attr.attrName.getText(), false),
+                            strippedValue, isTwoWay, attrLocation, valueLocation);
                 }
             }
         }

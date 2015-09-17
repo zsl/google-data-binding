@@ -48,7 +48,12 @@ public class SymbolExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
+    public String getInvertibleError() {
+        return "Symbol '" + mText + "' cannot be the target of a two-way binding expression";
+    }
+
+    @Override
+    protected KCode generateCode(boolean expand) {
         return new KCode(getText());
     }
 

@@ -75,6 +75,10 @@ public class MergedBinding extends Binding {
         return args.getChildren().toArray(new Expr[args.getChildren().size()]);
     }
 
+    public String[] getAttributes() {
+        return mMultiAttributeSetter.attributes;
+    }
+
     @Override
     public String getBindingAdapterInstanceClass() {
         return mMultiAttributeSetter.getBindingAdapterInstanceClass();

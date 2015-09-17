@@ -14,9 +14,6 @@
 package android.databinding.tool;
 
 
-import org.junit.Before;
-import org.junit.Test;
-
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.FieldAccessExpr;
@@ -25,6 +22,9 @@ import android.databinding.tool.expr.StaticIdentifierExpr;
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.java.JavaAnalyzer;
 import android.databinding.tool.reflection.java.JavaClass;
+
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
@@ -77,8 +77,8 @@ public class LayoutBinderTest {
         int originalSize = mExprModel.size();
         mLayoutBinder.addVariable("user", "android.databinding.tool2.LayoutBinderTest.TestUser",
                 null);
-        mLayoutBinder.parse("user.name", null);
-        mLayoutBinder.parse("user.lastName", null);
+        mLayoutBinder.parse("user.name", false, null);
+        mLayoutBinder.parse("user.lastName", false, null);
         assertEquals(originalSize + 3, mExprModel.size());
         final List<Expr> bindingExprs = mExprModel.getBindingExpressions();
         assertEquals(2, bindingExprs.size());
@@ -94,7 +94,7 @@ public class LayoutBinderTest {
     public void testParseWithMethods() {
         mLayoutBinder.addVariable("user", "android.databinding.tool.LayoutBinderTest.TestUser",
                 null);
-        mLayoutBinder.parse("user.fullName", null);
+        mLayoutBinder.parse("user.fullName", false, null);
         Expr item = mExprModel.getBindingExpressions().get(0);
         assertTrue(item instanceof FieldAccessExpr);
         IdentifierExpr id = mExprModel.identifier("user");

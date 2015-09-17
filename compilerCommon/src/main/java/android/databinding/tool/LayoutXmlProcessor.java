@@ -21,6 +21,7 @@ import org.xml.sax.SAXException;
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.store.LayoutFileParser;
 import android.databinding.tool.store.ResourceBundle;
+import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.SourceCodeEscapers;
 import android.databinding.tool.writer.JavaFileWriter;
@@ -157,7 +158,7 @@ public class LayoutXmlProcessor {
             public void processLayoutFile(File file)
                     throws ParserConfigurationException, SAXException, XPathExpressionException,
                     IOException {
-                File output = convertToOutFile(file);
+                final File output = convertToOutFile(file);
                 final ResourceBundle.LayoutFileBundle bindingLayout = layoutFileParser
                         .parseXml(file, output, mResourceBundle.getAppPackage(), mOriginalFileLookup);
                 if (bindingLayout != null && !bindingLayout.isEmpty()) {
@@ -167,19 +168,21 @@ public class LayoutXmlProcessor {
 
             @Override
             public void processOtherFile(File parentFolder, File file) throws IOException {
-                File outParent = convertToOutFile(parentFolder);
+                final File outParent = convertToOutFile(parentFolder);
                 FileUtils.copyFile(file, new File(outParent, file.getName()));
             }
 
             @Override
             public void processRemovedLayoutFile(File file) {
                 mResourceBundle.addRemovedFile(file);
+                final File out = convertToOutFile(file);
+                FileUtils.deleteQuietly(out);
             }
 
             @Override
             public void processRemovedOtherFile(File parentFolder, File file) throws IOException {
-                File outParent = convertToOutFile(parentFolder);
-                FileUtils.forceDelete(new File(outParent, file.getName()));
+                final File outParent = convertToOutFile(parentFolder);
+                FileUtils.deleteQuietly(new File(outParent, file.getName()));
             }
 
             @Override
@@ -196,7 +199,7 @@ public class LayoutXmlProcessor {
 
             @Override
             public void processOtherRootFile(File file) throws IOException {
-                File outFile = convertToOutFile(file);
+                final File outFile = convertToOutFile(file);
                 if (file.isDirectory()) {
                     FileUtils.copyDirectory(file, outFile);
                 } else {
@@ -207,11 +210,7 @@ public class LayoutXmlProcessor {
             @Override
             public void processRemovedOtherRootFile(File file) throws IOException {
                 final File outFile = convertToOutFile(file);
-                if (file.isDirectory()) {
-                    FileUtils.deleteDirectory(outFile);
-                } else {
-                    FileUtils.deleteQuietly(outFile);
-                }
+                FileUtils.deleteQuietly(outFile);
             }
         };
         if (input.isIncremental()) {
@@ -391,6 +390,27 @@ public class LayoutXmlProcessor {
 
         public boolean isIncremental() {
             return mIncremental;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder out = new StringBuilder();
+            out.append("ResourceInput{")
+                    .append("mIncremental=").append(mIncremental)
+                    .append(", mRootInputFolder=").append(mRootInputFolder)
+                    .append(", mRootOutputFolder=").append(mRootOutputFolder);
+            logFiles(out, "added", mAdded);
+            logFiles(out, "removed", mRemoved);
+            logFiles(out, "changed", mChanged);
+            return out.toString();
+
+        }
+
+        private static void logFiles(StringBuilder out, String name, List<File> files) {
+            out.append("\n  ").append(name);
+            for (File file : files) {
+                out.append("\n   - ").append(file.getAbsolutePath());
+            }
         }
     }
 

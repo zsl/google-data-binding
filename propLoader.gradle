@@ -1,13 +1,14 @@
 /**
  * Helper build script that reads data binding variables and sets up the projects.
  */
-def forceReleaseVersion = project.hasProperty('useReleaseVersion') && project.getProperty('useReleaseVersion').equals("true")
 def root = ext.dataBindingRootFolder
 Properties databindingProperties = new Properties()
 databindingProperties.load(new FileInputStream("${root}/databinding.properties"))
-if (forceReleaseVersion) {
-    databindingProperties.version = databindingProperties.releaseVersion
-}
+
+// load android gradle plugin's version file
+apply from: "${root}/../buildSrc/base/version.gradle"
+
+databindingProperties.version = ext.buildVersion
 databindingProperties.compileSdkVersion = Integer.parseInt(databindingProperties.compileSdkVersionStr)
 def repoBase = databindingProperties.mavenRepoAbsolutePath == "." ? root : databindingProperties.mavenRepoAbsolutePath
 databindingProperties.androidGradlePluginRepoDir = "${root}/../../${databindingProperties.androidGradlePluginOutRepo}"

@@ -130,12 +130,18 @@ public class ResourceExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
+    protected KCode generateCode(boolean expand) {
         return new KCode(toJava());
     }
 
     public String getResourceId() {
         return mPackage + "R." + getResourceObject() + "." + mResourceId;
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return "Resources may not be the target of a two-way binding expression: " +
+                computeUniqueKey();
     }
 
     public String toJava() {
@@ -145,7 +151,7 @@ public class ResourceExpr extends Expr {
         if ("anim".equals(mResourceType)) return "android.view.animation.AnimationUtils.loadAnimation(" + context + ", " + resourceName + ")";
         if ("animator".equals(mResourceType)) return "android.animation.AnimatorInflater.loadAnimator(" + context + ", " + resourceName + ")";
         if ("bool".equals(mResourceType)) return resources + ".getBoolean(" + resourceName + ")";
-        if ("color".equals(mResourceType)) return resources + ".getColor(" + resourceName + ")";
+        if ("color".equals(mResourceType)) return "android.databinding.DynamicUtil.getColorFromResource(getRoot(), " + resourceName + ")";
         if ("colorStateList".equals(mResourceType)) return "getColorStateListFromResource(" + resourceName + ")";
         if ("dimen".equals(mResourceType)) return resources + ".getDimension(" + resourceName + ")";
         if ("dimenOffset".equals(mResourceType)) return resources + ".getDimensionPixelOffset(" + resourceName + ")";

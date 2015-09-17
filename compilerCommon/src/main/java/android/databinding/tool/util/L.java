@@ -21,6 +21,8 @@ import android.databinding.tool.processing.ScopedException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 
@@ -28,7 +30,7 @@ public class L {
     private static boolean sEnableDebug = false;
     private static final Client sSystemClient = new Client() {
         @Override
-        public void printMessage(Kind kind, String message) {
+        public void printMessage(Kind kind, String message, Element element) {
             if (kind == Kind.ERROR) {
                 System.err.println(message);
             } else {
@@ -49,23 +51,33 @@ public class L {
 
     public static void d(String msg, Object... args) {
         if (sEnableDebug) {
-            printMessage(Diagnostic.Kind.NOTE, String.format(msg, args));
+            printMessage(null, Diagnostic.Kind.NOTE, String.format(msg, args));
+        }
+    }
+
+    public static void d(Element element, String msg, Object... args) {
+        if (sEnableDebug) {
+            printMessage(element, Diagnostic.Kind.NOTE, String.format(msg, args));
         }
     }
 
     public static void d(Throwable t, String msg, Object... args) {
         if (sEnableDebug) {
-            printMessage(Diagnostic.Kind.NOTE,
+            printMessage(null, Diagnostic.Kind.NOTE,
                     String.format(msg, args) + " " + getStackTrace(t));
         }
     }
 
     public static void w(String msg, Object... args) {
-        printMessage(Kind.WARNING, String.format(msg, args));
+        printMessage(null, Kind.WARNING, String.format(msg, args));
+    }
+
+    public static void w(Element element, String msg, Object... args) {
+        printMessage(element, Kind.WARNING, String.format(msg, args));
     }
 
     public static void w(Throwable t, String msg, Object... args) {
-        printMessage(Kind.WARNING,
+        printMessage(null, Kind.WARNING,
                 String.format(msg, args) + " " + getStackTrace(t));
     }
 
@@ -85,18 +97,24 @@ public class L {
     public static void e(String msg, Object... args) {
         String fullMsg = String.format(msg, args);
         tryToThrowScoped(null, fullMsg);
-        printMessage(Diagnostic.Kind.ERROR, fullMsg);
+        printMessage(null, Diagnostic.Kind.ERROR, fullMsg);
+    }
+
+    public static void e(Element element, String msg, Object... args) {
+        String fullMsg = String.format(msg, args);
+        tryToThrowScoped(null, fullMsg);
+        printMessage(element, Diagnostic.Kind.ERROR, fullMsg);
     }
 
     public static void e(Throwable t, String msg, Object... args) {
         String fullMsg = String.format(msg, args);
         tryToThrowScoped(t, fullMsg);
-        printMessage(Diagnostic.Kind.ERROR,
+        printMessage(null, Diagnostic.Kind.ERROR,
                 fullMsg + " " + getStackTrace(t));
     }
 
-    private static void printMessage(Diagnostic.Kind kind, String message) {
-        sClient.printMessage(kind, message);
+    private static void printMessage(Element element, Diagnostic.Kind kind, String message) {
+        sClient.printMessage(kind, message, element);
         if (kind == Diagnostic.Kind.ERROR) {
             throw new RuntimeException("failure, see logs for details.\n" + message);
         }
@@ -106,8 +124,8 @@ public class L {
         return sEnableDebug;
     }
 
-    public static interface Client {
-        public void printMessage(Diagnostic.Kind kind, String message);
+    public interface Client {
+        void printMessage(Diagnostic.Kind kind, String message, Element element);
     }
 
     private static String getStackTrace(Throwable t) {

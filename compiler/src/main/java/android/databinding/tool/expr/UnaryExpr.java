@@ -30,13 +30,23 @@ public class UnaryExpr extends Expr {
     }
 
     @Override
-    protected String computeUniqueKey() {
-        return join(getOpStr(), getExpr().getUniqueKey());
+    public String getInvertibleError() {
+        return getExpr().getInvertibleError();
     }
 
     @Override
-    protected KCode generateCode() {
-        return new KCode().app(getOp(), getExpr().toCode());
+    protected String computeUniqueKey() {
+        return addTwoWay(join(getOpStr(), getExpr().getUniqueKey()));
+    }
+
+    @Override
+    public KCode toInverseCode(KCode value) {
+        return getExpr().toInverseCode(new KCode().app(mOp, value));
+    }
+
+    @Override
+    protected KCode generateCode(boolean expand) {
+        return new KCode().app(getOp(), getExpr().toCode(expand));
     }
 
     @Override

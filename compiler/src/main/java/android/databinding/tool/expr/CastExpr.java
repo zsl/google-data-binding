@@ -46,7 +46,7 @@ public class CastExpr extends Expr {
     }
 
     protected String computeUniqueKey() {
-        return join(mType, getCastExpr().computeUniqueKey());
+        return addTwoWay(join(mType, getCastExpr().computeUniqueKey()));
     }
 
     public Expr getCastExpr() {
@@ -58,10 +58,21 @@ public class CastExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
+    protected KCode generateCode(boolean expand) {
         return new KCode()
                 .app("(")
                 .app(getCastType())
-                .app(") ", getCastExpr().toCode());
+                .app(") ", getCastExpr().toCode(expand));
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return getCastExpr().getInvertibleError();
+    }
+
+    @Override
+    public KCode toInverseCode(KCode value) {
+        // assume no need to cast in reverse
+        return getCastExpr().toInverseCode(value);
     }
 }

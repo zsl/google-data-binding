@@ -384,8 +384,8 @@ public abstract class ModelClass {
      */
     public Callable findGetterOrField(String name, boolean staticOnly) {
         if ("length".equals(name) && isArray()) {
-            return new Callable(Type.FIELD, name, ModelAnalyzer.getInstance().loadPrimitive("int"),
-                    0, 0);
+            return new Callable(Type.FIELD, name, null,
+                    ModelAnalyzer.getInstance().loadPrimitive("int"), 0, 0);
         }
         String capitalized = StringUtils.capitalize(name);
         String[] methodNames = {
@@ -413,8 +413,10 @@ public abstract class ModelClass {
                             flags |= CAN_BE_INVALIDATED;
                         }
                     }
+                    final ModelMethod setterMethod = findSetter(method, name);
+                    final String setterName = setterMethod == null ? null : setterMethod.getName();
                     final Callable result = new Callable(Callable.Type.METHOD, methodName,
-                            method.getReturnType(null), method.getParameterTypes().length,
+                            setterName, method.getReturnType(null), method.getParameterTypes().length,
                             flags);
                     return result;
                 }
@@ -438,16 +440,37 @@ public abstract class ModelClass {
         }
         ModelClass fieldType = publicField.getFieldType();
         int flags = 0;
+        String setterFieldName = name;
+        if (publicField.isStatic()) {
+            flags |= STATIC;
+        }
         if (!publicField.isFinal()) {
+            setterFieldName = null;
             flags |= DYNAMIC;
         }
         if (publicField.isBindable()) {
             flags |= CAN_BE_INVALIDATED;
         }
-        if (publicField.isStatic()) {
-            flags |= STATIC;
+        return new Callable(Callable.Type.FIELD, name, setterFieldName, fieldType, 0, flags);
+    }
+
+    public ModelMethod findInstanceGetter(String name) {
+        String capitalized = StringUtils.capitalize(name);
+        String[] methodNames = {
+                "get" + capitalized,
+                "is" + capitalized,
+                name
+        };
+        for (String methodName : methodNames) {
+            ModelMethod[] methods = getMethods(methodName, new ArrayList<ModelClass>(), false);
+            for (ModelMethod method : methods) {
+                if (method.isPublic() && !method.isStatic() &&
+                        !method.getReturnType(Arrays.asList(method.getParameterTypes())).isVoid()) {
+                    return method;
+                }
+            }
         }
-        return new Callable(Callable.Type.FIELD, name, fieldType, 0, flags);
+        return null;
     }
 
     private ModelField getField(String name, boolean allowPrivate, boolean isStatic) {
@@ -458,6 +481,33 @@ public abstract class ModelClass {
             if (nameMatch && field.isStatic() == isStatic &&
                     (allowPrivate || field.isPublic())) {
                 return field;
+            }
+        }
+        return null;
+    }
+
+    private ModelMethod findSetter(ModelMethod getter, String originalName) {
+        final String capitalized = StringUtils.capitalize(originalName);
+        final String[] possibleNames;
+        if (originalName.equals(getter.getName())) {
+            possibleNames = new String[] { originalName, "set" + capitalized };
+        } else if (getter.getName().startsWith("is")){
+            possibleNames = new String[] { "set" + capitalized, "setIs" + capitalized };
+        } else {
+            possibleNames = new String[] { "set" + capitalized };
+        }
+        for (String name : possibleNames) {
+            List<ModelMethod> methods = findMethods(name, getter.isStatic());
+            if (methods != null) {
+                ModelClass param = getter.getReturnType(null);
+                for (ModelMethod method : methods) {
+                    ModelClass[] parameterTypes = method.getParameterTypes();
+                    if (parameterTypes != null && parameterTypes.length == 1 &&
+                            parameterTypes[0].equals(param) &&
+                            method.isStatic() == getter.isStatic()) {
+                        return method;
+                    }
+                }
             }
         }
         return null;

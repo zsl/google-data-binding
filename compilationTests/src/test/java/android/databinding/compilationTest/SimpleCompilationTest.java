@@ -228,6 +228,25 @@ public class SimpleCompilationTest extends BaseCompilationTest {
     }
 
     @Test
+    public void testModuleDependencyChange() throws IOException, URISyntaxException,
+            InterruptedException {
+        prepareApp(toMap(KEY_DEPENDENCIES, "compile project(':module1')",
+                KEY_SETTINGS_INCLUDES, "include ':app'\ninclude ':module1'"));
+        prepareModule("module1", "com.example.module1", toMap(
+                KEY_DEPENDENCIES, "compile 'com.android.support:appcompat-v7:23.1.1'"
+        ));
+        copyResourceTo("/layout/basic_layout.xml", "/module1/src/main/res/layout/module_layout.xml");
+        copyResourceTo("/layout/basic_layout.xml", "/app/src/main/res/layout/app_layout.xml");
+        CompilationResult result = runGradle("assembleDebug");
+        assertEquals(result.error, 0, result.resultCode);
+        File moduleFolder = new File(testFolder, "module1");
+        copyResourceTo("/module_build.gradle", new File(moduleFolder, "build.gradle"),
+                toMap());
+        result = runGradle("assembleDebug");
+        assertEquals(result.error, 0, result.resultCode);
+    }
+
+    @Test
     public void testTwoLevelDependency() throws IOException, URISyntaxException, InterruptedException {
         prepareApp(toMap(KEY_DEPENDENCIES, "compile project(':module1')",
                 KEY_SETTINGS_INCLUDES, "include ':app'\ninclude ':module1'\n"

@@ -47,6 +47,20 @@ public class TernaryExpr extends Expr {
     }
 
     @Override
+    public String getInvertibleError() {
+        if (getPred().isDynamic()) {
+            return "The condition of a ternary operator must be constant: " +
+                    getPred().toFullCode();
+        }
+        final String trueInvertible = getIfTrue().getInvertibleError();
+        if (trueInvertible != null) {
+            return trueInvertible;
+        } else {
+            return getIfFalse().getInvertibleError();
+        }
+    }
+
+    @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
         final Expr ifTrue = getIfTrue();
         final Expr ifFalse = getIfFalse();
@@ -90,12 +104,23 @@ public class TernaryExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
+    protected KCode generateCode(boolean expand) {
         return new KCode()
-                .app("", getPred().toCode())
-                .app(" ? ", getIfTrue().toCode())
-                .app(" : ", getIfFalse().toCode());
+                .app("", getPred().toCode(expand))
+                .app(" ? ", getIfTrue().toCode(expand))
+                .app(" : ", getIfFalse().toCode(expand));
 
+    }
+
+    @Override
+    public KCode toInverseCode(KCode variable) {
+        return new KCode()
+                .app("if (", getPred().toCode(true))
+                .app(") {")
+                .tab(getIfTrue().toInverseCode(variable))
+                .nl(new KCode("} else {"))
+                .tab(getIfFalse().toInverseCode(variable))
+                .nl(new KCode("}"));
     }
 
     @Override

@@ -7,6 +7,17 @@ class DynamicUtilWriter() {
         nl("import android.os.Build.VERSION_CODES;")
         nl("")
         nl("public class DynamicUtil {")
+        tab("@SuppressWarnings(\"deprecation\")")
+        tab("public static int getColorFromResource(final android.view.View root, final int resourceId) {") {
+            if (targetSdk >= 23) {
+                tab("if (VERSION.SDK_INT >= VERSION_CODES.M) {") {
+                    tab("return root.getContext().getColor(resourceId);")
+                }
+                tab("}")
+            }
+            tab("return root.getResources().getColor(resourceId);")
+        }
+        tab("}")
         nl("}")
     }
 }

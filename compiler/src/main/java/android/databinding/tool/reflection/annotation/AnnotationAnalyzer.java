@@ -24,7 +24,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
@@ -55,8 +58,13 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
         setInstance(this);
         L.setClient(new L.Client() {
             @Override
-            public void printMessage(Diagnostic.Kind kind, String message) {
-                mProcessingEnv.getMessager().printMessage(kind, message);
+            public void printMessage(Diagnostic.Kind kind, String message, Element element) {
+                Messager messager = mProcessingEnv.getMessager();
+                if (element != null) {
+                    messager.printMessage(kind, message, element);
+                } else {
+                    messager.printMessage(kind, message);
+                }
             }
         });
     }

@@ -37,9 +37,9 @@ public class InstanceOfExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode() {
+    protected KCode generateCode(boolean expand) {
         return new KCode()
-                .app("", getExpr().toCode())
+                .app("", getExpr().toCode(expand))
                 .app(" instanceof ")
                 .app(getType().toJavaCode());
     }
@@ -61,5 +61,10 @@ public class InstanceOfExpr extends Expr {
 
     public ModelClass getType() {
         return mType;
+    }
+
+    @Override
+    public String getInvertibleError() {
+        return "two-way binding can't target a value with the 'instanceof' operator";
     }
 }

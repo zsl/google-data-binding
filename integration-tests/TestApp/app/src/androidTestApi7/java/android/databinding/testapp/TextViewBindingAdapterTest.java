@@ -308,4 +308,11 @@ public class TextViewBindingAdapterTest
         assertNotNull(textView.getTextColors());
     }
 
+    @UiThreadTest
+    public void testTextWithColor() throws Throwable {
+        TextView textView = mBinder.textWithColor;
+        int expectedColor = mBinder.getRoot().getResources().getColor(
+                android.R.color.holo_blue_bright);
+        assertEquals(expectedColor, textView.getCurrentTextColor());
+    }
 }
