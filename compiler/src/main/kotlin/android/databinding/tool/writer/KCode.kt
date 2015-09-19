@@ -63,7 +63,7 @@ class KCode (private val s : String? = null){
     }
 
     private fun tab(c : KCode?) : KCode {
-        if (isNull(c)) {
+        if (c == null || isNull(c)) {
             return this
         }
         nodes.add(c)
@@ -81,7 +81,7 @@ class KCode (private val s : String? = null){
     }
 
     fun nl(c : KCode?) : KCode {
-        if (isNull(c)) {
+        if (c == null || isNull(c)) {
             return this
         }
         nodes.add(c)

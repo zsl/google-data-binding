@@ -66,11 +66,11 @@ class ExprModelExt {
         }
         var candidate = candidateBase
         var i = 0
-        while (usedFieldNames[scope].contains(candidate)) {
+        while (usedFieldNames[scope]!!.contains(candidate)) {
             i ++
             candidate = candidateBase + i
         }
-        usedFieldNames[scope].add(candidate)
+        usedFieldNames[scope]!!.add(candidate)
         return candidate
     }
 }
@@ -368,17 +368,17 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     val index = indices.get(it)
                     tab("sIncludes.setIncludes(${index}, ") {
                         tab ("new String[] {${
-                        includeMap.get(it).map {
+                        includeMap.get(it)!!.map {
                             "\"${it.getIncludedLayout()}\""
                         }.joinToString(", ")
                         }},")
                         tab("new int[] {${
-                        includeMap.get(it).map {
+                        includeMap.get(it)!!.map {
                             "${indices.get(it)}"
                         }.joinToString(", ")
                         }},")
                         tab("new int[] {${
-                        includeMap.get(it).map {
+                        includeMap.get(it)!!.map {
                             "R.layout.${it.getIncludedLayout()}"
                         }.joinToString(", ")
                         }});")
