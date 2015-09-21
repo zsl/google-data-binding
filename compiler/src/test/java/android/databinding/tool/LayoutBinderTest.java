@@ -23,6 +23,7 @@ import android.databinding.tool.expr.FieldAccessExpr;
 import android.databinding.tool.expr.IdentifierExpr;
 import android.databinding.tool.expr.StaticIdentifierExpr;
 import android.databinding.tool.reflection.Callable;
+import android.databinding.tool.reflection.java.JavaAnalyzer;
 import android.databinding.tool.reflection.java.JavaClass;
 
 import java.util.List;
@@ -40,6 +41,7 @@ public class LayoutBinderTest {
     public void setUp() throws Exception {
         mLayoutBinder = new MockLayoutBinder();
         mExprModel = mLayoutBinder.getModel();
+        JavaAnalyzer.initForTests();
     }
 
     @Test
