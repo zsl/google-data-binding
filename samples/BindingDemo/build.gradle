@@ -16,10 +16,8 @@
 
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    def Properties dataBindingProperties = new Properties()
-    dataBindingProperties.load(new FileInputStream("${projectDir}/../../databinding.properties"))
-    dataBindingProperties.mavenRepoDir = "${projectDir}/../../${dataBindingProperties.mavenRepoName}"
-    ext.config = dataBindingProperties
+    ext.rootFolder = new File(project.projectDir, "../..")
+    apply from: "${project.projectDir}/../../propLoader.gradle"
 
     repositories {
         jcenter()
