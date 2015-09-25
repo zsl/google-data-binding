@@ -28,6 +28,7 @@ import org.xml.sax.SAXException;
 import android.databinding.parser.XMLLexer;
 import android.databinding.parser.XMLParser;
 import android.databinding.parser.XMLParserBaseVisitor;
+import android.databinding.tool.LayoutXmlProcessor;
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.scopes.FileScopeProvider;
@@ -67,7 +68,8 @@ public class LayoutFileParser {
 
     private static final String LAYOUT_PREFIX = "@layout/";
 
-    public ResourceBundle.LayoutFileBundle parseXml(final File xml, String pkg, int minSdk)
+    public ResourceBundle.LayoutFileBundle parseXml(final File xml, String pkg,
+            LayoutXmlProcessor.OriginalFileLookup originalFileLookup)
             throws ParserConfigurationException, IOException, SAXException,
             XPathExpressionException {
         try {
@@ -79,18 +81,18 @@ public class LayoutFileParser {
             });
             final String xmlNoExtension = ParserHelper.stripExtension(xml.getName());
             final String newTag = xml.getParentFile().getName() + '/' + xmlNoExtension;
-            File original = stripFileAndGetOriginal(xml, newTag);
+            File original = stripFileAndGetOriginal(xml, newTag, originalFileLookup);
             if (original == null) {
                 L.d("assuming the file is the original for %s", xml.getAbsoluteFile());
                 original = xml;
             }
-            return parseXml(original, pkg);
+            return parseOriginalXml(original, pkg);
         } finally {
             Scope.exit();
         }
     }
 
-    private ResourceBundle.LayoutFileBundle parseXml(final File original, String pkg)
+    private ResourceBundle.LayoutFileBundle parseOriginalXml(final File original, String pkg)
             throws IOException {
         try {
             Scope.enter(new FileScopeProvider() {
@@ -373,7 +375,8 @@ public class LayoutFileParser {
         return "merge".equals(rootView.elmName.getText()) && filter(rootView, "include").size() > 0;
     }
 
-    private File stripFileAndGetOriginal(File xml, String binderId)
+    private File stripFileAndGetOriginal(File xml, String binderId,
+            LayoutXmlProcessor.OriginalFileLookup originalFileLookup)
             throws ParserConfigurationException, IOException, SAXException,
             XPathExpressionException {
         L.d("parsing resource file %s", xml.getAbsolutePath());
@@ -382,6 +385,24 @@ public class LayoutFileParser {
         Document doc = builder.parse(xml);
         XPathFactory xPathFactory = XPathFactory.newInstance();
         XPath xPath = xPathFactory.newXPath();
+        File actualFile = originalFileLookup == null ? null
+                : originalFileLookup.getOriginalFileFor(xml);
+        if (actualFile == null || !actualFile.exists()) {
+            actualFile = findOriginalFileFromComments(doc, xPath);
+        }
+        if (actualFile == null) {
+            return null;
+        }
+        // now if file has any binding expressions, find and delete them
+        boolean changed = isBindingLayout(doc, xPath);
+        if (changed) {
+            stripBindingTags(xml, binderId);
+        }
+        return actualFile;
+    }
+
+    private File findOriginalFileFromComments(Document doc, XPath xPath)
+            throws XPathExpressionException, MalformedURLException {
         final XPathExpression commentElementExpr = xPath
                 .compile("//comment()[starts-with(., \" From: file:\")][last()]");
         final NodeList commentElementNodes = (NodeList) commentElementExpr
@@ -394,17 +415,10 @@ public class LayoutFileParser {
         final Node first = commentElementNodes.item(0);
         String actualFilePath = first.getNodeValue().substring(" From:".length()).trim();
         L.d("actual file to parse: %s", actualFilePath);
-        File actualFile = urlToFile(new java.net.URL(actualFilePath));
+        File actualFile = urlToFile(new URL(actualFilePath));
         if (!actualFile.canRead()) {
             L.d("cannot find original, skipping. %s", actualFile.getAbsolutePath());
             return null;
-        }
-
-        // now if file has any binding expressions, find and delete them
-        // TODO we should rely on namespace to avoid parsing file twice
-        boolean changed = isBindingLayout(doc, xPath);
-        if (changed) {
-            stripBindingTags(xml, binderId);
         }
         return actualFile;
     }

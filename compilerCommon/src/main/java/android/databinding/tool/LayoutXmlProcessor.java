@@ -54,6 +54,7 @@ public class LayoutXmlProcessor {
     private final String mBuildId = UUID.randomUUID().toString();
     // can be a list of xml files or folders that contain XML files
     private final List<File> mResources;
+    private OriginalFileLookup mOriginalFileLookup;
 
     public LayoutXmlProcessor(String applicationPackage, List<File> resources,
             JavaFileWriter fileWriter, int minSdk, boolean isLibrary) {
@@ -62,6 +63,10 @@ public class LayoutXmlProcessor {
         mResources = resources;
         mMinSdk = minSdk;
         mIsLibrary = isLibrary;
+    }
+
+    public void setOriginalFileLookup(OriginalFileLookup originalFileLookup) {
+        mOriginalFileLookup = originalFileLookup;
     }
 
     public static List<File> getLayoutFiles(List<File> resources) {
@@ -100,7 +105,7 @@ public class LayoutXmlProcessor {
         LayoutFileParser layoutFileParser = new LayoutFileParser();
         for (File xmlFile : getLayoutFiles(mResources)) {
             final ResourceBundle.LayoutFileBundle bindingLayout = layoutFileParser
-                    .parseXml(xmlFile, mResourceBundle.getAppPackage(), minSdk);
+                    .parseXml(xmlFile, mResourceBundle.getAppPackage(), mOriginalFileLookup);
             if (bindingLayout != null && !bindingLayout.isEmpty()) {
                 mResourceBundle.addLayoutBundle(bindingLayout);
             }
@@ -201,4 +206,16 @@ public class LayoutXmlProcessor {
             return name.toLowerCase().endsWith(".xml");
         }
     };
+
+    /**
+     * Helper interface that can find the original copy of a resource XML.
+     */
+    public interface OriginalFileLookup {
+
+        /**
+         * @param file The intermediate build file
+         * @return The original file or null if original File cannot be found.
+         */
+        File getOriginalFileFor(File file);
+    }
 }

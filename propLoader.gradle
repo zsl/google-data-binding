@@ -55,28 +55,10 @@ def addRepos(RepositoryHandler handler) {
 ext.addRepos = this.&addRepos
 subprojects {
     buildscript {
-        config.localRepositories.each { repo ->
-            repositories.maven {
-                url repo
-            }
-        }
-        repositories {
-            if (config.addRemoteRepos) {
-                jcenter()
-                mavenCentral()
-            }
-        }
+        addRepos(repositories)
     }
     repositories {
-        config.localRepositories.each { repo ->
-            repositories.maven {
-                url repo
-            }
-        }
-        if (config.addRemoteRepos) {
-            jcenter()
-            mavenCentral()
-        }
+        addRepos(repositories)
     }
 }
 
