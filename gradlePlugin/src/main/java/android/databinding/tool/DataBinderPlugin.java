@@ -295,6 +295,7 @@ public class DataBinderPlugin implements Plugin<Project> {
                         task.setSdkDir(sdkDir);
                         task.setXmlOutFolder(xmlOutDir);
                         task.setMinSdk(minSdkVersion.getApiLevel());
+                        task.setBlameLogDir(variantData.getScope().getResourceBlameLogDir());
 
                         logD("TASK adding dependency on %s for %s", task, processResTask);
                         processResTask.dependsOn(task);

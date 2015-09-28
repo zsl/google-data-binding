@@ -15,6 +15,9 @@
  */
 package android.databinding.tool;
 
+import com.android.ide.common.blame.MergingLog;
+import com.android.ide.common.blame.SourceFile;
+
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.util.L;
 
@@ -41,12 +44,26 @@ public class DataBindingProcessLayoutsTask extends DefaultTask {
     private File xmlOutFolder;
 
     private int minSdk;
+    private File mBlameLogDir;
 
     @TaskAction
     public void processResources()
             throws ParserConfigurationException, SAXException, XPathExpressionException,
             IOException {
         L.d("running process layouts task %s", getName());
+        if (mBlameLogDir != null) {
+            final MergingLog mergingLog = new MergingLog(mBlameLogDir);
+            xmlProcessor.setOriginalFileLookup(new LayoutXmlProcessor.OriginalFileLookup() {
+                @Override
+                public File getOriginalFileFor(File file) {
+                    SourceFile input = new SourceFile(file);
+                    SourceFile original = mergingLog.find(input);
+                    // merged log api returns the file back if original cannot be found.
+                    // it is not what we want so we alter the response.
+                    return original == input ? null : original.getSourceFile();
+                }
+            });
+        }
         xmlProcessor.processResources(minSdk);
         Scope.assertNoError();
     }
@@ -85,5 +102,9 @@ public class DataBindingProcessLayoutsTask extends DefaultTask {
 
     public void setMinSdk(int minSdk) {
         this.minSdk = minSdk;
+    }
+
+    public void setBlameLogDir(File blameLogDir) {
+        mBlameLogDir = blameLogDir;
     }
 }
