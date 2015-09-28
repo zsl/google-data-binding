@@ -305,7 +305,6 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab(declareConstructor(minSdk))
                 tab(declareInvalidateAll())
                 tab(declareHasPendingBindings())
-                tab(declareLog())
                 tab(declareSetVariable())
                 tab(variableSettersAndGetters())
                 tab(onFieldChange())
@@ -558,13 +557,6 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             }
             tab("}")
             tab("return false;")
-        }
-        nl("}")
-    }
-
-    fun declareLog() = kcode("") {
-        nl("private void log(String msg, long i) {") {
-            tab("""android.util.Log.d("BINDER", msg + ":" + Long.toHexString(i));""")
         }
         nl("}")
     }
