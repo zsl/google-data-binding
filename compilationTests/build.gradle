@@ -10,3 +10,8 @@ dependencies {
     testCompile 'commons-codec:commons-codec:1.10'
     testCompile project(':compilerCommon')
 }
+
+afterEvaluate {
+    tasks['test'].systemProperties['useReleaseVersion'] = config.inReleaseBuild ? 'true' : 'false'
+    tasks['test'].systemProperties['addRemoteRepos'] = config.addRemoteRepos ? 'true' : 'false'
+}
