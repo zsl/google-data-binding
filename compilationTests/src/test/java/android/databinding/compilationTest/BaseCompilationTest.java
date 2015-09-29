@@ -216,7 +216,8 @@ public class BaseCompilationTest {
         if (localProperties.exists()) {
             FileUtils.copyFile(localProperties, new File(testFolder, "local.properties"));
         }
-        FileUtils.copyFile(new File("../propLoader.gradle"), new File(testFolder, "propLoaderClone.gradle"));
+        FileUtils.copyFile(new File("../propLoader.gradle"),
+                new File(testFolder, "propLoaderClone.gradle"));
         FileUtils.copyFile(new File("../gradlew"), new File(testFolder, "gradlew"));
         FileUtils.copyDirectory(new File("../gradle"), new File(testFolder, "gradle"));
     }
@@ -243,6 +244,12 @@ public class BaseCompilationTest {
         List<String> args = new ArrayList<>();
         args.add(pathToExecutable.getAbsolutePath());
         args.add("-P" + PRINT_ENCODED_ERRORS_PROPERTY + "=true");
+        if ("true".equals(System.getProperties().getProperty("useReleaseVersion", "false"))) {
+            args.add("-PuseReleaseVersion=true");
+        }
+        if ("true".equals(System.getProperties().getProperty("addRemoteRepos", "false"))) {
+            args.add("-PaddRemoteRepos=true");
+        }
         args.add("--project-cache-dir");
         args.add(new File("../.caches/", name.getMethodName()).getAbsolutePath());
         Collections.addAll(args, params);
