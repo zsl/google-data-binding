@@ -144,10 +144,6 @@ public class Binding implements LocationScopeProvider {
         return getSetterCall().getBindingAdapterInstanceClass();
     }
 
-    public void setBindingAdapterCall(String method) {
-        getSetterCall().setBindingAdapterCall(method);
-    }
-
     public Expr[] getComponentExpressions() {
         return new Expr[] { mExpr };
     }
@@ -227,10 +223,6 @@ public class Binding implements LocationScopeProvider {
         public String getBindingAdapterInstanceClass() {
             return null;
         }
-
-        @Override
-        public void setBindingAdapterCall(String method) {
-        }
     }
 
     private static class ViewStubDirectCall extends SetterCall {
@@ -279,11 +271,6 @@ public class Binding implements LocationScopeProvider {
         @Override
         public String getBindingAdapterInstanceClass() {
             return mWrappedCall.getBindingAdapterInstanceClass();
-        }
-
-        @Override
-        public void setBindingAdapterCall(String method) {
-            mWrappedCall.setBindingAdapterCall(method);
         }
     }
 }

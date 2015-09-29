@@ -69,11 +69,6 @@ public class MergedBinding extends Binding {
     }
 
     @Override
-    public void setBindingAdapterCall(String method) {
-        mMultiAttributeSetter.setBindingAdapterCall(method);
-    }
-
-    @Override
     public boolean requiresOldValue() {
         return mMultiAttributeSetter.requiresOldValue();
     }

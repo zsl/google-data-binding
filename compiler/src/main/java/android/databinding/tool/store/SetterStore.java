@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +53,7 @@ public class SetterStore {
 
     private final IntermediateV1 mStore;
     private final ModelAnalyzer mClassAnalyzer;
+    private HashMap<String, List<String>> mInstanceAdapters;
 
     private Comparator<MultiAttributeSetter> COMPARE_MULTI_ATTRIBUTE_SETTERS =
             new Comparator<MultiAttributeSetter>() {
@@ -419,6 +421,65 @@ public class SetterStore {
         return calls;
     }
 
+    private static String simpleName(String className) {
+        int dotIndex = className.lastIndexOf('.');
+        if (dotIndex < 0) {
+            return className;
+        } else {
+            return className.substring(dotIndex + 1);
+        }
+    }
+
+    public Map<String, List<String>> getComponentBindingAdapters() {
+        ensureInstanceAdapters();
+        return mInstanceAdapters;
+    }
+
+    private String getBindingAdapterCall(String className) {
+        ensureInstanceAdapters();
+        final String simpleName = simpleName(className);
+        List<String> adapters = mInstanceAdapters.get(simpleName);
+        if (adapters.size() == 1) {
+            return "get" + simpleName + "()";
+        } else {
+            int index = adapters.indexOf(className) + 1;
+            return "get" + simpleName + index + "()";
+        }
+    }
+
+    private void ensureInstanceAdapters() {
+        if (mInstanceAdapters == null) {
+            HashSet<String> adapters = new HashSet<>();
+            for (HashMap<AccessorKey, MethodDescription> methods : mStore.adapterMethods.values()) {
+                for (MethodDescription method : methods.values()) {
+                    if (!method.isStatic) {
+                        adapters.add(method.type);
+                    }
+                }
+            }
+            for (MethodDescription method : mStore.multiValueAdapters.values()) {
+                if (!method.isStatic) {
+                    adapters.add(method.type);
+                }
+            }
+            mInstanceAdapters = new HashMap<>();
+            for (String adapter : adapters) {
+                final String simpleName = simpleName(adapter);
+                List<String> list = mInstanceAdapters.get(simpleName);
+                if (list == null) {
+                    list = new ArrayList<>();
+                    mInstanceAdapters.put(simpleName, list);
+                }
+                list.add(adapter);
+            }
+            for (List<String> list : mInstanceAdapters.values()) {
+                if (list.size() > 1) {
+                    Collections.sort(list);
+                }
+            }
+        }
+    }
+
     // Removes all MultiAttributeSetters that require any of the values in attributes
     private static void removeConsumedAttributes(ArrayList<MultiAttributeSetter> matching,
             String[] attributes) {
@@ -763,14 +824,16 @@ public class SetterStore {
         }
     }
 
-    private static String createAdapterCall(MethodDescription adapter, String bindingAdapterCall,
+    private static String createAdapterCall(MethodDescription adapter,
             String componentExpression, String viewExpression, String... args) {
         StringBuilder sb = new StringBuilder();
 
         if (adapter.isStatic) {
             sb.append(adapter.type);
         } else {
-            sb.append(componentExpression).append('.').append(bindingAdapterCall);
+            final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+            final String binderCall =  setterStore.getBindingAdapterCall(adapter.type);
+            sb.append(componentExpression).append('.').append(binderCall);
         }
         sb.append('.').append(adapter.method).append('(');
         if (adapter.componentClass != null) {
@@ -1009,16 +1072,11 @@ public class SetterStore {
         public String getBindingAdapterInstanceClass() {
             return null;
         }
-
-        @Override
-        public void setBindingAdapterCall(String method) {
-        }
     }
 
     public static class AdapterSetter extends SetterCall {
         final MethodDescription mAdapter;
         final ModelClass mParameterType;
-        String mBindingAdapterCall;
 
         public AdapterSetter(MethodDescription adapter, ModelClass parameterType) {
             mAdapter = adapter;
@@ -1028,14 +1086,14 @@ public class SetterStore {
         @Override
         public String toJavaInternal(String componentExpression, String viewExpression,
                 String valueExpression) {
-            return createAdapterCall(mAdapter, mBindingAdapterCall, componentExpression,
+            return createAdapterCall(mAdapter, componentExpression,
                     viewExpression, mCastString + valueExpression);
         }
 
         @Override
         protected String toJavaInternal(String componentExpression, String viewExpression,
                 String oldValue, String valueExpression) {
-            return createAdapterCall(mAdapter, mBindingAdapterCall, componentExpression,
+            return createAdapterCall(mAdapter, componentExpression,
                     viewExpression, mCastString + oldValue, mCastString + valueExpression);
         }
 
@@ -1057,11 +1115,6 @@ public class SetterStore {
         @Override
         public String getBindingAdapterInstanceClass() {
             return mAdapter.isStatic ? null : mAdapter.type;
-        }
-
-        @Override
-        public void setBindingAdapterCall(String method) {
-            mBindingAdapterCall = method;
         }
     }
 
@@ -1105,10 +1158,6 @@ public class SetterStore {
         public String getBindingAdapterInstanceClass() {
             return null;
         }
-
-        @Override
-        public void setBindingAdapterCall(String method) {
-        }
     }
 
     public interface BindingSetterCall {
@@ -1122,8 +1171,6 @@ public class SetterStore {
         ModelClass[] getParameterTypes();
 
         String getBindingAdapterInstanceClass();
-
-        void setBindingAdapterCall(String method);
     }
 
     public static abstract class SetterCall implements BindingSetterCall {
@@ -1175,7 +1222,6 @@ public class SetterStore {
         private final String[] mCasts;
         private final MultiValueAdapterKey mKey;
         private final boolean[] mSupplied;
-        String mBindingAdapterCall;
 
         public MultiAttributeSetter(MultiValueAdapterKey key, boolean[] supplied,
                 MethodDescription adapter, MethodDescription[] converters, String[] casts) {
@@ -1256,8 +1302,7 @@ public class SetterStore {
                 }
                 args[i - startIndex] = argBuilder.toString();
             }
-            return createAdapterCall(mAdapter, mBindingAdapterCall, componentExpression,
-                    viewExpression, args);
+            return createAdapterCall(mAdapter, componentExpression, viewExpression, args);
         }
 
         @Override
@@ -1287,11 +1332,6 @@ public class SetterStore {
         @Override
         public String getBindingAdapterInstanceClass() {
             return mAdapter.isStatic ? null : mAdapter.type;
-        }
-
-        @Override
-        public void setBindingAdapterCall(String method) {
-            mBindingAdapterCall = method;
         }
 
         @Override
