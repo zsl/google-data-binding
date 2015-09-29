@@ -162,6 +162,10 @@ public class ExprModel {
         return register(new StaticIdentifierExpr(name));
     }
 
+    public BuiltInVariableExpr builtInVariable(String name, String type, String accessCode) {
+        return register(new BuiltInVariableExpr(name, type, accessCode));
+    }
+
     /**
      * Creates a static identifier for the given class or returns the existing one.
      */

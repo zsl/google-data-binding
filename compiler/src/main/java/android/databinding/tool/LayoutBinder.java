@@ -172,12 +172,23 @@ public class LayoutBinder implements FileScopeProvider {
             mBundle = layoutBundle;
             mModulePackage = layoutBundle.getModulePackage();
             // copy over data.
+            boolean addContext = true;
             for (ResourceBundle.VariableDeclaration variable : mBundle.getVariables()) {
                 addVariable(variable.name, variable.type, variable.location, variable.declared);
+                if ("context".equals(variable.name)) {
+                    addContext = false;
+                }
             }
 
             for (ResourceBundle.NameTypeLocation userImport : mBundle.getImports()) {
                 mExprModel.addImport(userImport.name, userImport.type, userImport.location);
+                if ("context".equals(userImport.name)) {
+                    addContext = false;
+                }
+            }
+            if (addContext) {
+                mExprModel.builtInVariable("context", "android.content.Context",
+                        "getRoot().getContext()");
             }
             for (String javaLangClass : sJavaLangClasses) {
                 mExprModel.addImport(javaLangClass, "java.lang." + javaLangClass, null);
