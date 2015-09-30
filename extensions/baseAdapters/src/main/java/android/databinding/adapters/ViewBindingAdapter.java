@@ -19,6 +19,7 @@ import android.annotation.TargetApi;
 import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
@@ -199,6 +200,16 @@ public class ViewBindingAdapter {
             if (newValue != null) {
                 view.addOnLayoutChangeListener(newValue);
             }
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    @BindingAdapter("android:background")
+    public static void setBackground(View view, Drawable drawable) {
+        if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN) {
+            view.setBackground(drawable);
+        } else {
+            view.setBackgroundDrawable(drawable);
         }
     }
 

@@ -18,7 +18,9 @@ package android.databinding.testapp;
 import android.content.res.ColorStateList;
 import android.databinding.testapp.databinding.ViewAdapterTestBinding;
 import android.databinding.testapp.vo.ViewBindingObject;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.test.UiThreadTest;
 import android.view.View;
 
 public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTestBinding, ViewBindingObject> {
@@ -174,5 +176,12 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
             assertEquals(mBindingObject.getTransformPivotX(), view.getPivotX());
             assertEquals(mBindingObject.getTransformPivotY(), view.getPivotY());
         }
+    }
+
+    @UiThreadTest
+    public void testBackgroundDrawableDrawable() throws Throwable {
+        View view = mBinder.backgroundDrawable;
+        Drawable drawable = view.getBackground();
+        assertNotNull(drawable);
     }
 }
