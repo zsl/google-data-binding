@@ -33,25 +33,28 @@ import java.util.List;
 public class Binding implements LocationScopeProvider {
 
     private final String mName;
-    private final Expr mExpr;
+    private Expr mExpr;
     private final BindingTarget mTarget;
     private SetterStore.SetterCall mSetterCall;
 
     public Binding(BindingTarget target, String name, Expr expr) {
         mTarget = target;
         mName = name;
-        final ModelClass listenerParameter = getListenerParameter(target, name, expr);
-        Expr listenerExpr = expr.resolveListeners(listenerParameter, null);
-        if (listenerExpr != expr) {
-            listenerExpr.setBindingExpression(true);
-            expr = listenerExpr;
-        }
         mExpr = expr;
     }
 
     @Override
     public List<Location> provideScopeLocation() {
         return mExpr.getLocations();
+    }
+
+    public void resolveListeners() {
+        final ModelClass listenerParameter = getListenerParameter(mTarget, mName, mExpr);
+        Expr listenerExpr = mExpr.resolveListeners(listenerParameter, null);
+        if (listenerExpr != mExpr) {
+            listenerExpr.setBindingExpression(true);
+            mExpr = listenerExpr;
+        }
     }
 
     private SetterStore.BindingSetterCall getSetterCall() {

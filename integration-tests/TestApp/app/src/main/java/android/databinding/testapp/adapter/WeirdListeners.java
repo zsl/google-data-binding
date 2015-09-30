@@ -33,6 +33,11 @@ public class WeirdListeners {
     @BindingAdapter("android:onBar2")
     public static void setListener(View view, OnBar2 onBar) {}
 
+    @BindingAdapter({"runnable", "fooId", "barId"})
+    public static void setRunnable(View view, Runnable runnable, int foo, int bar) {
+        runnable.run();
+    }
+
     @TargetApi(VERSION_CODES.ICE_CREAM_SANDWICH)
     public static abstract class OnFoo {
         public abstract void onFoo();
