@@ -20,6 +20,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.mozilla.universalchardet.UniversalDetector;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -38,8 +39,10 @@ import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.XmlEditor;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -81,19 +84,20 @@ public class LayoutFileParser {
             });
             final String xmlNoExtension = ParserHelper.stripExtension(xml.getName());
             final String newTag = xml.getParentFile().getName() + '/' + xmlNoExtension;
-            File original = stripFileAndGetOriginal(xml, newTag, originalFileLookup);
+            final String encoding = findEncoding(xml);
+            File original = stripFileAndGetOriginal(xml, newTag, originalFileLookup, encoding);
             if (original == null) {
                 L.d("assuming the file is the original for %s", xml.getAbsoluteFile());
                 original = xml;
             }
-            return parseOriginalXml(original, pkg);
+            return parseOriginalXml(original, pkg, encoding);
         } finally {
             Scope.exit();
         }
     }
 
-    private ResourceBundle.LayoutFileBundle parseOriginalXml(final File original, String pkg)
-            throws IOException {
+    private ResourceBundle.LayoutFileBundle parseOriginalXml(final File original, String pkg,
+            String encoding) throws IOException {
         try {
             Scope.enter(new FileScopeProvider() {
                 @Override
@@ -102,7 +106,9 @@ public class LayoutFileParser {
                 }
             });
             final String xmlNoExtension = ParserHelper.stripExtension(original.getName());
-            ANTLRInputStream inputStream = new ANTLRInputStream(new FileReader(original));
+            FileInputStream fin = new FileInputStream(original);
+            InputStreamReader reader = new InputStreamReader(fin, encoding);
+            ANTLRInputStream inputStream = new ANTLRInputStream(reader);
             XMLLexer lexer = new XMLLexer(inputStream);
             CommonTokenStream tokenStream = new CommonTokenStream(lexer);
             XMLParser parser = new XMLParser(tokenStream);
@@ -376,7 +382,7 @@ public class LayoutFileParser {
     }
 
     private File stripFileAndGetOriginal(File xml, String binderId,
-            LayoutXmlProcessor.OriginalFileLookup originalFileLookup)
+            LayoutXmlProcessor.OriginalFileLookup originalFileLookup, String encoding)
             throws ParserConfigurationException, IOException, SAXException,
             XPathExpressionException {
         L.d("parsing resource file %s", xml.getAbsolutePath());
@@ -396,7 +402,7 @@ public class LayoutFileParser {
         // now if file has any binding expressions, find and delete them
         boolean changed = isBindingLayout(doc, xPath);
         if (changed) {
-            stripBindingTags(xml, binderId);
+            stripBindingTags(xml, binderId, encoding);
         }
         return actualFile;
     }
@@ -441,11 +447,34 @@ public class LayoutFileParser {
         return result;
     }
 
-    private void stripBindingTags(File xml, String newTag) throws IOException {
-        String res = XmlEditor.strip(xml, newTag);
+    private void stripBindingTags(File xml, String newTag, String encoding) throws IOException {
+        String res = XmlEditor.strip(xml, newTag, encoding);
         if (res != null) {
             L.d("file %s has changed, overwriting %s", xml.getName(), xml.getAbsolutePath());
-            FileUtils.writeStringToFile(xml, res);
+            FileUtils.writeStringToFile(xml, res, encoding);
+        }
+    }
+
+    private static String findEncoding(File f) throws IOException {
+        FileInputStream fin = new FileInputStream(f);
+        try {
+            UniversalDetector universalDetector = new UniversalDetector(null);
+
+            byte[] buf = new byte[4096];
+            int nread;
+            while ((nread = fin.read(buf)) > 0 && !universalDetector.isDone()) {
+                universalDetector.handleData(buf, 0, nread);
+            }
+
+            universalDetector.dataEnd();
+
+            String encoding = universalDetector.getDetectedCharset();
+            if (encoding == null) {
+                encoding = "utf-8";
+            }
+            return encoding;
+        } finally {
+            fin.close();
         }
     }
 

@@ -98,8 +98,11 @@ class ExportLicensesTask extends DefaultTask {
             [
                     libraries: ["logkit"],
                     licenseText: ["unknown. see: http://commons.apache.org/proper/commons-logging/dependencies.html"]
-            ]
-
+            ],
+            [
+                    libraries: ["juniversalchardet"],
+                    licenses: ["https://mozorg.cdn.mozilla.net/media/MPL/2.0/index.815ca599c9df.txt"]
+            ],
     ]
 
     Map<String, Object> usedLicenses = new HashMap<>();
