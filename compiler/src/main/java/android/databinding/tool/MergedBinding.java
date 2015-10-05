@@ -19,6 +19,7 @@ package android.databinding.tool;
 import android.databinding.tool.expr.ArgListExpr;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
+import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.WriterPackage;
@@ -38,6 +39,17 @@ public class MergedBinding extends Binding {
             BindingTarget target, Iterable<Binding> bindings) {
         super(target, createMergedName(bindings), createArgListExpr(model, bindings));
         mMultiAttributeSetter = multiAttributeSetter;
+    }
+
+    @Override
+    public void resolveListeners() {
+        ModelClass[] parameters = mMultiAttributeSetter.getParameterTypes();
+        List<Expr> children = getExpr().getChildren();
+        final Expr expr = getExpr();
+        for (int i = 0; i < children.size(); i++) {
+            final Expr child = children.get(i);
+            child.resolveListeners(parameters[i], expr);
+        }
     }
 
     private static Expr createArgListExpr(ExprModel model, final Iterable<Binding> bindings) {

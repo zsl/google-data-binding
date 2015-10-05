@@ -114,6 +114,12 @@ public class BindingTarget implements LocationScopeProvider {
         mModel = model;
     }
 
+    public void resolveListeners() {
+        for (Binding binding : mBindings) {
+            binding.resolveListeners();
+        }
+    }
+
     /**
      * Called after BindingTarget is finalized.
      * <p>

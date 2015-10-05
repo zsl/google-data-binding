@@ -15,12 +15,10 @@
  */
 package android.databinding.testapp;
 
+import android.content.res.ColorStateList;
 import android.databinding.testapp.databinding.ViewAdapterTestBinding;
 import android.databinding.testapp.vo.ViewBindingObject;
-
-import android.content.res.ColorStateList;
 import android.os.Build;
-import android.test.UiThreadTest;
 import android.view.View;
 
 public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTestBinding, ViewBindingObject> {

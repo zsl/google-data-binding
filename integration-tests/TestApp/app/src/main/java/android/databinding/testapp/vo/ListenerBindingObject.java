@@ -47,6 +47,7 @@ public class ListenerBindingObject {
     public static int lastClick = 0;
     public boolean inflateCalled;
     private final Context mContext;
+    public boolean wasRunnableRun;
 
     public final ObservableBoolean clickable = new ObservableBoolean();
     public final ObservableBoolean useOne = new ObservableBoolean();
@@ -245,6 +246,10 @@ public class ListenerBindingObject {
 
     public static void onClick4(View view) {
         lastClick = 4;
+    }
+
+    public void runnableRun() {
+        this.wasRunnableRun = true;
     }
 
     public void onFoo() {

@@ -203,6 +203,7 @@ public class LayoutBinder implements FileScopeProvider {
                                 parse(bindingBundle.getExpr(), bindingBundle.getValueLocation()));
                     }
                     bindingTarget.resolveMultiSetters();
+                    bindingTarget.resolveListeners();
                 } finally {
                     Scope.exit();
                 }
