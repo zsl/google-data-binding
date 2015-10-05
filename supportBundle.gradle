@@ -12,7 +12,7 @@ import com.google.common.hash.Hashing
 import java.nio.charset.Charset
 
 
-ext.extraVersion = 20
+ext.extraVersion = 22
 ext.supportRepoOut = ''
 ext.buildToolsVersion = '22.1.0'
 ext.buildNumber = Integer.toString(ext.extraVersion)

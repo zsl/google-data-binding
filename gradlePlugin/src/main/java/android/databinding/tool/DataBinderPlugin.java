@@ -341,7 +341,7 @@ public class DataBinderPlugin implements Plugin<Project> {
                         variantData.registerJavaGeneratingTask(task, codeGenTargetFolder);
                     }
                 });
-        String packageJarTaskName = "package" + StringUtils.capitalize(fullName) + "Jar";
+        String packageJarTaskName = "package" + StringUtils.capitalize(fullName) + "ClassesJar";
         final Task packageTask = project.getTasks().findByName(packageJarTaskName);
         if (packageTask instanceof Jar) {
             String removeGeneratedTaskName = "dataBindingExcludeGeneratedFrom" +

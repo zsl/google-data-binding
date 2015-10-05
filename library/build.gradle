@@ -111,10 +111,10 @@ uploadArchives {
 
 
 afterEvaluate {
-    tasks['packageReleaseJar'].exclude('android/databinding/DataBinderMapper.*')
-    tasks['packageReleaseJar'].exclude('android/databinding/DataBindingComponent.*')
-    tasks['packageDebugJar'].exclude('android/databinding/DataBinderMapper.*')
-    tasks['packageDebugJar'].exclude('android/databinding/DataBindingComponent.*')
+    tasks['packageReleaseClassesJar'].exclude('android/databinding/DataBinderMapper.*')
+    tasks['packageReleaseClassesJar'].exclude('android/databinding/DataBindingComponent.*')
+    tasks['packageDebugClassesJar'].exclude('android/databinding/DataBinderMapper.*')
+    tasks['packageDebugClassesJar'].exclude('android/databinding/DataBindingComponent.*')
 }
 
 task prebuildAar(type : Copy) {
