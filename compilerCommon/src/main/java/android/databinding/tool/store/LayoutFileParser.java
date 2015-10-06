@@ -166,13 +166,8 @@ public class LayoutFileParser {
                 } else if (ctx == rootView) {
                     return true;
                 }
-                if (hasIncludeChild(ctx)) {
-                    return true;
-                }
-                if (XmlEditor.hasExpressionAttributes(ctx)) {
-                    return true;
-                }
-                return false;
+                return hasIncludeChild(ctx) || XmlEditor.hasExpressionAttributes(ctx) ||
+                        "include".equals(ctx.elmName.getText());
             }
 
             private boolean hasIncludeChild(XMLParser.ElementContext ctx) {

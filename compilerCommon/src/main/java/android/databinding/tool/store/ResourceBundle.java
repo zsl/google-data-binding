@@ -86,18 +86,28 @@ public class ResourceBundle implements Serializable {
     public void validateMultiResLayouts() {
         for (List<LayoutFileBundle> layoutFileBundles : mLayoutBundles.values()) {
             for (LayoutFileBundle layoutFileBundle : layoutFileBundles) {
+                List<BindingTargetBundle> unboundIncludes = new ArrayList<>();
                 for (BindingTargetBundle target : layoutFileBundle.getBindingTargetBundles()) {
                     if (target.isBinder()) {
                         List<LayoutFileBundle> boundTo =
                                 mLayoutBundles.get(target.getIncludedLayout());
                         if (boundTo == null || boundTo.isEmpty()) {
-                            L.e("There is no binding for %s", target.getIncludedLayout());
+                            L.d("There is no binding for %s, reverting to plain layout",
+                                    target.getIncludedLayout());
+                            if (target.getId() == null) {
+                                unboundIncludes.add(target);
+                            } else {
+                                target.setIncludedLayout(null);
+                                target.setInterfaceType("android.view.View");
+                                target.mViewName = "android.view.View";
+                            }
                         } else {
                             String binding = boundTo.get(0).getFullBindingClass();
                             target.setInterfaceType(binding);
                         }
                     }
                 }
+                layoutFileBundle.getBindingTargetBundles().removeAll(unboundIncludes);
             }
         }
 
