@@ -1,6 +1,6 @@
 List of 3rd party licenses:
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@4362f65a name:antlr4 classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@292d3e75 name:antlr4 classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@2eb7a627 name:commons-io classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@421abfc8 name:commons-io classifier:null extension:jar type:jar]
 
  ****** NOTICE:
 Apache Commons IO
@@ -252,7 +252,7 @@ The Apache Software Foundation (http://www.apache.org/).
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@3741db29 name:antlr4-annotations classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@2406709c name:antlr4-annotations classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -286,7 +286,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@4f259751 name:antlr-runtime classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@394e7513 name:antlr-runtime classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -320,7 +320,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@458a24dd name:juniversalchardet classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@129e202 name:juniversalchardet classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 Mozilla Public License Version 2.0
@@ -701,7 +701,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@17650cae name:org.abego.treelayout.core classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@76d21d27 name:org.abego.treelayout.core classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -736,7 +736,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@297c2f12 name:antlr4-runtime classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@5ef461f2 name:antlr4-runtime classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -770,7 +770,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@34ed7461 name:ST4 classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@42b2f909 name:ST4 classifier:null extension:jar type:jar]
 
  ****** LICENSE:
 [The "BSD license"]
@@ -804,7 +804,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -----------------------------------------------------------------------------
-* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@1cae16df name:commons-lang3 classifier:null extension:jar type:jar]
+* [ResolvedArtifact dependency:org.gradle.api.internal.artifacts.ivyservice.dynamicversions.DefaultResolvedModuleVersion@3355a6ad name:commons-lang3 classifier:null extension:jar type:jar]
 
  ****** NOTICE:
 Apache Commons Lang
