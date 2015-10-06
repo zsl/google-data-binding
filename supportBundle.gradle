@@ -127,6 +127,6 @@ def getSha1(File inputFile) {
 task(bundleSupportLib) << {
 
 }
-
+createRepository.dependsOn prepareRepo
 createRepository.dependsOn unzipRepo
 unzipRepo.dependsOn bundleSupportLib
