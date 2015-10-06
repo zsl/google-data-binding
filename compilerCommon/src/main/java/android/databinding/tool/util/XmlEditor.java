@@ -20,11 +20,13 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.mozilla.universalchardet.UniversalDetector;
 
 import android.databinding.parser.BindingExpressionLexer;
 import android.databinding.parser.BindingExpressionParser;
@@ -34,8 +36,10 @@ import android.databinding.parser.XMLParser.AttributeContext;
 import android.databinding.parser.XMLParser.ElementContext;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,8 +51,10 @@ import java.util.List;
  */
 public class XmlEditor {
 
-    public static String strip(File f, String newTag) throws IOException {
-        ANTLRInputStream inputStream = new ANTLRInputStream(new FileReader(f));
+    public static String strip(File f, String newTag, String encoding) throws IOException {
+        FileInputStream fin = new FileInputStream(f);
+        InputStreamReader reader = new InputStreamReader(fin, encoding);
+        ANTLRInputStream inputStream = new ANTLRInputStream(reader);
         XMLLexer lexer = new XMLLexer(inputStream);
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         XMLParser parser = new XMLParser(tokenStream);
@@ -205,12 +211,11 @@ public class XmlEditor {
 
     private static Position endTagPosition(XMLParser.ElementContext context) {
         if (context.content() == null) {
-            // no content, so just subtract from the "/>"
-            Position endTag = toEndPosition(context.getStop());
+            // no content, so just choose the start of the "/>"
+            Position endTag = toPosition(context.getStop());
             if (endTag.charIndex <= 0) {
                 L.e("invalid input in %s", context);
             }
-            endTag.charIndex -= 2;
             return endTag;
         } else {
             // tag with no attributes, but with content
