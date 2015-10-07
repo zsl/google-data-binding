@@ -39,4 +39,5 @@ public class ErrorMessages {
     public static final String ROOT_TAG_NOT_SUPPORTED = "android:tag is not supported on root " +
             "elements of data bound layouts unless targeting API version 14 or greater. Value " +
             "is '%s'";
+    public static final String SYNTAX_ERROR = "Syntax error: %s";
 }

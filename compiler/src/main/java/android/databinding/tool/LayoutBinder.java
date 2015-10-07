@@ -199,8 +199,13 @@ public class LayoutBinder implements FileScopeProvider {
                     final BindingTarget bindingTarget = createBindingTarget(targetBundle);
                     for (BindingTargetBundle.BindingBundle bindingBundle : targetBundle
                             .getBindingBundleList()) {
-                        bindingTarget.addBinding(bindingBundle.getName(),
-                                parse(bindingBundle.getExpr(), bindingBundle.getValueLocation()));
+                        try {
+                            Scope.enter(bindingBundle.getValueLocation());
+                            bindingTarget.addBinding(bindingBundle.getName(),
+                                    parse(bindingBundle.getExpr(), bindingBundle.getValueLocation()));
+                        } finally {
+                            Scope.exit();
+                        }
                     }
                     bindingTarget.resolveMultiSetters();
                     bindingTarget.resolveListeners();

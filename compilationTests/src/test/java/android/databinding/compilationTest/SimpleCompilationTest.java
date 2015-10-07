@@ -36,6 +36,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+@SuppressWarnings("ThrowableResultOfMethodCallIgnored")
 public class SimpleCompilationTest extends BaseCompilationTest {
 
     @Test
@@ -120,6 +121,28 @@ public class SimpleCompilationTest extends BaseCompilationTest {
             assertEquals("myVariable", extract);
             assertEquals(message, exception.getBareMessage());
         }
+    }
+
+    @Test
+    public void testBadSyntax() throws IOException, URISyntaxException, InterruptedException {
+        singleFileErrorTest("/layout/layout_with_bad_syntax.xml",
+                "/app/src/main/res/layout/broken.xml",
+                "myVar.length())",
+                String.format(ErrorMessages.SYNTAX_ERROR,
+                        "extraneous input ')' expecting {<EOF>, ',', '.', '[', '+', '-', '*', '/', "
+                                + "'%', '<<', '>>>', '>>', '<=', '>=', '>', '<', 'instanceof', "
+                                + "'==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
+    }
+
+    @Test
+    public void testBrokenSyntax() throws IOException, URISyntaxException, InterruptedException {
+        singleFileErrorTest("/layout/layout_with_completely_broken_syntax.xml",
+                "/app/src/main/res/layout/broken.xml",
+                "new String()",
+                String.format(ErrorMessages.SYNTAX_ERROR,
+                        "mismatched input 'String' expecting {<EOF>, ',', '.', '[', '+', '-', '*', "
+                                + "'/', '%', '<<', '>>>', '>>', '<=', '>=', '>', '<', 'instanceof',"
+                                + " '==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
     }
 
     @Test

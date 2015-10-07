@@ -40,7 +40,8 @@ public class ScopedException extends RuntimeException {
     private String mScopeLog;
 
     public ScopedException(String message, Object... args) {
-        super(message == null ? "unknown data binding exception" : String.format(message, args));
+        super(message == null ? "unknown data binding exception" :
+                args.length == 0 ? message : String.format(message, args));
         mScopedErrorReport = Scope.createReport();
         mScopeLog = L.isDebugEnabled() ? Scope.produceScopeLog() : null;
     }
