@@ -106,5 +106,15 @@
                 android:tag="@{bool1 ? `foo` : `bar`}"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"/>
+        <TextView
+                android:id="@+id/textView20"
+                android:text='@{@bool/alwaysTrue ? "" + var1 : "" + var2}'
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"/>
+        <TextView
+                android:id="@+id/textView21"
+                android:text='@{@bool/alwaysFalse ? "" + var1 : "" + var2}'
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"/>
     </LinearLayout>
 </layout>
