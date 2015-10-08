@@ -52,6 +52,7 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
                                             }
                                         } tab("}")
                                     }
+                                    tab("throw new java.lang.IllegalArgumentException(\"The tag for ${firstVal.getLayoutname()} is invalid. Received: \" + tag);");
                                 }tab("}")
                             }
 
