@@ -408,7 +408,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
      */
     public int getRequirementFlagIndex(boolean expectedOutput) {
         Preconditions.check(mRequirementId != NO_ID, "If this is an expression w/ conditional"
-                + " dependencies, it must be assigned a requirement ID");
+                + " dependencies, it must be assigned a requirement ID. %s", this);
         return expectedOutput ? mRequirementId + 1 : mRequirementId;
     }
 
@@ -672,6 +672,20 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     }
 
     protected abstract KCode generateCode();
+
+    /**
+     * This expression is the predicate for 1 or more ternary expressions.
+     */
+    public boolean hasConditionalDependant() {
+        for (Dependency dependency : getDependants()) {
+            Expr dependant = dependency.getDependant();
+            if (dependant.isConditional() && dependant instanceof TernaryExpr) {
+                TernaryExpr ternary = (TernaryExpr) dependant;
+                return ternary.getPred() == this;
+            }
+        }
+        return false;
+    }
 
     static class Node {
 

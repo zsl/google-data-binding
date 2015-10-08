@@ -476,7 +476,9 @@ public class ExprModel {
         if (mPendingExpressions == null) {
             mPendingExpressions = new ArrayList<>();
             for (Expr expr : mExprMap.values()) {
-                if (!expr.isRead() && expr.isDynamic()) {
+                // if an expression is NOT dynanic but has conditional dependants, still return it
+                // so that conditional flags can be set
+                if (!expr.isRead() && (expr.isDynamic() || expr.hasConditionalDependant())) {
                     mPendingExpressions.add(expr);
                 }
             }

@@ -21,6 +21,7 @@ import android.databinding.tool.expr.FieldAccessExpr
 import android.databinding.tool.expr.IdentifierExpr
 import android.databinding.tool.expr.ListenerExpr
 import android.databinding.tool.expr.TernaryExpr
+import android.databinding.tool.expr.ResourceExpr
 import android.databinding.tool.ext.androidId
 import android.databinding.tool.ext.br
 import android.databinding.tool.ext.joinToCamelCaseAsVar
@@ -85,6 +86,11 @@ fun ExprModel.getUniqueFlagName(base : String) : String = ext.getUniqueName(base
 fun ExprModel.getConstructorParamName(base : String) : String = ext.getUniqueName(base, Scope.CONSTRUCTOR_PARAM, false)
 
 fun ExprModel.localizeFlag(set : FlagSet, base : String) : FlagSet = ext.localizeFlag(set, base)
+
+val Expr.needsLocalField by Delegates.lazy { expr : Expr ->
+    expr.canBeEvaluatedToAVariable() && !(expr.isVariable() && !expr.isUsed()) && (expr.isDynamic() || expr is ResourceExpr)
+}
+
 
 // not necessarily unique. Uniqueness is solved per scope
 val BindingTarget.readableName by Delegates.lazy { target: BindingTarget ->
@@ -156,7 +162,8 @@ val Expr.oldValueName by Delegates.lazy { expr : Expr ->
 }
 
 val Expr.executePendingLocalName by Delegates.lazy { expr : Expr ->
-    "${expr.getModel().ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD, false)}"
+    if(expr.needsLocalField) "${expr.getModel().ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD, false)}"
+    else expr.toCode().generate()
 }
 
 val Expr.setterName by Delegates.lazy { expr : Expr ->
@@ -726,7 +733,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     tab("${mDirtyFlags.localValue(i)} = 0;")
                 }
             } tab("}")
-            model.getPendingExpressions().filterNot { !it.canBeEvaluatedToAVariable() || (it.isVariable() && !it.isUsed()) }.forEach {
+            model.getPendingExpressions().filter { it.needsLocalField }.forEach {
                 tab("${it.getResolvedType().toJavaCode()} ${it.executePendingLocalName} = ${if (it.isVariable()) it.fieldName else it.getDefaultValue()};")
             }
             L.d("writing executePendingBindings for %s", className)
@@ -835,9 +842,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 val dependants = ArrayList<Expr>()
                 expressions.groupBy { condition(it) }.forEach {
                     val condition = it.key
-                    val assignedValues = it.value.filter {
-                        it.canBeEvaluatedToAVariable() && !it.isVariable()
-                    }
+                    val assignedValues = it.value.filter { it.needsLocalField }
                     if (!assignedValues.isEmpty()) {
                         val assignment = kcode("") {
                             assignedValues.forEach { expr: Expr ->

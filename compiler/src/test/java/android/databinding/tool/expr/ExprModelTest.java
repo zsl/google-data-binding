@@ -159,6 +159,31 @@ public class ExprModelTest {
     }
 
     @Test
+    public void testReadConstantTernary() {
+        MockLayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        IdentifierExpr a = lb.addVariable("a", "java.lang.String", null);
+        IdentifierExpr b = lb.addVariable("b", "java.lang.String", null);
+        TernaryExpr ternaryExpr = parse(lb, "true ? a : b", TernaryExpr.class);
+        mExprModel.seal();
+        List<Expr> shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, ternaryExpr.getPred());
+        List<Expr> first = getReadFirst(shouldRead);
+        assertExactMatch(first, ternaryExpr.getPred());
+        mExprModel.markBitsRead();
+        shouldRead = getShouldRead();
+        assertExactMatch(shouldRead, a, b, ternaryExpr);
+        first = getReadFirst(shouldRead);
+        assertExactMatch(first, a, b);
+        List<Expr> justRead = new ArrayList<>();
+        justRead.add(a);
+        justRead.add(b);
+        first = filterOut(getReadFirst(shouldRead, justRead), justRead);
+        assertExactMatch(first, ternaryExpr);
+        assertFalse(mExprModel.markBitsRead());
+    }
+
+    @Test
     public void testTernaryWithPlus() {
         MockLayoutBinder lb = new MockLayoutBinder();
         mExprModel = lb.getModel();
