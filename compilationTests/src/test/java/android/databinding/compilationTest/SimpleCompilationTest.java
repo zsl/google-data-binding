@@ -17,6 +17,9 @@
 package android.databinding.compilationTest;
 
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.PrefixFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -28,6 +31,7 @@ import android.databinding.tool.store.Location;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -54,9 +58,36 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         prepareProject();
         CompilationResult result = runGradle("assembleDebug");
         assertEquals(result.error, 0, result.resultCode);
-        assertTrue("there should not be any errors " + result.error, StringUtils.isEmpty(result.error));
+        assertTrue("there should not be any errors " + result.error,
+                StringUtils.isEmpty(result.error));
         assertTrue("Test sanity, should compile fine",
                 result.resultContainsText("BUILD SUCCESSFUL"));
+    }
+
+    @Test
+    public void testMultipleConfigs() throws IOException, URISyntaxException, InterruptedException {
+        prepareProject();
+        copyResourceTo("/layout/basic_layout.xml",
+                "/app/src/main/res/layout/main.xml");
+        copyResourceTo("/layout/basic_layout.xml",
+                "/app/src/main/res/layout-sw100dp/main.xml");
+        CompilationResult result = runGradle("assembleDebug");
+        assertEquals(result.error, 0, result.resultCode);
+        File debugOut = new File(testFolder, "/app/build/intermediates/res/merged/debug/");
+        Collection<File> layoutFiles = FileUtils.listFiles(debugOut, new SuffixFileFilter(".xml"),
+                new PrefixFileFilter("layout"));
+        assertTrue("test sanity", layoutFiles.size() > 1);
+        for (File layout : layoutFiles) {
+            if (layout.getParent().contains("sw100")) {
+                assertTrue("File has wrong tag:" + layout.getPath(),
+                        FileUtils.readFileToString(layout)
+                                .indexOf("android:tag=\"layout-sw100dp/main_0\"") > 0);
+            } else {
+                assertTrue("File has wrong tag:" + layout.getPath(),
+                        FileUtils.readFileToString(layout).indexOf("android:tag=\"layout/main_0\"")
+                                > 0);
+            }
+        }
     }
 
     private ScopedException singleFileErrorTest(String resource, String targetFile,

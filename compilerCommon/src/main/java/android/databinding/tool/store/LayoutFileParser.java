@@ -82,10 +82,8 @@ public class LayoutFileParser {
                     return xml.getAbsolutePath();
                 }
             });
-            final String xmlNoExtension = ParserHelper.stripExtension(xml.getName());
-            final String newTag = xml.getParentFile().getName() + '/' + xmlNoExtension;
             final String encoding = findEncoding(xml);
-            File original = stripFileAndGetOriginal(xml, newTag, originalFileLookup, encoding);
+            File original = stripFileAndGetOriginal(xml, originalFileLookup, encoding);
             if (original == null) {
                 L.d("assuming the file is the original for %s", xml.getAbsoluteFile());
                 original = xml;
@@ -376,7 +374,7 @@ public class LayoutFileParser {
         return "merge".equals(rootView.elmName.getText()) && filter(rootView, "include").size() > 0;
     }
 
-    private File stripFileAndGetOriginal(File xml, String binderId,
+    private File stripFileAndGetOriginal(File xml,
             LayoutXmlProcessor.OriginalFileLookup originalFileLookup, String encoding)
             throws ParserConfigurationException, IOException, SAXException,
             XPathExpressionException {
@@ -394,6 +392,9 @@ public class LayoutFileParser {
         if (actualFile == null) {
             return null;
         }
+        // always create id from actual file when available. Gradle may duplicate files.
+        String noExt = ParserHelper.stripExtension(actualFile.getName());
+        String binderId = actualFile.getParentFile().getName() + '/' + noExt;
         // now if file has any binding expressions, find and delete them
         boolean changed = isBindingLayout(doc, xPath);
         if (changed) {
