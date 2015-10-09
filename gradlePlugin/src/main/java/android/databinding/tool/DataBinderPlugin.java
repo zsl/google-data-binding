@@ -58,6 +58,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 import javax.tools.Diagnostic;
 import javax.xml.bind.JAXBException;
@@ -125,14 +126,12 @@ public class DataBinderPlugin implements Plugin<Project> {
         }
         setupLogger(project);
 
-        String myVersion = readMyVersion();
-        logD("data binding plugin version is %s", myVersion);
-        if (StringUtils.isEmpty(myVersion)) {
-            throw new IllegalStateException("cannot read version of the plugin :/");
-        }
+        Versions versions = readMyVersion();
+        logD("data binding plugin versions are: %s", versions);
         printEncodedErrors = resolvePrintEncodedErrors(project);
         ScopedException.encodeOutput(printEncodedErrors);
-        project.getDependencies().add("compile", "com.android.databinding:library:" + myVersion);
+        project.getDependencies()
+                .add("compile", "com.android.databinding:library:" + versions.getLibraryVersion());
         boolean addAdapters = true;
         if (project.hasProperty("ext")) {
             Object ext = project.getProperties().get("ext");
@@ -145,10 +144,11 @@ public class DataBinderPlugin implements Plugin<Project> {
             }
         }
         if (addAdapters) {
-            project.getDependencies()
-                    .add("compile", "com.android.databinding:adapters:" + myVersion);
+            project.getDependencies().add("compile",
+                            "com.android.databinding:adapters:" + versions.getAdaptersVersion());
         }
-        project.getDependencies().add("provided", "com.android.databinding:compiler:" + myVersion);
+        project.getDependencies().add("provided",
+                "com.android.databinding:compiler:" + versions.getCompilerVersion());
         project.afterEvaluate(new Action<Project>() {
             @Override
             public void execute(Project project) {
@@ -175,11 +175,13 @@ public class DataBinderPlugin implements Plugin<Project> {
         });
     }
 
-    String readMyVersion() {
+    Versions readMyVersion() {
         try {
-            InputStream stream = getClass().getResourceAsStream("/data_binding_build_info");
+            Properties props = new Properties();
+            InputStream stream = getClass().getResourceAsStream("/data_binding_build_info.properties");
             try {
-                return IOUtils.toString(stream, "utf-8").trim();
+                props.load(stream);
+                return new Versions(props);
             } finally {
                 IOUtils.closeQuietly(stream);
             }
@@ -378,5 +380,42 @@ public class DataBinderPlugin implements Plugin<Project> {
 
     private String formatLog(String s, Object... args) {
         return "[data binding plugin]: " + String.format(s, args);
+    }
+
+    private class Versions {
+
+        Properties properties;
+        String myVersion;
+
+        public Versions(Properties properties) {
+            this.properties = properties;
+            myVersion = properties.getProperty("myVersion");
+            if (myVersion == null) {
+                throw new IllegalStateException("cannot read data binding plugin version");
+            }
+        }
+
+        public String getCompilerVersion() {
+            return properties.getProperty("compiler", myVersion);
+        }
+
+        public String getAdaptersVersion() {
+            return properties.getProperty("adapters", myVersion);
+        }
+
+        public String getLibraryVersion() {
+            return properties.getProperty("library", myVersion);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[Data Binding Versions:");
+            sb.append(" plugin:").append(myVersion);
+            sb.append(" compiler:").append(getCompilerVersion());
+            sb.append(" adapters:").append(getAdaptersVersion());
+            sb.append(" library:").append(getLibraryVersion());
+            return sb.append("]").toString();
+        }
     }
 }

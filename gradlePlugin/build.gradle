@@ -21,10 +21,21 @@ targetCompatibility = config.javaSourceCompatibility
 
 
 tasks.create(name : 'copyBuildVersion') << {
-    def buildVersionFile = new File(sourceSets.main.output.resourcesDir,"data_binding_build_info")
+    def props = new Properties();
+    def buildVersionFile = new File(sourceSets.main.output.resourcesDir,"data_binding_build_info.properties")
     buildVersionFile.delete()
     println "writing build version file"
-    buildVersionFile << project.version
+    props.put("myVersion", project.version)
+    // in case of emergency, uncomment and modify but never commit!
+    // props.put("library", "1.0-rc3")
+    // props.put("adapters", "1.0-rc3")
+
+    def outStream = new FileOutputStream(buildVersionFile)
+    try {
+        props.store(outStream, "")
+    } finally {
+        outStream.close()
+    }
 }
 
 tasks['uploadArchives'].dependsOn('copyBuildVersion')
