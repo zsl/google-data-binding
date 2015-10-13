@@ -44,12 +44,6 @@ class LocalizeDependenciesTask extends DefaultTask {
 
     private Set<String> ids = new HashSet<>();
 
-    // force download these if they are seen as a dependency
-    private Set<String>  wildCard = new HashSet<>();
-    {
-        wildCard.add("kotlin-gradle-plugin-core")
-    }
-
     private Set<String> fetchTestDependencies = new HashSet<>();
 
     List<Artifact> artifactsToResolve = new LinkedList<>();
@@ -211,10 +205,10 @@ class LocalizeDependenciesTask extends DefaultTask {
                 continue
             }
             if ("test".equals(dependency.scope)) {
-                if (wildCard.contains(dependency.artifact.getArtifactId()) || fetchTestDependencies.contains(key)) {
+                if (fetchTestDependencies.contains(key)) {
                     println("${dependency} is test scope but including because $key is in direct dependencies")
                 } else {
-                    println("skipping $dependency because test and $key is not first level dependency. artifact id: ${dependency.artifact.getArtifactId()}")
+                    println("skipping $dependency because test and not first level dependency")
                     continue
                 }
             }

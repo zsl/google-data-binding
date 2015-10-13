@@ -37,7 +37,7 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
 
     public static final Map<String, TypeKind> PRIMITIVE_TYPES;
     static {
-        PRIMITIVE_TYPES = new HashMap<>();
+        PRIMITIVE_TYPES = new HashMap<String, TypeKind>();
         PRIMITIVE_TYPES.put("boolean", TypeKind.BOOLEAN);
         PRIMITIVE_TYPES.put("byte", TypeKind.BYTE);
         PRIMITIVE_TYPES.put("short", TypeKind.SHORT);

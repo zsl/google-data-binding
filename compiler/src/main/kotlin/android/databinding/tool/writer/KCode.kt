@@ -13,13 +13,14 @@
 
 package android.databinding.tool.writer
 
+import org.apache.commons.lang3.SystemUtils
 import java.util.BitSet
 
 class KCode (private val s : String? = null){
 
     private var sameLine = false
 
-    private val lineSeparator = System.getProperty("line.separator")
+    private val lineSeparator = SystemUtils.LINE_SEPARATOR
 
     class Appendix(val glue : String, val code : KCode)
 

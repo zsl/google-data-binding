@@ -67,7 +67,7 @@ public class TernaryExpr extends Expr {
 
     @Override
     protected List<Dependency> constructDependencies() {
-        List<Dependency> deps = new ArrayList<>();
+        List<Dependency> deps = new ArrayList<Dependency>();
         Expr predExpr = getPred();
         final Dependency pred = new Dependency(this, predExpr);
         pred.setMandatory(true);

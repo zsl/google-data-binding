@@ -31,9 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -52,7 +49,7 @@ import static org.junit.Assert.assertTrue;
 public class BaseCompilationTest {
 
     private static final String PRINT_ENCODED_ERRORS_PROPERTY
-            = "android.databinding.injected.print.encoded.errors";
+            = "android.injected.invoked.from.ide";
     @Rule
     public TestName name = new TestName();
     static Pattern VARIABLES = Pattern.compile("!@\\{([A-Za-z0-9_-]*)}");
@@ -147,7 +144,7 @@ public class BaseCompilationTest {
 
     protected static Map<String, String> toMap(String... keysAndValues) {
         assertEquals(0, keysAndValues.length % 2);
-        Map<String, String> map = new HashMap<>();
+        Map<String, String> map = new HashMap<String, String>();
         for (int i = 0; i < keysAndValues.length; i += 2) {
             map.put(keysAndValues[i], keysAndValues[i + 1]);
         }
@@ -191,7 +188,7 @@ public class BaseCompilationTest {
 
     private Map<String, String> addDefaults(Map<String, String> map) {
         if (map == null) {
-            map = new HashMap<>();
+            map = new HashMap<String, String>();
         }
         if (!map.containsKey(KEY_MANIFEST_PACKAGE)) {
             map.put(KEY_MANIFEST_PACKAGE, DEFAULT_APP_PACKAGE);
@@ -241,7 +238,7 @@ public class BaseCompilationTest {
             throws IOException, InterruptedException {
         setExecutable();
         File pathToExecutable = new File(testFolder, "gradlew");
-        List<String> args = new ArrayList<>();
+        List<String> args = new ArrayList<String>();
         args.add(pathToExecutable.getAbsolutePath());
         args.add("-P" + PRINT_ENCODED_ERRORS_PROPERTY + "=true");
         if ("true".equals(System.getProperties().getProperty("useReleaseVersion", "false"))) {
@@ -268,17 +265,8 @@ public class BaseCompilationTest {
     }
 
     private void setExecutable() throws IOException {
-        Set<PosixFilePermission> perms = new HashSet<PosixFilePermission>();
-        //add owners permission
-        perms.add(PosixFilePermission.OWNER_READ);
-        perms.add(PosixFilePermission.OWNER_WRITE);
-        perms.add(PosixFilePermission.OWNER_EXECUTE);
-        //add group permissions
-        perms.add(PosixFilePermission.GROUP_READ);
-        //add others permissions
-        perms.add(PosixFilePermission.OTHERS_READ);
-        Files.setPosixFilePermissions(Paths.get(new File(testFolder, "gradlew").getAbsolutePath()),
-                perms);
+        File gw = new File(testFolder, "gradlew");
+        gw.setExecutable(true);
     }
 
 

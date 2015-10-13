@@ -17,8 +17,8 @@
 apply plugin: 'java'
 apply plugin: 'com.android.databinding.bintray'
 
-sourceCompatibility = config.javaTargetCompatibility
-targetCompatibility = config.javaSourceCompatibility
+sourceCompatibility = dataBindingConfig.javaSourceCompatibility
+targetCompatibility = dataBindingConfig.javaTargetCompatibility
 
 sourceSets {
     main {
@@ -37,8 +37,8 @@ sourceSets {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile project(':baseLibrary')
+    testCompile 'junit:junit:4.12'
+    compile project(':dataBinding:baseLibrary')
     compile 'org.apache.commons:commons-lang3:3.3.2'
     compile 'com.tunnelvisionlabs:antlr4:4.5'
     compile 'commons-io:commons-io:2.4'
@@ -58,3 +58,22 @@ project.tasks.create(name : "generateGrammar", type : JavaExec) {
     args "BindingExpression.g4", "-visitor", "-o", "src/main/grammar-gen/android/databinding/parser", "-package", "android.databinding.parser"
 }
 
+tasks.create(name : 'exportBuildVersions') << {
+    def props = new Properties();
+    def buildVersionFile = new File(sourceSets.main.output.resourcesDir,"data_binding_version_info.properties")
+    buildVersionFile.delete()
+    props.put("compilerCommon", project.version)
+    props.put("compiler", rootProject.findProject("dataBinding:compiler").version)
+    props.put("baseLibrary", rootProject.findProject("dataBinding:baseLibrary").version)
+    props.put("extensions", dataBindingConfig.extensionsVersion)
+    buildVersionFile.getParentFile().mkdirs()
+    def outStream = new FileOutputStream(buildVersionFile)
+    try {
+        props.store(outStream, "")
+    } finally {
+        outStream.close()
+    }
+}
+
+tasks['jar'].dependsOn('exportBuildVersions')
+tasks['exportBuildVersions'].dependsOn('processResources')

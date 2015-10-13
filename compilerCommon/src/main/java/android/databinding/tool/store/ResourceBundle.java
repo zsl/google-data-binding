@@ -52,6 +52,8 @@ public class ResourceBundle implements Serializable {
     private HashMap<String, List<LayoutFileBundle>> mLayoutBundles
             = new HashMap<String, List<LayoutFileBundle>>();
 
+    private List<File> mRemovedFiles = new ArrayList<File>();
+
     public ResourceBundle(String appPackage) {
         mAppPackage = appPackage;
     }
@@ -86,7 +88,7 @@ public class ResourceBundle implements Serializable {
     public void validateMultiResLayouts() {
         for (List<LayoutFileBundle> layoutFileBundles : mLayoutBundles.values()) {
             for (LayoutFileBundle layoutFileBundle : layoutFileBundles) {
-                List<BindingTargetBundle> unboundIncludes = new ArrayList<>();
+                List<BindingTargetBundle> unboundIncludes = new ArrayList<BindingTargetBundle>();
                 for (BindingTargetBundle target : layoutFileBundle.getBindingTargetBundles()) {
                     if (target.isBinder()) {
                         List<LayoutFileBundle> boundTo =
@@ -166,7 +168,7 @@ public class ResourceBundle implements Serializable {
             Map<String, String> viewTypes = new HashMap<String, String>();
             Map<String, String> includes = new HashMap<String, String>();
             L.d("validating ids for %s", bundles.getKey());
-            Set<String> conflictingIds = new HashSet<>();
+            Set<String> conflictingIds = new HashSet<String>();
             for (LayoutFileBundle bundle : bundles.getValue()) {
                 try {
                     Scope.enter(bundle);
@@ -295,8 +297,8 @@ public class ResourceBundle implements Serializable {
     private Map<String, NameTypeLocation> validateAndMergeNameTypeLocations(
             List<LayoutFileBundle> bundles, String errorMessage,
             ValidateAndFilterCallback callback) {
-        Map<String, NameTypeLocation> result = new HashMap<>();
-        Set<String> mismatched = new HashSet<>();
+        Map<String, NameTypeLocation> result = new HashMap<String, NameTypeLocation>();
+        Set<String> mismatched = new HashSet<String>();
         for (LayoutFileBundle bundle : bundles) {
             for (NameTypeLocation item : callback.get(bundle)) {
                 NameTypeLocation existing = result.get(item.name);
@@ -365,6 +367,14 @@ public class ResourceBundle implements Serializable {
         return sharedClassName;
     }
 
+    public void addRemovedFile(File file) {
+        mRemovedFiles.add(file);
+    }
+
+    public List<File> getRemovedFiles() {
+        return mRemovedFiles;
+    }
+
     @XmlAccessorType(XmlAccessType.NONE)
     @XmlRootElement(name="Layout")
     public static class LayoutFileBundle implements Serializable, FileScopeProvider {
@@ -397,10 +407,10 @@ public class ResourceBundle implements Serializable {
         public boolean mHasVariations;
 
         @XmlElement(name="Variables")
-        public List<VariableDeclaration> mVariables = new ArrayList<>();
+        public List<VariableDeclaration> mVariables = new ArrayList<VariableDeclaration>();
 
         @XmlElement(name="Imports")
-        public List<NameTypeLocation> mImports = new ArrayList<>();
+        public List<NameTypeLocation> mImports = new ArrayList<NameTypeLocation>();
 
         @XmlElementWrapper(name="Targets")
         @XmlElement(name="Target")

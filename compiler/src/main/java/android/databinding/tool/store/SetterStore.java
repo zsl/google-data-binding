@@ -449,7 +449,7 @@ public class SetterStore {
 
     private void ensureInstanceAdapters() {
         if (mInstanceAdapters == null) {
-            HashSet<String> adapters = new HashSet<>();
+            HashSet<String> adapters = new HashSet<String>();
             for (HashMap<AccessorKey, MethodDescription> methods : mStore.adapterMethods.values()) {
                 for (MethodDescription method : methods.values()) {
                     if (!method.isStatic) {
@@ -462,12 +462,12 @@ public class SetterStore {
                     adapters.add(method.type);
                 }
             }
-            mInstanceAdapters = new HashMap<>();
+            mInstanceAdapters = new HashMap<String, List<String>>();
             for (String adapter : adapters) {
                 final String simpleName = simpleName(adapter);
                 List<String> list = mInstanceAdapters.get(simpleName);
                 if (list == null) {
-                    list = new ArrayList<>();
+                    list = new ArrayList<String>();
                     mInstanceAdapters.put(simpleName, list);
                 }
                 list.add(adapter);

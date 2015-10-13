@@ -3,3 +3,6 @@ local.properties
 .gradle
 maven-repo
 .caches
+*.iml
+*.DS_Store
+*.idea

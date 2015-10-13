@@ -73,18 +73,19 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 "/app/src/main/res/layout-sw100dp/main.xml");
         CompilationResult result = runGradle("assembleDebug");
         assertEquals(result.error, 0, result.resultCode);
-        File debugOut = new File(testFolder, "/app/build/intermediates/res/merged/debug/");
+        File debugOut = new File(testFolder,
+                "app/build/intermediates/data-binding-layout-out/debug");
         Collection<File> layoutFiles = FileUtils.listFiles(debugOut, new SuffixFileFilter(".xml"),
                 new PrefixFileFilter("layout"));
         assertTrue("test sanity", layoutFiles.size() > 1);
         for (File layout : layoutFiles) {
+            final String contents = FileUtils.readFileToString(layout);
             if (layout.getParent().contains("sw100")) {
                 assertTrue("File has wrong tag:" + layout.getPath(),
-                        FileUtils.readFileToString(layout)
-                                .indexOf("android:tag=\"layout-sw100dp/main_0\"") > 0);
+                        contents.indexOf("android:tag=\"layout-sw100dp/main_0\"") > 0);
             } else {
-                assertTrue("File has wrong tag:" + layout.getPath(),
-                        FileUtils.readFileToString(layout).indexOf("android:tag=\"layout/main_0\"")
+                assertTrue("File has wrong tag:" + layout.getPath() + "\n" + contents,
+                        contents.indexOf("android:tag=\"layout/main_0\"")
                                 > 0);
             }
         }

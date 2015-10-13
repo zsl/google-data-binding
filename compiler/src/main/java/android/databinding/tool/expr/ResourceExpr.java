@@ -27,7 +27,7 @@ public class ResourceExpr extends Expr {
 
     private final static Map<String, String> RESOURCE_TYPE_TO_R_OBJECT;
     static {
-        RESOURCE_TYPE_TO_R_OBJECT = new HashMap<>();
+        RESOURCE_TYPE_TO_R_OBJECT = new HashMap<String, String>();
         RESOURCE_TYPE_TO_R_OBJECT.put("colorStateList", "color  ");
         RESOURCE_TYPE_TO_R_OBJECT.put("dimenOffset", "dimen  ");
         RESOURCE_TYPE_TO_R_OBJECT.put("dimenSize", "dimen  ");
@@ -60,7 +60,7 @@ public class ResourceExpr extends Expr {
     private Map<String, ModelClass> getResourceToTypeMapping(ModelAnalyzer modelAnalyzer) {
         if (mResourceToTypeMapping == null) {
             final Map<String, String> imports = getModel().getImports();
-            mResourceToTypeMapping = new HashMap<>();
+            mResourceToTypeMapping = new HashMap<String, ModelClass>();
             mResourceToTypeMapping.put("anim", modelAnalyzer.findClass("android.view.animation.Animation",
                             imports));
             mResourceToTypeMapping.put("animator", modelAnalyzer.findClass("android.animation.Animator",

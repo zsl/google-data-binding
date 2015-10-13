@@ -74,9 +74,9 @@ public class UploadToBintrayTask extends DefaultTask {
             }
             def responseText = execute.text
             def json = new JsonSlurper().parseText(responseText)
-            if (json.getAt("message") != "success" && json.getAt("message") != null) {
+            if (json.getAt("message") != "success") {
                 throw new RuntimeException("Cannot upload artifact. Error response: " +
-                        "${json.getAt("message")} ${responseText}")
+                        "${json.getAt("message")}")
             }
             println("uploaded $localFile")
         }

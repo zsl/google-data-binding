@@ -30,6 +30,9 @@ import android.databinding.tool.ext.versionedLazy
 import android.databinding.tool.processing.ErrorMessages
 import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.util.L
+import org.apache.commons.lang3.JavaVersion
+import org.apache.commons.lang3.SystemUtils
+import java.lang
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.BitSet
@@ -237,8 +240,7 @@ fun FlagSet.localValue(bucketIndex : Int) =
 fun FlagSet.binaryCode(bucketIndex : Int) = longToBinary(buckets[bucketIndex])
 
 
-fun longToBinary(l : Long) =
-        "0b${java.lang.Long.toBinaryString(l)}L"
+fun longToBinary(l : Long) = "0x${lang.Long.toHexString(l)}L"
 
 fun <T> FlagSet.mapOr(other : FlagSet, cb : (suffix : String, index : Int) -> T) : List<T> {
     val min = Math.min(buckets.size(), other.buckets.size())

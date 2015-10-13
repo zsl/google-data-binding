@@ -19,6 +19,7 @@ package android.databinding.annotationprocessor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
@@ -133,7 +134,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         }
         if (forLibraryModule) {
             Set<String> classNames = compilerChef.getWrittenClassNames();
-            String out = StringUtils.join(classNames, System.getProperty("line.separator"));
+            String out = StringUtils.join(classNames, SystemUtils.LINE_SEPARATOR);
             L.d("Writing list of classes to %s . \nList:%s", exportClassNamesTo, out);
             try {
                 //noinspection ConstantConditions

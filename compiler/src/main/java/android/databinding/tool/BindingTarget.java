@@ -164,7 +164,7 @@ public class BindingTarget implements LocationScopeProvider {
         List<MergedBinding> mergeBindings = new ArrayList<MergedBinding>();
         for (final SetterStore.MultiAttributeSetter setter : multiAttributeSetterCalls) {
             L.d("resolved %s", setter);
-            final List<Binding> mergedBindings = new ArrayList<>();
+            final List<Binding> mergedBindings = new ArrayList<Binding>();
             for (String attribute : setter.attributes) {
                 Binding binding = lookup.get(attribute);
                 Preconditions.checkNotNull(binding, "cannot find binding for %s", attribute);
