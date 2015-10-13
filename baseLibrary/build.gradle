@@ -17,8 +17,8 @@
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'com.android.databinding.bintray'
-sourceCompatibility = config.javaTargetCompatibility
-targetCompatibility = config.javaSourceCompatibility
+sourceCompatibility = dataBindingConfig.javaTargetCompatibility
+targetCompatibility = dataBindingConfig.javaSourceCompatibility
 
 sourceSets {
     main {
@@ -63,9 +63,9 @@ uploadArchives {
             pom.project {
                 licenses {
                     license {
-                        name config.licenseName
-                        url config.licenseUrl
-                        distribution config.licenseDistribution
+                        name dataBindingConfig.licenseName
+                        url dataBindingConfig.licenseUrl
+                        distribution dataBindingConfig.licenseDistribution
                     }
                 }
             }
@@ -76,7 +76,7 @@ uploadArchives {
 task prebuildJar(type : Copy) {
     dependsOn uploadArchives
     from "$buildDir/libs/baseLibrary-${version}.jar"
-    into config.prebuildFolder
+    into dataBindingConfig.prebuildFolder
     rename { String fileName ->
         "databinding-baseLibrary.jar"
     }

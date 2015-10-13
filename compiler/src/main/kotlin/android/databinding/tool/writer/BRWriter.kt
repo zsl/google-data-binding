@@ -16,11 +16,12 @@
 
 package android.databinding.tool.writer
 
+import org.apache.commons.lang3.SystemUtils
 import kotlin.properties.Delegates
 
 class BRWriter(properties: Set<String>, val useFinal : Boolean) {
     val indexedProps = properties.sort().withIndex()
-    public fun write(pkg : String): String = "package $pkg;${System.lineSeparator()}$klass"
+    public fun write(pkg : String): String = "package $pkg;${SystemUtils.LINE_SEPARATOR}$klass"
     val klass: String by Delegates.lazy {
         kcode("") {
             val prefix = if (useFinal) "final " else "";

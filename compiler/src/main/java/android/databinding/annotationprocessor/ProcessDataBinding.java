@@ -33,7 +33,6 @@ import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 
@@ -44,7 +43,6 @@ import javax.lang.model.element.TypeElement;
         "android.databinding.BindingConversion",
         "android.databinding.BindingBuildInfo"}
 )
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
 /**
  * Parent annotation processor that dispatches sub steps to ensure execution order.
  * Use initProcessingSteps to add a new step.
@@ -71,6 +69,11 @@ public class ProcessDataBinding extends AbstractProcessor {
         }
         Scope.assertNoError();
         return done;
+    }
+
+    @Override
+    public SourceVersion getSupportedSourceVersion() {
+        return SourceVersion.latest();
     }
 
     private void initProcessingSteps() {

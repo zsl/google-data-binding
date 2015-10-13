@@ -175,7 +175,7 @@ public class ExprModelTest {
         assertExactMatch(shouldRead, a, b, ternaryExpr);
         first = getReadFirst(shouldRead);
         assertExactMatch(first, a, b);
-        List<Expr> justRead = new ArrayList<>();
+        List<Expr> justRead = new ArrayList<Expr>();
         justRead.add(a);
         justRead.add(b);
         first = filterOut(getReadFirst(shouldRead, justRead), justRead);

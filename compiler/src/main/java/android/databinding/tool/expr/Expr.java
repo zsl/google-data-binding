@@ -63,7 +63,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     private boolean mCanBeInvalidated = false;
 
     @Nullable
-    private List<Location> mLocations = new ArrayList<>();
+    private List<Location> mLocations = new ArrayList<Location>();
 
     /**
      * This set denotes the times when this expression is invalid.

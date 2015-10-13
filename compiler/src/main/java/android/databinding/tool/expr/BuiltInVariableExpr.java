@@ -37,7 +37,7 @@ public class BuiltInVariableExpr extends IdentifierExpr {
 
     @Override
     protected List<Dependency> constructDependencies() {
-        return new ArrayList<>();
+        return new ArrayList<Dependency>();
     }
 
     @Override

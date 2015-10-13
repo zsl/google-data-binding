@@ -69,7 +69,7 @@ public class ListenerExpr extends Expr {
 
     @Override
     protected List<Dependency> constructDependencies() {
-        final List<Dependency> dependencies = new ArrayList<>();
+        final List<Dependency> dependencies = new ArrayList<Dependency>();
         Dependency dependency = new Dependency(this, getChild());
         dependency.setMandatory(true);
         dependencies.add(dependency);

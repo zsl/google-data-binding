@@ -25,7 +25,7 @@ import java.util.WeakHashMap;
 
 public class ListenerUtil {
     private static SparseArray<WeakHashMap<View, WeakReference<?>>> sListeners =
-            new SparseArray<>();
+            new SparseArray<WeakHashMap<View, WeakReference<?>>>();
 
     /**
      * This method tracks listeners for a View. Only one listener per listenerResourceId
@@ -61,7 +61,7 @@ public class ListenerUtil {
             synchronized (sListeners) {
                 WeakHashMap<View, WeakReference<?>> listeners = sListeners.get(listenerResourceId);
                 if (listeners == null) {
-                    listeners = new WeakHashMap<>();
+                    listeners = new WeakHashMap<View, WeakReference<?>>();
                     sListeners.put(listenerResourceId, listeners);
                 }
                 final WeakReference<T> oldValue;

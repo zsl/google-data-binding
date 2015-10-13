@@ -302,8 +302,8 @@ public class ExprModel {
 
         int counter = 0;
         final Iterable<Expr> observables = filterObservables(modelAnalyzer);
-        List<String> flagMapping = new ArrayList<>();
-        mObservables = new ArrayList<>();
+        List<String> flagMapping = new ArrayList<String>();
+        mObservables = new ArrayList<Expr>();
         for (Expr expr : observables) {
             // observables gets initial ids
             flagMapping.add(expr.getUniqueKey());
@@ -450,7 +450,7 @@ public class ExprModel {
     }
 
     private List<Expr> filterNonObservableIds(final ModelAnalyzer modelAnalyzer) {
-        List<Expr> result = new ArrayList<>();
+        List<Expr> result = new ArrayList<Expr>();
         for (Expr input : mExprMap.values()) {
             if (input instanceof IdentifierExpr
                     && !input.hasId()
@@ -463,7 +463,7 @@ public class ExprModel {
     }
 
     private Iterable<Expr> filterObservables(final ModelAnalyzer modelAnalyzer) {
-        List<Expr> result = new ArrayList<>();
+        List<Expr> result = new ArrayList<Expr>();
         for (Expr input : mExprMap.values()) {
             if (input.isObservable()) {
                 result.add(input);
@@ -474,7 +474,7 @@ public class ExprModel {
 
     public List<Expr> getPendingExpressions() {
         if (mPendingExpressions == null) {
-            mPendingExpressions = new ArrayList<>();
+            mPendingExpressions = new ArrayList<Expr>();
             for (Expr expr : mExprMap.values()) {
                 // if an expression is NOT dynanic but has conditional dependants, still return it
                 // so that conditional flags can be set
@@ -488,7 +488,7 @@ public class ExprModel {
 
     public boolean markBitsRead() {
         // each has should read flags, we set them back on them
-        List<Expr> markedSomeFlagsRead = new ArrayList<>();
+        List<Expr> markedSomeFlagsRead = new ArrayList<Expr>();
         for (Expr expr : filterShouldRead(getPendingExpressions())) {
             expr.markFlagsAsRead(expr.getShouldReadFlags());
             markedSomeFlagsRead.add(expr);
@@ -498,7 +498,7 @@ public class ExprModel {
 
     private boolean pruneDone(List<Expr> markedSomeFlagsAsRead) {
         boolean marked = true;
-        List<Expr> markedAsReadList = new ArrayList<>();
+        List<Expr> markedAsReadList = new ArrayList<Expr>();
         while (marked) {
             marked = false;
             for (Expr expr : mExprMap.values()) {
@@ -556,7 +556,7 @@ public class ExprModel {
     }
 
     public static List<Expr> filterShouldRead(Iterable<Expr> exprs) {
-        List<Expr> result = new ArrayList<>();
+        List<Expr> result = new ArrayList<Expr>();
         for (Expr expr : exprs) {
             if (!expr.getShouldReadFlags().isEmpty() &&
                     !hasConditionalOrNestedCannotReadDependency(expr)) {

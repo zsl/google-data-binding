@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+buildscript {
+    dependencies {
+        classpath "com.android.tools.build:gradle:${dataBindingConfig.androidPluginVersion}"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
 apply plugin: 'com.android.library'
-project.ext.addDataBindingAdapters = false
-apply plugin: 'com.android.databinding'
 
 android {
-    compileSdkVersion config.compileSdkVersion
-    buildToolsVersion config.buildToolsVersion
-
+    compileSdkVersion dataBindingConfig.compileSdkVersion
+    buildToolsVersion dataBindingConfig.buildToolsVersion
+    dataBinding {
+        enabled = true
+        addDefaultAdapters = false
+    }
     defaultConfig {
         minSdkVersion 7
         targetSdkVersion 21
@@ -43,6 +50,7 @@ android {
 }
 
 dependencies {
+    project(':library')
     provided 'com.android.support:support-v4:+'
     provided 'com.android.support:cardview-v7:+'
     provided 'com.android.support:appcompat-v7:+'
@@ -81,14 +89,14 @@ android.libraryVariants.all { variant ->
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://${config.inReleaseBuild ? config.sharedSupportRepoDir : config.mavenRepoDir}")
+            repository(url: "file://${(!dataBindingConfig.forGradlePlugin && dataBindingConfig.inReleaseBuild) ? dataBindingConfig.sharedSupportRepoDir : dataBindingConfig.mavenRepoDir}")
             pom.artifactId = "adapters"
             pom.project {
                 licenses {
                     license {
-                        name config.licenseName
-                        url config.licenseUrl
-                        distribution config.licenseDistribution
+                        name dataBindingConfig.licenseName
+                        url dataBindingConfig.licenseUrl
+                        distribution dataBindingConfig.licenseDistribution
                     }
                 }
             }
@@ -100,7 +108,7 @@ uploadArchives {
 task prebuild(type : Copy) {
     dependsOn uploadArchives
     from "$buildDir/outputs/aar/baseAdapters-release.aar"
-    into config.prebuildFolder
+    into dataBindingConfig.prebuildFolder
     rename { String fileName ->
         "databinding-adapters.aar"
     }

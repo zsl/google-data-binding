@@ -17,6 +17,7 @@
 package android.databinding.tool.processing;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
@@ -85,7 +86,7 @@ public class ScopedException extends RuntimeException {
             }
         }
         sb.append(ERROR_LOG_SUFFIX);
-        return StringUtils.join(StringUtils.split(sb.toString(), System.lineSeparator()), " ");
+        return StringUtils.join(StringUtils.split(sb.toString(), SystemUtils.LINE_SEPARATOR), " ");
     }
 
     public ScopedErrorReport getScopedErrorReport() {
@@ -99,7 +100,7 @@ public class ScopedException extends RuntimeException {
     public static ScopedException createFromOutput(String output) {
         String message = "";
         String file = "";
-        List<Location> locations = new ArrayList<>();
+        List<Location> locations = new ArrayList<Location>();
         int msgStart = output.indexOf(MSG_KEY);
         if (msgStart < 0) {
             message = output;
@@ -138,7 +139,7 @@ public class ScopedException extends RuntimeException {
     }
 
     public static List<ScopedException> extractErrors(String output) {
-        List<ScopedException> errors = new ArrayList<>();
+        List<ScopedException> errors = new ArrayList<ScopedException>();
         int index = output.indexOf(ERROR_LOG_PREFIX);
         final int limit = output.length();
         while (index >= 0 && index < limit) {
@@ -157,5 +158,9 @@ public class ScopedException extends RuntimeException {
 
     public static void encodeOutput(boolean encodeOutput) {
         sEncodeOutput = encodeOutput;
+    }
+
+    public static boolean issEncodeOutput() {
+        return sEncodeOutput;
     }
 }

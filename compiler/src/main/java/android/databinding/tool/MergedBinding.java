@@ -53,7 +53,7 @@ public class MergedBinding extends Binding {
     }
 
     private static Expr createArgListExpr(ExprModel model, final Iterable<Binding> bindings) {
-        List<Expr> args = new ArrayList<>();
+        List<Expr> args = new ArrayList<Expr>();
         for (Binding binding : bindings) {
             args.add(binding.getExpr());
         }
@@ -93,13 +93,13 @@ public class MergedBinding extends Binding {
     @Override
     public String toJavaCode(String targetViewName, String bindingComponent) {
         final ArgListExpr args = (ArgListExpr) getExpr();
-        final List<String> newValues = new ArrayList<>();
+        final List<String> newValues = new ArrayList<String>();
         for (Expr expr : args.getChildren()) {
             newValues.add(expr.toCode().generate());
         }
         final List<String> oldValues;
         if (requiresOldValue()) {
-            oldValues = new ArrayList<>();
+            oldValues = new ArrayList<String>();
             for (Expr expr : args.getChildren()) {
                 oldValues.add("this." + WriterPackage.getOldValueName(expr));
             }
@@ -112,7 +112,7 @@ public class MergedBinding extends Binding {
     }
 
     private static <T> T[] concat(List<T> l1, List<T> l2, Class<T> klass) {
-        List<T> result = new ArrayList<>();
+        List<T> result = new ArrayList<T>();
         result.addAll(l1);
         result.addAll(l2);
         return result.toArray((T[]) Array.newInstance(klass, result.size()));

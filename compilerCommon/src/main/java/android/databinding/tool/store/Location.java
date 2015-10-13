@@ -18,6 +18,7 @@ package android.databinding.tool.store;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
 
@@ -74,7 +75,7 @@ public class Location {
         } else {
             endLine = end.getLine() - 1; // token lines start from 1
             String endText = end.getText();
-            int lastLineStart = endText.lastIndexOf(System.lineSeparator());
+            int lastLineStart = endText.lastIndexOf(SystemUtils.LINE_SEPARATOR);
             String lastLine = lastLineStart < 0 ? endText : endText.substring(lastLineStart + 1);
             endOffset = end.getCharPositionInLine() + lastLine.length() - 1;//end is inclusive
         }

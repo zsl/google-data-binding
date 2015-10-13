@@ -18,27 +18,26 @@ apply plugin: "kotlin"
 apply plugin: 'com.android.databinding.bintray'
 
 
-sourceCompatibility = config.javaTargetCompatibility
-targetCompatibility = config.javaSourceCompatibility
+sourceCompatibility = dataBindingConfig.javaTargetCompatibility
+targetCompatibility = dataBindingConfig.javaSourceCompatibility
 
 buildscript {
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${config.kotlinVersion}"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${dataBindingConfig.kotlinVersion}"
         classpath 'commons-io:commons-io:2.4'
     }
 }
 
 dependencies {
-    compile project(":compilerCommon")
-    compile project(':baseLibrary')
+    compile project(':dataBinding:compilerCommon')
+    compile project(':dataBinding:baseLibrary')
     compile 'org.apache.commons:commons-lang3:3.3.2'
     compile 'commons-io:commons-io:2.4'
     compile 'commons-codec:commons-codec:1.10'
-    compile "org.jetbrains.kotlin:kotlin-stdlib:${config.kotlinVersion}"
-
+    compile "org.jetbrains.kotlin:kotlin-stdlib:${dataBindingConfig.kotlinVersion}"
     compile 'com.tunnelvisionlabs:antlr4:4.5'
     testCompile files('../baseLibrary/src/main/java')
-    testCompile files('../library/src/main/java')
+    testCompile files('../extensions/library/src/main/java')
     testCompile 'junit:junit:4.12'
 }
 
@@ -49,18 +48,14 @@ uploadArchives {
             pom.project {
                 licenses {
                     license {
-                        name config.licenseName
-                        url config.licenseUrl
-                        distribution config.licenseDistribution
+                        name dataBindingConfig.licenseName
+                        url dataBindingConfig.licenseUrl
+                        distribution dataBindingConfig.licenseDistribution
                     }
                 }
             }
         }
     }
-}
-
-project(':library').afterEvaluate { libProject ->
-    tasks['compileTestKotlin'].dependsOn libProject.tasks['uploadJarArchives']
 }
 
 fullJar(project)

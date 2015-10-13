@@ -103,7 +103,7 @@ public class SdkUtil {
 
         private void buildFullLookup() throws XPathExpressionException {
             NodeList allClasses = mDoc.getChildNodes().item(0).getChildNodes();
-            mFullLookup = new HashMap<>(allClasses.getLength() * 4);
+            mFullLookup = new HashMap<String, Integer>(allClasses.getLength() * 4);
             for (int j = 0; j < allClasses.getLength(); j++) {
                 Node node = allClasses.item(j);
                 if (node.getNodeType() != Node.ELEMENT_NODE || !"class"

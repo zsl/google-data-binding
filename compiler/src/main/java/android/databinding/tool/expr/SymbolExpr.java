@@ -54,6 +54,6 @@ public class SymbolExpr extends Expr {
 
     @Override
     protected List<Dependency> constructDependencies() {
-        return new ArrayList<>();
+        return new ArrayList<Dependency>();
     }
 }

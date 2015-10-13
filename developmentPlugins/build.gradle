@@ -7,7 +7,7 @@ subprojects {
     uploadArchives {
         repositories {
             mavenDeployer {
-                repository(url: "file://${config.extraPluginsRepoDir}")
+                repository(url: "file://${dataBindingConfig.internalPrebuiltsRepoDir}")
             }
         }
     }

@@ -38,7 +38,7 @@ public class MethodCallExpr extends Expr {
     Callable mGetter;
 
     static List<Expr> concat(Expr e, List<Expr> list) {
-        List<Expr> merged = new ArrayList<>();
+        List<Expr> merged = new ArrayList<Expr>();
         merged.add(e);
         merged.addAll(list);
         return merged;
