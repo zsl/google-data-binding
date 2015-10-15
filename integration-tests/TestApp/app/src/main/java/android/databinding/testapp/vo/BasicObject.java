@@ -43,6 +43,17 @@ public class BasicObject extends BaseObservable {
         notifyPropertyChanged(BR.field1);
     }
 
+    @Bindable
+    public boolean isThisNameDoesNotMatchAnythingElse1() {
+        // see: https://code.google.com/p/android/issues/detail?id=190207
+        return false;
+    }
+
+    @Bindable
+    public boolean getThisNameDoesNotMatchAnythingElse2() {
+        return false;
+    }
+
     public String boolMethod(boolean value) {
         return value ? "true" : "false";
     }

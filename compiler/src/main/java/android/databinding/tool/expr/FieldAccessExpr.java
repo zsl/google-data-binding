@@ -16,19 +16,24 @@
 
 package android.databinding.tool.expr;
 
+import android.databinding.tool.ext.ExtKt;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
+import android.databinding.tool.util.BrNameUtil;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.KCode;
 
 import java.util.List;
 
 public class FieldAccessExpr extends Expr {
     String mName;
+    // notification name for the field. Important when we map this to a method w/ different name
+    String mBrName;
     Callable mGetter;
     final boolean mIsObservableField;
     boolean mIsListener;
@@ -186,6 +191,19 @@ public class FieldAccessExpr extends Expr {
         return mName;
     }
 
+    public String getBrName() {
+        if (mIsListener) {
+            return null;
+        }
+        try {
+            Scope.enter(this);
+            Preconditions.checkNotNull(mGetter, "cannot get br name before resolving the getter");
+            return mBrName;
+        } finally {
+            Scope.exit();
+        }
+    }
+
     @Override
     public void updateExpr(ModelAnalyzer modelAnalyzer) {
         try {
@@ -241,6 +259,9 @@ public class FieldAccessExpr extends Expr {
                 observableField.getParents().add(this);
                 mGetter = mGetter.resolvedType.findGetterOrField("get", false);
                 mName = "";
+                mBrName = ExtKt.br(mName);
+            } else if (hasBindableAnnotations()) {
+                mBrName = ExtKt.br(BrNameUtil.brKey(mGetter));
             }
         }
         return mGetter.resolvedType;

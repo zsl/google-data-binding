@@ -386,7 +386,7 @@ public abstract class ModelClass {
     public Callable findGetterOrField(String name, boolean staticOnly) {
         if ("length".equals(name) && isArray()) {
             return new Callable(Type.FIELD, name, ModelAnalyzer.getInstance().loadPrimitive("int"),
-                    0);
+                    0, 0);
         }
         String capitalized = StringUtils.capitalize(name);
         String[] methodNames = {
@@ -415,7 +415,8 @@ public abstract class ModelClass {
                         }
                     }
                     final Callable result = new Callable(Callable.Type.METHOD, methodName,
-                            method.getReturnType(null), flags);
+                            method.getReturnType(null), method.getParameterTypes().length,
+                            flags);
                     return result;
                 }
             }
@@ -447,7 +448,7 @@ public abstract class ModelClass {
         if (publicField.isStatic()) {
             flags |= STATIC;
         }
-        return new Callable(Callable.Type.FIELD, name, fieldType, flags);
+        return new Callable(Callable.Type.FIELD, name, fieldType, 0, flags);
     }
 
     private ModelField getField(String name, boolean allowPrivate, boolean isStatic) {

@@ -627,13 +627,17 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab("switch (fieldId) {", {
                     val accessedFields: List<FieldAccessExpr> = it.getParents().filterIsInstance(javaClass<FieldAccessExpr>())
                     accessedFields.filter { it.hasBindableAnnotations() }
-                            .groupBy { it.getName() }
+                            .groupBy { it.brName }
                             .forEach {
-                                tab("case ${it.key.br()}:") {
-                                    val field = it.value.first()
+                                // If two expressions look different but resolve to the same method,
+                                // we are not yet able to merge them. This is why we merge their
+                                // flags below.
+                                tab("case ${it.key}:") {
                                     tab("synchronized(this) {") {
-                                        mDirtyFlags.mapOr(field.invalidateFlagSet) { suffix, index ->
-                                            tab("${mDirtyFlags.localValue(index)} |= ${field.invalidateFlagSet.localValue(index)};")
+                                        val flagSet = it.value.foldRight(FlagSet()) { l, r -> l.invalidateFlagSet.or(r) }
+
+                                        mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                                            tab("${mDirtyFlags.localValue(index)} |= ${flagSet.localValue(index)};")
                                         }
                                     } tab("}")
                                     tab("return true;")

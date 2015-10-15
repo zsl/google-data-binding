@@ -114,7 +114,8 @@ public class MethodCallExpr extends Expr {
             if (method.isStatic()) {
                 flags |= STATIC;
             }
-            mGetter = new Callable(Type.METHOD, method.getName(), method.getReturnType(args), flags);
+            mGetter = new Callable(Type.METHOD, method.getName(), method.getReturnType(args),
+                    method.getParameterTypes().length, flags);
         }
         return mGetter.resolvedType;
     }
