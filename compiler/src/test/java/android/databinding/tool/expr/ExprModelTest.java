@@ -486,7 +486,7 @@ public class ExprModelTest {
         IdentifierExpr u = lb.addVariable("u", User.class.getCanonicalName(),
                 null);
         final Expr uComment = parse(lb, "u.comment", FieldAccessExpr.class);
-        final TernaryExpr uTernary = parse(lb, "u.useComment ? u.comment : `xx`", TernaryExpr.class);
+        final TernaryExpr uTernary = parse(lb, "u.getUseComment ? u.comment : `xx`", TernaryExpr.class);
         mExprModel.seal();
         assertTrue(uTernary.getPred().canBeInvalidated());
         List<Expr> shouldRead = getShouldRead();
@@ -1039,7 +1039,7 @@ public class ExprModelTest {
         public String comment;
 
         @Bindable
-        public boolean useComment() {
+        public boolean getUseComment() {
             return true;
         }
 
