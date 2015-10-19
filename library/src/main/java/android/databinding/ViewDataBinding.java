@@ -19,7 +19,9 @@ package android.databinding;
 import com.android.databinding.library.R;
 
 import android.annotation.TargetApi;
+import android.content.res.ColorStateList;
 import android.databinding.CallbackRegistry.NotifierCallback;
+import android.graphics.drawable.Drawable;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
@@ -560,6 +562,24 @@ public abstract class ViewDataBinding {
         Object[] bindings = new Object[numBindings];
         mapBindings(bindingComponent, root, bindings, includes, viewsWithIds, true);
         return bindings;
+    }
+
+    /** @hide */
+    protected ColorStateList getColorStateListFromResource(int resourceId) {
+        if (VERSION.SDK_INT >= VERSION_CODES.M) {
+            return getRoot().getContext().getColorStateList(resourceId);
+        } else {
+            return getRoot().getResources().getColorStateList(resourceId);
+        }
+    }
+
+    /** @hide */
+    protected Drawable getDrawableFromResource(int resourceId) {
+        if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
+            return getRoot().getContext().getDrawable(resourceId);
+        } else {
+            return getRoot().getResources().getDrawable(resourceId);
+        }
     }
 
     /** @hide */

@@ -116,5 +116,10 @@
                 android:layout_width="10dp"
                 android:layout_height="10dp"
                 android:background="@{@drawable/ic_launcher}"/>
+        <View
+                android:id="@+id/backgroundWithTheme"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:background="@{@drawable/circle}"/>
     </LinearLayout>
 </layout>

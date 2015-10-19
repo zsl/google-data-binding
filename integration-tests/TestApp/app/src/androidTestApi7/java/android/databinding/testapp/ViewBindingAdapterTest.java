@@ -184,4 +184,10 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         Drawable drawable = view.getBackground();
         assertNotNull(drawable);
     }
+
+    @UiThreadTest
+    public void testBackgroundDrawableWithTheme() throws Throwable {
+        View view = mBinder.backgroundWithTheme;
+        assertNotNull(view.getBackground());
+    }
 }
