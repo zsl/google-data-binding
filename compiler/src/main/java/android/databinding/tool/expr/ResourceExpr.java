@@ -146,11 +146,11 @@ public class ResourceExpr extends Expr {
         if ("animator".equals(mResourceType)) return "android.animation.AnimatorInflater.loadAnimator(" + context + ", " + resourceName + ")";
         if ("bool".equals(mResourceType)) return resources + ".getBoolean(" + resourceName + ")";
         if ("color".equals(mResourceType)) return resources + ".getColor(" + resourceName + ")";
-        if ("colorStateList".equals(mResourceType)) return "getColorStateListFromResource(" + resourceName + ")";
+        if ("colorStateList".equals(mResourceType)) return "android.databinding.DynamicUtil.getColorStateListFromResource(getRoot(), " + resourceName + ")";
         if ("dimen".equals(mResourceType)) return resources + ".getDimension(" + resourceName + ")";
         if ("dimenOffset".equals(mResourceType)) return resources + ".getDimensionPixelOffset(" + resourceName + ")";
         if ("dimenSize".equals(mResourceType)) return resources + ".getDimensionPixelSize(" + resourceName + ")";
-        if ("drawable".equals(mResourceType)) return "getDrawableFromResource(" + resourceName + ")";
+        if ("drawable".equals(mResourceType)) return "android.databinding.DynamicUtil.getDrawableFromResource(getRoot(), " + resourceName + ")";
         if ("fraction".equals(mResourceType)) {
             String base = getChildCode(0, "1");
             String pbase = getChildCode(1, "1");

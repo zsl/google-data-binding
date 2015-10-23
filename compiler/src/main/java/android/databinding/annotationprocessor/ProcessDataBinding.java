@@ -94,6 +94,7 @@ public class ProcessDataBinding extends AbstractProcessor {
                 mLibraryProject = libraryProject;
                 mMinSdk = minSdk;
                 considerWritingMapper();
+                mChef.writeDynamicUtil();
             }
 
             private void considerWritingMapper() {
