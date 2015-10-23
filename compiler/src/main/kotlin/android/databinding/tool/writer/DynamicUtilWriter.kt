@@ -13,6 +13,7 @@ import android.os.Build.VERSION_CODES;
 import android.view.View;
 
 public class DynamicUtil {
+    @SuppressWarnings("deprecation")
     public static ColorStateList getColorStateListFromResource(View root, int resourceId) {
         if (VERSION.SDK_INT >= VERSION_CODES.M) {
             return root.getContext().getColorStateList(resourceId);
@@ -21,6 +22,7 @@ public class DynamicUtil {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public static Drawable getDrawableFromResource(View root, int resourceId) {
         if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
             return root.getContext().getDrawable(resourceId);
