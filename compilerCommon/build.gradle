@@ -59,20 +59,21 @@ project.tasks.create(name : "generateGrammar", type : JavaExec) {
 }
 
 tasks.create(name : 'exportBuildVersions') << {
-    def props = new Properties();
+    def props = new HashMap();
     def buildVersionFile = new File(sourceSets.main.output.resourcesDir,"data_binding_version_info.properties")
-    buildVersionFile.delete()
+    // Using Java Properties appends date to the output which is bad for incremental compilation.
+    // Instead, we build it manually.
     props.put("compilerCommon", project.version)
     props.put("compiler", rootProject.findProject("dataBinding:compiler").version)
     props.put("baseLibrary", rootProject.findProject("dataBinding:baseLibrary").version)
     props.put("extensions", dataBindingConfig.extensionsVersion)
     buildVersionFile.getParentFile().mkdirs()
-    def outStream = new FileOutputStream(buildVersionFile)
-    try {
-        props.store(outStream, "")
-    } finally {
-        outStream.close()
+    println("writing build versions file to $buildVersionFile")
+    def propText = new StringBuilder();
+    props.each {
+        propText.append(it.key).append("=").append(it.value).append(System.getProperty("line.separator"))
     }
+    file(buildVersionFile).write(propText.toString())
 }
 
 tasks['jar'].dependsOn('exportBuildVersions')
