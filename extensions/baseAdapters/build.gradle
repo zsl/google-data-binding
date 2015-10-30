@@ -50,7 +50,6 @@ android {
 }
 
 dependencies {
-    project(':library')
     provided 'com.android.support:support-v4:+'
     provided 'com.android.support:cardview-v7:+'
     provided 'com.android.support:appcompat-v7:+'
@@ -89,7 +88,6 @@ android.libraryVariants.all { variant ->
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://${(!dataBindingConfig.forGradlePlugin && dataBindingConfig.inReleaseBuild) ? dataBindingConfig.sharedSupportRepoDir : dataBindingConfig.mavenRepoDir}")
             pom.artifactId = "adapters"
             pom.project {
                 licenses {

@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.android.databinding</groupId>
   <artifactId>library</artifactId>
-  <version>1.0-rc3</version>
+  <version>1.0-rc5</version>
   <packaging>aar</packaging>
   <licenses>
     <license>
@@ -15,15 +15,15 @@
   </licenses>
   <dependencies>
     <dependency>
-      <groupId>com.android.databinding</groupId>
-      <artifactId>baseLibrary</artifactId>
-      <version>1.0-rc3</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>com.android.support</groupId>
       <artifactId>support-v4</artifactId>
       <version>21.0.3</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.android.databinding</groupId>
+      <artifactId>baseLibrary</artifactId>
+      <version>1.0-rc5</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

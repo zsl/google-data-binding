@@ -35,13 +35,16 @@ if (System.env.DIST_DIR != null && System.env.OUT_DIR != null) {
     project.ext.distDir = file('../../out/dist')
 }
 project.ext.distDir.mkdirs()
-
 ext.supportRepoOut = new File(buildDir, 'support_repo')
 
 // Main task called by the build server.
 task(createArchive) << {
 }
+createArchive.doLast {
+    println "support repo out ${project.ext.supportRepoOut}"
+    println "dist dir ${project.ext.distDir}"
 
+}
 
 // upload anchor for subprojects to upload their artifacts
 // to the local repo.
@@ -56,10 +59,9 @@ task createRepository(type: Zip, dependsOn: mainUpload) {
     baseName = String.format("sdk-repo-linux-m2repository-%s", project.ext.buildNumber)
 }
 createArchive.dependsOn createRepository
-
 // prepare repository with older versions
 task unzipRepo(type: Copy) {
-    from "$rootDir/../../prebuilts/maven_repo/android"
+    from "${dataBindingConfig.externalPrebuiltsBase}/maven_repo/android"
     into project.ext.supportRepoOut
 }
 
@@ -111,7 +113,6 @@ Extra.NameDisplay=Android Support Repository\n\
 Archive.Os=ANY\n\
 Pkg.Revision=${project.ext.extraVersion}.0.0\n\
 Extra.VendorId=android"
-
     Files.write(sourceProp, new File(project.ext.supportRepoOut, 'source.properties'), Charsets.UTF_8)
 }
 createSourceProp.dependsOn unzipRepo
@@ -129,4 +130,4 @@ task(bundleSupportLib) << {
 }
 createRepository.dependsOn prepareRepo
 createRepository.dependsOn unzipRepo
-unzipRepo.dependsOn bundleSupportLib
+createRepository.dependsOn bundleSupportLib

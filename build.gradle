@@ -1,8 +1,8 @@
+import groovy.xml.QName
 
 buildscript {
     ext.dataBindingRootFolder = project.projectDir
     apply from: 'propLoader.gradle'
-    apply from: 'supportBundle.gradle'
     ext.addRepos(repositories)
     if (ext.dataBindingConfig.addRemoteRepos) {
         dependencies {
@@ -13,20 +13,24 @@ buildscript {
         classpath 'net.sf.proguard:proguard-gradle:5.2.1'
     }
 }
+
 subprojects {
-    apply plugin: 'maven'
-    if (dataBindingConfig.addRemoteRepos && !dataBindingConfig.forGradlePlugin) {
-        apply plugin: 'com.android.databinding.localizemaven'
+    if (dataBindingConfig.isIndependent) {
+        apply plugin: 'maven'
+        if (dataBindingConfig.addRemoteRepos && !dataBindingConfig.forGradlePlugin) {
+            apply plugin: 'com.android.databinding.localizemaven'
+        }
+    } else {
+        apply from: "${project.projectDir}/../../buildSrc/base/baseJava.gradle"
     }
 
     if (it.name != "compilationTests") {
         group = dataBindingConfig.group
         version = dataBindingConfig.version
-        def url = (!dataBindingConfig.forGradlePlugin && dataBindingConfig.inReleaseBuild && it.name == "library") ? "file://${dataBindingConfig.sharedSupportRepoDir}" : "file://${dataBindingConfig.mavenRepoDir}"
         uploadArchives {
             repositories {
                 mavenDeployer {
-                    repository(url: url)
+                    repository(url: "file://${dataBindingConfig.mavenRepoDir}")
                 }
             }
         }
@@ -34,10 +38,8 @@ subprojects {
 
     buildscript {
         addRepos(repositories)
-            dependencies {
-                classpath "com.android.databinding:bintray:${dataBindingConfig.extraPluginsVersion}"
-            }
     }
+
 }
 
 if (dataBindingConfig.addRemoteRepos && !dataBindingConfig.forGradlePlugin) {
@@ -68,8 +70,6 @@ buildExtensionsTask.args 'clean', 'uploadArchives', '--info', '--stacktrace',
         "-PaddRemoteRepos=${dataBindingConfig.addRemoteRepos ? 'true' : 'false'}",
         "-PforGradlePlugin=${dataBindingConfig.forGradlePlugin ? 'true' : 'false'}"
 buildExtensionsTask.dependsOn subprojects.uploadArchives
-
-tasks['bundleSupportLib'].dependsOn buildExtensionsTask
 
 def prepareExtensionPrebuilds = project.tasks.create "prepareExtensionPrebuilds", Exec
 prepareExtensionPrebuilds.workingDir file('extensions').getAbsolutePath()
@@ -116,10 +116,6 @@ allprojects {
 
 subprojects.uploadArchives.each { it.shouldRunAfter deleteRepo  }
 subprojects.uploadArchives.each { it.shouldRunAfter deletePrebuildFolder  }
-def dataBindingPublishLocal = tasks.create(name: 'publishLocal')
-subprojects.uploadArchives.each {
-    dataBindingPublishLocal.dependsOn(it)
-}
 
 buildExtensionsTask.shouldRunAfter deleteRepo
 tasks['runTestsOfMultiModuleTestApp'].dependsOn tasks['runTestsOfIndependentLibrary']
@@ -162,13 +158,19 @@ task batchEAP() {
     dependsOn createEapdataBindingConfigFile
 }
 
+def findChildByTag(node, tag) {
+    return node.children().find {
+        it.name().getLocalPart().equals(tag)
+    }
+}
+
 def fullJar(project) {
     def localizeTask = project.parent.tasks.findByName('localizeDependencies')
     if (localizeTask != null) {
         localizeTask.dependsOn project.tasks.findByName('buildLicenseNotice')
     }
 
-    if (!dataBindingConfig.runProguard) {
+    if (!dataBindingConfig.runProguard || !dataBindingConfig.inReleaseBuild) {
         return
     }
     def jarName = project.uploadArchives.repositories.mavenDeployer.pom.artifactId
@@ -263,5 +265,28 @@ def fullJar(project) {
                 }
             }
         }
+        outputs.upToDateWhen { false } // force it to re-run all the time.
+    }
+    project.bintrayUpload.dependsOn 'jarJarFile'
+    project.publishing.publications.mavenJava(MavenPublication) {
+            pom.withXml {
+                def deps = findChildByTag(asNode(), "dependencies")
+                if (deps == null) {
+                    throw new IllegalArgumentException("cannot find dependencies in pom file")
+                }
+                def unwanted = deps.children().findAll {
+                    def groupId = findChildByTag(it, "groupId").localText()[0]
+                    def artifactId = findChildByTag(it, "artifactId").localText()[0]
+                    def isBaseLibrary = groupId == 'com.android.databinding' &&
+                            artifactId == 'baseLibrary'
+                    def isGradle = groupId == 'com.android.tools.build' && artifactId == 'gradle'
+                    def isChardet = groupId == 'com.googlecode.juniversalchardet' &&
+                            artifactId == 'juniversalchardet'
+                    return !isBaseLibrary && !isGradle && !isChardet
+                }
+                unwanted.each {
+                    deps.remove(it)
+                }
+            }
     }
 }

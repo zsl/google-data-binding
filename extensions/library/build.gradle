@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import com.android.build.transform.api.QualifiedContent;
+import com.android.build.transform.api.QualifiedContent.ContentType;
+import com.android.build.transform.api.QualifiedContent.Scope;
+import com.android.build.transform.api.Transform;
+import com.android.build.transform.api.Context;
+import com.android.build.transform.api.TransformInput;
+import com.android.build.transform.api.TransformOutputProvider;
+import com.android.build.transform.api.TransformException;
+import com.android.build.gradle.internal.pipeline.TransformManager;
+import com.android.build.transform.api.Format;
 // Top-level build file where you can add dataBindingConfiguration options common to all sub-projects/modules.
 
 buildscript {
     dependencies {
-        classpath "com.android.tools.build:gradle:${dataBindingConfig.androidPublicPluginVersion}"
+        classpath "com.android.tools.build:gradle:${dataBindingConfig.androidPluginVersion}"
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -73,6 +82,7 @@ android.libraryVariants.all { variant ->
     def suffix = name.capitalize()
 
     def javadocTask = project.tasks.create(name: "javadoc${suffix}", type: Javadoc) {
+        source variant.javaCompile.source
         classpath = files(variant.javaCompile.classpath.files) + files(
                 "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
     }
@@ -85,6 +95,7 @@ android.libraryVariants.all { variant ->
 
     def sourcesJarTask = project.tasks.create(name: "sourceJar${suffix}", type: Jar) {
         classifier = 'sources'
+        from android.sourceSets.main.java.srcDirs
     }
 
     artifacts.add('archives', javadocJarTask);
@@ -107,19 +118,56 @@ uploadArchives {
     }
 }
 
+class ExcludeShimTransform extends Transform {
+    Project project;
+    public ExcludeShimTransform(Project project) {
+        this.project = project;
+    }
+    public Set<ContentType> getInputTypes() {
+        return TransformManager.CONTENT_CLASS;
+    }
 
-afterEvaluate {
-    ["", "Classes"].each {
-        def task = tasks.findByName("packageRelease${it}Jar")
-        if (task != null) {
-            task.exclude('android/databinding/DataBinderMapper.*')
-            tasks["packageRelease${it}Jar"].exclude('android/databinding/DataBindingComponent.*')
-            tasks["packageDebug${it}Jar"].exclude('android/databinding/DataBinderMapper.*')
-            tasks["packageDebug${it}Jar"].exclude('android/databinding/DataBindingComponent.*')
+    public Set<Scope> getScopes() {
+        def result = new HashSet<Scope>();
+        result.add(Scope.PROJECT);
+        return result;
+    }
+
+    public Set<Scope> getReferencedScopes() {
+        return TransformManager.SCOPE_FULL_LIBRARY;
+    }
+
+    public boolean isIncremental() {
+        return false;
+    }
+
+    public String getName() {
+        return "DataBindingExcludeShimTransform";
+    }
+
+    public void transform(Context context, Collection<TransformInput> inputs,
+            Collection<TransformInput> referencedInputs,
+            TransformOutputProvider outputProvider,
+            boolean isIncremental) throws IOException, TransformException, InterruptedException {
+        inputs.each { transformInput ->
+            transformInput.getDirectoryInputs().each {
+                File outputDir = outputProvider.getContentLocation("data-binding-filtered",
+                        it.getContentTypes(), it.getScopes(), Format.DIRECTORY);
+                outputDir.delete();
+                outputDir.mkdirs();
+                FileTree tree = project.fileTree(dir: it.getFile())
+                tree.include '**/*.class'
+                tree.exclude 'android/databinding/DataBindingComponent.*'
+                tree.exclude 'android/databinding/DataBinderMapper.*'
+                tree.copy {
+                    into outputDir
+                }
+            }
         }
-
     }
 }
+
+android.registerTransform(new ExcludeShimTransform(project))
 
 task prebuildAar(type : Copy) {
     dependsOn uploadArchives

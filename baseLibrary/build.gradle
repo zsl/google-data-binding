@@ -16,7 +16,7 @@
 
 apply plugin: 'java'
 apply plugin: 'application'
-apply plugin: 'com.android.databinding.bintray'
+
 sourceCompatibility = dataBindingConfig.javaTargetCompatibility
 targetCompatibility = dataBindingConfig.javaSourceCompatibility
 
@@ -36,25 +36,6 @@ sourceSets {
 dependencies {
     testCompile 'junit:junit:4.12'
 }
-
-def javadocTask = project.tasks.create(name: "javadocBaseLibrary", type: Javadoc) {
-    source sourceSets.main.allJava
-}
-
-def javadocJarTask = project.tasks.create(name: "javadocJarBaseLibrary", type: Jar) {
-    classifier = 'javadoc'
-    from 'build/docs/javadoc'
-}
-javadocJarTask.dependsOn javadocTask
-
-def sourcesJarTask = project.tasks.create(name: "sourceJarBaseLibrary", type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.java.srcDirs
-}
-
-artifacts.add('archives', javadocJarTask);
-artifacts.add('archives', sourcesJarTask);
-
 
 uploadArchives {
     repositories {
@@ -81,3 +62,7 @@ task prebuildJar(type : Copy) {
         "databinding-baseLibrary.jar"
     }
 }
+
+project.ext.pomName = 'Data Binding Base Library'
+project.ext.pomDesc = 'Shared library between Data Binding runtime lib and compiler'
+enablePublishing(this, true)

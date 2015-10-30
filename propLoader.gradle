@@ -15,10 +15,11 @@ databindingProperties.mavenRepoDir = "${databindingProperties.androidGradlePlugi
 databindingProperties.internalPrebuiltsRepoDir = "${root}/${databindingProperties.internalPrebuiltsRepoName}"
 databindingProperties.runProguard = project.hasProperty('runProguard') && project.getProperty('runProguard').equals("true")
 
+databindingProperties.inReleaseBuild = project.ext.hasProperty('release') && project.ext.release
 // load version from gradle build file
 apply from: "$root/../buildSrc/base/version.gradle"
 databindingProperties.androidPluginVersion=ext.buildVersion
-
+databindingProperties.isIndependent = rootProject.name.equals("data-binding")
 databindingProperties.eapOutDir = "${root}/${databindingProperties.eapOutFolderName}"
 databindingProperties.prebuildFolder = "${root}/${databindingProperties.prebuildFolderName}" +
         "/${databindingProperties.releaseVersion}"
@@ -27,17 +28,12 @@ ext.dataBindingConfig = databindingProperties
 ext.dataBindingConfig.externalPrebuiltsBase = "${root}/../../prebuilts"
 databindingProperties.megaRepoDir = "${databindingProperties.externalPrebuiltsBase}/tools/common/m2/repository"
 
-println "local maven repo is ${ext.dataBindingConfig.mavenRepoDir}."
-println "local pre-build folder is ${ext.dataBindingConfig.prebuildFolder}."
-println "mega-repo folder is ${ext.dataBindingConfig.megaRepoDir}."
-
 new File(ext.dataBindingConfig.mavenRepoDir).mkdir()
 new File(ext.dataBindingConfig.prebuildFolder).mkdir()
 
 def addRemoteRepos = project.hasProperty('addRemoteRepos') && project.getProperty('addRemoteRepos').equals("true")
 ext.dataBindingConfig.addRemoteRepos = addRemoteRepos
 ext.dataBindingConfig.sharedSupportRepoDir = "${ext.dataBindingConfig.externalPrebuiltsBase}/maven_repo/android"
-ext.dataBindingConfig.inReleaseBuild = !databindingProperties.version.endsWith("SNAPSHOT")
 ext.dataBindingConfig.forGradlePlugin = project.hasProperty('forGradlePlugin') && project.getProperty('forGradlePlugin').equals("true")
 def dataBindingConfig = ext.dataBindingConfig
 def localRepositories = ["${dataBindingConfig.internalPrebuiltsRepoDir}",
@@ -70,3 +66,13 @@ subprojects {
     }
 }
 
+def enablePublishing(p, addJavadoc) {
+    if (!ext.dataBindingConfig.isIndependent) {
+        p.apply from: "$dataBindingRootFolder/../buildSrc/base/publish.gradle"
+        p.apply from: "$dataBindingRootFolder/../buildSrc/base/bintray.gradle"
+        if (addJavadoc) {
+            p.apply from: "$dataBindingRootFolder/../buildSrc/base/javadoc.gradle"
+        }
+    }
+}
+ext.enablePublishing = this.&enablePublishing
