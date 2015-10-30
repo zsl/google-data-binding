@@ -64,10 +64,9 @@ class LocalizeDependenciesTask extends DefaultTask {
         LocalizePluginExtension extension = project.extensions.
                 getByName(MavenDependencyCollectorPlugin.EXTENSION_NAME)
         if (extension.localRepoDir == null || extension.otherRepoDirs == null) {
-//            throw new IllegalArgumentException("you must configure " +
-//                    "${MavenDependencyCollectorPlugin.EXTENSION_NAME} with localRepoDir and" +
-//                    " otherRepoDirs")
-            return
+            throw new IllegalArgumentException("you must configure " +
+                    "${MavenDependencyCollectorPlugin.EXTENSION_NAME} with localRepoDir and" +
+                    " otherRepoDirs")
         }
         localRepoDir = extension.localRepoDir
         downloadAll(extension.localRepoDir, extension.otherRepoDirs)
