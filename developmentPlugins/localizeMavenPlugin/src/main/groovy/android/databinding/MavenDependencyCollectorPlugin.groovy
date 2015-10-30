@@ -34,11 +34,12 @@ public class MavenDependencyCollectorPlugin implements Plugin<Project> {
 
         project.allprojects {
             afterEvaluate { p ->
-                project.tasks.create("collectDependenciesOf${it.getName().capitalize()}", MavenDependencyCollectorTask, {
-                    it.localizeTask = localizeDependenciesTask
-                    localizeDependenciesTask.dependsOn it
-                })
-
+                if (!p.name.equals("dataBinding")) {
+                    project.tasks.create("collectDependenciesOf${it.getName().capitalize()}", MavenDependencyCollectorTask, {
+                        it.localizeTask = localizeDependenciesTask
+                        localizeDependenciesTask.dependsOn it
+                    })
+                }
             }
         }
         project.tasks.create("buildLicenseNotice", ExportLicensesTask) {

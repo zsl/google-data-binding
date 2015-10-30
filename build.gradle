@@ -168,7 +168,7 @@ def fullJar(project) {
         localizeTask.dependsOn project.tasks.findByName('buildLicenseNotice')
     }
 
-    if (!dataBindingConfig.inReleaseBuild || !dataBindingConfig.runProguard) {
+    if (!dataBindingConfig.runProguard) {
         return
     }
     def jarName = project.uploadArchives.repositories.mavenDeployer.pom.artifactId
@@ -192,7 +192,7 @@ def fullJar(project) {
                 deps.addAll(it.allModuleArtifacts)
             }
         }
-        from { deps.findAll { !it.name.contains('baseLibrary')}.collect {
+        from { deps.findAll { !it.name.contains('baseLibrary') && !it.name.contains("juniversalchardet")}.collect {
             it.file.isDirectory() ? it.file : project.zipTree(it.file)
         } } {
             exclude "META-INF/maven/**"
@@ -238,6 +238,7 @@ def fullJar(project) {
                 // rule to repackage antlr to new package
                 rule pattern: 'org.antlr.**', result: 'com.google.repacked.antlr.@1'
                 rule pattern: 'com.tunnelvisionlabs.**', result: 'com.google.repacked.tunnelvision.@1'
+                rule pattern: 'org.abego.treelayout.**', result: 'com.google.repacked.treelayout.@1'
                 // rule to repackage commons
                 rule pattern: 'org.apache.**', result: 'com.google.repacked.apache.@1'
                 rule pattern: 'kotlin.**', result: 'com.google.repacked.kotlin.@1'
@@ -255,7 +256,9 @@ def fullJar(project) {
                                 dep.artifactId == 'baseLibrary'
                         def isGradle = dep.groupId == 'com.android.tools.build' &&
                                 dep.artifactId == 'gradle'
-                        return !isBaseLibrary && !isGradle
+                        def isChardet = dep.groupId == 'com.googlecode.juniversalchardet' &&
+                                dep.artifactId == 'juniversalchardet'
+                        return !isBaseLibrary && !isGradle && !isChardet
                     }
                 }
             }
