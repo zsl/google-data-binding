@@ -10,7 +10,8 @@ if (forceReleaseVersion) {
 }
 databindingProperties.compileSdkVersion = Integer.parseInt(databindingProperties.compileSdkVersionStr)
 def repoBase = databindingProperties.mavenRepoAbsolutePath == "." ? root : databindingProperties.mavenRepoAbsolutePath
-databindingProperties.mavenRepoDir = "${repoBase}/${databindingProperties.mavenRepoName}"
+databindingProperties.androidGradlePluginRepoDir = "${root}/../../${databindingProperties.androidGradlePluginOutRepo}"
+databindingProperties.mavenRepoDir = "${databindingProperties.androidGradlePluginRepoDir}"
 databindingProperties.internalPrebuiltsRepoDir = "${root}/${databindingProperties.internalPrebuiltsRepoName}"
 databindingProperties.runProguard = project.hasProperty('runProguard') && project.getProperty('runProguard').equals("true")
 
@@ -25,7 +26,6 @@ databindingProperties.prebuildFolder = "${root}/${databindingProperties.prebuild
 ext.dataBindingConfig = databindingProperties
 ext.dataBindingConfig.externalPrebuiltsBase = "${root}/../../prebuilts"
 databindingProperties.megaRepoDir = "${databindingProperties.externalPrebuiltsBase}/tools/common/m2/repository"
-databindingProperties.androidGradlePluginRepoDir = "${root}/../../${databindingProperties.androidGradlePluginOutRepo}"
 
 println "local maven repo is ${ext.dataBindingConfig.mavenRepoDir}."
 println "local pre-build folder is ${ext.dataBindingConfig.prebuildFolder}."
