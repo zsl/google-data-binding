@@ -26,7 +26,7 @@ import android.databinding.tool.store.Location;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.store.SetterStore.SetterCall;
 import android.databinding.tool.util.L;
-import android.databinding.tool.writer.WriterPackage;
+import android.databinding.tool.writer.LayoutBinderWriterKt;
 
 import java.util.List;
 
@@ -138,7 +138,7 @@ public class Binding implements LocationScopeProvider {
 
     public String toJavaCode(String targetViewName, String bindingComponent) {
         final String currentValue = requiresOldValue()
-                ? "this." + WriterPackage.getOldValueName(mExpr) : null;
+                ? "this." + LayoutBinderWriterKt.getOldValueName(mExpr) : null;
         final String argCode = getExpr().toCode().generate();
         return getSetterCall().toJava(bindingComponent, targetViewName, currentValue, argCode);
     }

@@ -22,7 +22,7 @@ import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
-import android.databinding.tool.writer.WriterPackage;
+import android.databinding.tool.writer.LayoutBinderWriterKt;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -101,7 +101,7 @@ public class MergedBinding extends Binding {
         if (requiresOldValue()) {
             oldValues = new ArrayList<String>();
             for (Expr expr : args.getChildren()) {
-                oldValues.add("this." + WriterPackage.getOldValueName(expr));
+                oldValues.add("this." + LayoutBinderWriterKt.getOldValueName(expr));
             }
         } else {
             oldValues = Arrays.asList(new String[args.getChildren().size()]);

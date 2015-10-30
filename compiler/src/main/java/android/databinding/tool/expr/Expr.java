@@ -27,7 +27,7 @@ import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.KCode;
-import android.databinding.tool.writer.WriterPackage;
+import android.databinding.tool.writer.LayoutBinderWriterKt;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -662,7 +662,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     public KCode toCode() {
         if (isDynamic()) {
-            return new KCode(WriterPackage.getExecutePendingLocalName(this));
+            return new KCode(LayoutBinderWriterKt.getExecutePendingLocalName(this));
         }
         return generateCode();
     }

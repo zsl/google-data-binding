@@ -24,7 +24,7 @@ public class MavenDependencyCollectorPlugin implements Plugin<Project> {
     static final String EXTENSION_NAME = "localizeMaven"
     @Override
     void apply(Project project) {
-        Project parent = project.parent == null ? project : project.parent;
+        Project parent = project.getRootProject();
         def localizeDependenciesTask = parent.tasks.findByName(DEFAULT_TASK_NAME)
         if (localizeDependenciesTask == null) {
             localizeDependenciesTask = parent.tasks.
