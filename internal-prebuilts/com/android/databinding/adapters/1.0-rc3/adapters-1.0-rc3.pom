@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.android.databinding</groupId>
-  <artifactId>library</artifactId>
+  <artifactId>adapters</artifactId>
   <version>1.0-rc3</version>
   <packaging>aar</packaging>
   <licenses>
@@ -16,14 +16,8 @@
   <dependencies>
     <dependency>
       <groupId>com.android.databinding</groupId>
-      <artifactId>baseLibrary</artifactId>
+      <artifactId>library</artifactId>
       <version>1.0-rc3</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.android.support</groupId>
-      <artifactId>support-v4</artifactId>
-      <version>21.0.3</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>

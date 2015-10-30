@@ -15,7 +15,6 @@
  */
 
 apply plugin: 'java'
-apply plugin: 'com.android.databinding.bintray'
 
 sourceCompatibility = dataBindingConfig.javaSourceCompatibility
 targetCompatibility = dataBindingConfig.javaTargetCompatibility
@@ -78,3 +77,7 @@ tasks.create(name : 'exportBuildVersions') << {
 
 tasks['jar'].dependsOn('exportBuildVersions')
 tasks['exportBuildVersions'].dependsOn('processResources')
+
+project.ext.pomName = 'Data Binding Compiler Common'
+project.ext.pomDesc = 'Common library that can be shared between different build tools'
+enablePublishing(this, true)
