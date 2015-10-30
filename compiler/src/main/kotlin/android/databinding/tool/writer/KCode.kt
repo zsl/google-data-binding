@@ -35,7 +35,7 @@ class KCode (private val s : String? = null){
             }
             val s = (0..n-1).fold(""){prev, next -> "${prev}    "}
             cachedIndentations.set(n, true )
-            while (indentCache.size() <= n) {
+            while (indentCache.size <= n) {
                 indentCache.add("");
             }
             indentCache.set(n, s)
@@ -55,7 +55,7 @@ class KCode (private val s : String? = null){
         return this
     }
 
-    fun tab(s : String?, init : (KCode.() -> Unit)? = null) : KCode {
+    infix fun tab(s : String?, init : (KCode.() -> Unit)? = null) : KCode {
         val c = KCode(s)
         if (init != null) {
             c.init()
@@ -116,7 +116,7 @@ class KCode (private val s : String? = null){
         return this
     }
 
-    fun app(s : String) : KCode {
+    infix fun app(s : String) : KCode {
         val c = KCode(s)
         return app("", c)
     }

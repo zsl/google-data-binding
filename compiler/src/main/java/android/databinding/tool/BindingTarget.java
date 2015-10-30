@@ -19,7 +19,6 @@ package android.databinding.tool;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.processing.Scope;
-import android.databinding.tool.processing.scopes.FileScopeProvider;
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
@@ -30,7 +29,6 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

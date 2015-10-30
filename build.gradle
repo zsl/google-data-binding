@@ -43,7 +43,7 @@ subprojects {
 }
 
 if (dataBindingConfig.addRemoteRepos && !dataBindingConfig.forGradlePlugin) {
-    localizeMaven {
+    rootProject.localizeMaven {
         localRepoDir = file(dataBindingConfig.megaRepoDir)
         otherRepoDirs = dataBindingConfig.localRepositories
     }

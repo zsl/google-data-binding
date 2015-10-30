@@ -32,7 +32,7 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
                     layoutBinders.groupBy{it.getLayoutname()}.forEach {
                         val firstVal = it.value.get(0)
                         tab("case ${firstVal.getModulePackage()}.R.layout.${firstVal.getLayoutname()}:") {
-                            if (it.value.size() == 1) {
+                            if (it.value.size == 1) {
                                 if (firstVal.isMerge()) {
                                     tab("return new ${firstVal.getPackage()}.${firstVal.getImplementationName()}(bindingComponent, new android.view.View[]{view});")
                                 } else {
@@ -69,7 +69,7 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
                     layoutBinders.filter{it.isMerge()}.groupBy{it.getLayoutname()}.forEach {
                         val firstVal = it.value.get(0)
                         tab("case ${firstVal.getModulePackage()}.R.layout.${firstVal.getLayoutname()}:") {
-                            if (it.value.size() == 1) {
+                            if (it.value.size == 1) {
                                 tab("return new ${firstVal.getPackage()}.${firstVal.getImplementationName()}(bindingComponent, views);")
                             } else {
                                 // we should check the tag to decide which layout we need to inflate

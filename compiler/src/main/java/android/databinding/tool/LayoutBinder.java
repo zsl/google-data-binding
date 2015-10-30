@@ -29,7 +29,7 @@ import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.LayoutBinderWriter;
-import android.databinding.tool.writer.WriterPackage;
+import android.databinding.tool.writer.LayoutBinderWriterKt;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,8 +44,8 @@ public class LayoutBinder implements FileScopeProvider {
     private static final Comparator<BindingTarget> COMPARE_FIELD_NAME = new Comparator<BindingTarget>() {
         @Override
         public int compare(BindingTarget first, BindingTarget second) {
-            final String fieldName1 = WriterPackage.getFieldName(first);
-            final String fieldName2 = WriterPackage.getFieldName(second);
+            final String fieldName1 = LayoutBinderWriterKt.getFieldName(first);
+            final String fieldName2 = LayoutBinderWriterKt.getFieldName(second);
             return fieldName1.compareTo(fieldName2);
         }
     };

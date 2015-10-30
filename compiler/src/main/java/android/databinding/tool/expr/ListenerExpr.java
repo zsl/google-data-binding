@@ -20,7 +20,7 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.writer.KCode;
-import android.databinding.tool.writer.WriterPackage;
+import android.databinding.tool.writer.LayoutBinderWriterKt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,8 +87,8 @@ public class ListenerExpr extends Expr {
         if (minApi > 1) {
             code.app("(getBuildSdkInt() < " + minApi + ") ? null : ");
         }
-        final String fieldName = WriterPackage.getFieldName(this);
-        final String listenerClassName = WriterPackage.getListenerClassName(this);
+        final String fieldName = LayoutBinderWriterKt.getFieldName(this);
+        final String listenerClassName = LayoutBinderWriterKt.getListenerClassName(this);
         final KCode value = getChild().toCode();
             code.app("((")
                     .app(fieldName)
