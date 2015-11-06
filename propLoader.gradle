@@ -73,6 +73,7 @@ def enablePublishing(p, addJavadoc) {
         if (addJavadoc) {
             p.apply from: "$dataBindingRootFolder/../buildSrc/base/javadoc.gradle"
         }
+        rootProject.project(":base:gradle-core").publishLocal.dependsOn p.publishLocal
     }
 }
 ext.enablePublishing = this.&enablePublishing
