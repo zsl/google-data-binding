@@ -60,3 +60,5 @@ uploadArchives {
 }
 
 fullJar(project)
+
+test.enabled = !System.getProperty("java.version").startsWith("1.6")
