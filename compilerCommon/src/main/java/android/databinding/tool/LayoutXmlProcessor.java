@@ -14,7 +14,6 @@
 package android.databinding.tool;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.xml.sax.SAXException;
 
@@ -27,13 +26,11 @@ import android.databinding.tool.writer.JavaFileWriter;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.ParserConfigurationException;
@@ -236,13 +233,10 @@ public class LayoutXmlProcessor {
         if (mWritten) {
             return;
         }
-        JAXBContext context = JAXBContext.newInstance(ResourceBundle.LayoutFileBundle.class);
-        Marshaller marshaller = context.createMarshaller();
-
         for (List<ResourceBundle.LayoutFileBundle> layouts : mResourceBundle.getLayoutBundles()
                 .values()) {
             for (ResourceBundle.LayoutFileBundle layout : layouts) {
-                writeXmlFile(xmlOutDir, layout, marshaller);
+                writeXmlFile(xmlOutDir, layout);
             }
         }
         for (File file : mResourceBundle.getRemovedFiles()) {
@@ -252,22 +246,14 @@ public class LayoutXmlProcessor {
         mWritten = true;
     }
 
-    private void writeXmlFile(File xmlOutDir, ResourceBundle.LayoutFileBundle layout,
-            Marshaller marshaller) throws JAXBException {
+    private void writeXmlFile(File xmlOutDir, ResourceBundle.LayoutFileBundle layout)
+            throws JAXBException {
         String filename = generateExportFileName(layout);
-        String xml = toXML(layout, marshaller);
-        mFileWriter.writeToFile(new File(xmlOutDir, filename), xml);
+        mFileWriter.writeToFile(new File(xmlOutDir, filename), layout.toXML());
     }
 
     public String getInfoClassFullName() {
         return RESOURCE_BUNDLE_PACKAGE + "." + CLASS_NAME;
-    }
-
-    private String toXML(ResourceBundle.LayoutFileBundle layout, Marshaller marshaller)
-            throws JAXBException {
-        StringWriter writer = new StringWriter();
-        marshaller.marshal(layout, writer);
-        return writer.getBuffer().toString();
     }
 
     /**
@@ -285,18 +271,11 @@ public class LayoutXmlProcessor {
     }
 
     public static String generateExportFileName(String fileName, String dirName) {
-        StringBuilder name = new StringBuilder(fileName);
-        name.append('-').append(dirName);
-        for (int i = name.length() - 1; i >= 0; i--) {
-            char c = name.charAt(i);
-            if (c == '-') {
-                name.deleteCharAt(i);
-                c = Character.toUpperCase(name.charAt(i));
-                name.setCharAt(i, c);
-            }
-        }
-        name.append(".xml");
-        return name.toString();
+        return fileName + '-' + dirName + ".xml";
+    }
+
+    public static String exportLayoutNameFromInfoFileName(String infoFileName) {
+        return infoFileName.substring(0, infoFileName.indexOf('-'));
     }
 
     public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir,

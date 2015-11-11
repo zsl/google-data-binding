@@ -20,7 +20,6 @@ import android.databinding.testlibrary.ObservableInLibrary;
 
 import android.databinding.Observable;
 import android.databinding.Observable.OnPropertyChangedCallback;
-import android.os.Debug;
 import android.test.AndroidTestCase;
 
 import java.util.HashMap;
