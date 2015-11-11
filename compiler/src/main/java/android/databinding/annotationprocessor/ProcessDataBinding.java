@@ -20,6 +20,7 @@ import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.ModelAnalyzer;
+import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.AnnotationJavaFileWriter;
 import android.databinding.tool.writer.BRWriter;
@@ -35,6 +36,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
+import javax.xml.bind.JAXBException;
 
 @SupportedAnnotationTypes({
         "android.databinding.BindingAdapter",
@@ -60,7 +62,11 @@ public class ProcessDataBinding extends AbstractProcessor {
         }
         boolean done = true;
         for (ProcessingStep step : mProcessingSteps) {
-            done = step.runStep(roundEnv, processingEnv, buildInfo) && done;
+            try {
+                done = step.runStep(roundEnv, processingEnv, buildInfo) && done;
+            } catch (JAXBException e) {
+                L.e(e, "Exception while handling step %s", step);
+            }
         }
         if (roundEnv.processingOver()) {
             for (ProcessingStep step : mProcessingSteps) {
@@ -141,7 +147,7 @@ public class ProcessDataBinding extends AbstractProcessor {
 
         private boolean runStep(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
-                BindingBuildInfo buildInfo) {
+                BindingBuildInfo buildInfo) throws JAXBException {
             if (mDone) {
                 return true;
             }
@@ -156,7 +162,7 @@ public class ProcessDataBinding extends AbstractProcessor {
          */
         abstract public boolean onHandleStep(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
-                BindingBuildInfo buildInfo);
+                BindingBuildInfo buildInfo) throws JAXBException;
 
         /**
          * Invoked when processing is done. A good place to generate the output if the

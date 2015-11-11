@@ -25,7 +25,9 @@ import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.Preconditions;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.Serializable;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,6 +36,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAttribute;
@@ -425,6 +431,21 @@ public class ResourceBundle implements Serializable {
         public LayoutFileBundle() {
         }
 
+        /**
+         * Updates configuration fields from the given bundle but does not change variables,
+         * binding expressions etc.
+         */
+        public void inheritConfigurationFrom(LayoutFileBundle other) {
+            mFileName = other.mFileName;
+            mModulePackage = other.mModulePackage;
+            mBindingClass = other.mBindingClass;
+            mFullBindingClass = other.mFullBindingClass;
+            mBindingClassName = other.mBindingClassName;
+            mBindingPackage = other.mBindingPackage;
+            mHasVariations = other.mHasVariations;
+            mIsMerge = other.mIsMerge;
+        }
+
         public LayoutFileBundle(File file, String fileName, String directory,
                 String modulePackage, boolean isMerge) {
             mFileName = fileName;
@@ -603,6 +624,37 @@ public class ResourceBundle implements Serializable {
         @Override
         public String provideScopeFilePath() {
             return mAbsoluteFilePath;
+        }
+
+        private static Marshaller sMarshaller;
+        private static Unmarshaller sUmarshaller;
+
+        public String toXML() throws JAXBException {
+            StringWriter writer = new StringWriter();
+            getMarshaller().marshal(this, writer);
+            return writer.getBuffer().toString();
+        }
+
+        public static LayoutFileBundle fromXML(InputStream inputStream) throws JAXBException {
+            return (LayoutFileBundle) getUnmarshaller().unmarshal(inputStream);
+        }
+
+        private static Marshaller getMarshaller() throws JAXBException {
+            if (sMarshaller == null) {
+                JAXBContext context = JAXBContext
+                        .newInstance(ResourceBundle.LayoutFileBundle.class);
+                sMarshaller = context.createMarshaller();
+            }
+            return sMarshaller;
+        }
+
+        private static Unmarshaller getUnmarshaller() throws JAXBException {
+            if (sUmarshaller == null) {
+                JAXBContext context = JAXBContext
+                        .newInstance(ResourceBundle.LayoutFileBundle.class);
+                sUmarshaller = context.createUnmarshaller();
+            }
+            return sUmarshaller;
         }
     }
 
