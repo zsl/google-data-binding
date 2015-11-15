@@ -87,7 +87,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     }
 
     private List<IntermediateV2> loadDependencyIntermediates() {
-        final List<IntermediateV2> original = GenerationalClassUtil.loadObjects(
+        final List<Intermediate> original = GenerationalClassUtil.loadObjects(
                 GenerationalClassUtil.ExtensionFilter.LAYOUT);
         final List<IntermediateV2> upgraded = new ArrayList<IntermediateV2>(original.size());
         for (Intermediate intermediate : original) {
