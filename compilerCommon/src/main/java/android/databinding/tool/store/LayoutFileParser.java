@@ -13,6 +13,18 @@
 
 package android.databinding.tool.store;
 
+import android.databinding.parser.XMLLexer;
+import android.databinding.parser.XMLParser;
+import android.databinding.parser.XMLParserBaseVisitor;
+import android.databinding.tool.LayoutXmlProcessor;
+import android.databinding.tool.processing.ErrorMessages;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.scopes.FileScopeProvider;
+import android.databinding.tool.util.L;
+import android.databinding.tool.util.ParserHelper;
+import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.util.XmlEditor;
+
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -25,18 +37,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import android.databinding.parser.XMLLexer;
-import android.databinding.parser.XMLParser;
-import android.databinding.parser.XMLParserBaseVisitor;
-import android.databinding.tool.LayoutXmlProcessor;
-import android.databinding.tool.processing.ErrorMessages;
-import android.databinding.tool.processing.Scope;
-import android.databinding.tool.processing.scopes.FileScopeProvider;
-import android.databinding.tool.util.L;
-import android.databinding.tool.util.ParserHelper;
-import android.databinding.tool.util.Preconditions;
-import android.databinding.tool.util.XmlEditor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -129,6 +129,16 @@ public class LayoutFileParser {
         }
     }
 
+    private static boolean isProcessedElement(String name) {
+        if (StringUtils.isEmpty(name)) {
+            return false;
+        }
+        if ("view".equals(name) || "include".equals(name) || name.indexOf('.') >= 0) {
+            return true;
+        }
+        return !name.toLowerCase().equals(name);
+    }
+
     private void parseExpressions(String newTag, final XMLParser.ElementContext rootView,
             final boolean isMerge, ResourceBundle.LayoutFileBundle bundle) {
         final List<XMLParser.ElementContext> bindingElements
@@ -142,7 +152,7 @@ public class LayoutFileParser {
                     bindingElements.add(ctx);
                 } else {
                     String name = ctx.elmName.getText();
-                    if (!"fragment".equals(name) &&
+                    if (isProcessedElement(name) &&
                             attributeMap(ctx).containsKey("android:id")) {
                         otherElementsWithIds.add(ctx);
                     }
