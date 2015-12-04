@@ -41,8 +41,6 @@ dependencies {
     compile 'commons-codec:commons-codec:1.10'
     compile 'com.tunnelvisionlabs:antlr4:4.5'
     compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
-    testCompile files('../baseLibrary/src/main/java')
-    testCompile files('../extensions/library/src/main/java')
     testCompile 'junit:junit:4.12'
 }
 

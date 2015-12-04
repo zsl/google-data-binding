@@ -23,8 +23,8 @@ import org.junit.Test;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
-import android.databinding.BaseObservable;
 import android.databinding.Bindable;
+import android.databinding.Observable;
 import android.databinding.tool.LayoutBinder;
 import android.databinding.tool.MockLayoutBinder;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -1002,7 +1002,7 @@ public class ExprModelTest {
         return mExprModel.filterShouldRead(mExprModel.getPendingExpressions());
     }
 
-    public static class User extends BaseObservable {
+    public static class User implements Observable {
 
         String name;
 
@@ -1041,6 +1041,16 @@ public class ExprModelTest {
         @Bindable
         public boolean getUseComment() {
             return true;
+        }
+
+        @Override
+        public void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+
+        }
+
+        @Override
+        public void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+
         }
 
         public static class InnerStaticClass {
