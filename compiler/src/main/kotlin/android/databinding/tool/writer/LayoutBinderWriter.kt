@@ -829,7 +829,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 val dependants = ArrayList<Expr>()
                 expressions.groupBy { condition(it) }.forEach {
                     val condition = it.key
-                    val assignedValues = it.value.filter { it.needsLocalField }
+                    val assignedValues = it.value.filter { it.needsLocalField && !it.isVariable() }
                     if (!assignedValues.isEmpty()) {
                         val assignment = kcode("") {
                             assignedValues.forEach { expr: Expr ->
