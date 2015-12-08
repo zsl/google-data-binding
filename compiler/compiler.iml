@@ -4,12 +4,17 @@
     <exclude-output />
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/../../../out/build/dataBinding/baseLibrary/build" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/kotlin" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/gradle" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="baseLibrary-base" exported="" />
+    <orderEntry type="module" module-name="compilerCommon" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>

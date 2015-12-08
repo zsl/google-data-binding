@@ -17,12 +17,11 @@
 package android.databinding.tool.store;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -234,7 +233,7 @@ public class Location {
         return new LocationScopeProvider() {
             @Override
             public List<Location> provideScopeLocation() {
-                return Arrays.asList(Location.this);
+                return Collections.singletonList(Location.this);
             }
         };
     }
