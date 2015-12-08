@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import com.android.build.transform.api.QualifiedContent;
-import com.android.build.transform.api.QualifiedContent.ContentType;
-import com.android.build.transform.api.QualifiedContent.Scope;
-import com.android.build.transform.api.Transform;
-import com.android.build.transform.api.Context;
-import com.android.build.transform.api.TransformInput;
-import com.android.build.transform.api.TransformOutputProvider;
-import com.android.build.transform.api.TransformException;
+import com.android.build.api.transform.Format;
+import com.android.build.api.transform.QualifiedContent;
+import com.android.build.api.transform.QualifiedContent.ContentType;
+import com.android.build.api.transform.QualifiedContent.Scope;
+import com.android.build.api.transform.Transform;
+import com.android.build.api.transform.Context;
+import com.android.build.api.transform.TransformInput;
+import com.android.build.api.transform.TransformOutputProvider;
+import com.android.build.api.transform.TransformException;
 import com.android.build.gradle.internal.pipeline.TransformManager;
-import com.android.build.transform.api.Format;
 // Top-level build file where you can add dataBindingConfiguration options common to all sub-projects/modules.
 
 buildscript {
