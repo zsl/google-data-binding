@@ -12,7 +12,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="baseLibrary-base" exported="" />
+    <orderEntry type="module" module-name="db-baseLibrary" exported="" />
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>

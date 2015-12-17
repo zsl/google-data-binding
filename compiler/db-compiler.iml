@@ -12,8 +12,8 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="baseLibrary-base" exported="" />
-    <orderEntry type="module" module-name="compilerCommon" />
+    <orderEntry type="module" module-name="db-baseLibrary" exported="" />
+    <orderEntry type="module" module-name="db-compilerCommon" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module-library" scope="TEST">
       <library>
