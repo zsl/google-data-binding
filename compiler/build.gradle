@@ -36,7 +36,6 @@ dependencies {
     compile project(':dataBinding:compilerCommon')
     compile project(':dataBinding:baseLibrary')
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'org.apache.commons:commons-lang3:3.3.2'
     compile 'commons-io:commons-io:2.4'
     compile 'commons-codec:commons-codec:1.10'
     compile 'com.tunnelvisionlabs:antlr4:4.5'

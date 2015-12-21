@@ -13,6 +13,19 @@
 
 package android.databinding.tool.store;
 
+import com.google.common.base.Strings;
+
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
+import org.apache.commons.io.FileUtils;
+import org.mozilla.universalchardet.UniversalDetector;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
 import android.databinding.parser.XMLLexer;
 import android.databinding.parser.XMLParser;
 import android.databinding.parser.XMLParserBaseVisitor;
@@ -23,20 +36,8 @@ import android.databinding.tool.processing.scopes.FileScopeProvider;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.util.StringUtils;
 import android.databinding.tool.util.XmlEditor;
-
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.mozilla.universalchardet.UniversalDetector;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -130,7 +131,7 @@ public class LayoutFileParser {
     }
 
     private static boolean isProcessedElement(String name) {
-        if (StringUtils.isEmpty(name)) {
+        if (Strings.isNullOrEmpty(name)) {
             return false;
         }
         if ("view".equals(name) || "include".equals(name) || name.indexOf('.') >= 0) {
@@ -199,7 +200,7 @@ public class LayoutFileParser {
             if ("include".equals(nodeName)) {
                 // get the layout attribute
                 final String includeValue = attributes.get("layout");
-                if (StringUtils.isEmpty(includeValue)) {
+                if (Strings.isNullOrEmpty(includeValue)) {
                     L.e("%s must include a layout", parent);
                 }
                 if (!includeValue.startsWith(LAYOUT_PREFIX)) {
@@ -270,7 +271,7 @@ public class LayoutFileParser {
         String viewName = elm.elmName.getText();
         if ("view".equals(viewName)) {
             String classNode = attributeMap(elm).get("class");
-            if (StringUtils.isEmpty(classNode)) {
+            if (Strings.isNullOrEmpty(classNode)) {
                 L.e("No class attribute for 'view' node");
             }
             viewName = classNode;
@@ -291,9 +292,8 @@ public class LayoutFileParser {
             String alias = attrMap.get("alias");
             Preconditions.check(StringUtils.isNotBlank(type), "Type of an import cannot be empty."
                     + " %s in %s", imp.toStringTree(), xml);
-            if (StringUtils.isEmpty(alias)) {
-                final String[] split = StringUtils.split(type, '.');
-                alias = split[split.length - 1];
+            if (Strings.isNullOrEmpty(alias)) {
+                alias = type.substring(type.lastIndexOf('.') + 1);
             }
             bundle.addImport(alias, type, new Location(imp));
         }
@@ -487,7 +487,7 @@ public class LayoutFileParser {
         }
         String val = textWithQuotes.substring(start, end);
         if (unescapeValue) {
-            return StringEscapeUtils.unescapeXml(val);
+            return StringUtils.unescapeXml(val);
         } else {
             return val;
         }

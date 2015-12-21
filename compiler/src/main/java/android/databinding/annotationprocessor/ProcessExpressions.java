@@ -16,10 +16,10 @@
 
 package android.databinding.annotationprocessor;
 
+import com.google.common.base.Joiner;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
@@ -29,6 +29,7 @@ import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.util.StringUtils;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -158,7 +159,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         }
         if (forLibraryModule) {
             Set<String> classNames = compilerChef.getWrittenClassNames();
-            String out = StringUtils.join(classNames, SystemUtils.LINE_SEPARATOR);
+            String out = Joiner.on(StringUtils.LINE_SEPARATOR).join(classNames);
             L.d("Writing list of classes to %s . \nList:%s", exportClassNamesTo, out);
             try {
                 //noinspection ConstantConditions

@@ -16,15 +16,6 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../prebuilts/tools/common/m2/repository/org/apache/commons/commons-lang3/3.3.2/commons-lang3-3.3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library" exported="">
-      <library>
-        <CLASSES>
           <root url="jar://$MODULE_DIR$/../../../prebuilts/tools/common/m2/repository/com/tunnelvisionlabs/antlr4/4.5/antlr4-4.5.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -118,5 +109,6 @@
         </SOURCES>
       </library>
     </orderEntry>
+    <orderEntry type="library" exported="" name="guava-tools" level="project" />
   </component>
 </module>

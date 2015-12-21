@@ -16,7 +16,6 @@
 
 package android.databinding.tool.expr;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -965,7 +964,7 @@ public class ExprModelTest {
         i = 0;
         for (Expr expr : iterable) {
             assertTrue((i++) + ":must be expected " + expr.getUniqueKey() + "\n" + log,
-                    ArrayUtils.contains(exprs, expr));
+                    Arrays.asList(exprs).contains(expr));
         }
     }
 

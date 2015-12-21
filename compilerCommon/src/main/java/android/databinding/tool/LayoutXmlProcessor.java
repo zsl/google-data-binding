@@ -13,14 +13,16 @@
 
 package android.databinding.tool;
 
+import com.google.common.escape.Escaper;
+
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.xml.sax.SAXException;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.store.LayoutFileParser;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.util.SourceCodeEscapers;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.io.File;
@@ -32,7 +34,6 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 
@@ -289,11 +290,12 @@ public class LayoutXmlProcessor {
 
     public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir, File exportClassListTo,
             boolean enableDebugLogs, boolean printEncodedErrorLogs) {
-        final String sdkPath = sdkDir == null ? null : StringEscapeUtils.escapeJava(sdkDir.getAbsolutePath());
+        Escaper javaEscaper = SourceCodeEscapers.javaCharEscaper();
+        final String sdkPath = sdkDir == null ? null : javaEscaper.escape(sdkDir.getAbsolutePath());
         final Class annotation = BindingBuildInfo.class;
-        final String layoutInfoPath = StringEscapeUtils.escapeJava(xmlOutDir.getAbsolutePath());
+        final String layoutInfoPath = javaEscaper.escape(xmlOutDir.getAbsolutePath());
         final String exportClassListToPath = exportClassListTo == null ? "" :
-                StringEscapeUtils.escapeJava(exportClassListTo.getAbsolutePath());
+                javaEscaper.escape(exportClassListTo.getAbsolutePath());
         String classString = "package " + RESOURCE_BUNDLE_PACKAGE + ";\n\n" +
                 "import " + annotation.getCanonicalName() + ";\n\n" +
                 "@" + annotation.getSimpleName() + "(buildId=\"" + mBuildId + "\", " +

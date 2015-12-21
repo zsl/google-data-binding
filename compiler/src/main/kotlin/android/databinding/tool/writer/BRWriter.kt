@@ -16,11 +16,11 @@
 
 package android.databinding.tool.writer
 
-import org.apache.commons.lang3.SystemUtils
+import android.databinding.tool.util.StringUtils
 
 class BRWriter(properties: Set<String>, val useFinal : Boolean) {
     val indexedProps = properties.sorted().withIndex()
-    public fun write(pkg : String): String = "package $pkg;${SystemUtils.LINE_SEPARATOR}$klass"
+    public fun write(pkg : String): String = "package $pkg;${StringUtils.LINE_SEPARATOR}$klass"
     val klass: String by lazy {
         kcode("") {
             val prefix = if (useFinal) "final " else "";

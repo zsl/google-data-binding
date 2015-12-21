@@ -16,9 +16,10 @@
 
 package android.databinding.tool.util;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
 import android.databinding.tool.processing.ScopedException;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
@@ -55,7 +56,7 @@ public class L {
     public static void d(Throwable t, String msg, Object... args) {
         if (sEnableDebug) {
             printMessage(Diagnostic.Kind.NOTE,
-                    String.format(msg, args) + " " + ExceptionUtils.getStackTrace(t));
+                    String.format(msg, args) + " " + getStackTrace(t));
         }
     }
 
@@ -65,7 +66,7 @@ public class L {
 
     public static void w(Throwable t, String msg, Object... args) {
         printMessage(Kind.WARNING,
-                String.format(msg, args) + " " + ExceptionUtils.getStackTrace(t));
+                String.format(msg, args) + " " + getStackTrace(t));
     }
 
     private static void tryToThrowScoped(Throwable t, String fullMessage) {
@@ -91,7 +92,7 @@ public class L {
         String fullMsg = String.format(msg, args);
         tryToThrowScoped(t, fullMsg);
         printMessage(Diagnostic.Kind.ERROR,
-                fullMsg + " " + ExceptionUtils.getStackTrace(t));
+                fullMsg + " " + getStackTrace(t));
     }
 
     private static void printMessage(Diagnostic.Kind kind, String message) {
@@ -107,5 +108,15 @@ public class L {
 
     public static interface Client {
         public void printMessage(Diagnostic.Kind kind, String message);
+    }
+
+    private static String getStackTrace(Throwable t) {
+        PrintWriter pw = new PrintWriter(new StringWriter());
+        try {
+            t.printStackTrace(pw);
+        } finally {
+            pw.close();
+        }
+        return pw.toString();
     }
 }

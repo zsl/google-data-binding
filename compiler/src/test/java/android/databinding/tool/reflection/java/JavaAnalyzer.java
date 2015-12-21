@@ -13,16 +13,16 @@
 
 package android.databinding.tool.reflection.java;
 
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
+
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.SdkUtil;
 import android.databinding.tool.reflection.TypeUtil;
 import android.databinding.tool.util.L;
-import android.databinding.tool.util.Preconditions;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +30,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class JavaAnalyzer extends ModelAnalyzer {
@@ -145,11 +146,11 @@ public class JavaAnalyzer extends ModelAnalyzer {
             if (f.exists() && f.canRead()) {
                 try {
                     for (String line : FileUtils.readLines(f)) {
-                        String[] keyValue = StringUtils.split(line, '=');
-                        if (keyValue.length == 2) {
-                            String key = keyValue[0].trim();
+                        List<String> keyValue = Splitter.on('=').splitToList(line);
+                        if (keyValue.size() == 2) {
+                            String key = keyValue.get(0).trim();
                             if (key.equals("sdk.dir")) {
-                                return keyValue[1].trim();
+                                return keyValue.get(1).trim();
                             }
                         }
                     }
@@ -163,7 +164,7 @@ public class JavaAnalyzer extends ModelAnalyzer {
 
     public static void initForTests() {
         String androidHome = loadAndroidHome();
-        if (StringUtils.isEmpty(androidHome) || !new File(androidHome).exists()) {
+        if (Strings.isNullOrEmpty(androidHome) || !new File(androidHome).exists()) {
             throw new IllegalStateException(
                     "you need to have ANDROID_HOME set in your environment"
                             + " to run compiler tests");

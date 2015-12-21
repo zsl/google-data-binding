@@ -13,8 +13,6 @@
 
 package android.databinding.tool.store;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
@@ -829,7 +827,7 @@ public class ResourceBundle implements Serializable {
                 if (isBinder()) {
                     mFullClassName = mInterfaceType;
                 } else if (mViewName.indexOf('.') == -1) {
-                    if (ArrayUtils.contains(ANDROID_VIEW_PACKAGE_VIEWS, mViewName)) {
+                    if (Arrays.asList(ANDROID_VIEW_PACKAGE_VIEWS).contains(mViewName)) {
                         mFullClassName = "android.view." + mViewName;
                     } else if("WebView".equals(mViewName)) {
                         mFullClassName = "android.webkit." + mViewName;

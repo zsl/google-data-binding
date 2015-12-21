@@ -15,14 +15,13 @@
  */
 package android.databinding.tool.store;
 
-import org.apache.commons.lang3.StringUtils;
-
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.util.StringUtils;
 
 import java.io.IOException;
 import java.io.Serializable;

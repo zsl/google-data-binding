@@ -16,11 +16,14 @@
 
 package android.databinding.tool.processing;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +89,7 @@ public class ScopedException extends RuntimeException {
             }
         }
         sb.append(ERROR_LOG_SUFFIX);
-        return StringUtils.join(StringUtils.split(sb.toString(), SystemUtils.LINE_SEPARATOR), " ");
+        return Joiner.on(' ').join(Splitter.on(StringUtils.LINE_SEPARATOR).split(sb));
     }
 
     public ScopedErrorReport getScopedErrorReport() {
@@ -135,7 +138,7 @@ public class ScopedException extends RuntimeException {
             }
         }
         return new ScopedException(message.trim(),
-                new ScopedErrorReport(StringUtils.isEmpty(file) ? null : file.trim(), locations));
+                new ScopedErrorReport(Strings.isNullOrEmpty(file) ? null : file.trim(), locations));
     }
 
     public static List<ScopedException> extractErrors(String output) {

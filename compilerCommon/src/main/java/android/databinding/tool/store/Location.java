@@ -15,11 +15,12 @@
  */
 
 package android.databinding.tool.store;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.apache.commons.lang3.SystemUtils;
 
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
+import android.databinding.tool.util.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +75,7 @@ public class Location {
         } else {
             endLine = end.getLine() - 1; // token lines start from 1
             String endText = end.getText();
-            int lastLineStart = endText.lastIndexOf(SystemUtils.LINE_SEPARATOR);
+            int lastLineStart = endText.lastIndexOf(StringUtils.LINE_SEPARATOR);
             String lastLine = lastLineStart < 0 ? endText : endText.substring(lastLineStart + 1);
             endOffset = end.getCharPositionInLine() + lastLine.length() - 1;//end is inclusive
         }

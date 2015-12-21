@@ -15,10 +15,9 @@
  */
 package android.databinding.tool.reflection;
 
-import org.apache.commons.lang3.StringUtils;
-
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;

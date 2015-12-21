@@ -38,10 +38,10 @@ sourceSets {
 dependencies {
     testCompile 'junit:junit:4.12'
     compile project(':dataBinding:baseLibrary')
-    compile 'org.apache.commons:commons-lang3:3.3.2'
     compile 'com.tunnelvisionlabs:antlr4:4.5'
     compile 'commons-io:commons-io:2.4'
     compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
+    compile 'com.google.guava:guava:17.0'
 }
 
 project.tasks.create(name : "generateXmlParser", type : JavaExec) {
