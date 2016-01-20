@@ -81,7 +81,7 @@ class KCode (private val s : String? = null){
         return this
     }
 
-    fun nl(c : KCode?) : KCode {
+    infix fun nl(c : KCode?) : KCode {
         if (c == null || isNull(c)) {
             return this
         }
@@ -90,7 +90,7 @@ class KCode (private val s : String? = null){
         return this
     }
 
-    fun nl(s : String?, init : (KCode.() -> Unit)? = null) : KCode {
+    infix fun nl(s : String?, init : (KCode.() -> Unit)? = null) : KCode {
         val c = KCode(s)
         if (init != null) {
             c.init()
