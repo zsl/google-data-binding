@@ -49,7 +49,7 @@ enum class Scope {
 class ExprModelExt {
     val usedFieldNames = hashMapOf<Scope, MutableSet<String>>();
     init {
-        Scope.values.forEach { usedFieldNames[it] = hashSetOf<String>() }
+        Scope.values().forEach { usedFieldNames[it] = hashSetOf<String>() }
     }
     val localizedFlags = arrayListOf<FlagSet>()
 
