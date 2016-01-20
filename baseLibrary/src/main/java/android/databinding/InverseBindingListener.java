@@ -42,7 +42,7 @@ package android.databinding;
  *         value.set(newValue);
  *     }
  * }
- * @commat;BindingAdapter(value = {"android:beforeTextChanged", "android:onTextChanged",
+ * &commat;BindingAdapter(value = {"android:beforeTextChanged", "android:onTextChanged",
  *                          "android:afterTextChanged", "android:textAttrChanged"},
  *                          requireAll = false)
  * public static void setTextWatcher(TextView view, final BeforeTextChanged before,
@@ -50,7 +50,7 @@ package android.databinding;
  *                                   final InverseBindingListener textAttrChanged) {
  *     TextWatcher newValue = new TextWatcher() {
  *         ...
- *         @commat;Override
+ *         &commat;Override
  *         public void onTextChanged(CharSequence s, int start, int before, int count) {
  *             if (on != null) {
  *                 on.onTextChanged(s, start, before, count);
