@@ -42,7 +42,7 @@ import java.lang.annotation.Target;
  * attribute, the default event name would be <code>android:textAttrChanged</code>. The event
  * should be set using a {@link BindingAdapter}. For example:
  * <pre>
- * @commat;BindingAdapter(value = {"android:beforeTextChanged", "android:onTextChanged",
+ * &commat;BindingAdapter(value = {"android:beforeTextChanged", "android:onTextChanged",
  *                          "android:afterTextChanged", "android:textAttrChanged"},
  *                          requireAll = false)
  * public static void setTextWatcher(TextView view, final BeforeTextChanged before,
@@ -50,7 +50,7 @@ import java.lang.annotation.Target;
  *                                   final InverseBindingListener textAttrChanged) {
  *     TextWatcher newValue = new TextWatcher() {
  *         ...
- *         @commat;Override
+ *         &commat;Override
  *         public void onTextChanged(CharSequence s, int start, int before, int count) {
  *             if (on != null) {
  *                 on.onTextChanged(s, start, before, count);
