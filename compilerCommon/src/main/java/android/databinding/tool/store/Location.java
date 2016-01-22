@@ -131,12 +131,9 @@ public class Location {
         if (startOffset != location.startOffset) {
             return false;
         }
-        if (parentLocation != null ? !parentLocation.equals(location.parentLocation)
-                : location.parentLocation != null) {
-            return false;
-        }
+        return !(parentLocation != null ? !parentLocation.equals(location.parentLocation)
+                : location.parentLocation != null);
 
-        return true;
     }
 
     @Override
@@ -162,10 +159,7 @@ public class Location {
         if (endLine < other.endLine) {
             return false;
         }
-        if (endLine == other.endLine && endOffset < other.endOffset) {
-            return false;
-        }
-        return true;
+        return !(endLine == other.endLine && endOffset < other.endOffset);
     }
 
     private Location getValidParentAbsoluteLocation() {

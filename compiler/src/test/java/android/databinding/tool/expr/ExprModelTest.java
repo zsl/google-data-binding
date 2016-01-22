@@ -1003,7 +1003,7 @@ public class ExprModelTest {
     }
 
     private List<Expr> getShouldRead() {
-        return mExprModel.filterShouldRead(mExprModel.getPendingExpressions());
+        return ExprModel.filterShouldRead(mExprModel.getPendingExpressions());
     }
 
     public static class User implements Observable {

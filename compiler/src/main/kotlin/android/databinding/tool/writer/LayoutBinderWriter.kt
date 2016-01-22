@@ -153,9 +153,9 @@ val Expr.fieldName by lazyProp { expr : Expr ->
 }
 
 val InverseBinding.fieldName by lazyProp { inverseBinding : InverseBinding ->
-    val targetName = inverseBinding.getTarget().fieldName;
-    val eventName = inverseBinding.getEventAttribute().stripNonJava()
-    inverseBinding.getModel().getUniqueFieldName("${targetName}${eventName}", false)
+    val targetName = inverseBinding.target.fieldName;
+    val eventName = inverseBinding.eventAttribute.stripNonJava()
+    inverseBinding.model.getUniqueFieldName("$targetName$eventName", false)
 }
 
 val Expr.listenerClassName by lazyProp { expr : Expr ->
@@ -703,18 +703,18 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     }
 
     fun declareInverseBindingImpls() = kcode("// Inverse Binding Event Handlers") {
-        layoutBinder.getSortedTargets().filter { it.isUsed() }.forEach { target ->
-            target.getInverseBindings().forEach { inverseBinding ->
+        layoutBinder.sortedTargets.filter { it.isUsed }.forEach { target ->
+            target.inverseBindings.forEach { inverseBinding ->
                 val className : String
                 val param : String
-                if (inverseBinding.isOnBinder()) {
+                if (inverseBinding.isOnBinder) {
                     className = "android.databinding.ViewDataBinding.PropertyChangedInverseListener"
                     param = "BR.${inverseBinding.eventAttribute}"
                 } else {
                     className = "android.databinding.InverseBindingListener"
                     param = ""
                 }
-                nl("private ${className} ${inverseBinding.fieldName} = new ${className}(${param}) {") {
+                nl("private $className ${inverseBinding.fieldName} = new $className($param) {") {
                     tab("@Override")
                     tab("public void onChange() {") {
                         tab(inverseBinding.toJavaCode("mBindingComponent", mDirtyFlags)).app(";");

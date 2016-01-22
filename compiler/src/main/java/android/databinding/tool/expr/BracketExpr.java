@@ -24,7 +24,7 @@ import java.util.List;
 
 public class BracketExpr extends Expr {
 
-    public static enum BracketAccessor {
+    public enum BracketAccessor {
         ARRAY,
         LIST,
         MAP,

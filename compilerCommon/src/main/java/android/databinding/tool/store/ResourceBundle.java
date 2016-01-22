@@ -584,12 +584,9 @@ public class ResourceBundle implements Serializable {
                     : bundle.mDirectory != null) {
                 return false;
             }
-            if (mFileName != null ? !mFileName.equals(bundle.mFileName)
-                    : bundle.mFileName != null) {
-                return false;
-            }
+            return !(mFileName != null ? !mFileName.equals(bundle.mFileName)
+                    : bundle.mFileName != null);
 
-            return true;
         }
 
         @Override
@@ -702,11 +699,8 @@ public class ResourceBundle implements Serializable {
             if (!name.equals(that.name)) {
                 return false;
             }
-            if (!type.equals(that.type)) {
-                return false;
-            }
+            return type.equals(that.type);
 
-            return true;
         }
 
         @Override
