@@ -21,7 +21,6 @@ import android.databinding.tool.processing.ScopedException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
@@ -42,7 +41,7 @@ public class L {
     private static Client sClient = sSystemClient;
 
     public static void setClient(Client systemClient) {
-        L.sClient = systemClient;
+        sClient = systemClient;
     }
 
     public static void setDebugLog(boolean enabled) {
@@ -129,12 +128,13 @@ public class L {
     }
 
     private static String getStackTrace(Throwable t) {
-        PrintWriter pw = new PrintWriter(new StringWriter());
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
         try {
             t.printStackTrace(pw);
         } finally {
             pw.close();
         }
-        return pw.toString();
+        return sw.toString();
     }
 }
