@@ -151,13 +151,34 @@ public class BindingTarget implements LocationScopeProvider {
 
     public void resolveListeners() {
         for (Binding binding : mBindings) {
-            binding.resolveListeners();
+            try {
+                Scope.enter(binding);
+                binding.resolveListeners();
+            } finally {
+                Scope.exit();
+            }
+        }
+    }
+
+    public void resolveCallbackParams() {
+        for (Binding binding : mBindings) {
+            try {
+                Scope.enter(binding);
+                binding.resolveCallbackParams();
+            } finally {
+                Scope.exit();
+            }
         }
     }
 
     public void resolveTwoWayExpressions() {
         for (Binding binding : mBindings) {
-            binding.resolveTwoWayExpressions();
+            try {
+                Scope.enter(binding);
+                binding.resolveTwoWayExpressions();
+            } finally {
+                Scope.exit();
+            }
         }
     }
 

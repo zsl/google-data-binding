@@ -227,6 +227,8 @@ public class LayoutBinder implements FileScopeProvider {
                             Scope.exit();
                         }
                     }
+                    // resolve callbacks first because they introduce local variables.
+                    bindingTarget.resolveCallbackParams();
                     bindingTarget.resolveTwoWayExpressions();
                     bindingTarget.resolveMultiSetters();
                     bindingTarget.resolveListeners();
@@ -245,7 +247,7 @@ public class LayoutBinder implements FileScopeProvider {
         List<Expr> used = new ArrayList<Expr>();
         for (BindingTarget target : mBindingTargets) {
             for (Binding binding : target.getBindings()) {
-                binding.getExpr().setIsUsed(true);
+                binding.getExpr().markAsUsed();
                 used.add(binding.getExpr());
             }
         }
@@ -254,7 +256,7 @@ public class LayoutBinder implements FileScopeProvider {
             for (Dependency dep : e.getDependencies()) {
                 if (!dep.getOther().isUsed()) {
                     used.add(dep.getOther());
-                    dep.getOther().setIsUsed(true);
+                    dep.getOther().markAsUsed();
                 }
             }
         }

@@ -52,10 +52,6 @@ public class MathExpr extends Expr {
         return constructDynamicChildrenDependencies();
     }
 
-    public String getOp() {
-        return mOp;
-    }
-
     public Expr getLeft() {
         return getChildren().get(0);
     }

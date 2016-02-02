@@ -16,20 +16,22 @@
 
 package android.databinding.tool.expr;
 
-import static android.databinding.tool.reflection.Callable.DYNAMIC;
-import static android.databinding.tool.reflection.Callable.STATIC;
-
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
+import android.databinding.tool.solver.ExecutionPath;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.KCode;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import static android.databinding.tool.reflection.Callable.DYNAMIC;
+import static android.databinding.tool.reflection.Callable.STATIC;
 
 
 public class MethodCallExpr extends Expr {
@@ -49,6 +51,7 @@ public class MethodCallExpr extends Expr {
         mName = name;
     }
 
+    @SuppressWarnings("Duplicates")
     @Override
     public void updateExpr(ModelAnalyzer modelAnalyzer) {
         try {
@@ -63,10 +66,16 @@ public class MethodCallExpr extends Expr {
     @Override
     protected KCode generateCode(boolean expand) {
         KCode code = new KCode()
-        .app("", getTarget().toCode(expand))
-        .app(".")
-        .app(getGetter().name)
-        .app("(");
+                .app("", getTarget().toCode(expand))
+                .app(".")
+                .app(getGetter().name)
+                .app("(");
+        appendArgs(code, expand);
+        code.app(")");
+        return code;
+    }
+
+    private void appendArgs(KCode code, boolean expand) {
         boolean first = true;
         for (Expr arg : getArgs()) {
             if (first) {
@@ -76,8 +85,31 @@ public class MethodCallExpr extends Expr {
             }
             code.app("", arg.toCode(expand));
         }
-        code.app(")");
-        return code;
+    }
+
+    @Override
+    public List<ExecutionPath> toExecutionPath(List<ExecutionPath> paths) {
+        final List<ExecutionPath> targetPaths = getTarget().toExecutionPath(paths);
+        // after this, we need a null check.
+        List<ExecutionPath> result = new ArrayList<ExecutionPath>();
+        if (getTarget() instanceof StaticIdentifierExpr) {
+            result.addAll(toExecutionPathInOrder(paths, getArgs()));
+        } else {
+            for (ExecutionPath path : targetPaths) {
+                Expr cmp = getModel()
+                        .comparison("!=", getTarget(), getModel().symbol("null", Object.class));
+                path.addPath(cmp);
+                final ExecutionPath subPath = path.addBranch(cmp, true);
+                if (subPath != null) {
+                    result.addAll(toExecutionPathInOrder(subPath, getArgs()));
+                }
+            }
+        }
+        return result;
+    }
+
+    private List<ExecutionPath> toExecutionPathInOrder(ExecutionPath path, List<Expr> args) {
+        return toExecutionPathInOrder(Arrays.asList(path), args);
     }
 
     @Override
@@ -115,7 +147,7 @@ public class MethodCallExpr extends Expr {
                 flags |= STATIC;
             }
             mGetter = new Callable(Type.METHOD, method.getName(), null, method.getReturnType(args),
-                    method.getParameterTypes().length, flags);
+                    method.getParameterTypes().length, flags, method);
         }
         return mGetter.resolvedType;
     }

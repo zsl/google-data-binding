@@ -147,6 +147,38 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public Result visitRootExpr(@NotNull BindingExpressionParser.RootExprContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitRootLambda(@NotNull BindingExpressionParser.RootLambdaContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public Result visitBindingSyntax(@NotNull BindingExpressionParser.BindingSyntaxContext ctx) { return visitChildren(ctx); }
 
 	/**
@@ -164,6 +196,30 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public Result visitConstantValue(@NotNull BindingExpressionParser.ConstantValueContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitLambdaExpression(@NotNull BindingExpressionParser.LambdaExpressionContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitLambdaParameters(@NotNull BindingExpressionParser.LambdaParametersContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitInferredFormalParameterList(@NotNull BindingExpressionParser.InferredFormalParameterListContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}

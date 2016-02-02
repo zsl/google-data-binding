@@ -82,7 +82,7 @@ public class IdentifierExpr extends Expr {
         if (expand) {
             return new KCode(LayoutBinderWriterKt.getFieldName(this));
         } else {
-            return new KCode(LayoutBinderWriterKt.getExecutePendingLocalName(this));
+            return new KCode(LayoutBinderWriterKt.scopedName(this));
         }
     }
 

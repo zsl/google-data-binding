@@ -87,8 +87,12 @@ public abstract class ModelAnalyzer {
         sAnalyzer = analyzer;
     }
 
-    public ModelClass findCommonParentOf(ModelClass modelClass1,
-            ModelClass modelClass2) {
+    public ModelClass findCommonParentOf(ModelClass modelClass1, ModelClass modelClass2) {
+        return findCommonParentOf(modelClass1, modelClass2, true);
+    }
+
+    public ModelClass findCommonParentOf(ModelClass modelClass1, ModelClass modelClass2,
+            boolean failOnError) {
         ModelClass curr = modelClass1;
         while (curr != null && !curr.isAssignableFrom(modelClass2)) {
             curr = curr.getSuperclass();
@@ -103,13 +107,15 @@ public abstract class ModelAnalyzer {
             ModelClass primitive1 = modelClass1.unbox();
             ModelClass primitive2 = modelClass2.unbox();
             if (!modelClass1.equals(primitive1) || !modelClass2.equals(primitive2)) {
-                return findCommonParentOf(primitive1, primitive2);
+                return findCommonParentOf(primitive1, primitive2, failOnError);
             }
         }
-        Preconditions.checkNotNull(curr,
-                "must be able to find a common parent for " + modelClass1 + " and " + modelClass2);
+        if (failOnError) {
+            Preconditions.checkNotNull(curr,
+                    "must be able to find a common parent for " + modelClass1 + " and "
+                            + modelClass2);
+        }
         return curr;
-
     }
 
     public abstract ModelClass loadPrimitive(String className);
@@ -124,8 +130,7 @@ public abstract class ModelAnalyzer {
                     + "change class loader after that");
         }
         L.d("setting processing env to %s", processingEnvironment);
-        AnnotationAnalyzer annotationAnalyzer = new AnnotationAnalyzer(processingEnvironment);
-        sAnalyzer = annotationAnalyzer;
+        sAnalyzer = new AnnotationAnalyzer(processingEnvironment);
     }
 
     /**

@@ -16,18 +16,20 @@
 
 package android.databinding.tool.expr;
 
-import org.antlr.v4.runtime.misc.Nullable;
-
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.solver.ExecutionPath;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.KCode;
 import android.databinding.tool.writer.LayoutBinderWriterKt;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -36,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 abstract public class Expr implements VersionProvider, LocationScopeProvider {
-
     public static final int NO_ID = -1;
     protected List<Expr> mChildren = new ArrayList<Expr>();
 
@@ -98,6 +99,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
      */
     private boolean mRead;
     private boolean mIsUsed = false;
+    private boolean mIsUsedInCallback = false;
     private boolean mIsTwoWay = false;
 
     Expr(Iterable<Expr> children) {
@@ -163,7 +165,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     }
 
     public boolean canBeEvaluatedToAVariable() {
-        return true; // anything except arg expr can be evaluated to a variable
+        return true; // anything except arg/return expr can be evaluated to a variable
     }
 
     public boolean isObservable() {
@@ -339,6 +341,58 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
             }
         }
         return mResolvedType;
+    }
+
+    public final List<ExecutionPath> toExecutionPath(ExecutionPath path) {
+        List<ExecutionPath> paths = new ArrayList<ExecutionPath>();
+        paths.add(path);
+        return toExecutionPath(paths);
+    }
+
+    public List<ExecutionPath> toExecutionPath(List<ExecutionPath> paths) {
+        if (getChildren().isEmpty()) {
+            return addJustMeToExecutionPath(paths);
+        } else {
+            return toExecutionPathInOrder(paths, getChildren());
+        }
+
+    }
+
+    @NotNull
+    protected final List<ExecutionPath> addJustMeToExecutionPath(List<ExecutionPath> paths) {
+        List<ExecutionPath> result = new ArrayList<ExecutionPath>();
+        for (ExecutionPath path : paths) {
+            result.add(path.addPath(this));
+        }
+        return result;
+    }
+
+    @SuppressWarnings("Duplicates")
+    protected final List<ExecutionPath> toExecutionPathInOrder(List<ExecutionPath> paths,
+            Expr... order) {
+        List<ExecutionPath> executionPaths = paths;
+        for (Expr anOrder : order) {
+            executionPaths = anOrder.toExecutionPath(executionPaths);
+        }
+        List<ExecutionPath> result = new ArrayList<ExecutionPath>(paths.size());
+        for (ExecutionPath path : executionPaths) {
+            result.add(path.addPath(this));
+        }
+        return result;
+    }
+
+    @SuppressWarnings("Duplicates")
+    protected final List<ExecutionPath> toExecutionPathInOrder(List<ExecutionPath> paths,
+            List<Expr> order) {
+        List<ExecutionPath> executionPaths = paths;
+        for (Expr expr : order) {
+            executionPaths = expr.toExecutionPath(executionPaths);
+        }
+        List<ExecutionPath> result = new ArrayList<ExecutionPath>(paths.size());
+        for (ExecutionPath path : executionPaths) {
+            result.add(path.addPath(this));
+        }
+        return result;
     }
 
     abstract protected ModelClass resolveType(ModelAnalyzer modelAnalyzer);
@@ -630,11 +684,22 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         return false;
     }
 
-    public void setIsUsed(boolean isUsed) {
-        mIsUsed = isUsed;
+    public void markAsUsed() {
+        mIsUsed = true;
         for (Expr child : getChildren()) {
-            child.setIsUsed(isUsed);
+            child.markAsUsed();
         }
+    }
+
+    public void markAsUsedInCallback() {
+        mIsUsedInCallback = true;
+        for (Expr child : getChildren()) {
+            child.markAsUsedInCallback();
+        }
+    }
+
+    public boolean isIsUsedInCallback() {
+        return mIsUsedInCallback;
     }
 
     public boolean isUsed() {
@@ -689,9 +754,9 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         return toCode(false);
     }
 
-    protected KCode toCode(boolean expand) {
+    public KCode toCode(boolean expand) {
         if (!expand && isDynamic()) {
-            return new KCode(LayoutBinderWriterKt.getExecutePendingLocalName(this));
+            return new KCode(LayoutBinderWriterKt.scopedName(this));
         }
         return generateCode(expand);
     }

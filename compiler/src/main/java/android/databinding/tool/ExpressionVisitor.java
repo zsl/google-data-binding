@@ -31,6 +31,7 @@ import android.databinding.parser.BindingExpressionParser.BinaryOpContext;
 import android.databinding.parser.BindingExpressionParser.BitShiftOpContext;
 import android.databinding.parser.BindingExpressionParser.InstanceOfOpContext;
 import android.databinding.parser.BindingExpressionParser.UnaryOpContext;
+import android.databinding.tool.expr.CallbackExprModel;
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.StaticIdentifierExpr;
@@ -38,12 +39,14 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.Preconditions;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
-    private final ExprModel mModel;
+    private ExprModel mModel;
     private ParseTreeListener mParseTreeListener;
+    private ArrayDeque<ExprModel> mModelStack = new ArrayDeque<ExprModel>();
 
     public ExpressionVisitor(ExprModel model) {
         mModel = model;
@@ -62,6 +65,73 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     private void onExit(ParserRuleContext context) {
         if (mParseTreeListener != null) {
             mParseTreeListener.exitEveryRule(context);
+        }
+    }
+
+    private void pushModel(ExprModel model) {
+        Preconditions.checkNotNull(mModel, "Cannot put empty model to stack");
+        Preconditions.checkNotNull(model, "Cannot set null model");
+        mModelStack.push(mModel);
+        mModel = model;
+    }
+
+    private void popModel() {
+        Preconditions.checkNotNull(mModel, "Cannot have empty mdoel stack");
+        Preconditions.check(mModelStack.size() > 0, "Cannot have empty model stack");
+        mModel = mModelStack.pop();
+    }
+
+    @Override
+    public Expr visitRootLambda(@NotNull BindingExpressionParser.RootLambdaContext ctx) {
+        try {
+            onEnter(ctx);
+            CallbackExprModel callbackModel = new CallbackExprModel(mModel);
+            ExprModel prev = mModel;
+            pushModel(callbackModel);
+            final BindingExpressionParser.LambdaExpressionContext lambdaCtx = ctx
+                    .lambdaExpression();
+            lambdaCtx.args.accept(this);
+            return prev.lambdaExpr(lambdaCtx.expression().accept(this), callbackModel);
+        } finally {
+            popModel();
+            onExit(ctx);
+        }
+    }
+
+    @Override
+    public Expr visitSingleLambdaParameter(
+            @NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) {
+        try {
+            onEnter(ctx);
+            Preconditions.check(mModel instanceof CallbackExprModel, "Lambdas can only be used in"
+                    + " callbacks.");
+            // just add it to the callback model as identifier
+            ((CallbackExprModel) mModel).callbackArg(ctx.getText());
+            return null;
+        } finally {
+            onExit(ctx);
+        }
+    }
+
+    @Override
+    public Expr visitLambdaParameterList(
+            @NotNull BindingExpressionParser.LambdaParameterListContext ctx) {
+        try {
+            onEnter(ctx);
+            Preconditions.check(mModel instanceof CallbackExprModel, "Lambdas can only be used in"
+                    + " callbacks.");
+            if (ctx.params != null) {
+                for (ParseTree item : ctx.params.children) {
+                    if (Objects.equal(item.getText(), ",")) {
+                        continue;
+                    }
+                    // just add them to the callback model as identifiers
+                    ((CallbackExprModel) mModel).callbackArg(item.getText());
+                }
+            }
+            return null;
+        } finally {
+            onExit(ctx);
         }
     }
 
@@ -85,19 +155,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitGrouping(@NotNull BindingExpressionParser.GroupingContext ctx) {
-        try {
-            onEnter(ctx);
-            Preconditions.check(ctx.children.size() == 3, "Grouping expression should have"
-                    + " 3 children. # of children: %d", ctx.children.size());
-            return mModel.group(ctx.children.get(1).accept(this));
-        } finally {
-            onExit(ctx);
-        }
-    }
-
-    @Override
-    public Expr visitBindingSyntax(@NotNull BindingExpressionParser.BindingSyntaxContext ctx) {
+    public Expr visitRootExpr(@NotNull BindingExpressionParser.RootExprContext ctx) {
         try {
             onEnter(ctx);
             // TODO handle defaults
@@ -106,6 +164,18 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
             System.out.println("Error while parsing! " + ctx.getText());
             e.printStackTrace();
             throw new RuntimeException(e);
+        } finally {
+            onExit(ctx);
+        }
+    }
+
+    @Override
+    public Expr visitGrouping(@NotNull BindingExpressionParser.GroupingContext ctx) {
+        try {
+            onEnter(ctx);
+            Preconditions.check(ctx.children.size() == 3, "Grouping expression should have"
+                    + " 3 children. # of children: %d", ctx.children.size());
+            return mModel.group(ctx.children.get(1).accept(this));
         } finally {
             onExit(ctx);
         }
@@ -168,6 +238,9 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
                     break;
                 case BindingExpressionParser.NullLiteral:
                     classType = Object.class;
+                    break;
+                case BindingExpressionParser.VoidLiteral:
+                    classType = void.class;
                     break;
                 default:
                     throw new RuntimeException("cannot create expression from terminal node " +

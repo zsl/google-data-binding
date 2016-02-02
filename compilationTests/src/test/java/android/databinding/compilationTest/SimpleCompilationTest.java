@@ -28,6 +28,8 @@ import android.databinding.tool.processing.ScopedErrorReport;
 import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.store.Location;
 
+import com.google.common.base.Joiner;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -35,6 +37,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -118,6 +121,21 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         return scopedException;
     }
 
+    private void singleFileWarningTest(String resource, String targetFile,
+            String expectedMessage)
+            throws IOException, URISyntaxException, InterruptedException {
+        prepareProject();
+        copyResourceTo(resource, targetFile);
+        CompilationResult result = runGradle("assembleDebug");
+        assertEquals(0, result.resultCode);
+        final List<String> warnings = result.getBindingWarnings();
+        boolean found = false;
+        for (String warning : warnings) {
+            found |= warning.contains(expectedMessage);
+        }
+        assertTrue(Joiner.on("\n").join(warnings),found);
+    }
+
     @Test
     public void testMultipleExceptionsInDifferentFiles()
             throws IOException, URISyntaxException, InterruptedException {
@@ -193,6 +211,34 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 "/app/src/main/res/layout/invalid_setter.xml", "myVariable",
                 String.format(ErrorMessages.CANNOT_FIND_SETTER_CALL, "android:textx",
                         String.class.getCanonicalName()));
+    }
+
+    @Test
+    public void testCallbackArgumentCountMismatch() throws Throwable {
+        singleFileErrorTest("/layout/layout_with_missing_callback_args.xml",
+                "/app/src/main/res/layout/broken.xml",
+                "(seekBar, progress) -> obj.length()",
+                String.format(ErrorMessages.CALLBACK_ARGUMENT_COUNT_MISMATCH,
+                        "android.databinding.adapters.SeekBarBindingAdapter.OnProgressChanged",
+                        "onProgressChanged", 3, 2));
+    }
+
+    @Test
+    public void testDuplicateCallbackArgument() throws Throwable {
+        singleFileErrorTest("/layout/layout_with_duplicate_callback_identifier.xml",
+                "/app/src/main/res/layout/broken.xml",
+                "(seekBar, progress, progress) -> obj.length()",
+                String.format(ErrorMessages.DUPLICATE_CALLBACK_ARGUMENT,
+                        "progress"));
+    }
+
+    @Test
+    public void testConflictWithVariableName() throws Throwable {
+        singleFileWarningTest("/layout/layout_with_same_name_for_var_and_callback.xml",
+                "/app/src/main/res/layout/broken.xml",
+                String.format(ErrorMessages.CALLBACK_VARIABLE_NAME_CLASH,
+                        "myVar", "myVar", "String"));
+
     }
 
     @Test

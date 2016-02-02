@@ -218,6 +218,58 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	void exitBinaryOp(@NotNull BindingExpressionParser.BinaryOpContext ctx);
 
 	/**
+	 * Enter a parse tree produced by the {@code RootExpr}
+	 * labeled alternative in {@link BindingExpressionParser#bindingSyntax}.
+	 * @param ctx the parse tree
+	 */
+	void enterRootExpr(@NotNull BindingExpressionParser.RootExprContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code RootExpr}
+	 * labeled alternative in {@link BindingExpressionParser#bindingSyntax}.
+	 * @param ctx the parse tree
+	 */
+	void exitRootExpr(@NotNull BindingExpressionParser.RootExprContext ctx);
+
+	/**
+	 * Enter a parse tree produced by the {@code RootLambda}
+	 * labeled alternative in {@link BindingExpressionParser#bindingSyntax}.
+	 * @param ctx the parse tree
+	 */
+	void enterRootLambda(@NotNull BindingExpressionParser.RootLambdaContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code RootLambda}
+	 * labeled alternative in {@link BindingExpressionParser#bindingSyntax}.
+	 * @param ctx the parse tree
+	 */
+	void exitRootLambda(@NotNull BindingExpressionParser.RootLambdaContext ctx);
+
+	/**
+	 * Enter a parse tree produced by the {@code LambdaParameterList}
+	 * labeled alternative in {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 */
+	void enterLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code LambdaParameterList}
+	 * labeled alternative in {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 */
+	void exitLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx);
+
+	/**
+	 * Enter a parse tree produced by the {@code SingleLambdaParameter}
+	 * labeled alternative in {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 */
+	void enterSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code SingleLambdaParameter}
+	 * labeled alternative in {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 */
+	void exitSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link BindingExpressionParser#bindingSyntax}.
 	 * @param ctx the parse tree
 	 */
@@ -249,6 +301,39 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitConstantValue(@NotNull BindingExpressionParser.ConstantValueContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#lambdaExpression}.
+	 * @param ctx the parse tree
+	 */
+	void enterLambdaExpression(@NotNull BindingExpressionParser.LambdaExpressionContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#lambdaExpression}.
+	 * @param ctx the parse tree
+	 */
+	void exitLambdaExpression(@NotNull BindingExpressionParser.LambdaExpressionContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 */
+	void enterLambdaParameters(@NotNull BindingExpressionParser.LambdaParametersContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 */
+	void exitLambdaParameters(@NotNull BindingExpressionParser.LambdaParametersContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link BindingExpressionParser#inferredFormalParameterList}.
+	 * @param ctx the parse tree
+	 */
+	void enterInferredFormalParameterList(@NotNull BindingExpressionParser.InferredFormalParameterListContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link BindingExpressionParser#inferredFormalParameterList}.
+	 * @param ctx the parse tree
+	 */
+	void exitInferredFormalParameterList(@NotNull BindingExpressionParser.InferredFormalParameterListContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link BindingExpressionParser#expression}.
