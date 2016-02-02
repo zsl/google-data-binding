@@ -19,6 +19,8 @@ import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.StringUtils;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -363,6 +365,7 @@ public abstract class ModelClass {
     /**
      * Returns a list of all abstract methods in the type.
      */
+    @NotNull
     public List<ModelMethod> getAbstractMethods() {
         ArrayList<ModelMethod> abstractMethods = new ArrayList<ModelMethod>();
         ModelMethod[] methods = getDeclaredMethods();
@@ -385,7 +388,7 @@ public abstract class ModelClass {
     public Callable findGetterOrField(String name, boolean staticOnly) {
         if ("length".equals(name) && isArray()) {
             return new Callable(Type.FIELD, name, null,
-                    ModelAnalyzer.getInstance().loadPrimitive("int"), 0, 0);
+                    ModelAnalyzer.getInstance().loadPrimitive("int"), 0, 0, null);
         }
         String capitalized = StringUtils.capitalize(name);
         String[] methodNames = {
@@ -417,7 +420,7 @@ public abstract class ModelClass {
                     final String setterName = setterMethod == null ? null : setterMethod.getName();
                     final Callable result = new Callable(Callable.Type.METHOD, methodName,
                             setterName, method.getReturnType(null), method.getParameterTypes().length,
-                            flags);
+                            flags, method);
                     return result;
                 }
             }
@@ -451,7 +454,7 @@ public abstract class ModelClass {
         if (publicField.isBindable()) {
             flags |= CAN_BE_INVALIDATED;
         }
-        return new Callable(Callable.Type.FIELD, name, setterFieldName, fieldType, 0, flags);
+        return new Callable(Callable.Type.FIELD, name, setterFieldName, fieldType, 0, flags, null);
     }
 
     public ModelMethod findInstanceGetter(String name) {
@@ -498,15 +501,13 @@ public abstract class ModelClass {
         }
         for (String name : possibleNames) {
             List<ModelMethod> methods = findMethods(name, getter.isStatic());
-            if (methods != null) {
-                ModelClass param = getter.getReturnType(null);
-                for (ModelMethod method : methods) {
-                    ModelClass[] parameterTypes = method.getParameterTypes();
-                    if (parameterTypes != null && parameterTypes.length == 1 &&
-                            parameterTypes[0].equals(param) &&
-                            method.isStatic() == getter.isStatic()) {
-                        return method;
-                    }
+            ModelClass param = getter.getReturnType(null);
+            for (ModelMethod method : methods) {
+                ModelClass[] parameterTypes = method.getParameterTypes();
+                if (parameterTypes != null && parameterTypes.length == 1 &&
+                        parameterTypes[0].equals(param) &&
+                        method.isStatic() == getter.isStatic()) {
+                    return method;
                 }
             }
         }
@@ -517,6 +518,7 @@ public abstract class ModelClass {
      * Finds public methods that matches the given name exactly. These may be resolved into
      * listener methods during Expr.resolveListeners.
      */
+    @NotNull
     public List<ModelMethod> findMethods(String name, boolean staticOnly) {
         ModelMethod[] methods = getDeclaredMethods();
         ArrayList<ModelMethod> matching = new ArrayList<ModelMethod>();
@@ -525,9 +527,6 @@ public abstract class ModelClass {
                     method.isPublic()) {
                 matching.add(method);
             }
-        }
-        if (matching.isEmpty()) {
-            return null;
         }
         return matching;
     }

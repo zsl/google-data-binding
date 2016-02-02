@@ -96,6 +96,9 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
         if (primitive != null) {
             return addDimension(primitive.mTypeMirror, numDimensions);
         }
+        if ("void".equals(className.toLowerCase())) {
+            return addDimension(getTypeUtils().getNoType(TypeKind.VOID), numDimensions);
+        }
         int templateOpenIndex = className.indexOf('<');
         DeclaredType declaredType;
         if (templateOpenIndex < 0) {
