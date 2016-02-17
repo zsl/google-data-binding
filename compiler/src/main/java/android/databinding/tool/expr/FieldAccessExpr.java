@@ -299,6 +299,9 @@ public class FieldAccessExpr extends Expr {
 
                 FieldAccessExpr observableField = getModel().observableField(child, mName);
                 observableField.mGetter = mGetter;
+                if (hasBindableAnnotations()) {
+                    observableField.mBrName = ExtKt.br(BrNameUtil.brKey(mGetter));
+                }
 
                 getChildren().add(observableField);
                 observableField.getParents().add(this);
