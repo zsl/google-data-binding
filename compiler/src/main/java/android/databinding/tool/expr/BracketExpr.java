@@ -18,8 +18,10 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.solver.ExecutionPath;
 import android.databinding.tool.writer.KCode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class BracketExpr extends Expr {
@@ -51,6 +53,28 @@ public class BracketExpr extends Expr {
                     "or array. Type detected: " + targetType.toJavaCode());
         }
         return targetType.getComponentType();
+    }
+
+    @Override
+    public List<ExecutionPath> toExecutionPath(List<ExecutionPath> paths) {
+        final List<ExecutionPath> targetPaths = getTarget().toExecutionPath(paths);
+        // after this, we need a null check.
+        List<ExecutionPath> result = new ArrayList<ExecutionPath>();
+        if (getTarget() instanceof StaticIdentifierExpr) {
+            result.addAll(toExecutionPathInOrder(paths, getTarget()));
+        } else {
+            for (ExecutionPath path : targetPaths) {
+                Expr cmp = getModel().comparison("!=", getTarget(),
+                        getModel().symbol("null", Object.class));
+                path.addPath(cmp);
+                final ExecutionPath subPath = path.addBranch(cmp, true);
+                if (subPath != null) {
+                    final List<ExecutionPath> argPath = getArg().toExecutionPath(subPath);
+                    result.addAll(addJustMeToExecutionPath(argPath));
+                }
+            }
+        }
+        return result;
     }
 
     @Override

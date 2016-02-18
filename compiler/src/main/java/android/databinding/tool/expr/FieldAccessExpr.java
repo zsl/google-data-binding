@@ -16,23 +16,26 @@
 
 package android.databinding.tool.expr;
 
-import android.databinding.tool.ext.ExtKt;
 import android.databinding.tool.Binding;
 import android.databinding.tool.BindingTarget;
 import android.databinding.tool.InverseBinding;
+import android.databinding.tool.ext.ExtKt;
+import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
-import android.databinding.tool.util.BrNameUtil;
+import android.databinding.tool.solver.ExecutionPath;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.store.SetterStore.BindingGetterCall;
+import android.databinding.tool.util.BrNameUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.KCode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FieldAccessExpr extends Expr {
@@ -65,6 +68,28 @@ public class FieldAccessExpr extends Expr {
             getResolvedType();
         }
         return mGetter;
+    }
+
+    @Override
+    public List<ExecutionPath> toExecutionPath(List<ExecutionPath> paths) {
+        final List<ExecutionPath> targetPaths = getChild().toExecutionPath(paths);
+        // after this, we need a null check.
+        List<ExecutionPath> result = new ArrayList<ExecutionPath>();
+        if (getChild() instanceof StaticIdentifierExpr) {
+            result.addAll(toExecutionPathInOrder(paths, getChild()));
+        } else {
+            for (ExecutionPath path : targetPaths) {
+                final ComparisonExpr cmp = getModel()
+                        .comparison("!=", getChild(), getModel().symbol("null", Object.class));
+                path.addPath(cmp);
+                final ExecutionPath subPath = path.addBranch(cmp, true);
+                if (subPath != null) {
+                    subPath.addPath(this);
+                    result.add(subPath);
+                }
+            }
+        }
+        return result;
     }
 
     @Override
@@ -143,9 +168,6 @@ public class FieldAccessExpr extends Expr {
         final ModelClass[] listenerParameters = listenerMethod.getParameterTypes();
         boolean isStatic = getChild() instanceof StaticIdentifierExpr;
         List<ModelMethod> methods = childType.findMethods(mName, isStatic);
-        if (methods == null) {
-            return this;
-        }
         for (ModelMethod method : methods) {
             if (acceptsParameters(method, listenerParameters) &&
                     method.getReturnType(null).equals(listenerMethod.getReturnType(null))) {
@@ -253,7 +275,7 @@ public class FieldAccessExpr extends Expr {
             mGetter = resolvedType.findGetterOrField(mName, isStatic);
 
             if (mGetter == null) {
-                mIsListener = resolvedType.findMethods(mName, isStatic) != null;
+                mIsListener = !resolvedType.findMethods(mName, isStatic).isEmpty();
                 if (!mIsListener) {
                     L.e("Could not find accessor %s.%s", resolvedType.getCanonicalName(), mName);
                 }
@@ -374,6 +396,9 @@ public class FieldAccessExpr extends Expr {
 
     @Override
     protected KCode generateCode(boolean expand) {
+        // once we can deprecate using Field.access for callbacks, we can get rid of this since
+        // it will be detected when resolve type is run.
+        Preconditions.checkNotNull(getGetter(), ErrorMessages.CANNOT_RESOLVE_TYPE, this);
         KCode code = new KCode();
         if (expand) {
             String defaultValue = ModelAnalyzer.getInstance().getDefaultValue(

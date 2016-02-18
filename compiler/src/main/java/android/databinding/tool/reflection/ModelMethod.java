@@ -99,6 +99,10 @@ public abstract class ModelMethod {
         return false;
     }
 
+    public ModelClass getReturnType() {
+        return getReturnType(null);
+    }
+
     private ModelClass getParameter(int index, ModelClass[] parameterTypes) {
         int normalParamCount = isVarArgs() ? parameterTypes.length - 1 : parameterTypes.length;
         if (index < normalParamCount) {

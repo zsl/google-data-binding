@@ -141,6 +141,38 @@ public interface BindingExpressionVisitor<Result> extends ParseTreeVisitor<Resul
 	Result visitBinaryOp(@NotNull BindingExpressionParser.BinaryOpContext ctx);
 
 	/**
+	 * Visit a parse tree produced by the {@code RootExpr}
+	 * labeled alternative in {@link BindingExpressionParser#bindingSyntax}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	Result visitRootExpr(@NotNull BindingExpressionParser.RootExprContext ctx);
+
+	/**
+	 * Visit a parse tree produced by the {@code RootLambda}
+	 * labeled alternative in {@link BindingExpressionParser#bindingSyntax}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	Result visitRootLambda(@NotNull BindingExpressionParser.RootLambdaContext ctx);
+
+	/**
+	 * Visit a parse tree produced by the {@code LambdaParameterList}
+	 * labeled alternative in {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	Result visitLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx);
+
+	/**
+	 * Visit a parse tree produced by the {@code SingleLambdaParameter}
+	 * labeled alternative in {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	Result visitSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx);
+
+	/**
 	 * Visit a parse tree produced by {@link BindingExpressionParser#bindingSyntax}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -160,6 +192,27 @@ public interface BindingExpressionVisitor<Result> extends ParseTreeVisitor<Resul
 	 * @return the visitor result
 	 */
 	Result visitConstantValue(@NotNull BindingExpressionParser.ConstantValueContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link BindingExpressionParser#lambdaExpression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	Result visitLambdaExpression(@NotNull BindingExpressionParser.LambdaExpressionContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link BindingExpressionParser#lambdaParameters}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	Result visitLambdaParameters(@NotNull BindingExpressionParser.LambdaParametersContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link BindingExpressionParser#inferredFormalParameterList}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	Result visitInferredFormalParameterList(@NotNull BindingExpressionParser.InferredFormalParameterListContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link BindingExpressionParser#expression}.

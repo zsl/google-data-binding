@@ -42,10 +42,13 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+@SuppressWarnings("Duplicates")
 public class ExprModelTest {
 
     private static class DummyExpr extends Expr {
@@ -844,6 +847,88 @@ public class ExprModelTest {
         StaticIdentifierExpr id = (StaticIdentifierExpr) child;
         assertEquals(id.getResolvedType().getCanonicalName(), User.class.getCanonicalName());
     }
+
+    @Test
+    public void testVoid() {
+        MockLayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final LambdaExpr lambda = parse(lb, "(v) -> cond1 ? obj4.clicked(v) : void", LambdaExpr.class);
+        assertNotSame(mExprModel, lambda.getCallbackExprModel());
+    }
+
+    @Test
+    public void testVoid2() {
+        MockLayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final LambdaExpr lambda = parse(lb, "(v) -> cond1 ? obj4.clicked(v) : Void", LambdaExpr.class);
+        assertNotSame(mExprModel, lambda.getCallbackExprModel());
+    }
+
+    @Test
+    public void testShruggy() {
+        MockLayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final LambdaExpr lambda = parse(lb, "(v) -> cond1 ? obj4.clicked(v) : ¯\\_(ツ)_/¯", LambdaExpr.class);
+        assertNotSame(mExprModel, lambda.getCallbackExprModel());
+    }
+
+    @Test
+    public void testParseNoArgLambda() {
+        MockLayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final LambdaExpr lambda = parse(lb, "() -> user.name", LambdaExpr.class);
+        assertNotSame(mExprModel, lambda.getCallbackExprModel());
+    }
+
+    @Test
+    public void testParseLambdaWithSingleArg() {
+        MockLayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final LambdaExpr lambda = parse(lb, "a -> user.name", LambdaExpr.class);
+        assertNotSame(mExprModel, lambda.getCallbackExprModel());
+        assertTrue("should have user", hasIdentifier(mExprModel, "user"));
+        assertTrue("should have user", hasIdentifier(lambda.getCallbackExprModel(), "user"));
+        assertSame("should have the same user", getIdentifier(mExprModel, "user"),
+                getIdentifier(lambda.getCallbackExprModel(), "user"));
+        assertTrue("should have a", hasCallbackIdentifier(lambda.getCallbackExprModel(), 0, "a"));
+        assertFalse("should not have a", hasCallbackIdentifier(mExprModel, 0, "a"));
+    }
+
+    @Test
+    public void testParseLambdaWithArguments() {
+        MockLayoutBinder lb = new MockLayoutBinder();
+        mExprModel = lb.getModel();
+        final LambdaExpr lambda = parse(lb, "(a, b, c, d) -> user.name", LambdaExpr.class);
+        final CallbackExprModel callbackModel = lambda.getCallbackExprModel();
+        assertNotSame(mExprModel, callbackModel);
+        assertTrue("should have user", hasIdentifier(mExprModel, "user"));
+        int index = 0;
+        for (String s : new String[]{"a", "b", "c", "d"}) {
+            assertTrue("should have " + s, hasCallbackIdentifier(callbackModel, index, s));
+            assertFalse("should not have " + s, hasIdentifier(mExprModel, s));
+            assertFalse("should not have " + s, hasCallbackIdentifier(mExprModel, index, s));
+            index ++;
+        }
+
+
+    }
+
+    private boolean hasIdentifier(ExprModel model, String name) {
+        return getIdentifier(model, name) != null;
+    }
+
+    private Expr getIdentifier(ExprModel model, String name) {
+        return model.getExprMap().get(new IdentifierExpr(name).getUniqueKey());
+    }
+
+    private boolean hasCallbackIdentifier(ExprModel model, int index, String name) {
+        return getCallbackIdentifier(model, index, name) != null;
+    }
+
+    private Expr getCallbackIdentifier(ExprModel model, int index, String name) {
+        return model.getExprMap().get(new CallbackArgExpr(index, name).getUniqueKey());
+    }
+
 
     @Test
     public void testFinalOfStaticField() {

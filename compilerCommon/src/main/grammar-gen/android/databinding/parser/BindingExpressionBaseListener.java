@@ -226,6 +226,58 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterRootExpr(@NotNull BindingExpressionParser.RootExprContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRootExpr(@NotNull BindingExpressionParser.RootExprContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterRootLambda(@NotNull BindingExpressionParser.RootLambdaContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitRootLambda(@NotNull BindingExpressionParser.RootLambdaContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterBindingSyntax(@NotNull BindingExpressionParser.BindingSyntaxContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -259,6 +311,45 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitConstantValue(@NotNull BindingExpressionParser.ConstantValueContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLambdaExpression(@NotNull BindingExpressionParser.LambdaExpressionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLambdaExpression(@NotNull BindingExpressionParser.LambdaExpressionContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLambdaParameters(@NotNull BindingExpressionParser.LambdaParametersContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLambdaParameters(@NotNull BindingExpressionParser.LambdaParametersContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterInferredFormalParameterList(@NotNull BindingExpressionParser.InferredFormalParameterListContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitInferredFormalParameterList(@NotNull BindingExpressionParser.InferredFormalParameterListContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
