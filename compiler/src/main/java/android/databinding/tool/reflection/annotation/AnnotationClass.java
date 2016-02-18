@@ -286,13 +286,17 @@ class AnnotationClass extends ModelClass {
 
     @Override
     public boolean isAssignableFrom(ModelClass that) {
-        if (that == null) {
+        ModelClass other = that;
+        while (other != null && !(other instanceof AnnotationClass)) {
+            other = other.getSuperclass();
+        }
+        if (other == null) {
             return false;
         }
-        if (equals(that)) {
+        if (equals(other)) {
             return true;
         }
-        AnnotationClass thatAnnotationClass = (AnnotationClass) that;
+        AnnotationClass thatAnnotationClass = (AnnotationClass) other;
         return getTypeUtils().isAssignable(thatAnnotationClass.mTypeMirror, this.mTypeMirror);
     }
 

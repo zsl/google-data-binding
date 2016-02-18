@@ -30,7 +30,7 @@ fun Expr.shouldLocalizeInCallbacks() = canBeEvaluatedToAVariable() && !resolvedT
 fun CallbackExprModel.localizeGlobalVariables(vararg ignore: Expr): KCode = kcode("// localize variables for thread safety") {
     // puts all variables in this model to local values.
     mExprMap.values.filter { it.shouldLocalizeInCallbacks() && !ignore.contains(it) }.forEach {
-        nl("// ${it.uniqueKey}")
+        nl("// ${it.toString()}")
         nl("${it.resolvedType.toJavaCode()} ${it.scopedName()} = ${if (it.isVariable()) it.fieldName else it.defaultValue};")
     }
 }

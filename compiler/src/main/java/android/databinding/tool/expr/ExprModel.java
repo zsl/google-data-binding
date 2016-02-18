@@ -170,7 +170,7 @@ public class ExprModel {
     }
 
     public FieldAccessExpr observableField(Expr parent, String name) {
-        return register(new FieldAccessExpr(parent, name, true));
+        return register(new ObservableFieldExpr(parent, name));
     }
 
     public SymbolExpr symbol(String text, Class type) {
@@ -402,7 +402,7 @@ public class ExprModel {
         for (Expr expr : mExprMap.values()) {
             if (expr instanceof FieldAccessExpr) {
                 FieldAccessExpr fieldAccessExpr = (FieldAccessExpr) expr;
-                if (fieldAccessExpr.getChild() instanceof ViewFieldExpr) {
+                if (fieldAccessExpr.getTarget() instanceof ViewFieldExpr) {
                     flagMapping.add(fieldAccessExpr.getUniqueKey());
                     fieldAccessExpr.setId(counter++);
                 }
@@ -682,6 +682,10 @@ public class ExprModel {
         return register(new ListenerExpr(expression, name, listenerType, listenerMethod));
     }
 
+    public FieldAssignmentExpr assignment(Expr target, String name, Expr value) {
+        return register(new FieldAssignmentExpr(target, name, value));
+    }
+
     public Map<String, CallbackWrapper> getCallbackWrappers() {
         return mCallbackWrappers;
     }
@@ -696,7 +700,7 @@ public class ExprModel {
         return wrapper;
     }
 
-    public Expr lambdaExpr(Expr expr, CallbackExprModel callbackExprModel) {
+    public LambdaExpr lambdaExpr(Expr expr, CallbackExprModel callbackExprModel) {
         return register(new LambdaExpr(expr, callbackExprModel));
     }
 

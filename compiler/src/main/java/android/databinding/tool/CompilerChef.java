@@ -23,6 +23,7 @@ import android.databinding.tool.writer.DataBinderWriter;
 import android.databinding.tool.writer.DynamicUtilWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
+import java.util.HashMap;
 import java.util.Set;
 
 /**
@@ -69,6 +70,7 @@ public class CompilerChef {
         chef.mResourceBundle = bundle;
         chef.mFileWriter = fileWriter;
         chef.mResourceBundle.validateMultiResLayouts();
+        chef.pushClassesToAnalyzer();
         return chef;
     }
 
@@ -87,6 +89,42 @@ public class CompilerChef {
         L.d("checking if we have anything to generate. bundle size: %s",
                 mResourceBundle == null ? -1 : mResourceBundle.getLayoutBundles().size());
         return mResourceBundle != null && mResourceBundle.getLayoutBundles().size() > 0;
+    }
+
+    /**
+     * Injects ViewDataBinding subclasses to the ModelAnalyzer so that they can be
+     * analyzed prior to creation. This is useful for resolving variable setters and
+     * View fields during compilation.
+     */
+    private void pushClassesToAnalyzer() {
+        ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
+        for (String layoutName : mResourceBundle.getLayoutBundles().keySet()) {
+            ResourceBundle.LayoutFileBundle layoutFileBundle =
+                    mResourceBundle.getLayoutBundles().get(layoutName).get(0);
+            final HashMap<String, String> imports = new HashMap<String, String>();
+            for (ResourceBundle.NameTypeLocation imp : layoutFileBundle.getImports()) {
+                imports.put(imp.name, imp.type);
+            }
+            final HashMap<String, String> variables = new HashMap<String, String>();
+            for (ResourceBundle.VariableDeclaration variable : layoutFileBundle.getVariables()) {
+                final String variableName = variable.name;
+                String type = variable.type;
+                if (imports.containsKey(type)) {
+                    type = imports.get(type);
+                }
+                variables.put(variableName, type);
+            }
+            final HashMap<String, String> fields = new HashMap<String, String>();
+            for (ResourceBundle.BindingTargetBundle bindingTargetBundle :
+                    layoutFileBundle.getBindingTargetBundles()) {
+                if (bindingTargetBundle.getId() != null) {
+                    fields.put(bindingTargetBundle.getId(), bindingTargetBundle.getInterfaceType());
+                }
+            }
+            final String className = layoutFileBundle.getBindingClassPackage() + "." +
+                    layoutFileBundle.getBindingClassName();
+            analyzer.injectViewDataBinding(className, variables, fields);
+        }
     }
 
     public void writeDataBinderMapper(int minSdk, BRWriter brWriter) {

@@ -235,23 +235,27 @@ public abstract class ModelClass {
     public abstract boolean isAssignableFrom(ModelClass that);
 
     /**
-     * Returns an array containing all public methods on the type represented by this ModelClass
-     * with the name <code>name</code> and can take the passed-in types as arguments. This will
-     * also work if the arguments match VarArgs parameter.
+     * Returns an array containing all public methods (or protected if allowProtected is true)
+     * on the type represented by this ModelClass with the name <code>name</code> and can
+     * take the passed-in types as arguments. This will also work if the arguments match
+     * VarArgs parameter.
      *
      * @param name The name of the method to find.
      * @param args The types that the method should accept.
      * @param staticOnly Whether only static methods should be returned or both instance methods
      *                 and static methods are valid.
+     * @param allowProtected true if the method can be protected as well as public.
      *
      * @return An array containing all public methods with the name <code>name</code> and taking
      * <code>args</code> parameters.
      */
-    public ModelMethod[] getMethods(String name, List<ModelClass> args, boolean staticOnly) {
+    public ModelMethod[] getMethods(String name, List<ModelClass> args, boolean staticOnly,
+            boolean allowProtected) {
         ModelMethod[] methods = getDeclaredMethods();
         ArrayList<ModelMethod> matching = new ArrayList<ModelMethod>();
         for (ModelMethod method : methods) {
-            if (method.isPublic() && (!staticOnly || method.isStatic()) &&
+            if ((method.isPublic() || (allowProtected && method.isProtected())) &&
+                    (!staticOnly || method.isStatic()) &&
                     name.equals(method.getName()) && method.acceptsArguments(args)) {
                 matching.add(method);
             }
@@ -288,9 +292,11 @@ public abstract class ModelClass {
      * @param args The arguments that the method should accept
      * @param staticOnly true if the returned method must be static or false if it does not
      *                     matter.
+     * @param allowProtected true if the method can be protected as well as public.
      */
-    public ModelMethod getMethod(String name, List<ModelClass> args, boolean staticOnly) {
-        ModelMethod[] methods = getMethods(name, args, staticOnly);
+    public ModelMethod getMethod(String name, List<ModelClass> args, boolean staticOnly,
+            boolean allowProtected) {
+        ModelMethod[] methods = getMethods(name, args, staticOnly, allowProtected);
         L.d("looking methods for %s. static only ? %s . method count: %d", name, staticOnly,
                 methods.length);
         for (ModelMethod method : methods) {
@@ -397,7 +403,8 @@ public abstract class ModelClass {
                 name
         };
         for (String methodName : methodNames) {
-            ModelMethod[] methods = getMethods(methodName, new ArrayList<ModelClass>(), staticOnly);
+            ModelMethod[] methods =
+                    getMethods(methodName, new ArrayList<ModelClass>(), staticOnly, false);
             for (ModelMethod method : methods) {
                 if (method.isPublic() && (!staticOnly || method.isStatic()) &&
                         !method.getReturnType(Arrays.asList(method.getParameterTypes())).isVoid()) {
@@ -465,7 +472,8 @@ public abstract class ModelClass {
                 name
         };
         for (String methodName : methodNames) {
-            ModelMethod[] methods = getMethods(methodName, new ArrayList<ModelClass>(), false);
+            ModelMethod[] methods =
+                    getMethods(methodName, new ArrayList<ModelClass>(), false, false);
             for (ModelMethod method : methods) {
                 if (method.isPublic() && !method.isStatic() &&
                         !method.getReturnType(Arrays.asList(method.getParameterTypes())).isVoid()) {

@@ -75,7 +75,7 @@ public class Binding implements LocationScopeProvider {
         LambdaExpr lambdaExpr = (LambdaExpr) mExpr;
         final ModelClass listener = getListenerParameter(mTarget, mName, mExpr.getModel());
         Preconditions.checkNotNull(listener, ErrorMessages.CANNOT_FIND_SETTER_CALL, mName,
-                "lambda");
+                "lambda", getTarget().getInterfaceType());
         //noinspection ConstantConditions
         List<ModelMethod> abstractMethods = listener.getAbstractMethods();
         int numberOfAbstractMethods = abstractMethods.size();
@@ -106,7 +106,8 @@ public class Binding implements LocationScopeProvider {
                 Scope.enter(this);
                 resolveSetterCall();
                 if (mSetterCall == null) {
-                    L.e(ErrorMessages.CANNOT_FIND_SETTER_CALL, mName, mExpr.getResolvedType());
+                    L.e(ErrorMessages.CANNOT_FIND_SETTER_CALL, mName, mExpr.getResolvedType(),
+                            getTarget().getInterfaceType());
                 }
             } finally {
                 Scope.exit();

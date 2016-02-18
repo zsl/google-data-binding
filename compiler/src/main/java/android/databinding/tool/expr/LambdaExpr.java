@@ -83,7 +83,7 @@ public class LambdaExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode(boolean expand) {
+    protected KCode generateCode() {
         Preconditions
                 .checkNotNull(mCallbackWrapper, "Cannot find the callback method for %s", this);
         KCode code = new KCode("");
@@ -95,6 +95,11 @@ public class LambdaExpr extends Expr {
             code.app(fieldName);
         }
         return code;
+    }
+
+    @Override
+    public Expr cloneToModel(ExprModel model) {
+        return model.lambdaExpr(getExpr().cloneToModel(model), (CallbackExprModel) model);
     }
 
     public String generateConstructor() {

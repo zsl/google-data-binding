@@ -206,7 +206,6 @@ val Expr.callbackLocalName by lazyProp { expr : Expr ->
     else expr.toCode().generate()
 }
 
-
 val Expr.executePendingLocalName by lazyProp { expr : Expr ->
     if(expr.needsLocalField) "${expr.model.ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD, false)}"
     else expr.toCode().generate()
@@ -366,7 +365,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 nl(declareVariables())
                 nl(declareBoundValues())
                 nl(declareListeners())
-                nl(declareInverseBindingImpls());
+                try {
+                    Scope.enter(Scope.GLOBAL)
+                    nl(declareInverseBindingImpls());
+                } finally {
+                    Scope.exit()
+                }
                 nl(declareConstructor(minSdk))
                 nl(declareInvalidateAll())
                 nl(declareHasPendingBindings())
@@ -853,14 +857,30 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     className = "android.databinding.InverseBindingListener"
                     param = ""
                 }
-                nl("private $className ${inverseBinding.fieldName} = new $className($param) {") {
-                    tab("@Override")
-                    tab("public void onChange() {") {
-                        tab(inverseBinding.toJavaCode("mBindingComponent", mDirtyFlags)).app(";");
+                block("private $className ${inverseBinding.fieldName} = new $className($param)") {
+                    nl("@Override")
+                    block("public void onChange()") {
+                        if (inverseBinding.inverseExpr != null) {
+                            val valueExpr = inverseBinding.variableExpr
+                            val getterCall = inverseBinding.getterCall
+                            nl("// Inverse of ${inverseBinding.expr}")
+                            nl("//         is ${inverseBinding.inverseExpr}")
+                            nl("${valueExpr.resolvedType.toJavaCode()} ${valueExpr.name} = ${getterCall.toJava("mBindingComponent", target.fieldName)};")
+                            nl(inverseBinding.callbackExprModel.localizeGlobalVariables(valueExpr))
+                            nl(inverseBinding.executionPath.toCode())
+                        } else {
+                            block("synchronized(this)") {
+                                val flagSet = inverseBinding.chainedExpressions.fold(FlagSet(), { initial, expr ->
+                                    initial.or(FlagSet(expr.id))
+                                })
+                                mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                                    tab("${mDirtyFlags.localValue(index)} |= ${flagSet.binaryCode(index)};")
+                                }
+                            }
+                            nl("requestRebind();")
+                        }
                     }
-                    tab("}")
-                }
-                nl("};")
+                }.app(";")
             }
         }
     }
@@ -999,7 +1019,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     if (!assignedValues.isEmpty()) {
                         val assignment = kcode("") {
                             assignedValues.forEach { expr: Expr ->
-                                tab("// read ${expr.uniqueKey}")
+                                tab("// read ${expr}")
                                 tab("${expr.executePendingLocalName}").app(" = ", expr.toFullCode()).app(";")
                             }
                         }
@@ -1018,7 +1038,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
                     it.value.forEach { expr: Expr ->
                         justRead.add(expr)
-                        L.d("%s / readWithDependants %s", className, expr.uniqueKey);
+                        L.d("%s / readWithDependants %s", className, expr);
                         L.d("flag set:%s . inherited flags: %s. need another if: %s", flagSet, inheritedFlags, needsIfWrapper);
 
                         // if I am the condition for an expression, set its flag

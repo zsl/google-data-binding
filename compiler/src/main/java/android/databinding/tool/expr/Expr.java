@@ -100,7 +100,6 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     private boolean mRead;
     private boolean mIsUsed = false;
     private boolean mIsUsedInCallback = false;
-    private boolean mIsTwoWay = false;
 
     Expr(Iterable<Expr> children) {
         for (Expr expr : children) {
@@ -210,22 +209,6 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     public void setModel(ExprModel model) {
         mModel = model;
-    }
-
-    public void setTwoWay(boolean isTwoWay) {
-        mIsTwoWay = isTwoWay;
-    }
-
-    public boolean isTwoWay() {
-        return mIsTwoWay;
-    }
-
-    protected String addTwoWay(String uniqueKey) {
-        if (mIsTwoWay) {
-            return "twoWay(" + uniqueKey + ")";
-        } else {
-            return "oneWay(" + uniqueKey + ")";
-        }
     }
 
     private BitSet resolveShouldReadWithConditionals() {
@@ -751,24 +734,30 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     }
 
     public KCode toCode() {
-        return toCode(false);
-    }
-
-    public KCode toCode(boolean expand) {
-        if (!expand && isDynamic()) {
+        if (isDynamic()) {
             return new KCode(LayoutBinderWriterKt.scopedName(this));
         }
-        return generateCode(expand);
+        return generateCode();
     }
 
     public KCode toFullCode() {
-        return generateCode(false);
+        return generateCode();
     }
 
-    protected abstract KCode generateCode(boolean expand);
+    protected abstract KCode generateCode();
 
-    public KCode toInverseCode(KCode value) {
+    public Expr generateInverse(ExprModel model, Expr value, String bindingClassName) {
         throw new IllegalStateException("expression does not support two-way binding");
+    }
+
+    public abstract Expr cloneToModel(ExprModel model);
+
+    protected static List<Expr> cloneToModel(ExprModel model, List<Expr> exprs) {
+        ArrayList<Expr> clones = new ArrayList<Expr>();
+        for (Expr expr : exprs) {
+            clones.add(expr.cloneToModel(model));
+        }
+        return clones;
     }
 
     public void assertIsInvertible() {

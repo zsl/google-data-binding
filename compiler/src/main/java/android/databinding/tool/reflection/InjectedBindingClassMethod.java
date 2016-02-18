@@ -1,9 +1,12 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2016 The Android Open Source Project
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -11,85 +14,89 @@
  * limitations under the License.
  */
 
-package android.databinding.tool.reflection.java;
+package android.databinding.tool.reflection;
 
-
-import android.databinding.Bindable;
-import android.databinding.tool.reflection.ModelClass;
-import android.databinding.tool.reflection.ModelMethod;
-import android.databinding.tool.reflection.SdkUtil;
-import android.databinding.tool.reflection.TypeUtil;
-
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.List;
+import java.util.Map;
 
-public class JavaMethod extends ModelMethod {
-    public final Method mMethod;
+/**
+ * A class that can be used by ModelAnalyzer without any backing model. This is used
+ * for methods on ViewDataBinding subclasses that haven't been generated yet.
+ *
+ * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map)
+ */
+public class InjectedBindingClassMethod extends ModelMethod {
+    private final InjectedBindingClass mContainingClass;
+    private final String mName;
+    private final String mReturnType;
+    private final String mParameter;
 
-    public JavaMethod(Method method) {
-        mMethod = method;
+    public InjectedBindingClassMethod(InjectedBindingClass containingClass, String name, String returnType,
+            String parameter) {
+        mContainingClass = containingClass;
+        mName = name;
+        mReturnType = returnType;
+        mParameter = parameter;
     }
-
 
     @Override
     public ModelClass getDeclaringClass() {
-        return new JavaClass(mMethod.getDeclaringClass());
+        return mContainingClass;
     }
 
     @Override
     public ModelClass[] getParameterTypes() {
-        Class[] parameterTypes = mMethod.getParameterTypes();
-        ModelClass[] parameterClasses = new ModelClass[parameterTypes.length];
-        for (int i = 0; i < parameterTypes.length; i++) {
-            parameterClasses[i] = new JavaClass(parameterTypes[i]);
+        if (mParameter != null) {
+            ModelClass parameterType = ModelAnalyzer.getInstance().findClass(mParameter, null);
+            return new ModelClass[] { parameterType };
         }
-        return parameterClasses;
+        return new ModelClass[0];
     }
 
     @Override
     public String getName() {
-        return mMethod.getName();
+        return mName;
     }
 
     @Override
     public ModelClass getReturnType(List<ModelClass> args) {
-        return new JavaClass(mMethod.getReturnType());
+        ModelClass returnType = ModelAnalyzer.getInstance().findClass(mReturnType, null);
+        return returnType;
     }
 
     @Override
     public boolean isVoid() {
-        return void.class.equals(mMethod.getReturnType());
+        return getReturnType().isVoid();
     }
 
     @Override
     public boolean isPublic() {
-        return Modifier.isPublic(mMethod.getModifiers());
+        return true;
     }
 
     @Override
     public boolean isProtected() {
-        return Modifier.isProtected(mMethod.getModifiers());
+        return false;
     }
 
     @Override
     public boolean isStatic() {
-        return Modifier.isStatic(mMethod.getModifiers());
+        return false;
     }
 
     @Override
     public boolean isAbstract() {
-        return Modifier.isAbstract(mMethod.getModifiers());
+        return true;
     }
 
     @Override
     public boolean isBindable() {
-        return mMethod.getAnnotation(Bindable.class) != null;
+        return false;
     }
 
     @Override
     public int getMinApi() {
-        return SdkUtil.getMinApi(this);
+        return 0;
     }
 
     @Override

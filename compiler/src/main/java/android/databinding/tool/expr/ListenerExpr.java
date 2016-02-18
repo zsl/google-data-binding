@@ -81,7 +81,7 @@ public class ListenerExpr extends Expr {
     }
 
     @Override
-    public KCode generateCode(boolean expand) {
+    public KCode generateCode() {
         KCode code = new KCode("(");
         final int minApi = Math.max(mListenerType.getMinApi(), mMethod.getMinApi());
         if (minApi > 1) {
@@ -108,7 +108,17 @@ public class ListenerExpr extends Expr {
     }
 
     @Override
+    public Expr cloneToModel(ExprModel model) {
+        return model.listenerExpr(getChild().cloneToModel(model), mName, mListenerType, mMethod);
+    }
+
+    @Override
     public String getInvertibleError() {
         return "Listeners cannot be the target of a two-way binding";
+    }
+
+    @Override
+    public String toString() {
+        return getChild().toString() + "::" + mName;
     }
 }

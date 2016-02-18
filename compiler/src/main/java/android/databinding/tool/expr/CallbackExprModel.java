@@ -18,7 +18,6 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
-import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;

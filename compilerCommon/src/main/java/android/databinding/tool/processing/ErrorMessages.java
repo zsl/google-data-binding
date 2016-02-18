@@ -22,7 +22,7 @@ public class ErrorMessages {
     public static final String UNDEFINED_VARIABLE =
             "Identifiers must have user defined types from the XML file. %s is missing it";
     public static final String CANNOT_FIND_SETTER_CALL =
-            "Cannot find the setter for attribute '%s' with parameter type %s.";
+            "Cannot find the setter for attribute '%s' with parameter type %s on %s.";
     public static final String CANNOT_RESOLVE_TYPE =
             "Cannot resolve type for %s";
     public static final String MULTI_CONFIG_LAYOUT_CLASS_NAME_MISMATCH =

@@ -158,7 +158,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 expectedErrorFile = "/app/src/main/res/layout/broken.xml";
             } else if (errorFile.getCanonicalPath().equals(invalidSetter.getCanonicalPath())) {
                 message = String.format(ErrorMessages.CANNOT_FIND_SETTER_CALL, "android:textx",
-                        String.class.getCanonicalName());
+                        String.class.getCanonicalName(), "android.widget.TextView");
                 expectedErrorFile = "/app/src/main/res/layout/invalid_setter.xml";
             } else {
                 fail("unexpected exception " + exception.getBareMessage());
@@ -208,7 +208,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         ScopedException ex = singleFileErrorTest("/layout/invalid_setter_binding.xml",
                 "/app/src/main/res/layout/invalid_setter.xml", "myVariable",
                 String.format(ErrorMessages.CANNOT_FIND_SETTER_CALL, "android:textx",
-                        String.class.getCanonicalName()));
+                        String.class.getCanonicalName(), "android.widget.TextView"));
     }
 
     @Test
@@ -257,7 +257,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         prepareProject();
         ScopedException ex = singleFileErrorTest("/layout/invalid_variable_type.xml",
                 "/app/src/main/res/layout/invalid_variable.xml", "myVariable",
-                String.format(ErrorMessages.CANNOT_RESOLVE_TYPE, "myVariable~"));
+                String.format(ErrorMessages.CANNOT_RESOLVE_TYPE, "myVariable"));
     }
 
     @Test

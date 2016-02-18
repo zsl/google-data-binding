@@ -120,18 +120,20 @@ public class ResourceExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        String base;
-        if (mPackage == null) {
-            base = "@" + mResourceType + "/" + mResourceId;
-        } else {
-            base = "@" + "android:" + mResourceType + "/" + mResourceId;
-        }
+        String base = toString();
         return join(base, computeChildrenKey());
     }
 
     @Override
-    protected KCode generateCode(boolean expand) {
+    protected KCode generateCode() {
         return new KCode(toJava());
+    }
+
+    @Override
+    public Expr cloneToModel(ExprModel model) {
+        String pkg = mPackage.isEmpty() ? "" : "android";
+        return model.resourceExpr(pkg, mResourceType, mResourceId,
+                cloneToModel(model, getChildren()));
     }
 
     public String getResourceId() {
@@ -210,5 +212,14 @@ public class ResourceExpr extends Expr {
             rFileObject = mResourceType;
         }
         return rFileObject;
+    }
+
+    @Override
+    public String toString() {
+        if (mPackage == null) {
+            return "@" + mResourceType + "/" + mResourceId;
+        } else {
+            return "@" + "android:" + mResourceType + "/" + mResourceId;
+        }
     }
 }
