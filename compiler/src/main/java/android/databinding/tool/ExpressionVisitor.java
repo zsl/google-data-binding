@@ -16,14 +16,6 @@
 
 package android.databinding.tool;
 
-import com.google.common.base.Objects;
-
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeListener;
-import org.antlr.v4.runtime.tree.TerminalNode;
-
 import android.databinding.parser.BindingExpressionBaseVisitor;
 import android.databinding.parser.BindingExpressionParser;
 import android.databinding.parser.BindingExpressionParser.AndOrOpContext;
@@ -38,6 +30,14 @@ import android.databinding.tool.expr.StaticIdentifierExpr;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.Preconditions;
+
+import com.google.common.base.Objects;
+
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeListener;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -175,7 +175,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
             onEnter(ctx);
             Preconditions.check(ctx.children.size() == 3, "Grouping expression should have"
                     + " 3 children. # of children: %d", ctx.children.size());
-            return mModel.group(ctx.children.get(1).accept(this));
+            return ctx.children.get(1).accept(this);
         } finally {
             onExit(ctx);
         }

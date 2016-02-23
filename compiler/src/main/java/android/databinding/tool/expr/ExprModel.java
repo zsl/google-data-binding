@@ -17,8 +17,8 @@
 package android.databinding.tool.expr;
 
 import android.databinding.tool.BindingTarget;
-import android.databinding.tool.InverseBinding;
 import android.databinding.tool.CallbackWrapper;
+import android.databinding.tool.InverseBinding;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
@@ -27,8 +27,6 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.ExprModelExt;
 import android.databinding.tool.writer.FlagSet;
-
-import com.google.common.collect.Maps;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.Nullable;
@@ -269,10 +267,6 @@ public class ExprModel {
 
     public UnaryExpr unary(String op, Expr expr) {
         return register(new UnaryExpr(op, expr));
-    }
-
-    public Expr group(Expr grouped) {
-        return register(new GroupExpr(grouped));
     }
 
     public Expr resourceExpr(String packageName, String resourceType, String resourceName,
