@@ -202,6 +202,17 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
+    public Expr visitFunctionRef(@NotNull BindingExpressionParser.FunctionRefContext ctx) {
+        try {
+            onEnter(ctx);
+            return mModel.methodReference(ctx.expression().accept(this),
+                    ctx.Identifier().getSymbol().getText());
+        } finally {
+            onExit(ctx);
+        }
+    }
+
+    @Override
     public Expr visitQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx) {
         try {
             onEnter(ctx);

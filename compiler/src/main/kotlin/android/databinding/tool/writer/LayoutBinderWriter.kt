@@ -1158,9 +1158,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 extendsImplements = "extends"
             }
             nl("public static class ${expr.listenerClassName} $extendsImplements ${listenerType.canonicalName}{") {
-                if (expr.child.isDynamic) {
-                    tab("private ${expr.child.resolvedType.toJavaCode()} value;")
-                    tab("public ${expr.listenerClassName} setValue(${expr.child.resolvedType.toJavaCode()} value) {") {
+                if (expr.target.isDynamic) {
+                    tab("private ${expr.target.resolvedType.toJavaCode()} value;")
+                    tab("public ${expr.listenerClassName} setValue(${expr.target.resolvedType.toJavaCode()} value) {") {
                         tab("this.value = value;")
                         tab("return value == null ? null : this;")
                     }
@@ -1176,10 +1176,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     }.joinToString(", ")
                 }) {") {
                     val obj : String
-                    if (expr.child.isDynamic) {
+                    if (expr.target.isDynamic) {
                         obj = "this.value"
                     } else {
-                        obj = expr.child.toCode().generate();
+                        obj = expr.target.toCode().generate();
                     }
                     val returnStr : String
                     if (!returnType.isVoid) {

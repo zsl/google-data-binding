@@ -177,9 +177,9 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 "/app/src/main/res/layout/broken.xml",
                 "myVar.length())",
                 String.format(ErrorMessages.SYNTAX_ERROR,
-                        "extraneous input ')' expecting {<EOF>, ',', '.', '[', '+', '-', '*', '/', "
-                                + "'%', '<<', '>>>', '>>', '<=', '>=', '>', '<', 'instanceof', "
-                                + "'==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
+                        "extraneous input ')' expecting {<EOF>, ',', '.', '::', '[', '+', '-', " +
+                                "'*', '/', '%', '<<', '>>>', '>>', '<=', '>=', '>', '<', " +
+                                "'instanceof', '==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
     }
 
     @Test
@@ -188,9 +188,9 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 "/app/src/main/res/layout/broken.xml",
                 "new String()",
                 String.format(ErrorMessages.SYNTAX_ERROR,
-                        "mismatched input 'String' expecting {<EOF>, ',', '.', '[', '+', '-', '*', "
-                                + "'/', '%', '<<', '>>>', '>>', '<=', '>=', '>', '<', 'instanceof',"
-                                + " '==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
+                        "mismatched input 'String' expecting {<EOF>, ',', '.', '::', '[', '+', " +
+                                "'-', '*', '/', '%', '<<', '>>>', '>>', '<=', '>=', '>', '<', " +
+                                "'instanceof', '==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
     }
 
     @Test

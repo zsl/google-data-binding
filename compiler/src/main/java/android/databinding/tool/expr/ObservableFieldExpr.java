@@ -35,7 +35,7 @@ public class ObservableFieldExpr extends FieldAccessExpr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(mName, "..", super.computeUniqueKey());
+        return join(mName, "..", getTarget().getUniqueKey());
     }
 
     @Override

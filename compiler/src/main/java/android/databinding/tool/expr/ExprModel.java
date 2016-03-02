@@ -173,6 +173,10 @@ public class ExprModel {
         return register(new ObservableFieldExpr(parent, name));
     }
 
+    public MethodReferenceExpr methodReference(Expr parent, String name) {
+        return register(new MethodReferenceExpr(parent, name));
+    }
+
     public SymbolExpr symbol(String text, Class type) {
         return register(new SymbolExpr(text, type));
     }
@@ -334,7 +338,7 @@ public class ExprModel {
     public void removeExpr(Expr expr) {
         Preconditions.check(!mSealed, "Can't modify the expression list after sealing the model.");
         mBindingExpressions.remove(expr);
-        mExprMap.remove(expr.computeUniqueKey());
+        mExprMap.remove(expr.getUniqueKey());
     }
 
     public List<Expr> getObservables() {
