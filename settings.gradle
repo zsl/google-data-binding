@@ -6,4 +6,5 @@ include ':dataBinding:compilationTests'
 project(':dataBinding:compilationTests').projectDir = new File("compilationTests")
 include ':dataBinding:compilerCommon'
 project(':dataBinding:compilerCommon').projectDir = new File("compilerCommon")
-
+include ':dataBinding:exec'
+project(':dataBinding:exec').projectDir = new File("exec")

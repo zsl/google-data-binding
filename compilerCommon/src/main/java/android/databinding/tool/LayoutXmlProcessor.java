@@ -15,6 +15,7 @@ package android.databinding.tool;
 
 import com.google.common.escape.Escaper;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
 
@@ -27,12 +28,16 @@ import android.databinding.tool.util.SourceCodeEscapers;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -230,13 +235,17 @@ public class LayoutXmlProcessor {
     }
 
     public void writeLayoutInfoFiles(File xmlOutDir) throws JAXBException {
+        writeLayoutInfoFiles(xmlOutDir, mFileWriter);
+    }
+
+    public void writeLayoutInfoFiles(File xmlOutDir, JavaFileWriter writer) throws JAXBException {
         if (mWritten) {
             return;
         }
         for (List<ResourceBundle.LayoutFileBundle> layouts : mResourceBundle.getLayoutBundles()
                 .values()) {
             for (ResourceBundle.LayoutFileBundle layout : layouts) {
-                writeXmlFile(xmlOutDir, layout);
+                writeXmlFile(writer, xmlOutDir, layout);
             }
         }
         for (File file : mResourceBundle.getRemovedFiles()) {
@@ -246,10 +255,11 @@ public class LayoutXmlProcessor {
         mWritten = true;
     }
 
-    private void writeXmlFile(File xmlOutDir, ResourceBundle.LayoutFileBundle layout)
+    private void writeXmlFile(JavaFileWriter writer, File xmlOutDir,
+            ResourceBundle.LayoutFileBundle layout)
             throws JAXBException {
         String filename = generateExportFileName(layout);
-        mFileWriter.writeToFile(new File(xmlOutDir, filename), layout.toXML());
+        writer.writeToFile(new File(xmlOutDir, filename), layout.toXML());
     }
 
     public String getInfoClassFullName() {

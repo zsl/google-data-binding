@@ -18,6 +18,7 @@ package android.databinding.annotationprocessor;
 
 import com.google.common.base.Joiner;
 
+import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -37,11 +38,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -139,7 +143,40 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
                 L.e(e, "cannot load layout file information. Try a clean build");
             }
         }
+
+        // also accept zip files
+        for (File zipFile : layoutInfoFolder.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.endsWith(".zip");
+            }
+        })) {
+            try {
+                loadLayoutInfoFromZipFile(zipFile, result, excludeList);
+            } catch (IOException e) {
+                L.e(e, "error while reading layout zip file %s", zipFile);
+            }
+        }
         return result;
+    }
+
+    private void loadLayoutInfoFromZipFile(File zipFile, IntermediateV2 result,
+            Set<String> excludeList) throws IOException {
+        ZipFile zf = new ZipFile(zipFile);
+        final Enumeration<? extends ZipEntry> entries = zf.entries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+            if (excludeList.contains(entry.getName())) {
+                continue;
+            }
+            try {
+                result.addEntry(entry.getName(), IOUtils.toString(zf.getInputStream(entry),
+                        Charsets.UTF_16));
+            } catch (IOException e) {
+                L.e(e, "cannot load layout file information. Try a clean build");
+            }
+        }
+
     }
 
     private void writeResourceBundle(ResourceBundle resourceBundle, boolean forLibraryModule,
