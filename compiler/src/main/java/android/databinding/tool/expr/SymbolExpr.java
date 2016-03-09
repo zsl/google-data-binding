@@ -20,7 +20,6 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.solver.ExecutionPath;
 import android.databinding.tool.writer.KCode;
-import android.databinding.tool.writer.LayoutBinderWriterKt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,8 +54,13 @@ public class SymbolExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode(boolean expand) {
+    protected KCode generateCode() {
         return new KCode(getText());
+    }
+
+    @Override
+    public Expr cloneToModel(ExprModel model) {
+        return model.symbol(mText, mType);
     }
 
     @Override
@@ -75,5 +79,10 @@ public class SymbolExpr extends Expr {
             return paths;
         }
         return super.toExecutionPath(paths);
+    }
+
+    @Override
+    public String toString() {
+        return mText;
     }
 }

@@ -18,12 +18,14 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.KCode;
 
 import java.util.List;
 
 public class MathExpr extends Expr {
     final String mOp;
+
     MathExpr(Expr left, String op, Expr right) {
         super(left, right);
         mOp = op;
@@ -31,7 +33,7 @@ public class MathExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return addTwoWay(join(getLeft().getUniqueKey(), mOp, getRight().getUniqueKey()));
+        return join(getLeft().getUniqueKey(), mOp, getRight().getUniqueKey());
     }
 
     @Override
@@ -61,8 +63,12 @@ public class MathExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode(boolean expand) {
-        return new KCode().app("", getLeft().toCode(expand)).app(mOp, getRight().toCode(expand));
+    protected KCode generateCode() {
+        return new KCode().app("(", getLeft().toCode())
+                .app(") ")
+                .app(mOp)
+                .app(" (", getRight().toCode())
+                .app(")");
     }
 
     @Override
@@ -81,61 +87,50 @@ public class MathExpr extends Expr {
         }
     }
 
-    private String inverseCast() {
-        if (!getLeft().isDynamic()) {
-            return inverseCast(getRight());
-        } else {
-            return inverseCast(getLeft());
+    @Override
+    public Expr generateInverse(ExprModel model, Expr value, String bindingClassName) {
+        final Expr left = getLeft();
+        final Expr right = getRight();
+        Preconditions.check(left.isDynamic() ^ right.isDynamic(), "Two-way binding of a math " +
+                "operations requires A signle dynamic expression. Neither or both sides are " +
+                "dynamic: (%s) %s (%s)", left, mOp, right);
+        final Expr constExpr = (left.isDynamic() ? right : left).cloneToModel(model);
+        final Expr newValue;
+        switch (mOp.charAt(0)) {
+            case '+': // const + x = value  => x = value - const
+                newValue = model.math(value, "-", constExpr);
+                break;
+            case '*': // const * x = value => x = value / const
+                newValue = model.math(value, "/", constExpr);
+                break;
+            case '-':
+                if (!left.isDynamic()) { // const - x = value => x = const - (value)
+                    newValue = model.math(constExpr, "-", value);
+                } else { // x - const = value => x = value + const)
+                    newValue = model.math(value, "+", constExpr);
+                }
+                break;
+            case '/':
+                if (!left.isDynamic()) { // const / x = value => x = const / value
+                    newValue = model.math(constExpr, "/", value);
+                } else { // x / const = value => x = value * const
+                    newValue = model.math(value, "*", constExpr);
+                }
+                break;
+            default:
+                throw new IllegalStateException("Invalid math operation is not invertible: " + mOp);
         }
-    }
-
-    private String inverseCast(Expr expr) {
-        if (!expr.getResolvedType().isAssignableFrom(getResolvedType())) {
-            return "(" + getResolvedType() + ")";
-        }
-        return null;
+        final Expr varExpr = left.isDynamic() ? left : right;
+        return varExpr.generateInverse(model, newValue, bindingClassName);
     }
 
     @Override
-    public KCode toInverseCode(KCode value) {
-        if (!isDynamic()) {
-            return toCode();
-        }
-        final Expr left = getLeft();
-        final Expr right = getRight();
-        final Expr constExpr = left.isDynamic() ? right : left;
-        final Expr varExpr = left.isDynamic() ? left : right;
-        final String cast = inverseCast();
-        if (cast != null) {
-            value = new KCode(cast).app("(", value).app(")");
-        }
-        switch (mOp.charAt(0)) {
-            case '+': // const + x = value  => x = value - const
-                return varExpr.toInverseCode(value.app(" - (", constExpr.toCode()).app(")"));
-            case '*': // const * x = value => x = value / const
-                return varExpr.toInverseCode(value.app(" / (", constExpr.toCode()).app(")"));
-            case '-':
-                if (!left.isDynamic()) { // const - x = value => x = const - value)
-                    return varExpr.toInverseCode(new KCode()
-                            .app("(", constExpr.toCode())
-                            .app(") - (", value)
-                            .app(")"));
-                } else { // x - const = value => x = value + const)
-                    return varExpr.toInverseCode(value.app(" + ", constExpr.toCode()));
-                }
-            case '/':
-                if (!left.isDynamic()) { // const / x = value => x = const / value
-                    return varExpr.toInverseCode(new KCode("(")
-                            .app("", constExpr.toCode())
-                            .app(") / (", value)
-                            .app(")"));
-                } else { // x / const = value => x = value * const
-                    return varExpr.toInverseCode(new KCode("(")
-                            .app("", value)
-                            .app(") * (", constExpr.toCode())
-                            .app(")"));
-                }
-        }
-        throw new IllegalStateException("Invalid math operation is not invertible: " + mOp);
+    public Expr cloneToModel(ExprModel model) {
+        return model.math(getLeft().cloneToModel(model), mOp, getRight().cloneToModel(model));
+    }
+
+    @Override
+    public String toString() {
+        return "(" + getLeft() + ") " + mOp + " (" + getRight() + ")";
     }
 }

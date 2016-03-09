@@ -69,14 +69,6 @@ public class MainActivity extends ActionBarActivity implements Observable {
         mListeners.notifyChange(this, BR.selected);
     }
 
-    public void onSave(View v) {
-        if (selected == null) {
-            return;
-        }
-        selected.setName(dataBinder.selectedName.getText().toString());
-        selected.setLastName(dataBinder.selectedLastname.getText().toString());
-    }
-
     public void onUnselect (View v) {
         setSelected(null);
     }

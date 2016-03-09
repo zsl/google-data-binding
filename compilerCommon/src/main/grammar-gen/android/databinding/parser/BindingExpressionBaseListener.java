@@ -18,32 +18,6 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterBracketOp(@NotNull BindingExpressionParser.BracketOpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBracketOp(@NotNull BindingExpressionParser.BracketOpContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterResource(@NotNull BindingExpressionParser.ResourceContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitResource(@NotNull BindingExpressionParser.ResourceContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterCastOp(@NotNull BindingExpressionParser.CastOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -51,6 +25,32 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitCastOp(@NotNull BindingExpressionParser.CastOpContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBracketOp(@NotNull BindingExpressionParser.BracketOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBracketOp(@NotNull BindingExpressionParser.BracketOpContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -70,39 +70,26 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAndOrOp(@NotNull BindingExpressionParser.AndOrOpContext ctx) { }
+	@Override public void enterResource(@NotNull BindingExpressionParser.ResourceContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAndOrOp(@NotNull BindingExpressionParser.AndOrOpContext ctx) { }
+	@Override public void exitResource(@NotNull BindingExpressionParser.ResourceContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterMethodInvocation(@NotNull BindingExpressionParser.MethodInvocationContext ctx) { }
+	@Override public void enterQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitMethodInvocation(@NotNull BindingExpressionParser.MethodInvocationContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterPrimary(@NotNull BindingExpressionParser.PrimaryContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitPrimary(@NotNull BindingExpressionParser.PrimaryContext ctx) { }
+	@Override public void exitQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -122,6 +109,45 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterMethodInvocation(@NotNull BindingExpressionParser.MethodInvocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitMethodInvocation(@NotNull BindingExpressionParser.MethodInvocationContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterBitShiftOp(@NotNull BindingExpressionParser.BitShiftOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitBitShiftOp(@NotNull BindingExpressionParser.BitShiftOpContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAndOrOp(@NotNull BindingExpressionParser.AndOrOpContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAndOrOp(@NotNull BindingExpressionParser.AndOrOpContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterTernaryOp(@NotNull BindingExpressionParser.TernaryOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -135,13 +161,13 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx) { }
+	@Override public void enterPrimary(@NotNull BindingExpressionParser.PrimaryContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx) { }
+	@Override public void exitPrimary(@NotNull BindingExpressionParser.PrimaryContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -174,32 +200,6 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterBitShiftOp(@NotNull BindingExpressionParser.BitShiftOpContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitBitShiftOp(@NotNull BindingExpressionParser.BitShiftOpContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterInstanceOfOp(@NotNull BindingExpressionParser.InstanceOfOpContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -207,6 +207,19 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitInstanceOfOp(@NotNull BindingExpressionParser.InstanceOfOpContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterFunctionRef(@NotNull BindingExpressionParser.FunctionRefContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitFunctionRef(@NotNull BindingExpressionParser.FunctionRefContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -252,19 +265,6 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -272,6 +272,19 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

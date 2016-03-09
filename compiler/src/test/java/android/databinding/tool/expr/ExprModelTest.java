@@ -75,8 +75,13 @@ public class ExprModelTest {
         }
 
         @Override
-        protected KCode generateCode(boolean full) {
+        protected KCode generateCode() {
             return new KCode();
+        }
+
+        @Override
+        public Expr cloneToModel(ExprModel model) {
+            return this;
         }
 
         @Override
@@ -149,7 +154,7 @@ public class ExprModelTest {
         IdentifierExpr a = lb.addVariable("a", "java.lang.String", null);
         IdentifierExpr b = lb.addVariable("b", "java.lang.String", null);
         IdentifierExpr c = lb.addVariable("c", "java.lang.String", null);
-        lb.parse("a == null ? b : c", false, null);
+        lb.parse("a == null ? b : c", null);
         mExprModel.comparison("==", a, mExprModel.symbol("null", Object.class));
         lb.getModel().seal();
         List<Expr> shouldRead = getShouldRead();
@@ -298,7 +303,7 @@ public class ExprModelTest {
         IdentifierExpr c = lb.addVariable("c", "java.lang.String", null);
         IdentifierExpr d = lb.addVariable("d", "java.lang.String", null);
         IdentifierExpr e = lb.addVariable("e", "java.lang.String", null);
-        final Expr aTernary = lb.parse("a == null ? b == null ? c : d : e", false, null);
+        final Expr aTernary = lb.parse("a == null ? b == null ? c : d : e", null);
         assertTrue(aTernary instanceof TernaryExpr);
         final Expr bTernary = ((TernaryExpr) aTernary).getIfTrue();
         assertTrue(bTernary instanceof TernaryExpr);
@@ -796,7 +801,7 @@ public class ExprModelTest {
         assertFalse(fieldAccess.isDynamic());
         mExprModel.seal();
         assertEquals(0, getShouldRead().size());
-        final Expr child = fieldAccess.getChild();
+        final Expr child = fieldAccess.getTarget();
         assertTrue(child instanceof StaticIdentifierExpr);
         StaticIdentifierExpr id = (StaticIdentifierExpr) child;
         assertEquals(id.getResolvedType().getCanonicalName(), "android.view.View");
@@ -1058,7 +1063,7 @@ public class ExprModelTest {
     }
 
     private <T extends Expr> T parse(LayoutBinder binder, String input, Class<T> klass) {
-        final Expr parsed = binder.parse(input, false, null);
+        final Expr parsed = binder.parse(input, null);
         assertTrue(klass.isAssignableFrom(parsed.getClass()));
         return (T) parsed;
     }

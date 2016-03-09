@@ -68,7 +68,7 @@ public class CallbackArgExpr extends IdentifierExpr {
     }
 
     @Override
-    protected KCode generateCode(boolean expand) {
+    protected KCode generateCode() {
         return new KCode(CallbackWrapper.ARG_PREFIX + mArgIndex);
     }
 
@@ -84,5 +84,10 @@ public class CallbackArgExpr extends IdentifierExpr {
 
     public String getName() {
         return mName;
+    }
+
+    @Override
+    public Expr cloneToModel(ExprModel model) {
+        return new CallbackArgExpr(mArgIndex, mName);
     }
 }

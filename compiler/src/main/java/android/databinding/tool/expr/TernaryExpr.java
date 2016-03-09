@@ -124,26 +124,35 @@ public class TernaryExpr extends Expr {
     }
 
     @Override
-    protected KCode generateCode(boolean expand) {
+    protected KCode generateCode() {
         return new KCode()
-                .app("", getPred().toCode(expand))
-                .app(" ? ", getIfTrue().toCode(expand))
-                .app(" : ", getIfFalse().toCode(expand));
+                .app("(", getPred().toCode())
+                .app(") ? (", getIfTrue().toCode())
+                .app(") : (", getIfFalse().toCode())
+                .app(")");
     }
 
     @Override
-    public KCode toInverseCode(KCode variable) {
-        return new KCode()
-                .app("if (", getPred().toCode(true))
-                .app(") {")
-                .tab(getIfTrue().toInverseCode(variable))
-                .nl(new KCode("} else {"))
-                .tab(getIfFalse().toInverseCode(variable))
-                .nl(new KCode("}"));
+    public Expr generateInverse(ExprModel model, Expr value, String bindingClassName) {
+        final Expr pred = getPred().cloneToModel(model);
+        final Expr ifTrue = getIfTrue().generateInverse(model, value, bindingClassName);
+        final Expr ifFalse = getIfFalse().generateInverse(model, value, bindingClassName);
+        return model.ternary(pred, ifTrue, ifFalse);
+    }
+
+    @Override
+    public Expr cloneToModel(ExprModel model) {
+        return model.ternary(getPred().cloneToModel(model), getIfTrue().cloneToModel(model),
+                getIfFalse().cloneToModel(model));
     }
 
     @Override
     public boolean isConditional() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return getPred().toString() + " ? " + getIfTrue() + " : " + getIfFalse();
     }
 }

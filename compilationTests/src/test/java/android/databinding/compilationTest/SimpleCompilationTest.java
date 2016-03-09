@@ -16,19 +16,18 @@
 
 package android.databinding.compilationTest;
 
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.PrefixFileFilter;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Test;
-
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.ScopedErrorReport;
 import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.store.Location;
 
 import com.google.common.base.Joiner;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.PrefixFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +36,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -160,7 +158,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 expectedErrorFile = "/app/src/main/res/layout/broken.xml";
             } else if (errorFile.getCanonicalPath().equals(invalidSetter.getCanonicalPath())) {
                 message = String.format(ErrorMessages.CANNOT_FIND_SETTER_CALL, "android:textx",
-                        String.class.getCanonicalName());
+                        String.class.getCanonicalName(), "android.widget.TextView");
                 expectedErrorFile = "/app/src/main/res/layout/invalid_setter.xml";
             } else {
                 fail("unexpected exception " + exception.getBareMessage());
@@ -179,9 +177,9 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 "/app/src/main/res/layout/broken.xml",
                 "myVar.length())",
                 String.format(ErrorMessages.SYNTAX_ERROR,
-                        "extraneous input ')' expecting {<EOF>, ',', '.', '[', '+', '-', '*', '/', "
-                                + "'%', '<<', '>>>', '>>', '<=', '>=', '>', '<', 'instanceof', "
-                                + "'==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
+                        "extraneous input ')' expecting {<EOF>, ',', '.', '::', '[', '+', '-', " +
+                                "'*', '/', '%', '<<', '>>>', '>>', '<=', '>=', '>', '<', " +
+                                "'instanceof', '==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
     }
 
     @Test
@@ -190,9 +188,9 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 "/app/src/main/res/layout/broken.xml",
                 "new String()",
                 String.format(ErrorMessages.SYNTAX_ERROR,
-                        "mismatched input 'String' expecting {<EOF>, ',', '.', '[', '+', '-', '*', "
-                                + "'/', '%', '<<', '>>>', '>>', '<=', '>=', '>', '<', 'instanceof',"
-                                + " '==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
+                        "mismatched input 'String' expecting {<EOF>, ',', '.', '::', '[', '+', " +
+                                "'-', '*', '/', '%', '<<', '>>>', '>>', '<=', '>=', '>', '<', " +
+                                "'instanceof', '==', '!=', '&', '^', '|', '&&', '||', '?', '??'}"));
     }
 
     @Test
@@ -210,7 +208,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         ScopedException ex = singleFileErrorTest("/layout/invalid_setter_binding.xml",
                 "/app/src/main/res/layout/invalid_setter.xml", "myVariable",
                 String.format(ErrorMessages.CANNOT_FIND_SETTER_CALL, "android:textx",
-                        String.class.getCanonicalName()));
+                        String.class.getCanonicalName(), "android.widget.TextView"));
     }
 
     @Test
@@ -259,7 +257,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         prepareProject();
         ScopedException ex = singleFileErrorTest("/layout/invalid_variable_type.xml",
                 "/app/src/main/res/layout/invalid_variable.xml", "myVariable",
-                String.format(ErrorMessages.CANNOT_RESOLVE_TYPE, "myVariable~"));
+                String.format(ErrorMessages.CANNOT_RESOLVE_TYPE, "myVariable"));
     }
 
     @Test
@@ -326,5 +324,26 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 errorFile.getCanonicalFile());
         assertEquals("Merge shouldn't support includes as root. Error message was '" + result.error,
                 ErrorMessages.INCLUDE_INSIDE_MERGE, ex.getBareMessage());
+    }
+
+    @Test
+    public void testAssignTwoWayEvent() throws Throwable {
+        prepareProject();
+        copyResourceTo("/layout/layout_with_two_way_event_attribute.xml",
+                "/app/src/main/res/layout/layout_with_two_way_event_attribute.xml");
+        CompilationResult result = runGradle("assembleDebug");
+        assertNotEquals(0, result.resultCode);
+        List<ScopedException> errors = ScopedException.extractErrors(result.error);
+        assertEquals(result.error, 1, errors.size());
+        final ScopedException ex = errors.get(0);
+        final ScopedErrorReport report = ex.getScopedErrorReport();
+        final File errorFile = new File(report.getFilePath());
+        assertTrue(errorFile.exists());
+        assertEquals(new File(testFolder,
+                "/app/src/main/res/layout/layout_with_two_way_event_attribute.xml")
+                        .getCanonicalFile(),
+                errorFile.getCanonicalFile());
+        assertEquals("The attribute android:textAttrChanged is a two-way binding event attribute " +
+                "and cannot be assigned.", ex.getBareMessage());
     }
 }

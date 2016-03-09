@@ -64,6 +64,7 @@ expression
     |   resources                                       # Resource
 //    |   typeArguments (explicitGenericInvocationSuffix | 'this' arguments) # GenericCall
     |   expression '.' Identifier                       # DotOp
+    |   expression '::' Identifier                      # FunctionRef
 //    |   expression '.' 'this'                           # ThisReference
 //    |   expression '.' explicitGenericInvocation        # ExplicitGenericInvocationOp
     |   expression '[' expression ']'                   # BracketOp

@@ -19,23 +19,23 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public Result visitBracketOp(@NotNull BindingExpressionParser.BracketOpContext ctx) { return visitChildren(ctx); }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public Result visitResource(@NotNull BindingExpressionParser.ResourceContext ctx) { return visitChildren(ctx); }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
 	@Override public Result visitCastOp(@NotNull BindingExpressionParser.CastOpContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitBracketOp(@NotNull BindingExpressionParser.BracketOpContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -51,7 +51,7 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public Result visitAndOrOp(@NotNull BindingExpressionParser.AndOrOpContext ctx) { return visitChildren(ctx); }
+	@Override public Result visitResource(@NotNull BindingExpressionParser.ResourceContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -59,15 +59,7 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public Result visitMethodInvocation(@NotNull BindingExpressionParser.MethodInvocationContext ctx) { return visitChildren(ctx); }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public Result visitPrimary(@NotNull BindingExpressionParser.PrimaryContext ctx) { return visitChildren(ctx); }
+	@Override public Result visitQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -83,6 +75,30 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public Result visitMethodInvocation(@NotNull BindingExpressionParser.MethodInvocationContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitBitShiftOp(@NotNull BindingExpressionParser.BitShiftOpContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitAndOrOp(@NotNull BindingExpressionParser.AndOrOpContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public Result visitTernaryOp(@NotNull BindingExpressionParser.TernaryOpContext ctx) { return visitChildren(ctx); }
 
 	/**
@@ -91,7 +107,7 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public Result visitComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx) { return visitChildren(ctx); }
+	@Override public Result visitPrimary(@NotNull BindingExpressionParser.PrimaryContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -115,23 +131,15 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public Result visitQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx) { return visitChildren(ctx); }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public Result visitBitShiftOp(@NotNull BindingExpressionParser.BitShiftOpContext ctx) { return visitChildren(ctx); }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
 	@Override public Result visitInstanceOfOp(@NotNull BindingExpressionParser.InstanceOfOpContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public Result visitFunctionRef(@NotNull BindingExpressionParser.FunctionRefContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -163,7 +171,7 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public Result visitLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { return visitChildren(ctx); }
+	@Override public Result visitSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -171,7 +179,7 @@ public class BindingExpressionBaseVisitor<Result> extends AbstractParseTreeVisit
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public Result visitSingleLambdaParameter(@NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) { return visitChildren(ctx); }
+	@Override public Result visitLambdaParameterList(@NotNull BindingExpressionParser.LambdaParameterListContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
