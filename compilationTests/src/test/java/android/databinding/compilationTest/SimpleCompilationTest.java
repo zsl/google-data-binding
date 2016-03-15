@@ -16,24 +16,41 @@
 
 package android.databinding.compilationTest;
 
+import android.databinding.tool.CompilerChef;
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.ScopedErrorReport;
 import android.databinding.tool.processing.ScopedException;
+import android.databinding.tool.reflection.InjectedClass;
+import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.reflection.ModelMethod;
+import android.databinding.tool.reflection.java.JavaAnalyzer;
 import android.databinding.tool.store.Location;
 
 import com.google.common.base.Joiner;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -345,5 +362,41 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 errorFile.getCanonicalFile());
         assertEquals("The attribute android:textAttrChanged is a two-way binding event attribute " +
                 "and cannot be assigned.", ex.getBareMessage());
+    }
+
+    @SuppressWarnings("deprecated")
+    @Test
+    public void testDynamicUtilMembers() throws Throwable {
+        prepareProject();
+        CompilationResult result = runGradle("assembleDebug");
+        assertEquals(result.error, 0, result.resultCode);
+        assertTrue("there should not be any errors " + result.error,
+                StringUtils.isEmpty(result.error));
+        assertTrue("Test sanity, should compile fine",
+                result.resultContainsText("BUILD SUCCESSFUL"));
+        File classFile = new File(testFolder,
+                "app/build/intermediates/classes/debug/android/databinding/DynamicUtil.class");
+        assertTrue(classFile.exists());
+
+        File root = new File(testFolder, "app/build/intermediates/classes/debug/");
+        URL[] urls = new URL[] {root.toURL()};
+        JavaAnalyzer.initForTests();
+        JavaAnalyzer analyzer = (JavaAnalyzer) JavaAnalyzer.getInstance();
+        ClassLoader classLoader = new URLClassLoader(urls, analyzer.getClassLoader());
+        Class dynamicUtilClass = classLoader.loadClass("android.databinding.DynamicUtil");
+
+        InjectedClass injectedClass = CompilerChef.pushDynamicUtilToAnalyzer();
+
+        // test methods
+        for (Method method : dynamicUtilClass.getMethods()) {
+            // look for the method in the injected class
+            ArrayList<ModelClass> args = new ArrayList<ModelClass>();
+            for (Class<?> param : method.getParameterTypes()) {
+                args.add(analyzer.findClass(param));
+            }
+            ModelMethod modelMethod = injectedClass.getMethod(
+                    method.getName(), args, Modifier.isStatic(method.getModifiers()), false);
+            assertNotNull(modelMethod);
+        }
     }
 }

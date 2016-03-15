@@ -66,6 +66,10 @@ public class JavaAnalyzer extends ModelAnalyzer {
         }
     }
 
+    public ClassLoader getClassLoader() {
+        return mClassLoader;
+    }
+
     @Override
     protected ModelClass[] getObservableFieldTypes() {
         return new ModelClass[0];

@@ -171,5 +171,53 @@
                 android:onTextChanged="@{obj::textChanged2}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/convertBool"
+                android:text="@={`` + obj.booleanField}"
+                android:inputType="number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/convertByte"
+                android:text="@={`` + obj.byteField}"
+                android:inputType="number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/convertShort"
+                android:text="@={`` + obj.shortField}"
+                android:inputType="number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/convertInt"
+                android:text="@={`` + obj.intField}"
+                android:inputType="number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/convertLong"
+                android:text="@={`` + obj.longField}"
+                android:inputType="number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/convertFloat"
+                android:text="@={`` + obj.floatField}"
+                android:inputType="numberDecimal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/convertDouble"
+                android:text="@={`` + obj.doubleField}"
+                android:inputType="numberDecimal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/convertChar"
+                android:text="@={`` + obj.charField}"
+                android:inputType="number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
     </LinearLayout>
 </layout>

@@ -96,6 +96,9 @@ public abstract class ModelMethod {
             final ModelClass arg = args.get(i);
             final ModelClass thisParameter = getParameter(i, parameterTypes);
             final ModelClass thatParameter = other.getParameter(i, otherParameterTypes);
+            if (thisParameter.equals(thatParameter)) {
+                continue;
+            }
             final int diff = compareParameter(arg, thisParameter, thatParameter);
             if (diff != 0) {
                 return diff < 0;

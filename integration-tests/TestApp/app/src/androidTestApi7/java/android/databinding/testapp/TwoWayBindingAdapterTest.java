@@ -30,6 +30,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TabHost.TabSpec;
 
+import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -142,8 +143,8 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                assertNotSame(0, mBindingObject.date.get());
-                assertEquals(mBindingObject.date.get(), mBinder.calendarView.getDate());
+                assertTrue(mBindingObject.date.get() != 0);
+                assertDatesMatch(mBindingObject.date.get(), mBinder.calendarView.getDate());
             }
         });
         final long[] date = new long[2];
@@ -169,7 +170,18 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             Thread.sleep(1);
         }
 
-        assertEquals(date[0], mBindingObject.date.get());
+        assertDatesMatch(date[0], mBindingObject.date.get());
+    }
+
+    public void assertDatesMatch(long expectedTimeMillis, long testTimeMillis) {
+        Calendar expected = Calendar.getInstance();
+        expected.setTimeInMillis(expectedTimeMillis);
+        Calendar testValue = Calendar.getInstance();
+        testValue.setTimeInMillis(testTimeMillis);
+        assertEquals(expected.get(Calendar.YEAR), testValue.get(Calendar.YEAR));
+        assertEquals(expected.get(Calendar.MONTH), testValue.get(Calendar.MONTH));
+        assertEquals(expected.get(Calendar.DAY_OF_MONTH),
+                testValue.get(Calendar.DAY_OF_MONTH));
     }
 
     public void testCheckBoxChecked() throws Throwable {
@@ -683,6 +695,81 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    public void testStringConversions() throws Throwable {
+        makeVisible(mBinder.convertBool, mBinder.convertByte, mBinder.convertShort,
+                mBinder.convertInt, mBinder.convertLong, mBinder.convertFloat,
+                mBinder.convertDouble, mBinder.convertChar);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.convertBool.setText("True");
+                mBinder.convertByte.setText("123");
+                mBinder.convertShort.setText("1234");
+                mBinder.convertInt.setText("12345");
+                mBinder.convertLong.setText("123456");
+                mBinder.convertFloat.setText("1.2345");
+                mBinder.convertDouble.setText("1.23456");
+                mBinder.convertChar.setText("a");
+            }
+        });
+
+        final long timeout = SystemClock.uptimeMillis() + 500;
+        while (!mBindingObject.booleanField.get() && SystemClock.uptimeMillis() < timeout) {
+            Thread.sleep(1);
+        }
+        getInstrumentation().waitForIdleSync();
+        assertTrue(mBindingObject.booleanField.get());
+        assertEquals(123, mBindingObject.byteField.get());
+        assertEquals(1234, mBindingObject.shortField.get());
+        assertEquals(12345, mBindingObject.intField.get());
+        assertEquals(123456, mBindingObject.longField.get());
+        assertEquals(1.2345f, mBindingObject.floatField.get(), 0.0001f);
+        assertEquals(1.23456, mBindingObject.doubleField.get(), 0.000001);
+        assertEquals('a', mBindingObject.charField.get());
+    }
+
+    public void testBadStringConversions() throws Throwable {
+        makeVisible(mBinder.convertBool, mBinder.convertByte, mBinder.convertShort,
+                mBinder.convertInt, mBinder.convertLong, mBinder.convertFloat,
+                mBinder.convertDouble, mBinder.convertChar);
+        mBindingObject.booleanField.set(true);
+        mBindingObject.charField.set('1');
+        mBindingObject.byteField.set((byte) 1);
+        mBindingObject.shortField.set((short) 12);
+        mBindingObject.intField.set(123);
+        mBindingObject.longField.set(1234);
+        mBindingObject.floatField.set(1.2345f);
+        mBindingObject.doubleField.set(1.23456);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+                mBinder.convertBool.setText("foobar");
+                mBinder.convertByte.setText("fred");
+                mBinder.convertShort.setText("wilma");
+                mBinder.convertInt.setText("barney");
+                mBinder.convertLong.setText("betty");
+                mBinder.convertFloat.setText("pebbles");
+                mBinder.convertDouble.setText("bam-bam");
+                mBinder.convertChar.setText("");
+            }
+        });
+
+        final long timeout = SystemClock.uptimeMillis() + 500;
+        while (mBindingObject.booleanField.get() && SystemClock.uptimeMillis() < timeout) {
+            Thread.sleep(1);
+        }
+        getInstrumentation().waitForIdleSync();
+        assertFalse(mBindingObject.booleanField.get());
+        assertEquals(1, mBindingObject.byteField.get());
+        assertEquals(12, mBindingObject.shortField.get());
+        assertEquals(123, mBindingObject.intField.get());
+        assertEquals(1234, mBindingObject.longField.get());
+        assertEquals(1.2345f, mBindingObject.floatField.get(), 0.0001f);
+        assertEquals(1.23456, mBindingObject.doubleField.get(), 0.00001);
+        assertEquals('1', mBindingObject.charField.get());
+    }
+
     private void makeVisible(final View... views) throws Throwable {
         runTestOnUiThread(new Runnable() {
             @Override
@@ -708,6 +795,14 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.editText2.setVisibility(View.GONE);
                 mBinder.included.editText1.setVisibility(View.GONE);
                 mBinder.included.editText2.setVisibility(View.GONE);
+                mBinder.convertBool.setVisibility(View.GONE);
+                mBinder.convertByte.setVisibility(View.GONE);
+                mBinder.convertShort.setVisibility(View.GONE);
+                mBinder.convertInt.setVisibility(View.GONE);
+                mBinder.convertLong.setVisibility(View.GONE);
+                mBinder.convertFloat.setVisibility(View.GONE);
+                mBinder.convertDouble.setVisibility(View.GONE);
+                mBinder.convertChar.setVisibility(View.GONE);
                 for (View view : views) {
                     view.setVisibility(View.VISIBLE);
                 }

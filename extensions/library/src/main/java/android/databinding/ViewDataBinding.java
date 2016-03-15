@@ -570,6 +570,76 @@ public abstract class ViewDataBinding extends BaseObservable {
     }
 
     /** @hide */
+    protected static boolean parse(String str, boolean fallback) {
+        if (str == null) {
+            return fallback;
+        }
+        return Boolean.parseBoolean(str);
+    }
+
+    /** @hide */
+    protected static byte parse(String str, byte fallback) {
+        try {
+            return Byte.parseByte(str);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    /** @hide */
+    protected static short parse(String str, short fallback) {
+        try {
+            return Short.parseShort(str);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    /** @hide */
+    protected static int parse(String str, int fallback) {
+        try {
+            return Integer.parseInt(str);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    /** @hide */
+    protected static long parse(String str, long fallback) {
+        try {
+            return Long.parseLong(str);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    /** @hide */
+    protected static float parse(String str, float fallback) {
+        try {
+            return Float.parseFloat(str);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    /** @hide */
+    protected static double parse(String str, double fallback) {
+        try {
+            return Double.parseDouble(str);
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    /** @hide */
+    protected static char parse(String str, char fallback) {
+        if (str == null || str.isEmpty()) {
+            return fallback;
+        }
+        return str.charAt(0);
+    }
+
+    /** @hide */
     protected int getColorFromResource(int resourceId) {
         if (VERSION.SDK_INT >= VERSION_CODES.M) {
             return getRoot().getContext().getColor(resourceId);

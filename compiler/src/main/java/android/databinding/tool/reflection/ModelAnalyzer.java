@@ -18,6 +18,7 @@ package android.databinding.tool.reflection;
 import android.databinding.tool.reflection.annotation.AnnotationAnalyzer;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -83,8 +84,8 @@ public abstract class ModelAnalyzer {
     private ModelClass mViewStubType;
 
     private static ModelAnalyzer sAnalyzer;
-    private final Map<String, InjectedBindingClass> mInjectedClasses =
-            new HashMap<String, InjectedBindingClass>();
+    private final Map<String, InjectedClass> mInjectedClasses =
+            new HashMap<String, InjectedClass>();
 
     protected void setInstance(ModelAnalyzer analyzer) {
         sAnalyzer = analyzer;
@@ -234,10 +235,33 @@ public abstract class ModelAnalyzer {
 
     public abstract TypeUtil createTypeUtil();
 
+    public ModelClass injectClass(InjectedClass injectedClass) {
+        mInjectedClasses.put(injectedClass.getCanonicalName(), injectedClass);
+        return injectedClass;
+    }
+
     public ModelClass injectViewDataBinding(String className, Map<String, String> variables,
             Map<String, String> fields) {
-        InjectedBindingClass injectedClass = new InjectedBindingClass(className,
-                ModelAnalyzer.VIEW_DATA_BINDING, variables, fields);
+        InjectedClass injectedClass = new InjectedClass(className,
+                ModelAnalyzer.VIEW_DATA_BINDING);
+
+        if (fields != null) {
+            for (String name : fields.keySet()) {
+                String type = fields.get(name);
+                injectedClass.addField(new InjectedField(name, type));
+            }
+        }
+        if (variables != null) {
+            for (String name : variables.keySet()) {
+                String type = variables.get(name);
+                String capName = StringUtils.capitalize(name);
+                String setName = "set" + capName;
+                String getName = "get" + capName;
+                injectedClass.addMethod(new InjectedMethod(injectedClass, false, getName, type));
+                injectedClass.addMethod(new InjectedMethod(injectedClass, false, setName, "void",
+                        type));
+            }
+        }
         mInjectedClasses.put(className, injectedClass);
         return injectedClass;
     }

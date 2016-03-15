@@ -24,11 +24,11 @@ import java.util.Map;
  *
  * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map)
  */
-public class InjectedBindingClassField extends ModelField {
+public class InjectedField extends ModelField {
     private final String mType;
     private final String mName;
 
-    public InjectedBindingClassField(String name, String type) {
+    public InjectedField(String name, String type) {
         mName = name;
         mType = type;
     }

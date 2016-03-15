@@ -13,6 +13,8 @@
 
 package android.databinding.tool;
 
+import android.databinding.tool.reflection.InjectedClass;
+import android.databinding.tool.reflection.InjectedMethod;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.ResourceBundle;
@@ -71,6 +73,7 @@ public class CompilerChef {
         chef.mFileWriter = fileWriter;
         chef.mResourceBundle.validateMultiResLayouts();
         chef.pushClassesToAnalyzer();
+        chef.pushDynamicUtilToAnalyzer();
         return chef;
     }
 
@@ -125,6 +128,30 @@ public class CompilerChef {
                     layoutFileBundle.getBindingClassName();
             analyzer.injectViewDataBinding(className, variables, fields);
         }
+    }
+
+    public static InjectedClass pushDynamicUtilToAnalyzer() {
+        InjectedClass injectedClass = new InjectedClass("android.databinding.DynamicUtil",
+                "java.lang.Object");
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "getColorFromResource",
+                "int", "android.view.View", "int"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
+                "boolean", "java.lang.String", "boolean"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
+                "short", "java.lang.String", "short"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
+                "int", "java.lang.String", "int"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
+                "long", "java.lang.String", "long"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
+                "float", "java.lang.String", "float"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
+                "double", "java.lang.String", "double"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
+                "char", "java.lang.String", "char"));
+        ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
+        analyzer.injectClass(injectedClass);
+        return injectedClass;
     }
 
     public void writeDataBinderMapper(int minSdk, BRWriter brWriter) {

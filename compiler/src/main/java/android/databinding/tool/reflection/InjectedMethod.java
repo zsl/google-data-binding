@@ -25,18 +25,22 @@ import java.util.Map;
  *
  * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map)
  */
-public class InjectedBindingClassMethod extends ModelMethod {
-    private final InjectedBindingClass mContainingClass;
+public class InjectedMethod extends ModelMethod {
+    private final InjectedClass mContainingClass;
     private final String mName;
-    private final String mReturnType;
-    private final String mParameter;
+    private final String mReturnTypeName;
+    private final String[] mParameterTypeNames;
+    private ModelClass[] mParameterTypes;
+    private ModelClass mReturnType;
+    private boolean mIsStatic;
 
-    public InjectedBindingClassMethod(InjectedBindingClass containingClass, String name, String returnType,
-            String parameter) {
+    public InjectedMethod(InjectedClass containingClass, boolean isStatic, String name,
+            String returnType, String... parameters) {
         mContainingClass = containingClass;
         mName = name;
-        mReturnType = returnType;
-        mParameter = parameter;
+        mIsStatic = isStatic;
+        mReturnTypeName = returnType;
+        mParameterTypeNames = parameters;
     }
 
     @Override
@@ -46,11 +50,18 @@ public class InjectedBindingClassMethod extends ModelMethod {
 
     @Override
     public ModelClass[] getParameterTypes() {
-        if (mParameter != null) {
-            ModelClass parameterType = ModelAnalyzer.getInstance().findClass(mParameter, null);
-            return new ModelClass[] { parameterType };
+        if (mParameterTypes == null) {
+            if (mParameterTypeNames == null) {
+                mParameterTypes = new ModelClass[0];
+            } else {
+                mParameterTypes = new ModelClass[mParameterTypeNames.length];
+                ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
+                for (int i = 0; i < mParameterTypeNames.length; i++) {
+                    mParameterTypes[i] = modelAnalyzer.findClass(mParameterTypeNames[i], null);
+                }
+            }
         }
-        return new ModelClass[0];
+        return mParameterTypes;
     }
 
     @Override
@@ -60,8 +71,10 @@ public class InjectedBindingClassMethod extends ModelMethod {
 
     @Override
     public ModelClass getReturnType(List<ModelClass> args) {
-        ModelClass returnType = ModelAnalyzer.getInstance().findClass(mReturnType, null);
-        return returnType;
+        if (mReturnType == null) {
+            mReturnType = ModelAnalyzer.getInstance().findClass(mReturnTypeName, null);
+        }
+        return mReturnType;
     }
 
     @Override
@@ -81,7 +94,7 @@ public class InjectedBindingClassMethod extends ModelMethod {
 
     @Override
     public boolean isStatic() {
-        return false;
+        return mIsStatic;
     }
 
     @Override
@@ -107,5 +120,27 @@ public class InjectedBindingClassMethod extends ModelMethod {
     @Override
     public boolean isVarArgs() {
         return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("public ");
+        if (mIsStatic) {
+            sb.append("static ");
+        }
+        sb.append(mReturnTypeName)
+                .append(' ')
+                .append(mName)
+                .append("(");
+        if (mParameterTypeNames != null) {
+            for (int i = 0; i < mParameterTypeNames.length; i++) {
+                if (i != 0) {
+                    sb.append(", ");
+                }
+                sb.append(mParameterTypeNames[i]);
+            }
+        }
+        sb.append(')');
+        return sb.toString();
     }
 }

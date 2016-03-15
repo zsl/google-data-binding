@@ -21,9 +21,12 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.KCode;
 
+import com.google.common.collect.Lists;
+
 import java.util.List;
 
 public class MathExpr extends Expr {
+    static final String DYNAMIC_UTIL = "android.databinding.DynamicUtil";
     final String mOp;
 
     MathExpr(Expr left, String op, Expr right) {
@@ -75,16 +78,29 @@ public class MathExpr extends Expr {
     public String getInvertibleError() {
         if (mOp.equals("%")) {
             return "The modulus operator (%) is not supported in two-way binding.";
-        } else if (getResolvedType().isString()) {
-            return "String concatenation operator (+) is not supported in two-way binding.";
         }
-        if (!getLeft().isDynamic()) {
-            return getRight().getInvertibleError();
-        } else if (!getRight().isDynamic()) {
-            return getLeft().getInvertibleError();
-        } else {
-            return "Arithmetic operator " + mOp + " is not supported with two dynamic expressions.";
+
+        final Expr left = getLeft();
+        final Expr right = getRight();
+        if (left.isDynamic() == right.isDynamic()) {
+            return "Two way binding with operator " + mOp +
+                    " supports only a single dynamic expressions.";
         }
+        Expr dyn = left.isDynamic() ? left : right;
+        if (getResolvedType().isString()) {
+            Expr constExpr = left.isDynamic() ? right : left;
+
+            if (!(constExpr instanceof SymbolExpr) ||
+                    !"\"\"".equals(((SymbolExpr) constExpr).getText())) {
+                return "Two-way binding with string concatenation operator (+) only supports the" +
+                        " empty string constant (`` or \"\")";
+            }
+            if (!dyn.getResolvedType().unbox().isPrimitive()) {
+                return "Two-way binding with string concatenation operator (+) only supports " +
+                        "primitives";
+            }
+        }
+        return dyn.getInvertibleError();
     }
 
     @Override
@@ -92,13 +108,19 @@ public class MathExpr extends Expr {
         final Expr left = getLeft();
         final Expr right = getRight();
         Preconditions.check(left.isDynamic() ^ right.isDynamic(), "Two-way binding of a math " +
-                "operations requires A signle dynamic expression. Neither or both sides are " +
+                "operations requires A single dynamic expression. Neither or both sides are " +
                 "dynamic: (%s) %s (%s)", left, mOp, right);
         final Expr constExpr = (left.isDynamic() ? right : left).cloneToModel(model);
+        final Expr varExpr = left.isDynamic() ? left : right;
         final Expr newValue;
         switch (mOp.charAt(0)) {
             case '+': // const + x = value  => x = value - const
-                newValue = model.math(value, "-", constExpr);
+                if (getResolvedType().isString()) {
+                    // just convert back to the primitive type
+                    newValue = parseInverse(model, value, varExpr);
+                } else {
+                    newValue = model.math(value, "-", constExpr);
+                }
                 break;
             case '*': // const * x = value => x = value / const
                 newValue = model.math(value, "/", constExpr);
@@ -120,8 +142,14 @@ public class MathExpr extends Expr {
             default:
                 throw new IllegalStateException("Invalid math operation is not invertible: " + mOp);
         }
-        final Expr varExpr = left.isDynamic() ? left : right;
         return varExpr.generateInverse(model, newValue, bindingClassName);
+    }
+
+    private Expr parseInverse(ExprModel model, Expr value, Expr prev) {
+        IdentifierExpr dynamicUtil = model.staticIdentifier(DYNAMIC_UTIL);
+        dynamicUtil.setUserDefinedType(DYNAMIC_UTIL);
+
+        return model.methodCall(dynamicUtil, "parse", Lists.newArrayList(value, prev));
     }
 
     @Override

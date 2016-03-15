@@ -18,6 +18,7 @@ package android.databinding.tool.reflection;
 
 import android.databinding.tool.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -29,18 +30,23 @@ import java.util.Map;
  *
  * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map)
  */
-public class InjectedBindingClass extends ModelClass {
+public class InjectedClass extends ModelClass {
     private final String mClassName;
     private final String mSuperClass;
-    private final Map<String, String> mVariables;
-    private final Map<String, String> mFields;
+    private final List<InjectedMethod> mMethods = new ArrayList<InjectedMethod>();
+    private final List<InjectedField> mFields = new ArrayList<InjectedField>();
 
-    public InjectedBindingClass(String className, String superClass, Map<String, String> variables,
-            Map<String, String> fields) {
+    public InjectedClass(String className, String superClass) {
         mClassName = className;
         mSuperClass = superClass;
-        mVariables = variables;
-        mFields = fields;
+    }
+
+    public void addField(InjectedField field) {
+        mFields.add(field);
+    }
+
+    public void addMethod(InjectedMethod method) {
+        mMethods.add(method);
     }
 
     @Override
@@ -183,12 +189,11 @@ public class InjectedBindingClass extends ModelClass {
     protected ModelField[] getDeclaredFields() {
         ModelClass superClass = getSuperclass();
         final ModelField[] superFields = superClass.getDeclaredFields();
-        final int fieldCount = superFields.length + mFields.size();
+        final int initialCount = superFields.length;
+        final int fieldCount = initialCount + mFields.size();
         final ModelField[] fields = Arrays.copyOf(superFields, fieldCount);
-        int index = superFields.length;
-        for (String fieldName : mFields.keySet()) {
-            final String fieldType = mFields.get(fieldName);
-            fields[index++] = new InjectedBindingClassField(fieldName, fieldType);
+        for (int i = 0; i < mFields.size(); i++) {
+            fields[i + initialCount] = mFields.get(i);
         }
         return fields;
     }
@@ -197,15 +202,11 @@ public class InjectedBindingClass extends ModelClass {
     protected ModelMethod[] getDeclaredMethods() {
         ModelClass superClass = getSuperclass();
         final ModelMethod[] superMethods = superClass.getDeclaredMethods();
-        final int methodCount = superMethods.length + (mVariables.size() * 2);
+        final int initialCount = superMethods.length;
+        final int methodCount = initialCount + mMethods.size();
         final ModelMethod[] methods = Arrays.copyOf(superMethods, methodCount);
-        int index = superMethods.length;
-        for (String variableName : mVariables.keySet()) {
-            final String variableType = mVariables.get(variableName);
-            final String getterName = "get" + StringUtils.capitalize(variableName);
-            methods[index++] = new InjectedBindingClassMethod(this, getterName, variableType, null);
-            final String setterName = "set" + StringUtils.capitalize(variableName);
-            methods[index++] = new InjectedBindingClassMethod(this, setterName, "void", variableType);
+        for (int i = 0; i < mMethods.size(); i++) {
+            methods[i + initialCount] = mMethods.get(i);
         }
         return methods;
     }
