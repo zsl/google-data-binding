@@ -207,7 +207,7 @@ val Expr.callbackLocalName by lazyProp { expr : Expr ->
 }
 
 val Expr.executePendingLocalName by lazyProp { expr : Expr ->
-    if(expr.needsLocalField) "${expr.model.ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD, false)}"
+    if(expr.isDynamic || expr.needsLocalField) "${expr.model.ext.getUniqueName(expr.readableName, Scope.EXECUTE_PENDING_METHOD, false)}"
     else expr.toCode().generate()
 }
 
@@ -898,7 +898,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         if (model.flagMapping != null) {
             val mapping = model.flagMapping
             for (i in mapping.indices) {
-                tab("flag $i: ${mapping[i]}")
+                tab("flag $i (${longToBinary(1L + i)}): ${model.findFlagExpression(i)}")
             }
         }
         nl("flag mapping end*/")

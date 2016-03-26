@@ -589,15 +589,17 @@ public class ExprModel {
                 }
             }
         }
-        for (Expr partialRead : markedSomeFlagsAsRead) {
-            // even if all paths are not satisfied, we can elevate certain conditional dependencies
-            // if all of their paths are satisfied.
-            for (Dependency dependency : partialRead.getDependants()) {
-                Expr dependant = dependency.getDependant();
-                if (dependant.isConditional() && dependant.getAllCalculationPaths()
-                        .areAllPathsSatisfied(partialRead.mReadSoFar)) {
-                    if (dependant.considerElevatingConditionals(partialRead)) {
-                        elevated = true;
+        if (!elevated) {
+            for (Expr partialRead : markedSomeFlagsAsRead) {
+                // even if all paths are not satisfied, we can elevate certain conditional
+                // dependencies if all of their paths are satisfied.
+                for (Dependency dependency : partialRead.getDependants()) {
+                    Expr dependant = dependency.getDependant();
+                    if (dependant.isConditional() && dependant.getAllCalculationPaths()
+                            .areAllPathsSatisfied(partialRead.mReadSoFar)) {
+                        if (dependant.considerElevatingConditionals(partialRead)) {
+                            elevated = true;
+                        }
                     }
                 }
             }

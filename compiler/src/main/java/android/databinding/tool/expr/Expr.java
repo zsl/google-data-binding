@@ -553,7 +553,8 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
                     allCovered = false;
                     break;
                 }
-                final BitSet readForConditional = (BitSet) expr.findConditionalFlags().clone();
+                final BitSet readForConditional = (BitSet) expr
+                        .getShouldReadFlagsWithConditionals().clone();
 
                 // FIXME: this does not do full traversal so misses some cases
                 // to calculate that conditional, i should've read /readForConditional/ flags
