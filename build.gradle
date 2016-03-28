@@ -169,8 +169,7 @@ def fullJar(project) {
     if (localizeTask != null) {
         localizeTask.dependsOn project.tasks.findByName('buildLicenseNotice')
     }
-
-    if (!dataBindingConfig.runProguard || !dataBindingConfig.inReleaseBuild) {
+    if (!dataBindingConfig.inReleaseBuild) {
         return
     }
     def jarName = project.uploadArchives.repositories.mavenDeployer.pom.artifactId
@@ -178,6 +177,7 @@ def fullJar(project) {
     def fatJar = "${workingDir}/${jarName}-fat.jar"
     def proguardJar = "${workingDir}/${jarName}-proguard.jar"
     def jarJar = project.jar.archivePath
+    def runProguard = dataBindingConfig.runProguard
 
     project.configurations {
         jarJarArchives
@@ -208,6 +208,9 @@ def fullJar(project) {
         destinationDir = new File(workingDir)
         with project.jar
     }
+    /**
+     * not used unless jarJarFile is changed to use proguarded version instead.
+     */
     project.tasks.create(name: 'proguard', type: proguard.gradle.ProGuardTask) {
         dependsOn 'fatJar'
 
@@ -218,9 +221,9 @@ def fullJar(project) {
     }
 
     project.tasks.create(name: 'jarJarFile') {
-        dependsOn 'proguard'
+        dependsOn runProguard ? 'proguard' : 'fatJar'
         dependsOn project.jar
-        def inputLibrary = proguardJar
+        def inputLibrary = runProguard ? proguardJar : fatJar
         def outputLibrary = jarJar
         inputs.file(inputLibrary)
         outputs.file(outputLibrary)
@@ -248,25 +251,33 @@ def fullJar(project) {
         }
     }
 
-    project.uploadArchives {
-        dependsOn 'jarJarFile'
-        repositories {
-            mavenDeployer {
-                pom.whenConfigured { pom ->
-                    pom.dependencies.removeAll { dep ->
-                        def isBaseLibrary = dep.groupId == 'com.android.databinding' &&
-                                dep.artifactId == 'baseLibrary'
-                        def isGradle = dep.groupId == 'com.android.tools.build' &&
-                                dep.artifactId == 'gradle'
-                        def isChardet = dep.groupId == 'com.googlecode.juniversalchardet' &&
-                                dep.artifactId == 'juniversalchardet'
-                        return !isBaseLibrary && !isGradle && !isChardet
+    def setupUpload = { uploadTask ->
+        uploadTask.dependsOn 'jarJarFile'
+        uploadTask.repositories {
+                mavenDeployer {
+                    pom.whenConfigured { pom ->
+                        pom.dependencies.removeAll { dep ->
+                            def isBaseLibrary = dep.groupId == 'com.android.databinding' &&
+                                    dep.artifactId == 'baseLibrary'
+                            def isGradle = dep.groupId == 'com.android.tools.build' &&
+                                    dep.artifactId == 'gradle'
+                            def isChardet = dep.groupId == 'com.googlecode.juniversalchardet' &&
+                                    dep.artifactId == 'juniversalchardet'
+                            return !isBaseLibrary && !isGradle && !isChardet
+                        }
                     }
                 }
             }
-        }
-        outputs.upToDateWhen { false } // force it to re-run all the time.
+        uploadTask.outputs.upToDateWhen { false } // force it to re-run all the time.
     }
+
+    if (project.publishLocal != null) {
+        setupUpload(project.publishLocal)
+    }
+    if (project.uploadArchives != null) {
+        setupUpload(project.uploadArchives)
+    }
+
     project.bintrayUpload.dependsOn 'jarJarFile'
     project.publishing.publications.mavenJava(MavenPublication) {
             pom.withXml {
