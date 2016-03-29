@@ -71,7 +71,7 @@ public class XmlEditor {
         }
 
         ArrayList<String> lines = new ArrayList<String>();
-        lines.addAll(FileUtils.readLines(f, "utf-8"));
+        lines.addAll(FileUtils.readLines(f, encoding));
 
         for (ElementContext it : dataNodes) {
             replace(lines, toPosition(it.getStart()), toEndPosition(it.getStop()), "");
