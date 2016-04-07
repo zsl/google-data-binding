@@ -30,7 +30,7 @@ import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.LayoutBinderWriter;
 import android.databinding.tool.writer.LayoutBinderWriterKt;
 
-import org.antlr.v4.runtime.misc.Nullable;
+import com.android.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
