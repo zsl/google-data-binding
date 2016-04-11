@@ -23,7 +23,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Nullable;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -36,6 +35,8 @@ import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+
+import com.android.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,9 +57,8 @@ public class ExpressionParser {
         final BindingExpressionParser parser = new BindingExpressionParser(tokenStream);
         parser.addErrorListener(new BaseErrorListener() {
             @Override
-            public <T extends Token> void syntaxError(Recognizer<T, ?> recognizer,
-                    @Nullable T offendingSymbol, int line, int charPositionInLine, String msg,
-                    @Nullable RecognitionException e) {
+            public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,
+                    int charPositionInLine, String msg, RecognitionException e) {
                 L.e(ErrorMessages.SYNTAX_ERROR, msg);
             }
         });

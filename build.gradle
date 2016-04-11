@@ -241,8 +241,7 @@ def fullJar(project) {
                 // input is our inputLibrary
                 zipfileset(src: inputLibrary)
                 // rule to repackage antlr to new package
-                rule pattern: 'org.antlr.**', result: 'com.google.repacked.antlr.@1'
-                rule pattern: 'com.tunnelvisionlabs.**', result: 'com.google.repacked.tunnelvision.@1'
+                rule pattern: 'org.antlr.**', result: 'com.google.repacked.org.antlr.@1'
                 rule pattern: 'org.abego.treelayout.**', result: 'com.google.repacked.treelayout.@1'
                 // rule to repackage commons
                 rule pattern: 'org.apache.**', result: 'com.google.repacked.apache.@1'
