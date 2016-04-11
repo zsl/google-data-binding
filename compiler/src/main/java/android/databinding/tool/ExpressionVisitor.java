@@ -31,10 +31,10 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.util.Preconditions;
 
+import com.android.annotations.NonNull;
 import com.google.common.base.Objects;
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -43,16 +43,16 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
+class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     private ExprModel mModel;
     private ParseTreeListener mParseTreeListener;
     private ArrayDeque<ExprModel> mModelStack = new ArrayDeque<ExprModel>();
 
-    public ExpressionVisitor(ExprModel model) {
+    ExpressionVisitor(ExprModel model) {
         mModel = model;
     }
 
-    public void setParseTreeListener(ParseTreeListener parseTreeListener) {
+    void setParseTreeListener(ParseTreeListener parseTreeListener) {
         mParseTreeListener = parseTreeListener;
     }
 
@@ -82,7 +82,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitRootLambda(@NotNull BindingExpressionParser.RootLambdaContext ctx) {
+    public Expr visitRootLambda(@NonNull BindingExpressionParser.RootLambdaContext ctx) {
         try {
             onEnter(ctx);
             CallbackExprModel callbackModel = new CallbackExprModel(mModel);
@@ -100,7 +100,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
 
     @Override
     public Expr visitSingleLambdaParameter(
-            @NotNull BindingExpressionParser.SingleLambdaParameterContext ctx) {
+            @NonNull BindingExpressionParser.SingleLambdaParameterContext ctx) {
         try {
             onEnter(ctx);
             Preconditions.check(mModel instanceof CallbackExprModel, "Lambdas can only be used in"
@@ -115,7 +115,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
 
     @Override
     public Expr visitLambdaParameterList(
-            @NotNull BindingExpressionParser.LambdaParameterListContext ctx) {
+            @NonNull BindingExpressionParser.LambdaParameterListContext ctx) {
         try {
             onEnter(ctx);
             Preconditions.check(mModel instanceof CallbackExprModel, "Lambdas can only be used in"
@@ -136,7 +136,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitStringLiteral(@NotNull BindingExpressionParser.StringLiteralContext ctx) {
+    public Expr visitStringLiteral(@NonNull BindingExpressionParser.StringLiteralContext ctx) {
         try {
             onEnter(ctx);
             final String javaString;
@@ -155,7 +155,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitRootExpr(@NotNull BindingExpressionParser.RootExprContext ctx) {
+    public Expr visitRootExpr(@NonNull BindingExpressionParser.RootExprContext ctx) {
         try {
             onEnter(ctx);
             // TODO handle defaults
@@ -170,7 +170,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitGrouping(@NotNull BindingExpressionParser.GroupingContext ctx) {
+    public Expr visitGrouping(@NonNull BindingExpressionParser.GroupingContext ctx) {
         try {
             onEnter(ctx);
             Preconditions.check(ctx.children.size() == 3, "Grouping expression should have"
@@ -182,7 +182,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitDotOp(@NotNull BindingExpressionParser.DotOpContext ctx) {
+    public Expr visitDotOp(@NonNull BindingExpressionParser.DotOpContext ctx) {
         try {
             onEnter(ctx);
             ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
@@ -202,7 +202,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitFunctionRef(@NotNull BindingExpressionParser.FunctionRefContext ctx) {
+    public Expr visitFunctionRef(@NonNull BindingExpressionParser.FunctionRefContext ctx) {
         try {
             onEnter(ctx);
             return mModel.methodReference(ctx.expression().accept(this),
@@ -213,7 +213,8 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitQuestionQuestionOp(@NotNull BindingExpressionParser.QuestionQuestionOpContext ctx) {
+    public Expr visitQuestionQuestionOp(
+            @NonNull BindingExpressionParser.QuestionQuestionOpContext ctx) {
         try {
             onEnter(ctx);
             final Expr left = ctx.left.accept(this);
@@ -225,9 +226,9 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitTerminal(@NotNull TerminalNode node) {
+    public Expr visitTerminal(@NonNull TerminalNode node) {
         try {
-            onEnter((ParserRuleContext) node.getParent().getRuleContext());
+            onEnter((ParserRuleContext) node.getParent());
             final int type = node.getSymbol().getType();
             Class classType;
             switch (type) {
@@ -259,12 +260,12 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
             }
             return mModel.symbol(node.getText(), classType);
         } finally {
-            onExit((ParserRuleContext) node.getParent().getRuleContext());
+            onExit((ParserRuleContext) node.getParent());
         }
     }
 
     @Override
-    public Expr visitComparisonOp(@NotNull BindingExpressionParser.ComparisonOpContext ctx) {
+    public Expr visitComparisonOp(@NonNull BindingExpressionParser.ComparisonOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.comparison(ctx.op.getText(), ctx.left.accept(this), ctx.right.accept(this));
@@ -274,7 +275,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitIdentifier(@NotNull BindingExpressionParser.IdentifierContext ctx) {
+    public Expr visitIdentifier(@NonNull BindingExpressionParser.IdentifierContext ctx) {
         try {
             onEnter(ctx);
             return mModel.identifier(ctx.getText());
@@ -284,7 +285,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitTernaryOp(@NotNull BindingExpressionParser.TernaryOpContext ctx) {
+    public Expr visitTernaryOp(@NonNull BindingExpressionParser.TernaryOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.ternary(ctx.left.accept(this), ctx.iftrue.accept(this),
@@ -297,7 +298,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
 
     @Override
     public Expr visitMethodInvocation(
-            @NotNull BindingExpressionParser.MethodInvocationContext ctx) {
+            @NonNull BindingExpressionParser.MethodInvocationContext ctx) {
         try {
             onEnter(ctx);
             List<Expr> args = new ArrayList<Expr>();
@@ -317,7 +318,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitMathOp(@NotNull BindingExpressionParser.MathOpContext ctx) {
+    public Expr visitMathOp(@NonNull BindingExpressionParser.MathOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.math(ctx.left.accept(this), ctx.op.getText(), ctx.right.accept(this));
@@ -327,7 +328,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitAndOrOp(@NotNull AndOrOpContext ctx) {
+    public Expr visitAndOrOp(@NonNull AndOrOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.logical(ctx.left.accept(this), ctx.op.getText(), ctx.right.accept(this));
@@ -337,7 +338,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitBinaryOp(@NotNull BinaryOpContext ctx) {
+    public Expr visitBinaryOp(@NonNull BinaryOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.math(ctx.left.accept(this), ctx.op.getText(), ctx.right.accept(this));
@@ -347,7 +348,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitBitShiftOp(@NotNull BitShiftOpContext ctx) {
+    public Expr visitBitShiftOp(@NonNull BitShiftOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.bitshift(ctx.left.accept(this), ctx.op.getText(), ctx.right.accept(this));
@@ -357,7 +358,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitInstanceOfOp(@NotNull InstanceOfOpContext ctx) {
+    public Expr visitInstanceOfOp(@NonNull InstanceOfOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.instanceOfOp(ctx.expression().accept(this), ctx.type().getText());
@@ -367,7 +368,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitUnaryOp(@NotNull UnaryOpContext ctx) {
+    public Expr visitUnaryOp(@NonNull UnaryOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.unary(ctx.op.getText(), ctx.expression().accept(this));
@@ -377,7 +378,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitResources(@NotNull BindingExpressionParser.ResourcesContext ctx) {
+    public Expr visitResources(@NonNull BindingExpressionParser.ResourcesContext ctx) {
         try {
             onEnter(ctx);
             final List<Expr> args = new ArrayList<Expr>();
@@ -404,7 +405,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitBracketOp(@NotNull BindingExpressionParser.BracketOpContext ctx) {
+    public Expr visitBracketOp(@NonNull BindingExpressionParser.BracketOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.bracketExpr(visit(ctx.expression(0)), visit(ctx.expression(1)));
@@ -414,7 +415,7 @@ public class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
-    public Expr visitCastOp(@NotNull BindingExpressionParser.CastOpContext ctx) {
+    public Expr visitCastOp(@NonNull BindingExpressionParser.CastOpContext ctx) {
         try {
             onEnter(ctx);
             return mModel.castExpr(ctx.type().getText(), visit(ctx.expression()));

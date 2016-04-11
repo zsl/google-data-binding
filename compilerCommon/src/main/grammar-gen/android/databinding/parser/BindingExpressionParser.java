@@ -1,27 +1,21 @@
-// Generated from BindingExpression.g4 by ANTLR 4.5
+// Generated from BindingExpression.g4 by ANTLR 4.5.3
 package android.databinding.parser;
-import org.antlr.v4.runtime.FailedPredicateException;
-import org.antlr.v4.runtime.NoViableAltException;
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.RecognitionException;
-import org.antlr.v4.runtime.RuleContext;
-import org.antlr.v4.runtime.RuleVersion;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
-import org.antlr.v4.runtime.Vocabulary;
-import org.antlr.v4.runtime.VocabularyImpl;
-import org.antlr.v4.runtime.atn.ATN;
-import org.antlr.v4.runtime.atn.ATNDeserializer;
-import org.antlr.v4.runtime.atn.ParserATNSimulator;
-import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.tree.ParseTreeListener;
-import org.antlr.v4.runtime.tree.ParseTreeVisitor;
-import org.antlr.v4.runtime.tree.TerminalNode;
-
+import org.antlr.v4.runtime.atn.*;
+import org.antlr.v4.runtime.dfa.DFA;
+import org.antlr.v4.runtime.*;
+import org.antlr.v4.runtime.misc.*;
+import org.antlr.v4.runtime.tree.*;
 import java.util.List;
+import java.util.Iterator;
+import java.util.ArrayList;
 
+@SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class BindingExpressionParser extends Parser {
+	static { RuntimeMetaData.checkVersion("4.5.3", RuntimeMetaData.VERSION); }
+
+	protected static final DFA[] _decisionToDFA;
+	protected static final PredictionContextCache _sharedContextCache =
+		new PredictionContextCache();
 	public static final int
 		T__0=1, T__1=2, T__2=3, T__3=4, T__4=5, T__5=6, T__6=7, T__7=8, T__8=9, 
 		T__9=10, T__10=11, T__11=12, T__12=13, T__13=14, T__14=15, T__15=16, T__16=17, 
@@ -93,7 +87,7 @@ public class BindingExpressionParser extends Parser {
 	}
 
 	@Override
-	@NotNull
+
 	public Vocabulary getVocabulary() {
 		return VOCABULARY;
 	}
@@ -107,9 +101,12 @@ public class BindingExpressionParser extends Parser {
 	@Override
 	public String getSerializedATN() { return _serializedATN; }
 
+	@Override
+	public ATN getATN() { return _ATN; }
+
 	public BindingExpressionParser(TokenStream input) {
 		super(input);
-		_interp = new ParserATNSimulator(this,_ATN);
+		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 	public static class BindingSyntaxContext extends ParserRuleContext {
 		public BindingSyntaxContext(ParserRuleContext parent, int invokingState) {
@@ -139,8 +136,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitRootExpr(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitRootExpr(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitRootExpr(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -158,19 +155,19 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitRootLambda(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitRootLambda(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitRootLambda(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final BindingSyntaxContext bindingSyntax() throws RecognitionException {
 		BindingSyntaxContext _localctx = new BindingSyntaxContext(_ctx, getState());
 		enterRule(_localctx, 0, RULE_bindingSyntax);
 		int _la;
 		try {
 			setState(49);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,1,_ctx) ) {
 			case 1:
 				_localctx = new RootExprContext(_localctx);
@@ -189,7 +186,6 @@ public class BindingExpressionParser extends Parser {
 
 				}
 				break;
-
 			case 2:
 				_localctx = new RootLambdaContext(_localctx);
 				enterOuterAlt(_localctx, 2);
@@ -228,13 +224,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitDefaults(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitDefaults(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitDefaults(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final DefaultsContext defaults() throws RecognitionException {
 		DefaultsContext _localctx = new DefaultsContext(_ctx, getState());
 		enterRule(_localctx, 2, RULE_defaults);
@@ -283,13 +278,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitConstantValue(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitConstantValue(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitConstantValue(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ConstantValueContext constantValue() throws RecognitionException {
 		ConstantValueContext _localctx = new ConstantValueContext(_ctx, getState());
 		enterRule(_localctx, 4, RULE_constantValue);
@@ -360,13 +354,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitLambdaExpression(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitLambdaExpression(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitLambdaExpression(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final LambdaExpressionContext lambdaExpression() throws RecognitionException {
 		LambdaExpressionContext _localctx = new LambdaExpressionContext(_ctx, getState());
 		enterRule(_localctx, 6, RULE_lambdaExpression);
@@ -374,11 +367,11 @@ public class BindingExpressionParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(61);
-			_localctx.args = lambdaParameters();
+			((LambdaExpressionContext)_localctx).args = lambdaParameters();
 			setState(62);
 			match(T__3);
 			setState(63);
-			_localctx.expr = expression(0);
+			((LambdaExpressionContext)_localctx).expr = expression(0);
 			}
 		}
 		catch (RecognitionException re) {
@@ -415,8 +408,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitSingleLambdaParameter(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitSingleLambdaParameter(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitSingleLambdaParameter(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -435,13 +428,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitLambdaParameterList(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitLambdaParameterList(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitLambdaParameterList(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final LambdaParametersContext lambdaParameters() throws RecognitionException {
 		LambdaParametersContext _localctx = new LambdaParametersContext(_ctx, getState());
 		enterRule(_localctx, 8, RULE_lambdaParameters);
@@ -492,7 +484,7 @@ public class BindingExpressionParser extends Parser {
 	}
 
 	public static class InferredFormalParameterListContext extends ParserRuleContext {
-		public List<? extends TerminalNode> Identifier() { return getTokens(BindingExpressionParser.Identifier); }
+		public List<TerminalNode> Identifier() { return getTokens(BindingExpressionParser.Identifier); }
 		public TerminalNode Identifier(int i) {
 			return getToken(BindingExpressionParser.Identifier, i);
 		}
@@ -509,13 +501,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitInferredFormalParameterList(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitInferredFormalParameterList(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitInferredFormalParameterList(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final InferredFormalParameterListContext inferredFormalParameterList() throws RecognitionException {
 		InferredFormalParameterListContext _localctx = new InferredFormalParameterListContext(_ctx, getState());
 		enterRule(_localctx, 10, RULE_inferredFormalParameterList);
@@ -582,8 +573,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitCastOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitCastOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitCastOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -591,7 +582,7 @@ public class BindingExpressionParser extends Parser {
 		public ExpressionContext left;
 		public Token op;
 		public ExpressionContext right;
-		public List<? extends ExpressionContext> expression() {
+		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
 		public ExpressionContext expression(int i) {
@@ -607,30 +598,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitComparisonOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitComparisonOp(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	public static class BracketOpContext extends ExpressionContext {
-		public List<? extends ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public BracketOpContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).enterBracketOp(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitBracketOp(this);
-		}
-		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitBracketOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitComparisonOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -649,8 +618,30 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitUnaryOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitUnaryOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitUnaryOp(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class BracketOpContext extends ExpressionContext {
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public BracketOpContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).enterBracketOp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitBracketOp(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitBracketOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -668,8 +659,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitResource(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitResource(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitResource(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -677,7 +668,7 @@ public class BindingExpressionParser extends Parser {
 		public ExpressionContext left;
 		public Token op;
 		public ExpressionContext right;
-		public List<? extends ExpressionContext> expression() {
+		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
 		public ExpressionContext expression(int i) {
@@ -693,8 +684,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitQuestionQuestionOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitQuestionQuestionOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitQuestionQuestionOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -712,8 +703,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitGrouping(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitGrouping(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitGrouping(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -738,8 +729,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitMethodInvocation(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitMethodInvocation(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitMethodInvocation(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -747,7 +738,7 @@ public class BindingExpressionParser extends Parser {
 		public ExpressionContext left;
 		public Token op;
 		public ExpressionContext right;
-		public List<? extends ExpressionContext> expression() {
+		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
 		public ExpressionContext expression(int i) {
@@ -763,8 +754,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitBitShiftOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitBitShiftOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitBitShiftOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -772,7 +763,7 @@ public class BindingExpressionParser extends Parser {
 		public ExpressionContext left;
 		public Token op;
 		public ExpressionContext right;
-		public List<? extends ExpressionContext> expression() {
+		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
 		public ExpressionContext expression(int i) {
@@ -788,8 +779,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitAndOrOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitAndOrOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitAndOrOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -798,7 +789,7 @@ public class BindingExpressionParser extends Parser {
 		public Token op;
 		public ExpressionContext iftrue;
 		public ExpressionContext iffalse;
-		public List<? extends ExpressionContext> expression() {
+		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
 		public ExpressionContext expression(int i) {
@@ -814,8 +805,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitTernaryOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitTernaryOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitTernaryOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -840,8 +831,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitPrimary(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitPrimary(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitPrimary(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -860,8 +851,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitDotOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitDotOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitDotOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -869,7 +860,7 @@ public class BindingExpressionParser extends Parser {
 		public ExpressionContext left;
 		public Token op;
 		public ExpressionContext right;
-		public List<? extends ExpressionContext> expression() {
+		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
 		public ExpressionContext expression(int i) {
@@ -885,8 +876,8 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitMathOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitMathOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitMathOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -907,8 +898,33 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitInstanceOfOp(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitInstanceOfOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitInstanceOfOp(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class BinaryOpContext extends ExpressionContext {
+		public ExpressionContext left;
+		public Token op;
+		public ExpressionContext right;
+		public List<ExpressionContext> expression() {
+			return getRuleContexts(ExpressionContext.class);
+		}
+		public ExpressionContext expression(int i) {
+			return getRuleContext(ExpressionContext.class,i);
+		}
+		public BinaryOpContext(ExpressionContext ctx) { copyFrom(ctx); }
+		@Override
+		public void enterRule(ParseTreeListener listener) {
+			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).enterBinaryOp(this);
+		}
+		@Override
+		public void exitRule(ParseTreeListener listener) {
+			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitBinaryOp(this);
+		}
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitBinaryOp(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -927,38 +943,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitFunctionRef(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitFunctionRef(this);
-			else return visitor.visitChildren(this);
-		}
-	}
-	public static class BinaryOpContext extends ExpressionContext {
-		public ExpressionContext left;
-		public Token op;
-		public ExpressionContext right;
-		public List<? extends ExpressionContext> expression() {
-			return getRuleContexts(ExpressionContext.class);
-		}
-		public ExpressionContext expression(int i) {
-			return getRuleContext(ExpressionContext.class,i);
-		}
-		public BinaryOpContext(ExpressionContext ctx) { copyFrom(ctx); }
-		@Override
-		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).enterBinaryOp(this);
-		}
-		@Override
-		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitBinaryOp(this);
-		}
-		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitBinaryOp(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitFunctionRef(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ExpressionContext expression() throws RecognitionException {
 		return expression(0);
 	}
@@ -976,121 +966,114 @@ public class BindingExpressionParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(100);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,6,_ctx) ) {
 			case 1:
 				{
-				_localctx = new CastOpContext(_localctx);
+				_localctx = new GroupingContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 
 				setState(82);
 				match(T__4);
 				setState(83);
-				type();
+				expression(0);
 				setState(84);
 				match(T__5);
-				setState(85);
-				expression(16);
 				}
 				break;
-
 			case 2:
 				{
-				_localctx = new UnaryOpContext(_localctx);
+				_localctx = new PrimaryContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+				setState(86);
+				literal();
+				}
+				break;
+			case 3:
+				{
+				_localctx = new PrimaryContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
 				setState(87);
-				((UnaryOpContext)_localctx).op = _input.LT(1);
-				_la = _input.LA(1);
-				if ( !(_la==T__10 || _la==T__11) ) {
-					((UnaryOpContext)_localctx).op = _errHandler.recoverInline(this);
-				} else {
-					consume();
-				}
-				setState(88);
-				expression(15);
+				match(VoidLiteral);
 				}
 				break;
-
-			case 3:
-				{
-				_localctx = new UnaryOpContext(_localctx);
-				_ctx = _localctx;
-				_prevctx = _localctx;
-				setState(89);
-				((UnaryOpContext)_localctx).op = _input.LT(1);
-				_la = _input.LA(1);
-				if ( !(_la==T__12 || _la==T__13) ) {
-					((UnaryOpContext)_localctx).op = _errHandler.recoverInline(this);
-				} else {
-					consume();
-				}
-				setState(90);
-				expression(14);
-				}
-				break;
-
 			case 4:
 				{
-				_localctx = new GroupingContext(_localctx);
+				_localctx = new PrimaryContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(91);
-				match(T__4);
-				setState(92);
-				expression(0);
-				setState(93);
-				match(T__5);
+				setState(88);
+				identifier();
 				}
 				break;
-
 			case 5:
 				{
 				_localctx = new PrimaryContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(95);
-				literal();
-				}
-				break;
-
-			case 6:
-				{
-				_localctx = new PrimaryContext(_localctx);
-				_ctx = _localctx;
-				_prevctx = _localctx;
-				setState(96);
-				match(VoidLiteral);
-				}
-				break;
-
-			case 7:
-				{
-				_localctx = new PrimaryContext(_localctx);
-				_ctx = _localctx;
-				_prevctx = _localctx;
-				setState(97);
-				identifier();
-				}
-				break;
-
-			case 8:
-				{
-				_localctx = new PrimaryContext(_localctx);
-				_ctx = _localctx;
-				_prevctx = _localctx;
-				setState(98);
+				setState(89);
 				classExtraction();
 				}
 				break;
-
-			case 9:
+			case 6:
 				{
 				_localctx = new ResourceContext(_localctx);
 				_ctx = _localctx;
 				_prevctx = _localctx;
-				setState(99);
+				setState(90);
 				resources();
+				}
+				break;
+			case 7:
+				{
+				_localctx = new CastOpContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+				setState(91);
+				match(T__4);
+				setState(92);
+				type();
+				setState(93);
+				match(T__5);
+				setState(94);
+				expression(16);
+				}
+				break;
+			case 8:
+				{
+				_localctx = new UnaryOpContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+				setState(96);
+				((UnaryOpContext)_localctx).op = _input.LT(1);
+				_la = _input.LA(1);
+				if ( !(_la==T__10 || _la==T__11) ) {
+					((UnaryOpContext)_localctx).op = (Token)_errHandler.recoverInline(this);
+				} else {
+					consume();
+				}
+				setState(97);
+				expression(15);
+				}
+				break;
+			case 9:
+				{
+				_localctx = new UnaryOpContext(_localctx);
+				_ctx = _localctx;
+				_prevctx = _localctx;
+				setState(98);
+				((UnaryOpContext)_localctx).op = _input.LT(1);
+				_la = _input.LA(1);
+				if ( !(_la==T__12 || _la==T__13) ) {
+					((UnaryOpContext)_localctx).op = (Token)_errHandler.recoverInline(this);
+				} else {
+					consume();
+				}
+				setState(99);
+				expression(14);
 				}
 				break;
 			}
@@ -1104,6 +1087,7 @@ public class BindingExpressionParser extends Parser {
 					_prevctx = _localctx;
 					{
 					setState(163);
+					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,8,_ctx) ) {
 					case 1:
 						{
@@ -1116,7 +1100,7 @@ public class BindingExpressionParser extends Parser {
 						((MathOpContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__14) | (1L << T__15) | (1L << T__16))) != 0)) ) {
-							((MathOpContext)_localctx).op = _errHandler.recoverInline(this);
+							((MathOpContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						} else {
 							consume();
 						}
@@ -1124,7 +1108,6 @@ public class BindingExpressionParser extends Parser {
 						((MathOpContext)_localctx).right = expression(14);
 						}
 						break;
-
 					case 2:
 						{
 						_localctx = new MathOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1136,7 +1119,7 @@ public class BindingExpressionParser extends Parser {
 						((MathOpContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==T__10 || _la==T__11) ) {
-							((MathOpContext)_localctx).op = _errHandler.recoverInline(this);
+							((MathOpContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						} else {
 							consume();
 						}
@@ -1144,7 +1127,6 @@ public class BindingExpressionParser extends Parser {
 						((MathOpContext)_localctx).right = expression(13);
 						}
 						break;
-
 					case 3:
 						{
 						_localctx = new BitShiftOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1156,7 +1138,7 @@ public class BindingExpressionParser extends Parser {
 						((BitShiftOpContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__17) | (1L << T__18) | (1L << T__19))) != 0)) ) {
-							((BitShiftOpContext)_localctx).op = _errHandler.recoverInline(this);
+							((BitShiftOpContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						} else {
 							consume();
 						}
@@ -1164,7 +1146,6 @@ public class BindingExpressionParser extends Parser {
 						((BitShiftOpContext)_localctx).right = expression(12);
 						}
 						break;
-
 					case 4:
 						{
 						_localctx = new ComparisonOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1176,7 +1157,7 @@ public class BindingExpressionParser extends Parser {
 						((ComparisonOpContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << T__20) | (1L << T__21) | (1L << T__22) | (1L << T__23))) != 0)) ) {
-							((ComparisonOpContext)_localctx).op = _errHandler.recoverInline(this);
+							((ComparisonOpContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						} else {
 							consume();
 						}
@@ -1184,7 +1165,6 @@ public class BindingExpressionParser extends Parser {
 						((ComparisonOpContext)_localctx).right = expression(11);
 						}
 						break;
-
 					case 5:
 						{
 						_localctx = new ComparisonOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1196,7 +1176,7 @@ public class BindingExpressionParser extends Parser {
 						((ComparisonOpContext)_localctx).op = _input.LT(1);
 						_la = _input.LA(1);
 						if ( !(_la==T__25 || _la==T__26) ) {
-							((ComparisonOpContext)_localctx).op = _errHandler.recoverInline(this);
+							((ComparisonOpContext)_localctx).op = (Token)_errHandler.recoverInline(this);
 						} else {
 							consume();
 						}
@@ -1204,7 +1184,6 @@ public class BindingExpressionParser extends Parser {
 						((ComparisonOpContext)_localctx).right = expression(9);
 						}
 						break;
-
 					case 6:
 						{
 						_localctx = new BinaryOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1218,7 +1197,6 @@ public class BindingExpressionParser extends Parser {
 						((BinaryOpContext)_localctx).right = expression(8);
 						}
 						break;
-
 					case 7:
 						{
 						_localctx = new BinaryOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1232,7 +1210,6 @@ public class BindingExpressionParser extends Parser {
 						((BinaryOpContext)_localctx).right = expression(7);
 						}
 						break;
-
 					case 8:
 						{
 						_localctx = new BinaryOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1246,7 +1223,6 @@ public class BindingExpressionParser extends Parser {
 						((BinaryOpContext)_localctx).right = expression(6);
 						}
 						break;
-
 					case 9:
 						{
 						_localctx = new AndOrOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1260,7 +1236,6 @@ public class BindingExpressionParser extends Parser {
 						((AndOrOpContext)_localctx).right = expression(5);
 						}
 						break;
-
 					case 10:
 						{
 						_localctx = new AndOrOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1274,7 +1249,6 @@ public class BindingExpressionParser extends Parser {
 						((AndOrOpContext)_localctx).right = expression(4);
 						}
 						break;
-
 					case 11:
 						{
 						_localctx = new TernaryOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1292,7 +1266,6 @@ public class BindingExpressionParser extends Parser {
 						((TernaryOpContext)_localctx).iffalse = expression(2);
 						}
 						break;
-
 					case 12:
 						{
 						_localctx = new QuestionQuestionOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1306,7 +1279,6 @@ public class BindingExpressionParser extends Parser {
 						((QuestionQuestionOpContext)_localctx).right = expression(2);
 						}
 						break;
-
 					case 13:
 						{
 						_localctx = new DotOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1319,7 +1291,6 @@ public class BindingExpressionParser extends Parser {
 						match(Identifier);
 						}
 						break;
-
 					case 14:
 						{
 						_localctx = new FunctionRefContext(new ExpressionContext(_parentctx, _parentState));
@@ -1332,7 +1303,6 @@ public class BindingExpressionParser extends Parser {
 						match(Identifier);
 						}
 						break;
-
 					case 15:
 						{
 						_localctx = new BracketOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1347,7 +1317,6 @@ public class BindingExpressionParser extends Parser {
 						match(T__9);
 						}
 						break;
-
 					case 16:
 						{
 						_localctx = new MethodInvocationContext(new ExpressionContext(_parentctx, _parentState));
@@ -1374,7 +1343,6 @@ public class BindingExpressionParser extends Parser {
 						match(T__5);
 						}
 						break;
-
 					case 17:
 						{
 						_localctx = new InstanceOfOpContext(new ExpressionContext(_parentctx, _parentState));
@@ -1424,13 +1392,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitClassExtraction(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitClassExtraction(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitClassExtraction(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ClassExtractionContext classExtraction() throws RecognitionException {
 		ClassExtractionContext _localctx = new ClassExtractionContext(_ctx, getState());
 		enterRule(_localctx, 14, RULE_classExtraction);
@@ -1457,7 +1424,7 @@ public class BindingExpressionParser extends Parser {
 	}
 
 	public static class ExpressionListContext extends ParserRuleContext {
-		public List<? extends ExpressionContext> expression() {
+		public List<ExpressionContext> expression() {
 			return getRuleContexts(ExpressionContext.class);
 		}
 		public ExpressionContext expression(int i) {
@@ -1476,13 +1443,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitExpressionList(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitExpressionList(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitExpressionList(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ExpressionListContext expressionList() throws RecognitionException {
 		ExpressionListContext _localctx = new ExpressionListContext(_ctx, getState());
 		enterRule(_localctx, 16, RULE_expressionList);
@@ -1541,13 +1507,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitLiteral(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitLiteral(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitLiteral(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final LiteralContext literal() throws RecognitionException {
 		LiteralContext _localctx = new LiteralContext(_ctx, getState());
 		enterRule(_localctx, 18, RULE_literal);
@@ -1603,13 +1568,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitIdentifier(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitIdentifier(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitIdentifier(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final IdentifierContext identifier() throws RecognitionException {
 		IdentifierContext _localctx = new IdentifierContext(_ctx, getState());
 		enterRule(_localctx, 20, RULE_identifier);
@@ -1650,13 +1614,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitJavaLiteral(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitJavaLiteral(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitJavaLiteral(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final JavaLiteralContext javaLiteral() throws RecognitionException {
 		JavaLiteralContext _localctx = new JavaLiteralContext(_ctx, getState());
 		enterRule(_localctx, 22, RULE_javaLiteral);
@@ -1700,13 +1663,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitStringLiteral(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitStringLiteral(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitStringLiteral(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final StringLiteralContext stringLiteral() throws RecognitionException {
 		StringLiteralContext _localctx = new StringLiteralContext(_ctx, getState());
 		enterRule(_localctx, 24, RULE_stringLiteral);
@@ -1754,13 +1716,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitExplicitGenericInvocation(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitExplicitGenericInvocation(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitExplicitGenericInvocation(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ExplicitGenericInvocationContext explicitGenericInvocation() throws RecognitionException {
 		ExplicitGenericInvocationContext _localctx = new ExplicitGenericInvocationContext(_ctx, getState());
 		enterRule(_localctx, 26, RULE_explicitGenericInvocation);
@@ -1785,7 +1746,7 @@ public class BindingExpressionParser extends Parser {
 	}
 
 	public static class TypeArgumentsContext extends ParserRuleContext {
-		public List<? extends TypeContext> type() {
+		public List<TypeContext> type() {
 			return getRuleContexts(TypeContext.class);
 		}
 		public TypeContext type(int i) {
@@ -1804,13 +1765,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitTypeArguments(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitTypeArguments(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitTypeArguments(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final TypeArgumentsContext typeArguments() throws RecognitionException {
 		TypeArgumentsContext _localctx = new TypeArgumentsContext(_ctx, getState());
 		enterRule(_localctx, 28, RULE_typeArguments);
@@ -1873,13 +1833,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitType(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitType(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitType(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final TypeContext type() throws RecognitionException {
 		TypeContext _localctx = new TypeContext(_ctx, getState());
 		enterRule(_localctx, 30, RULE_type);
@@ -1977,13 +1936,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitExplicitGenericInvocationSuffix(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitExplicitGenericInvocationSuffix(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitExplicitGenericInvocationSuffix(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ExplicitGenericInvocationSuffixContext explicitGenericInvocationSuffix() throws RecognitionException {
 		ExplicitGenericInvocationSuffixContext _localctx = new ExplicitGenericInvocationSuffixContext(_ctx, getState());
 		enterRule(_localctx, 32, RULE_explicitGenericInvocationSuffix);
@@ -2024,13 +1982,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitArguments(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitArguments(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitArguments(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ArgumentsContext arguments() throws RecognitionException {
 		ArgumentsContext _localctx = new ArgumentsContext(_ctx, getState());
 		enterRule(_localctx, 34, RULE_arguments);
@@ -2068,13 +2025,13 @@ public class BindingExpressionParser extends Parser {
 		public IdentifierContext identifier() {
 			return getRuleContext(IdentifierContext.class,0);
 		}
-		public List<? extends TypeArgumentsContext> typeArguments() {
+		public List<TypeArgumentsContext> typeArguments() {
 			return getRuleContexts(TypeArgumentsContext.class);
 		}
 		public TypeArgumentsContext typeArguments(int i) {
 			return getRuleContext(TypeArgumentsContext.class,i);
 		}
-		public List<? extends TerminalNode> Identifier() { return getTokens(BindingExpressionParser.Identifier); }
+		public List<TerminalNode> Identifier() { return getTokens(BindingExpressionParser.Identifier); }
 		public TerminalNode Identifier(int i) {
 			return getToken(BindingExpressionParser.Identifier, i);
 		}
@@ -2091,13 +2048,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitClassOrInterfaceType(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitClassOrInterfaceType(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitClassOrInterfaceType(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ClassOrInterfaceTypeContext classOrInterfaceType() throws RecognitionException {
 		ClassOrInterfaceTypeContext _localctx = new ClassOrInterfaceTypeContext(_ctx, getState());
 		enterRule(_localctx, 36, RULE_classOrInterfaceType);
@@ -2108,6 +2064,7 @@ public class BindingExpressionParser extends Parser {
 			setState(231);
 			identifier();
 			setState(233);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,17,_ctx) ) {
 			case 1:
 				{
@@ -2128,6 +2085,7 @@ public class BindingExpressionParser extends Parser {
 					setState(236);
 					match(Identifier);
 					setState(238);
+					_errHandler.sync(this);
 					switch ( getInterpreter().adaptivePredict(_input,18,_ctx) ) {
 					case 1:
 						{
@@ -2170,13 +2128,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitPrimitiveType(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitPrimitiveType(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitPrimitiveType(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final PrimitiveTypeContext primitiveType() throws RecognitionException {
 		PrimitiveTypeContext _localctx = new PrimitiveTypeContext(_ctx, getState());
 		enterRule(_localctx, 38, RULE_primitiveType);
@@ -2222,13 +2179,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitResources(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitResources(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitResources(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ResourcesContext resources() throws RecognitionException {
 		ResourcesContext _localctx = new ResourcesContext(_ctx, getState());
 		enterRule(_localctx, 40, RULE_resources);
@@ -2238,6 +2194,7 @@ public class BindingExpressionParser extends Parser {
 			setState(247);
 			match(ResourceReference);
 			setState(249);
+			_errHandler.sync(this);
 			switch ( getInterpreter().adaptivePredict(_input,20,_ctx) ) {
 			case 1:
 				{
@@ -2276,13 +2233,12 @@ public class BindingExpressionParser extends Parser {
 			if ( listener instanceof BindingExpressionListener ) ((BindingExpressionListener)listener).exitResourceParameters(this);
 		}
 		@Override
-		public <Result> Result accept(ParseTreeVisitor<? extends Result> visitor) {
-			if ( visitor instanceof BindingExpressionVisitor<?> ) return ((BindingExpressionVisitor<? extends Result>)visitor).visitResourceParameters(this);
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof BindingExpressionVisitor ) return ((BindingExpressionVisitor<? extends T>)visitor).visitResourceParameters(this);
 			else return visitor.visitChildren(this);
 		}
 	}
 
-	@RuleVersion(0)
 	public final ResourceParametersContext resourceParameters() throws RecognitionException {
 		ResourceParametersContext _localctx = new ResourceParametersContext(_ctx, getState());
 		enterRule(_localctx, 42, RULE_resourceParameters);
@@ -2319,52 +2275,36 @@ public class BindingExpressionParser extends Parser {
 		switch (predIndex) {
 		case 0:
 			return precpred(_ctx, 13);
-
 		case 1:
 			return precpred(_ctx, 12);
-
 		case 2:
 			return precpred(_ctx, 11);
-
 		case 3:
 			return precpred(_ctx, 10);
-
 		case 4:
 			return precpred(_ctx, 8);
-
 		case 5:
 			return precpred(_ctx, 7);
-
 		case 6:
 			return precpred(_ctx, 6);
-
 		case 7:
 			return precpred(_ctx, 5);
-
 		case 8:
 			return precpred(_ctx, 4);
-
 		case 9:
 			return precpred(_ctx, 3);
-
 		case 10:
 			return precpred(_ctx, 2);
-
 		case 11:
 			return precpred(_ctx, 1);
-
 		case 12:
 			return precpred(_ctx, 20);
-
 		case 13:
 			return precpred(_ctx, 19);
-
 		case 14:
 			return precpred(_ctx, 18);
-
 		case 15:
 			return precpred(_ctx, 17);
-
 		case 16:
 			return precpred(_ctx, 9);
 		}
@@ -2372,7 +2312,7 @@ public class BindingExpressionParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\uaf6f\u8320\u479d\ub75c\u4880\u1605\u191c\uab37\3<\u0102\4\2\t\2\4"+
+		"\3\u0430\ud6d1\u8206\uad2d\u4417\uaef1\u8d80\uaadd\3<\u0102\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\4\24\t\24\4\25\t\25\4\26\t\26\4\27\t\27\3\2\3\2\5\2\61\n\2"+
@@ -2390,29 +2330,28 @@ public class BindingExpressionParser extends Parser {
 		"\3\21\3\21\7\21\u00da\n\21\f\21\16\21\u00dd\13\21\5\21\u00df\n\21\3\22"+
 		"\3\22\3\22\3\23\3\23\5\23\u00e6\n\23\3\23\3\23\3\24\3\24\5\24\u00ec\n"+
 		"\24\3\24\3\24\3\24\5\24\u00f1\n\24\7\24\u00f3\n\24\f\24\16\24\u00f6\13"+
-		"\24\3\25\3\25\3\26\3\26\5\26\u00fc\n\26\3\27\3\27\3\27\3\27\3\27\2\2\3"+
-		"\16\30\2\2\4\2\6\2\b\2\n\2\f\2\16\2\20\2\22\2\24\2\26\2\30\2\32\2\34\2"+
-		"\36\2 \2\"\2$\2&\2(\2*\2,\2\2\13\3\2\r\16\3\2\17\20\3\2\21\23\3\2\24\26"+
-		"\3\2\27\32\3\2\34\35\4\2\61\64\67\67\3\2\65\66\3\2\'.\u0117\2\63\3\2\2"+
-		"\2\4\65\3\2\2\2\6=\3\2\2\2\b?\3\2\2\2\nI\3\2\2\2\fK\3\2\2\2\16f\3\2\2"+
-		"\2\20\u00aa\3\2\2\2\22\u00ae\3\2\2\2\24\u00b8\3\2\2\2\26\u00ba\3\2\2\2"+
-		"\30\u00bc\3\2\2\2\32\u00be\3\2\2\2\34\u00c0\3\2\2\2\36\u00c3\3\2\2\2 "+
-		"\u00de\3\2\2\2\"\u00e0\3\2\2\2$\u00e3\3\2\2\2&\u00e9\3\2\2\2(\u00f7\3"+
-		"\2\2\2*\u00f9\3\2\2\2,\u00fd\3\2\2\2.\60\5\16\b\2/\61\5\4\3\2\60/\3\2"+
-		"\2\2\60\61\3\2\2\2\61\64\3\2\2\2\62\64\5\b\5\2\63.\3\2\2\2\63\62\3\2\2"+
-		"\2\64\3\3\2\2\2\65\66\7\3\2\2\66\67\7\4\2\2\678\7\5\2\289\5\6\4\29\5\3"+
-		"\2\2\2:>\5\24\13\2;>\7:\2\2<>\5\26\f\2=:\3\2\2\2=;\3\2\2\2=<\3\2\2\2>"+
-		"\7\3\2\2\2?@\5\n\6\2@A\7\6\2\2AB\5\16\b\2B\t\3\2\2\2CJ\78\2\2DF\7\7\2"+
-		"\2EG\5\f\7\2FE\3\2\2\2FG\3\2\2\2GH\3\2\2\2HJ\7\b\2\2IC\3\2\2\2ID\3\2\2"+
-		"\2J\13\3\2\2\2KP\78\2\2LM\7\3\2\2MO\78\2\2NL\3\2\2\2OR\3\2\2\2PN\3\2\2"+
-		"\2PQ\3\2\2\2Q\r\3\2\2\2RP\3\2\2\2ST\b\b\1\2TU\7\7\2\2UV\5 \21\2VW\7\b"+
-		"\2\2WX\5\16\b\22Xg\3\2\2\2YZ\t\2\2\2Zg\5\16\b\21[\\\t\3\2\2\\g\5\16\b"+
-		"\20]^\7\7\2\2^_\5\16\b\2_`\7\b\2\2`g\3\2\2\2ag\5\24\13\2bg\7\60\2\2cg"+
-		"\5\26\f\2dg\5\20\t\2eg\5*\26\2fS\3\2\2\2fY\3\2\2\2f[\3\2\2\2f]\3\2\2\2"+
-		"fa\3\2\2\2fb\3\2\2\2fc\3\2\2\2fd\3\2\2\2fe\3\2\2\2g\u00a7\3\2\2\2hi\f"+
-		"\17\2\2ij\t\4\2\2j\u00a6\5\16\b\20kl\f\16\2\2lm\t\2\2\2m\u00a6\5\16\b"+
-		"\17no\f\r\2\2op\t\5\2\2p\u00a6\5\16\b\16qr\f\f\2\2rs\t\6\2\2s\u00a6\5"+
-		"\16\b\rtu\f\n\2\2uv\t\7\2\2v\u00a6\5\16\b\13wx\f\t\2\2xy\7\36\2\2y\u00a6"+
+		"\24\3\25\3\25\3\26\3\26\5\26\u00fc\n\26\3\27\3\27\3\27\3\27\3\27\2\3\16"+
+		"\30\2\4\6\b\n\f\16\20\22\24\26\30\32\34\36 \"$&(*,\2\13\3\2\r\16\3\2\17"+
+		"\20\3\2\21\23\3\2\24\26\3\2\27\32\3\2\34\35\4\2\61\64\67\67\3\2\65\66"+
+		"\3\2\'.\u0117\2\63\3\2\2\2\4\65\3\2\2\2\6=\3\2\2\2\b?\3\2\2\2\nI\3\2\2"+
+		"\2\fK\3\2\2\2\16f\3\2\2\2\20\u00aa\3\2\2\2\22\u00ae\3\2\2\2\24\u00b8\3"+
+		"\2\2\2\26\u00ba\3\2\2\2\30\u00bc\3\2\2\2\32\u00be\3\2\2\2\34\u00c0\3\2"+
+		"\2\2\36\u00c3\3\2\2\2 \u00de\3\2\2\2\"\u00e0\3\2\2\2$\u00e3\3\2\2\2&\u00e9"+
+		"\3\2\2\2(\u00f7\3\2\2\2*\u00f9\3\2\2\2,\u00fd\3\2\2\2.\60\5\16\b\2/\61"+
+		"\5\4\3\2\60/\3\2\2\2\60\61\3\2\2\2\61\64\3\2\2\2\62\64\5\b\5\2\63.\3\2"+
+		"\2\2\63\62\3\2\2\2\64\3\3\2\2\2\65\66\7\3\2\2\66\67\7\4\2\2\678\7\5\2"+
+		"\289\5\6\4\29\5\3\2\2\2:>\5\24\13\2;>\7:\2\2<>\5\26\f\2=:\3\2\2\2=;\3"+
+		"\2\2\2=<\3\2\2\2>\7\3\2\2\2?@\5\n\6\2@A\7\6\2\2AB\5\16\b\2B\t\3\2\2\2"+
+		"CJ\78\2\2DF\7\7\2\2EG\5\f\7\2FE\3\2\2\2FG\3\2\2\2GH\3\2\2\2HJ\7\b\2\2"+
+		"IC\3\2\2\2ID\3\2\2\2J\13\3\2\2\2KP\78\2\2LM\7\3\2\2MO\78\2\2NL\3\2\2\2"+
+		"OR\3\2\2\2PN\3\2\2\2PQ\3\2\2\2Q\r\3\2\2\2RP\3\2\2\2ST\b\b\1\2TU\7\7\2"+
+		"\2UV\5\16\b\2VW\7\b\2\2Wg\3\2\2\2Xg\5\24\13\2Yg\7\60\2\2Zg\5\26\f\2[g"+
+		"\5\20\t\2\\g\5*\26\2]^\7\7\2\2^_\5 \21\2_`\7\b\2\2`a\5\16\b\22ag\3\2\2"+
+		"\2bc\t\2\2\2cg\5\16\b\21de\t\3\2\2eg\5\16\b\20fS\3\2\2\2fX\3\2\2\2fY\3"+
+		"\2\2\2fZ\3\2\2\2f[\3\2\2\2f\\\3\2\2\2f]\3\2\2\2fb\3\2\2\2fd\3\2\2\2g\u00a7"+
+		"\3\2\2\2hi\f\17\2\2ij\t\4\2\2j\u00a6\5\16\b\20kl\f\16\2\2lm\t\2\2\2m\u00a6"+
+		"\5\16\b\17no\f\r\2\2op\t\5\2\2p\u00a6\5\16\b\16qr\f\f\2\2rs\t\6\2\2s\u00a6"+
+		"\5\16\b\rtu\f\n\2\2uv\t\7\2\2v\u00a6\5\16\b\13wx\f\t\2\2xy\7\36\2\2y\u00a6"+
 		"\5\16\b\nz{\f\b\2\2{|\7\37\2\2|\u00a6\5\16\b\t}~\f\7\2\2~\177\7 \2\2\177"+
 		"\u00a6\5\16\b\b\u0080\u0081\f\6\2\2\u0081\u0082\7!\2\2\u0082\u00a6\5\16"+
 		"\b\7\u0083\u0084\f\5\2\2\u0084\u0085\7\"\2\2\u0085\u00a6\5\16\b\6\u0086"+
@@ -2463,5 +2402,9 @@ public class BindingExpressionParser extends Parser {
 	public static final ATN _ATN =
 		new ATNDeserializer().deserialize(_serializedATN.toCharArray());
 	static {
+		_decisionToDFA = new DFA[_ATN.getNumberOfDecisions()];
+		for (int i = 0; i < _ATN.getNumberOfDecisions(); i++) {
+			_decisionToDFA[i] = new DFA(_ATN.getDecisionState(i), i);
+		}
 	}
 }
