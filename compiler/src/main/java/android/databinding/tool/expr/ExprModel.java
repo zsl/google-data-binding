@@ -273,9 +273,9 @@ public class ExprModel {
         return register(new UnaryExpr(op, expr));
     }
 
-    public Expr resourceExpr(String packageName, String resourceType, String resourceName,
-            List<Expr> args) {
-        return register(new ResourceExpr(packageName, resourceType, resourceName, args));
+    public Expr resourceExpr(BindingTarget target, String packageName, String resourceType,
+            String resourceName, List<Expr> args) {
+        return register(new ResourceExpr(target, packageName, resourceType, resourceName, args));
     }
 
     public Expr bracketExpr(Expr variableExpr, Expr argExpr) {

@@ -135,6 +135,11 @@ public class CompilerChef {
                 "java.lang.Object");
         injectedClass.addMethod(new InjectedMethod(injectedClass, true, "getColorFromResource",
                 "int", "android.view.View", "int"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true,
+                "getColorStateListFromResource", "android.content.res.ColorStateList",
+                "android.view.View", "int"));
+        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "getDrawableFromResource",
+                "android.graphics.drawable.Drawable", "android.view.View", "int"));
         injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
                 "boolean", "java.lang.String", "boolean"));
         injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",

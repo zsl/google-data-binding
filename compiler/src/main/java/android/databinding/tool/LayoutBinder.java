@@ -222,7 +222,8 @@ public class LayoutBinder implements FileScopeProvider {
                         try {
                             Scope.enter(bindingBundle.getValueLocation());
                             Expr expr = parse(bindingBundle.getExpr(),
-                                    bindingBundle.getValueLocation());
+                                    bindingBundle.getValueLocation(),
+                                    bindingTarget);
                             bindingTarget.addBinding(bindingBundle.getName(), expr);
                             if (bindingBundle.isTwoWay()) {
                                 bindingTarget.addInverseBinding(bindingBundle.getName(), expr,
@@ -295,8 +296,8 @@ public class LayoutBinder implements FileScopeProvider {
         return target;
     }
 
-    public Expr parse(String input, @Nullable Location locationInFile) {
-        final Expr parsed = mExpressionParser.parse(input, locationInFile);
+    public Expr parse(String input, @Nullable Location locationInFile, BindingTarget target) {
+        final Expr parsed = mExpressionParser.parse(input, locationInFile, target);
         parsed.setBindingExpression(true);
         return parsed;
     }
