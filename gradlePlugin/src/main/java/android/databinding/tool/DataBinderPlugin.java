@@ -139,7 +139,7 @@ public class DataBinderPlugin implements Plugin<Project> {
             if (ext instanceof ExtraPropertiesExtension) {
                 ExtraPropertiesExtension propExt = (ExtraPropertiesExtension) ext;
                 if (propExt.has("addDataBindingAdapters")) {
-                    addAdapters = Boolean.valueOf(
+                    addAdapters = Boolean.parseBoolean(
                             String.valueOf(propExt.get("addDataBindingAdapters")));
                 }
             }
