@@ -230,7 +230,7 @@ def fullJar(project) {
 
         doLast {
             def jarJarLibrary = new File(dataBindingConfig.externalPrebuiltsBase,
-                    'tools/common/m2/repository/com/googlecode/jarjar/jarjar/1.3/jarjar-1.3.jar').
+                    'tools/common/m2/repository/com/googlecode/jarjar/jarjar/1.4/jarjar-1.4.jar').
                     getCanonicalPath()
             // in Ant
             ant.taskdef(name: "jarjarIt",
