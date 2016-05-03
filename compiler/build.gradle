@@ -60,7 +60,9 @@ uploadArchives {
     }
 }
 
-
+javadoc {
+   options.addStringOption('Xdoclint:none', '-quiet')
+}
 
 project.ext.pomName = 'Data Binding Annotation Processor'
 project.ext.pomDesc = 'The annotation processor for Data Binding. Generates binding classes for runtime.'
