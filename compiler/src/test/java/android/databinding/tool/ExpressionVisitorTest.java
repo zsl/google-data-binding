@@ -51,7 +51,7 @@ public class ExpressionVisitorTest {
     }
 
     private <T extends Expr> T parse(String input, Class<T> klass) {
-        final Expr parsed = mParser.parse(input, null);
+        final Expr parsed = mParser.parse(input, null, null);
         assertSame(klass, parsed.getClass());
         return (T) parsed;
     }
@@ -89,7 +89,7 @@ public class ExpressionVisitorTest {
 
         @Test
         public void testComparison() {
-            final Expr res = mParser.parse("3 " + mOp + " 5", null);
+            final Expr res = mParser.parse("3 " + mOp + " 5", null, null);
             assertEquals(3, mParser.getModel().size());
             assertTrue(res instanceof ComparisonExpr);
             // 0 because they are both static
@@ -180,7 +180,7 @@ public class ExpressionVisitorTest {
         assertEquals(0, parsed.getArgs().size());
         assertEquals(1, parsed.getDependencies().size());
         final Dependency dep = parsed.getDependencies().get(0);
-        assertSame(mParser.parse("user", null), dep.getOther());
+        assertSame(mParser.parse("user", null, null), dep.getOther());
         assertFalse(dep.isConditional());
     }
 

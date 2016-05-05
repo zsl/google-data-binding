@@ -47,6 +47,7 @@ class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     private ExprModel mModel;
     private ParseTreeListener mParseTreeListener;
     private ArrayDeque<ExprModel> mModelStack = new ArrayDeque<ExprModel>();
+    private BindingTarget mTarget;
 
     ExpressionVisitor(ExprModel model) {
         mModel = model;
@@ -54,6 +55,10 @@ class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
 
     void setParseTreeListener(ParseTreeListener parseTreeListener) {
         mParseTreeListener = parseTreeListener;
+    }
+
+    public void setBindingTarget(BindingTarget bindingTarget) {
+        mTarget = bindingTarget;
     }
 
     private void onEnter(ParserRuleContext context) {
@@ -398,7 +403,7 @@ class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
             final int startIndex = Math.max(1, colonIndex + 1);
             final String resourceType = resourceReference.substring(startIndex, slashIndex).trim();
             final String resourceName = resourceReference.substring(slashIndex + 1).trim();
-            return mModel.resourceExpr(packageName, resourceType, resourceName, args);
+            return mModel.resourceExpr(mTarget, packageName, resourceType, resourceName, args);
         } finally {
             onExit(ctx);
         }

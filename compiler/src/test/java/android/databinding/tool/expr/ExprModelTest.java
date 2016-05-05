@@ -154,7 +154,7 @@ public class ExprModelTest {
         IdentifierExpr a = lb.addVariable("a", "java.lang.String", null);
         IdentifierExpr b = lb.addVariable("b", "java.lang.String", null);
         IdentifierExpr c = lb.addVariable("c", "java.lang.String", null);
-        lb.parse("a == null ? b : c", null);
+        lb.parse("a == null ? b : c", null, null);
         mExprModel.comparison("==", a, mExprModel.symbol("null", Object.class));
         lb.getModel().seal();
         List<Expr> shouldRead = getShouldRead();
@@ -303,7 +303,7 @@ public class ExprModelTest {
         IdentifierExpr c = lb.addVariable("c", "java.lang.String", null);
         IdentifierExpr d = lb.addVariable("d", "java.lang.String", null);
         IdentifierExpr e = lb.addVariable("e", "java.lang.String", null);
-        final Expr aTernary = lb.parse("a == null ? b == null ? c : d : e", null);
+        final Expr aTernary = lb.parse("a == null ? b == null ? c : d : e", null, null);
         assertTrue(aTernary instanceof TernaryExpr);
         final Expr bTernary = ((TernaryExpr) aTernary).getIfTrue();
         assertTrue(bTernary instanceof TernaryExpr);
@@ -1132,7 +1132,7 @@ public class ExprModelTest {
     }
 
     private <T extends Expr> T parse(LayoutBinder binder, String input, Class<T> klass) {
-        final Expr parsed = binder.parse(input, null);
+        final Expr parsed = binder.parse(input, null, null);
         assertTrue(klass.isAssignableFrom(parsed.getClass()));
         return (T) parsed;
     }

@@ -57,7 +57,7 @@ public class ExecutionPathTest {
     public void simpleExpr() {
         MockLayoutBinder lb = new MockLayoutBinder();
         ExprModel model = lb.getModel();
-        Expr parsed = lb.parse(mExpression, null);
+        Expr parsed = lb.parse(mExpression, null, null);
         List<ExecutionPath> paths = new ArrayList<ExecutionPath>();
         ExecutionPath root = ExecutionPath.createRoot();
         paths.add(root);

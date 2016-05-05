@@ -8,13 +8,33 @@ class DynamicUtilWriter() {
         nl("")
         block("public class DynamicUtil") {
             nl("@SuppressWarnings(\"deprecation\")")
-            block("public static int getColorFromResource(final android.view.View root, final int resourceId)") {
+            block("public static int getColorFromResource(final android.view.View view, final int resourceId)") {
                 if (targetSdk >= 23) {
                     block("if (VERSION.SDK_INT >= VERSION_CODES.M)") {
-                        nl("return root.getContext().getColor(resourceId);")
+                        nl("return view.getContext().getColor(resourceId);")
                     }
                 }
-                nl("return root.getResources().getColor(resourceId);")
+                nl("return view.getResources().getColor(resourceId);")
+            }
+
+            nl("@SuppressWarnings(\"deprecation\")")
+            block("public static android.content.res.ColorStateList getColorStateListFromResource(final android.view.View view, final int resourceId)") {
+                if (targetSdk >= 23) {
+                    block("if (VERSION.SDK_INT >= VERSION_CODES.M)") {
+                        nl("return view.getContext().getColorStateList(resourceId);")
+                    }
+                }
+                nl("return view.getResources().getColorStateList(resourceId);")
+            }
+
+            nl("@SuppressWarnings(\"deprecation\")")
+            block("public static android.graphics.drawable.Drawable getDrawableFromResource(final android.view.View view, final int resourceId)") {
+                if (targetSdk >= 21) {
+                    block("if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP)") {
+                        nl("return view.getContext().getDrawable(resourceId);")
+                    }
+                }
+                nl("return view.getResources().getDrawable(resourceId);")
             }
 
             block("public static boolean parse(String str, boolean fallback)") {

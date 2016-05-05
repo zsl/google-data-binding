@@ -396,7 +396,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
             }
             ModelMethod modelMethod = injectedClass.getMethod(
                     method.getName(), args, Modifier.isStatic(method.getModifiers()), false);
-            assertNotNull(modelMethod);
+            assertNotNull("Method " + method + " not found", modelMethod);
         }
     }
 }
