@@ -50,11 +50,12 @@ public class ExpressionParser {
         visitor = new ExpressionVisitor(mModel);
     }
 
-    public Expr parse(String input, @Nullable Location locationInFile) {
+    public Expr parse(String input, @Nullable Location locationInFile, BindingTarget target) {
         ANTLRInputStream inputStream = new ANTLRInputStream(input);
         BindingExpressionLexer lexer = new BindingExpressionLexer(inputStream);
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         final BindingExpressionParser parser = new BindingExpressionParser(tokenStream);
+        visitor.setBindingTarget(target);
         parser.addErrorListener(new BaseErrorListener() {
             @Override
             public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line,

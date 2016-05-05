@@ -640,29 +640,29 @@ public abstract class ViewDataBinding extends BaseObservable {
     }
 
     /** @hide */
-    protected int getColorFromResource(int resourceId) {
+    protected static int getColorFromResource(View view, int resourceId) {
         if (VERSION.SDK_INT >= VERSION_CODES.M) {
-            return getRoot().getContext().getColor(resourceId);
+            return view.getContext().getColor(resourceId);
         } else {
-            return getRoot().getResources().getColor(resourceId);
+            return view.getResources().getColor(resourceId);
         }
     }
 
     /** @hide */
-    protected ColorStateList getColorStateListFromResource(int resourceId) {
+    protected static ColorStateList getColorStateListFromResource(View view, int resourceId) {
         if (VERSION.SDK_INT >= VERSION_CODES.M) {
-            return getRoot().getContext().getColorStateList(resourceId);
+            return view.getContext().getColorStateList(resourceId);
         } else {
-            return getRoot().getResources().getColorStateList(resourceId);
+            return view.getResources().getColorStateList(resourceId);
         }
     }
 
     /** @hide */
-    protected Drawable getDrawableFromResource(int resourceId) {
+    protected static Drawable getDrawableFromResource(View view, int resourceId) {
         if (VERSION.SDK_INT >= VERSION_CODES.LOLLIPOP) {
-            return getRoot().getContext().getDrawable(resourceId);
+            return view.getContext().getDrawable(resourceId);
         } else {
-            return getRoot().getResources().getDrawable(resourceId);
+            return view.getResources().getDrawable(resourceId);
         }
     }
 
