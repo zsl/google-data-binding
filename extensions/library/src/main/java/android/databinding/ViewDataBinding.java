@@ -989,7 +989,8 @@ public abstract class ViewDataBinding extends BaseObservable {
         if (existingBinding != null) {
             return;
         }
-        final String tag = (String) view.getTag();
+        Object objTag = view.getTag();
+        final String tag = (objTag instanceof String) ? (String) objTag : null;
         boolean isBound = false;
         if (isRoot && tag != null && tag.startsWith("layout")) {
             final int underscoreIndex = tag.lastIndexOf('_');
@@ -1032,9 +1033,9 @@ public abstract class ViewDataBinding extends BaseObservable {
             for (int i = 0; i < count; i++) {
                 final View child = viewGroup.getChildAt(i);
                 boolean isInclude = false;
-                if (indexInIncludes >= 0) {
+                if (indexInIncludes >= 0 && child.getTag() instanceof String) {
                     String childTag = (String) child.getTag();
-                    if (childTag != null && childTag.endsWith("_0") &&
+                    if (childTag.endsWith("_0") &&
                             childTag.startsWith("layout") && childTag.indexOf('/') > 0) {
                         // This *could* be an include. Test against the expected includes.
                         int includeIndex = findIncludeIndex(childTag, minInclude,
@@ -1094,7 +1095,8 @@ public abstract class ViewDataBinding extends BaseObservable {
         int max = firstIncludedIndex;
         for (int i = firstIncludedIndex + 1; i < count; i++) {
             final View view = viewGroup.getChildAt(i);
-            final String tag = (String) view.getTag();
+            final Object objTag = view.getTag();
+            final String tag = objTag instanceof String ? (String) view.getTag() : null;
             if (tag != null && tag.startsWith(tagBase)) {
                 if (tag.length() == firstViewTag.length() && tag.charAt(tag.length() - 1) == '0') {
                     return max; // Found another instance of the include
