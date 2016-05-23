@@ -770,6 +770,50 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertEquals('1', mBindingObject.charField.get());
     }
 
+    public void testBindPojo() throws Throwable {
+        makeVisible(mBinder.toField);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+        assertEquals("Hello", mBinder.toField.getText().toString());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.toField.setText("Goodbye");
+            }
+        });
+        final long timeout = SystemClock.uptimeMillis() + 500;
+        while ("Hello".equals(mBindingObject.textField) && SystemClock.uptimeMillis() < timeout) {
+            Thread.sleep(1);
+        }
+        assertEquals("Goodbye", mBindingObject.textField);
+    }
+
+    public void testBindStaticField() throws Throwable {
+        makeVisible(mBinder.toStaticField);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+        assertEquals("World", mBinder.toStaticField.getText().toString());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.toStaticField.setText("Cruel");
+            }
+        });
+        final long timeout = SystemClock.uptimeMillis() + 500;
+        while ("World".equals(mBindingObject.staticField) && SystemClock.uptimeMillis() < timeout) {
+            Thread.sleep(1);
+        }
+        assertEquals("Cruel", mBindingObject.staticField);
+    }
+
     private void makeVisible(final View... views) throws Throwable {
         runTestOnUiThread(new Runnable() {
             @Override
@@ -803,6 +847,8 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.convertFloat.setVisibility(View.GONE);
                 mBinder.convertDouble.setVisibility(View.GONE);
                 mBinder.convertChar.setVisibility(View.GONE);
+                mBinder.toField.setVisibility(View.GONE);
+                mBinder.toStaticField.setVisibility(View.GONE);
                 for (View view : views) {
                     view.setVisibility(View.VISIBLE);
                 }

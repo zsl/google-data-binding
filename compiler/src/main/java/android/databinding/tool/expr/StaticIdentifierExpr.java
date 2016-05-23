@@ -52,6 +52,8 @@ public class StaticIdentifierExpr extends IdentifierExpr {
 
     @Override
     public Expr cloneToModel(ExprModel model) {
-        return model.staticIdentifier(mName);
+        StaticIdentifierExpr expr = model.staticIdentifier(mName);
+        expr.setUserDefinedType(getUserDefinedType());
+        return expr;
     }
 }

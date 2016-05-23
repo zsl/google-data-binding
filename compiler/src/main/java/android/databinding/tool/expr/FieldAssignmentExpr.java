@@ -42,7 +42,7 @@ public class FieldAssignmentExpr extends Expr {
     }
 
     public Expr getTarget() {
-        return (FieldAccessExpr) getChildren().get(0);
+        return getChildren().get(0);
     }
 
     public Expr getValueExpr() {
@@ -51,6 +51,7 @@ public class FieldAssignmentExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
+        getTarget().resolveType(modelAnalyzer);
         return modelAnalyzer.findClass(void.class);
     }
 

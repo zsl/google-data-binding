@@ -219,5 +219,15 @@
                 android:inputType="number"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/toField"
+                android:text="@={obj.textField}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/toStaticField"
+                android:text="@={android.databinding.testapp.vo.TwoWayBindingObject.staticField}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
     </LinearLayout>
 </layout>

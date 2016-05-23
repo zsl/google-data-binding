@@ -65,6 +65,8 @@ public class TwoWayBindingObject {
     public int text1Changes;
     public int text2Changes;
     public CountDownLatch textLatch;
+    public String textField = "Hello";
+    public static String staticField = "World";
 
     public TwoWayBindingObject(Context context) {
         this.adapter = new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, VALUES);

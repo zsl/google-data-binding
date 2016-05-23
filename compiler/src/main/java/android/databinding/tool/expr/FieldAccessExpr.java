@@ -61,7 +61,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
         if (getGetter() == null) {
             return "Listeners do not support two-way binding";
         }
-        if (mGetter.setterName == null) {
+        if (mGetter.setterName == null && mGetter.type == Type.METHOD) {
             return "Two-way binding cannot resolve a setter for " + getResolvedType().toJavaCode() +
                     " property '" + mName + "'";
         }

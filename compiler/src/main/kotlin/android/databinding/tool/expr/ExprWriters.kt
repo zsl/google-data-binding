@@ -41,7 +41,9 @@ fun ExecutionPath.toCode(): KCode = kcode("") {
         // variables are read up top
         val localize = myExpr.shouldLocalizeInCallbacks() && !myExpr.isVariable()
         // if this is not a method call (or method call via field access, don't do anything
-        val eligible = localize || (myExpr is MethodCallExpr || (myExpr is FieldAccessExpr && myExpr.getter.type == Callable.Type.METHOD))
+        val eligible = localize || (myExpr is MethodCallExpr ||
+                (myExpr is FieldAccessExpr && myExpr.getter.type == Callable.Type.METHOD) ||
+                (myExpr is FieldAssignmentExpr))
         if (eligible) {
             val assign = if (localize) {
                 "${myExpr.scopedName()} = "
