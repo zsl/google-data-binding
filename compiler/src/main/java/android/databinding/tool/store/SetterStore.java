@@ -63,6 +63,9 @@ public class SetterStore {
                     if (o1.attributes.length != o2.attributes.length) {
                         return o2.attributes.length - o1.attributes.length;
                     }
+                    if (o1.mKey.attributeIndices.size() != o2.mKey.attributeIndices.size()) {
+                        return o2.mKey.attributeIndices.size() - o1.mKey.attributeIndices.size();
+                    }
                     ModelClass view1 = mClassAnalyzer.findClass(o1.mKey.viewType, null).erasure();
                     ModelClass view2 = mClassAnalyzer.findClass(o2.mKey.viewType, null).erasure();
                     if (!view1.equals(view2)) {
@@ -77,7 +80,7 @@ public class SetterStore {
                         // order by attribute name
                         Iterator<String> o1Keys = o1.mKey.attributeIndices.keySet().iterator();
                         Iterator<String> o2Keys = o2.mKey.attributeIndices.keySet().iterator();
-                        while (o1Keys.hasNext()) {
+                        while (o1Keys.hasNext() && o2Keys.hasNext()) {
                             String key1 = o1Keys.next();
                             String key2 = o2Keys.next();
                             int compare = key1.compareTo(key2);
@@ -319,9 +322,23 @@ public class SetterStore {
         L.d("STORE add multi-value BindingAdapter %d %s", attributes.length, bindingMethod);
         MultiValueAdapterKey key = new MultiValueAdapterKey(processingEnv, bindingMethod,
                 attributes, takesComponent, requireAll);
+        testRepeatedAttributes(key, bindingMethod);
         MethodDescription methodDescription = new MethodDescription(bindingMethod,
                 attributes.length, takesComponent);
         mStore.multiValueAdapters.put(key, methodDescription);
+    }
+
+    private static void testRepeatedAttributes(MultiValueAdapterKey key, ExecutableElement method) {
+        if (key.attributes.length != key.attributeIndices.size()) {
+            HashSet<String> names = new HashSet<>();
+            for (String attr : key.attributes) {
+                if (names.contains(attr)) {
+                    L.e(method, "Attribute \"" + attr + "\" is supplied multiple times in " +
+                            "BindingAdapter " + method.toString());
+                }
+                names.add(attr);
+            }
+        }
     }
 
     private static String[] stripAttributes(String[] attributes) {
