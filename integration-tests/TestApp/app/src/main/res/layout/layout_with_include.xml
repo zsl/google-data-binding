@@ -32,6 +32,13 @@
                      bind:innerObject="@{outerObject}"
                      bind:innerValue="@{`modified ` + outerObject.intValue}"
                     />
+
+            <!-- Add custom layout that adds its own inflated view -->
+            <android.databinding.testapp.view.BindingLinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    bind:nothing="@{0}"/>
+
             <!-- stick something in the middle that may mess with the tag IDs -->
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                       android:text="@{`` + outerObject.intValue}"/>
@@ -49,6 +56,11 @@
                      android:id="@+id/thirdMerge"
                      bind:innerObject="@{outerObject}"
                      bind:innerValue="@{`third ` + outerObject.intValue}"/>
+
+            <!-- Add custom layout that adds its own inflated view -->
+            <android.databinding.testapp.view.TaggedView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
 
             <FrameLayout android:layout_width="wrap_content"
                          android:layout_height="wrap_content">
