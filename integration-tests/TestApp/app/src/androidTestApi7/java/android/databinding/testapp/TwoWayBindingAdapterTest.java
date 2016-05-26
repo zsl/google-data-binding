@@ -83,6 +83,30 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    public void testSpinnerSelectedItemPosition() throws Throwable {
+        makeVisible(mBinder.spinner);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(0, mBindingObject.selectedItemPosition.get());
+                assertEquals(0, mBinder.spinner.getSelectedItemPosition());
+                mBinder.spinner.setSelection(1);
+            }
+        });
+        long timeout = SystemClock.uptimeMillis() + 500;
+        while (mBindingObject.selectedItemPosition.get() == 0 &&
+                SystemClock.uptimeMillis() < timeout) {
+            Thread.sleep(1);
+        }
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(1, mBinder.spinner.getSelectedItemPosition());
+                assertEquals(1, mBindingObject.selectedItemPosition.get());
+            }
+        });
+    }
+
     private void clickView(final View view, float offsetX) throws Throwable {
         final int[] xy = new int[2];
         final int[] viewSize = new int[2];
