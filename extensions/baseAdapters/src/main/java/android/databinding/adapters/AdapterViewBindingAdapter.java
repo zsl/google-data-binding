@@ -31,7 +31,7 @@ import android.widget.AdapterView.OnItemSelectedListener;
         @BindingMethod(type = AdapterView.class, attribute = "android:onItemLongClick", method = "setOnItemLongClickListener"),
 })
 @InverseBindingMethods({
-        @InverseBindingMethod(type = AbsListView.class, attribute = "android:selectedItemPosition"),
+        @InverseBindingMethod(type = AdapterView.class, attribute = "android:selectedItemPosition"),
 })
 public class AdapterViewBindingAdapter {
 
