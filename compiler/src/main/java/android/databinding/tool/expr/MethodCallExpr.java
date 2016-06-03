@@ -23,6 +23,7 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.solver.ExecutionPath;
+import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.KCode;
 
@@ -37,6 +38,7 @@ import static android.databinding.tool.reflection.Callable.STATIC;
 public class MethodCallExpr extends Expr {
     final String mName;
     Callable mGetter;
+    ModelMethod mMethod;
     // Allow protected calls -- only used for ViewDataBinding methods.
     private boolean mAllowProtected;
 
@@ -129,9 +131,8 @@ public class MethodCallExpr extends Expr {
 
             Expr target = getTarget();
             boolean isStatic = target instanceof StaticIdentifierExpr;
-            ModelMethod method = target.getResolvedType().getMethod(mName, args, isStatic,
-                    mAllowProtected);
-            if (method == null) {
+            mMethod = target.getResolvedType().getMethod(mName, args, isStatic, mAllowProtected);
+            if (mMethod == null) {
                 StringBuilder argTypes = new StringBuilder();
                 for (ModelClass arg : args) {
                     if (argTypes.length() != 0) {
@@ -146,7 +147,7 @@ public class MethodCallExpr extends Expr {
                         target.getResolvedType().toJavaCode());
                 throw e;
             }
-            if (!isStatic && method.isStatic()) {
+            if (!isStatic && mMethod.isStatic()) {
                 // found a static method on an instance. Use class instead
                 target.getParents().remove(this);
                 getChildren().remove(target);
@@ -158,11 +159,11 @@ public class MethodCallExpr extends Expr {
                 target = getTarget();
             }
             int flags = DYNAMIC;
-            if (method.isStatic()) {
+            if (mMethod.isStatic()) {
                 flags |= STATIC;
             }
-            mGetter = new Callable(Type.METHOD, method.getName(), null, method.getReturnType(args),
-                    method.getParameterTypes().length, flags, method);
+            mGetter = new Callable(Type.METHOD, mMethod.getName(), null, mMethod.getReturnType(args),
+                    mMethod.getParameterTypes().length, flags, mMethod);
         }
         return mGetter.resolvedType;
     }
@@ -206,7 +207,34 @@ public class MethodCallExpr extends Expr {
 
     @Override
     public String getInvertibleError() {
-        return "Method calls may not be used in two-way expressions";
+        final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+        getResolvedType(); // ensure mMethod has been set
+        if (mMethod == null) {
+            return "Could not find the method " + mName + " to inverse for two-way binding";
+        }
+        String inverse = setterStore.getInverseMethod(mMethod);
+        if (inverse == null) {
+            return "There is no inverse for method " + mName + ", you must add an " +
+                    "@InverseMethod annotation to the method to indicate which method " +
+                    "should be used when using it in two-way binding expressions";
+        }
+        return null;
+    }
+
+    @Override
+    public Expr generateInverse(ExprModel model, Expr value, String bindingClassName) {
+        getResolvedType(); // ensure mMethod has been resolved.
+        SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+        String methodName = setterStore.getInverseMethod(mMethod);
+        List<Expr> theseArgs = getArgs();
+        List<Expr> args = new ArrayList<>();
+        for (int i = 0; i < theseArgs.size() - 1; i++) {
+            args.add(theseArgs.get(i).cloneToModel(model));
+        }
+        args.add(value);
+        Expr varExpr = theseArgs.get(theseArgs.size() - 1).cloneToModel(model);
+        Expr methodCall = model.methodCall(getTarget().cloneToModel(model), methodName, args);
+        return varExpr.generateInverse(model, methodCall, bindingClassName);
     }
 
     @Override

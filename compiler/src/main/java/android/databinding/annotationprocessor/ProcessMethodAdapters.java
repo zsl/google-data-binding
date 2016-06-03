@@ -23,11 +23,13 @@ import android.databinding.BindingMethods;
 import android.databinding.InverseBindingAdapter;
 import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
+import android.databinding.InverseMethod;
 import android.databinding.Untaggable;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.util.StringUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -68,7 +70,8 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
         addConversions(roundEnv, store);
         addUntaggable(roundEnv, store);
         addInverseAdapters(roundEnv, processingEnvironment, store);
-        addInverseMethods(roundEnv, store);
+        addInverseBindingMethods(roundEnv, store);
+        addInverseMethods(roundEnv, processingEnvironment, store);
 
         try {
             store.write(buildInfo.modulePackage(), processingEnvironment);
@@ -277,7 +280,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
         }
     }
 
-    private void addInverseMethods(RoundEnvironment roundEnv, SetterStore store) {
+    private void addInverseBindingMethods(RoundEnvironment roundEnv, SetterStore store) {
         for (Element element : AnnotationUtil
                 .getElementsAnnotatedWith(roundEnv, InverseBindingMethods.class)) {
             InverseBindingMethods bindingMethods =
@@ -297,9 +300,117 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 } catch (MirroredTypeException e) {
                     type = e.getTypeMirror().toString();
                 }
-                store.addInverseMethod(attribute, event, type, method, (TypeElement) element);
+                store.addInverseBindingMethod(attribute, event, type, method, (TypeElement)element);
             }
         }
+    }
+
+    private void addInverseMethods(RoundEnvironment roundEnv, ProcessingEnvironment processingEnv,
+            SetterStore store) {
+        for (Element element : AnnotationUtil
+                .getElementsAnnotatedWith(roundEnv, InverseMethod.class)) {
+            if (!element.getModifiers().contains(Modifier.PUBLIC)) {
+                L.e(element, "@InverseMethods must be associated with a public method");
+                continue;
+            }
+            ExecutableElement executableElement = (ExecutableElement) element;
+            if (executableElement.getReturnType().getKind() == TypeKind.VOID) {
+                L.e(element, "@InverseMethods must have a non-void return type");
+                continue;
+            }
+            final InverseMethod inverseMethod =
+                    executableElement.getAnnotation(InverseMethod.class);
+            final String target = inverseMethod.value();
+            if (!StringUtils.isNotBlank(target)) {
+                L.e(element, "@InverseMethod must supply a value containing the name of the " +
+                        "method to call when going from View value to bound value");
+                continue;
+            }
+            if (executableElement.getParameters().isEmpty()) {
+                L.e(element, "@InverseMethods must have at least one parameter.");
+                continue;
+            }
+            try {
+                ExecutableElement inverse = findInverseOf(processingEnv, executableElement,
+                        inverseMethod.value());
+                store.addInverseMethod(processingEnv, executableElement, inverse);
+            } catch (IllegalArgumentException e) {
+                L.e(element, "%s", e.getMessage());
+            }
+        }
+    }
+
+    private ExecutableElement findInverseOf(ProcessingEnvironment env, ExecutableElement method,
+            String name) throws IllegalArgumentException {
+        TypeElement enclosingType = (TypeElement) method.getEnclosingElement();
+        List<? extends VariableElement> params = method.getParameters();
+        Types typeUtil = env.getTypeUtils();
+        for (Element element : env.getElementUtils().getAllMembers(enclosingType)) {
+            if (element.getKind() == ElementKind.METHOD) {
+                ExecutableElement executableElement = (ExecutableElement) element;
+                if (!name.equals(executableElement.getSimpleName().toString())) {
+                    continue;
+                }
+
+                List<? extends VariableElement> checkParams = executableElement.getParameters();
+                boolean allTypesMatch = true;
+                // now check the parameters
+                for (int i = 0; i < params.size() - 1; i++) {
+                    TypeMirror expectedType = typeUtil.erasure(params.get(i).asType());
+                    TypeMirror foundType = typeUtil.erasure(checkParams.get(i).asType());
+                    if (!typeUtil.isSameType(expectedType, foundType)) {
+                        allTypesMatch = false;
+                        break;
+                    }
+                }
+                if (allTypesMatch) {
+                    TypeMirror expectedType = typeUtil.erasure(method.getReturnType());
+                    TypeMirror foundType =
+                            typeUtil.erasure(checkParams.get(checkParams.size() - 1).asType());
+                    allTypesMatch = typeUtil.isSameType(expectedType, foundType);
+                    if (allTypesMatch) {
+                        // check return type
+                        expectedType =
+                                typeUtil.erasure(params.get(params.size() - 1).asType());
+                        foundType = typeUtil.erasure(executableElement.getReturnType());
+                        if (!typeUtil.isSameType(expectedType, foundType)) {
+                            throw new IllegalArgumentException(String.format(
+                                    "Declared InverseMethod ('%s') does not have the correct " +
+                                            "return type. Expected '%s' but was '%s'",
+                                    executableElement, expectedType, foundType));
+                        }
+                    }
+                    if (method.getModifiers().contains(Modifier.STATIC) !=
+                            executableElement.getModifiers().contains(Modifier.STATIC)) {
+                        throw new IllegalArgumentException(String.format(
+                                "'%s' declared instance method is different from its " +
+                                        "InverseMethod '%s'. Make them both static or instance " +
+                                        "methods.", method, executableElement));
+                    }
+                    if (!executableElement.getModifiers().contains(Modifier.PUBLIC)) {
+                        throw new IllegalArgumentException(String.format(
+                                "InverseMethod must be declared public '%s'", executableElement));
+                    }
+                    return executableElement;
+                }
+            }
+        }
+        StringBuilder paramStr = new StringBuilder();
+        for (int i = 0; i < params.size() - 1; i++) {
+            if (i != 0) {
+                paramStr.append(", ");
+            }
+            paramStr.append(params.get(i).asType());
+        }
+        if (params.size() != 1) {
+            paramStr.append(", ");
+        }
+        paramStr.append(method.getReturnType());
+        String staticStr = method.getModifiers().contains(Modifier.STATIC) ? "static " : "";
+        TypeMirror returnType = params.get(params.size() - 1).asType();
+        throw new IllegalArgumentException(String.format(
+                "Could not find inverse method: public %s%s %s(%s)", staticStr, returnType,
+                name, paramStr));
     }
 
     private void addUntaggable(RoundEnvironment roundEnv, SetterStore store) {

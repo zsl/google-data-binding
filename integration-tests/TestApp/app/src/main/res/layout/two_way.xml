@@ -229,5 +229,36 @@
                 android:text="@={android.databinding.testapp.vo.TwoWayBindingObject.staticField}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/simpleInstanceMethod"
+                android:text="@={obj.convertFromInt(obj.intField)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/simpleStaticMethod"
+                android:text="@={android.databinding.testapp.vo.TwoWayBindingObject.convertFromFloat(obj.floatField)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/genericInstanceMethod"
+                android:text="@={obj.convertFromList(obj.stringList)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/typedInstanceMethod"
+                android:text="@={obj.convertFromStringList(obj.stringList)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/arrayMethod"
+                android:text="@={obj.convertFromIntArray(obj.anotherArray)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        <EditText
+                android:id="@+id/pigLatin"
+                android:text="@={obj.fromPigLatin(obj.pigLatin)}"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
     </LinearLayout>
 </layout>

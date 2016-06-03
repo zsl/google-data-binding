@@ -19,6 +19,7 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.databinding.testapp.databinding.TwoWayBinding;
 import android.databinding.testapp.vo.TwoWayBindingObject;
+import android.os.Debug;
 import android.os.SystemClock;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -66,11 +67,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.listView.setSelection(1);
             }
         });
-        long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.selectedItemPosition.get() == 0 &&
-                SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.selectedItemPosition.get() == 0;
+            }
+        });
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -165,10 +167,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             });
         } while (date[0] == date[1] && SystemClock.uptimeMillis() < timeout);
 
-        timeout = SystemClock.uptimeMillis() + 100;
-        while (mBindingObject.date.get() == 0 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.date.get() == 0;
+            }
+        });
 
         assertDatesMatch(date[0], mBindingObject.date.get());
     }
@@ -195,10 +199,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (!mBindingObject.checked.get() && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return !mBindingObject.checked.get();
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -260,10 +266,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
         assertTrue(focusOn(mBinder.textView));
 
-        final long timeout = SystemClock.uptimeMillis() + 10;
-        while (mBindingObject.number.get() == 1 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.number.get() == 1;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -285,10 +293,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.rating.get() == 1f && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.rating.get() == 1f;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -310,10 +320,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.progress.get() == 1 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.progress.get() == 1;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -343,10 +355,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.currentTab.get() == 0 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.currentTab.get() == 0;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -368,10 +382,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.text.get().isEmpty() && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.text.get().isEmpty();
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -397,10 +413,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.year.get() == 1972 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.year.get() == 1972;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -427,10 +445,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.year.get() == 1972 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.year.get() == 1972;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -457,10 +477,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.year.get() == 1972 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.year.get() == 1972;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -487,10 +509,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.year.get() == 1972 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.year.get() == 1972;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -517,10 +541,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.year.get() == 1972 && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.year.get() == 1972;
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -572,10 +598,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.text.get().isEmpty() && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.text.get().isEmpty();
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -599,10 +627,12 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.text.get().isEmpty() && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.text.get().isEmpty();
+            }
+        });
 
         runTestOnUiThread(new Runnable() {
             @Override
@@ -713,10 +743,13 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (!mBindingObject.booleanField.get() && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return !mBindingObject.booleanField.get();
+            }
+        });
+
         getInstrumentation().waitForIdleSync();
         assertTrue(mBindingObject.booleanField.get());
         assertEquals(123, mBindingObject.byteField.get());
@@ -755,10 +788,13 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        final long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.booleanField.get() && SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.booleanField.get();
+            }
+        });
+
         getInstrumentation().waitForIdleSync();
         assertFalse(mBindingObject.booleanField.get());
         assertEquals(1, mBindingObject.byteField.get());
@@ -807,11 +843,195 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.toStaticField.setText("Cruel");
             }
         });
+
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return "World".equals(mBindingObject.staticField);
+            }
+        });
+
+        assertEquals("Cruel", mBindingObject.staticField);
+    }
+
+    public void testSimpleInstanceMethod() throws Throwable {
+        mBindingObject.intField.set(5);
+        makeVisible(mBinder.simpleInstanceMethod);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+        assertEquals("5", mBinder.simpleInstanceMethod.getText().toString());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.simpleInstanceMethod.setText("6");
+            }
+        });
+
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.intField.get() == 5;
+            }
+        });
+
+        assertEquals(6, mBindingObject.intField.get());
+    }
+
+    public void testSimpleStaticMethod() throws Throwable {
+        mBindingObject.floatField.set(5f);
+        makeVisible(mBinder.simpleStaticMethod);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+        assertEquals("5.0", mBinder.simpleStaticMethod.getText().toString());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.simpleStaticMethod.setText("6.0");
+            }
+        });
+
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.floatField.get() == 5;
+            }
+        });
+
+        assertEquals(6f, mBindingObject.floatField.get());
+    }
+
+    public void testGenericInstanceMethod() throws Throwable {
+        makeVisible(mBinder.genericInstanceMethod);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+                assertEquals("one,two,three,four,five,six,seven,eight,nine,ten",
+                        mBinder.genericInstanceMethod.getText().toString());
+            }
+        });
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.genericInstanceMethod.setText("hello,world");
+            }
+        });
+
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.stringList.get().size() != 2;
+            }
+        });
+
+        assertEquals(2, mBindingObject.stringList.get().size());
+        assertEquals("hello", mBindingObject.stringList.get().get(0));
+    }
+
+    public void testTypedInstanceMethod() throws Throwable {
+        makeVisible(mBinder.typedInstanceMethod);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+                assertEquals("one,two,three,four,five,six,seven,eight,nine,ten",
+                        mBinder.typedInstanceMethod.getText().toString());
+            }
+        });
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.typedInstanceMethod.setText("hello,world");
+            }
+        });
+
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.stringList.get().size() != 2;
+            }
+        });
+
+        assertEquals(2, mBindingObject.stringList.get().size());
+        assertEquals("hello", mBindingObject.stringList.get().get(0));
+    }
+
+    public void testArrayMethod() throws Throwable {
+        makeVisible(mBinder.arrayMethod);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+                assertEquals("1,2,3,4,5,6,7,8,9,10", mBinder.arrayMethod.getText().toString());
+            }
+        });
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.arrayMethod.setText("2,3");
+            }
+        });
+
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.anotherArray.get().length > 2;
+            }
+        });
+
+        assertEquals(2, mBindingObject.anotherArray.get().length);
+        assertEquals(2, mBindingObject.anotherArray.get()[0]);
+    }
+
+    private void waitWhile(final TestCondition check) throws Throwable {
         final long timeout = SystemClock.uptimeMillis() + 500;
-        while ("World".equals(mBindingObject.staticField) && SystemClock.uptimeMillis() < timeout) {
+        final boolean[] val = new boolean[1];
+        do {
+            runTestOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    val[0] = check.testValue();
+                }
+            });
+            Thread.sleep(1);
+        } while (SystemClock.uptimeMillis() < timeout && !val[0]);
+    }
+
+    /**
+     * This tests whether the implicit inversion also works. We've declared a conversion
+     * to pig latin, and this ensures that binding to the inversion (from pig latin) is
+     * also declared implicitly.
+     */
+    public void testReversPigLatin() throws Throwable {
+        mBindingObject.pigLatin.set("atinLay");
+        makeVisible(mBinder.pigLatin);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+        assertEquals("Latin", mBinder.pigLatin.getText().toString());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.pigLatin.setText("Pig");
+            }
+        });
+        final long timeout = SystemClock.uptimeMillis() + 500;
+        while ("atinLay".equals(mBindingObject.pigLatin.get()) &&
+                SystemClock.uptimeMillis() < timeout) {
             Thread.sleep(1);
         }
-        assertEquals("Cruel", mBindingObject.staticField);
+        assertEquals("igPay", mBindingObject.pigLatin.get());
     }
 
     private void makeVisible(final View... views) throws Throwable {
@@ -849,11 +1069,20 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.convertChar.setVisibility(View.GONE);
                 mBinder.toField.setVisibility(View.GONE);
                 mBinder.toStaticField.setVisibility(View.GONE);
+                mBinder.simpleInstanceMethod.setVisibility(View.GONE);
+                mBinder.simpleStaticMethod.setVisibility(View.GONE);
+                mBinder.genericInstanceMethod.setVisibility(View.GONE);
+                mBinder.typedInstanceMethod.setVisibility(View.GONE);
+                mBinder.arrayMethod.setVisibility(View.GONE);
                 for (View view : views) {
                     view.setVisibility(View.VISIBLE);
                 }
             }
         });
         getInstrumentation().waitForIdleSync();
+    }
+
+    private interface TestCondition {
+        boolean testValue();
     }
 }

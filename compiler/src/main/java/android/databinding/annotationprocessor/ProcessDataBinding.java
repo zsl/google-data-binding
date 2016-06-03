@@ -40,6 +40,9 @@ import javax.xml.bind.JAXBException;
 
 @SupportedAnnotationTypes({
         "android.databinding.BindingAdapter",
+        "android.databinding.InverseBindingMethods",
+        "android.databinding.InverseBindingAdapter",
+        "android.databinding.InverseMethod",
         "android.databinding.Untaggable",
         "android.databinding.BindingMethods",
         "android.databinding.BindingConversion",

@@ -16,6 +16,7 @@
 package android.databinding.tool.store;
 
 import android.databinding.InverseBindingListener;
+import android.databinding.InverseMethod;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
@@ -47,11 +48,12 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 
 public class SetterStore {
     private static SetterStore sStore;
 
-    private final IntermediateV2 mStore;
+    private final IntermediateV3 mStore;
     private final ModelAnalyzer mClassAnalyzer;
     private HashMap<String, List<String>> mInstanceAdapters;
     private final HashSet<String> mInverseEventAttributes = new HashSet<String>();
@@ -146,7 +148,7 @@ public class SetterStore {
                 }
             };
 
-    private SetterStore(ModelAnalyzer modelAnalyzer, IntermediateV2 store) {
+    private SetterStore(ModelAnalyzer modelAnalyzer, IntermediateV3 store) {
         mClassAnalyzer = modelAnalyzer;
         mStore = store;
         for (HashMap<AccessorKey, InverseDescription> adapter : mStore.inverseAdapters.values()) {
@@ -169,7 +171,7 @@ public class SetterStore {
     }
 
     private static SetterStore load(ModelAnalyzer modelAnalyzer) {
-        IntermediateV2 store = new IntermediateV2();
+        IntermediateV3 store = new IntermediateV3();
         List<Intermediate> previousStores = GenerationalClassUtil
                 .loadObjects(GenerationalClassUtil.ExtensionFilter.SETTER_STORE);
         for (Intermediate intermediate : previousStores) {
@@ -192,7 +194,7 @@ public class SetterStore {
         renamed.put(declaringClass, methodDescription);
     }
 
-    public void addInverseMethod(String attribute, String event, String declaringClass,
+    public void addInverseBindingMethod(String attribute, String event, String declaringClass,
             String method, TypeElement declaredOn) {
         attribute = stripNamespace(attribute);
         event = stripNamespace(event);
@@ -205,6 +207,27 @@ public class SetterStore {
                 declaredOn.getQualifiedName().toString(), method, event);
         L.d("STORE addInverseMethod desc %s", methodDescription);
         inverseMethods.put(declaringClass, methodDescription);
+    }
+
+    public void addInverseMethod(ProcessingEnvironment processingEnvironment,
+            ExecutableElement method, ExecutableElement inverse) {
+        InverseMethodDescription from = new InverseMethodDescription(processingEnvironment, method);
+        InverseMethodDescription to = new InverseMethodDescription(processingEnvironment, inverse);
+
+        String storedToName = mStore.twoWayMethods.get(from);
+        if (storedToName != null && !to.method.equals(storedToName)) {
+            throw new IllegalArgumentException(String.format(
+                    "InverseMethod from %s to %s does not match expected method '%s'",
+                    method, inverse, storedToName));
+        }
+        String storedFromName = mStore.twoWayMethods.get(to);
+        if (storedFromName != null && !from.method.equals(storedFromName)) {
+            throw new IllegalArgumentException(String.format(
+                    "InverseMethod from %s to %s does not match expected method '%s'",
+                    inverse, method, storedFromName));
+        }
+        mStore.twoWayMethods.put(from, to.method);
+        mStore.twoWayMethods.put(to, from.method);
     }
 
     public void addBindingAdapter(ProcessingEnvironment processingEnv, String attribute,
@@ -796,6 +819,11 @@ public class SetterStore {
         return bestMethod.call;
     }
 
+    public String getInverseMethod(ModelMethod method) {
+        InverseMethodDescription description = new InverseMethodDescription(method);
+        return mStore.twoWayMethods.get(description);
+    }
+
     public boolean isUntaggable(String viewType) {
         return mStore.untaggableTypes.containsKey(viewType);
     }
@@ -1016,15 +1044,16 @@ public class SetterStore {
                 to.isAssignableFrom(from);
     }
 
-    private static void merge(IntermediateV2 store, Intermediate dumpStore) {
-        IntermediateV2 intermediateV2 = (IntermediateV2) dumpStore.upgrade();
-        merge(store.adapterMethods, intermediateV2.adapterMethods);
-        merge(store.renamedMethods, intermediateV2.renamedMethods);
-        merge(store.conversionMethods, intermediateV2.conversionMethods);
-        store.multiValueAdapters.putAll(intermediateV2.multiValueAdapters);
-        store.untaggableTypes.putAll(intermediateV2.untaggableTypes);
-        merge(store.inverseAdapters, intermediateV2.inverseAdapters);
-        merge(store.inverseMethods, intermediateV2.inverseMethods);
+    private static void merge(IntermediateV3 store, Intermediate dumpStore) {
+        IntermediateV3 intermediateV3 = (IntermediateV3) dumpStore.upgrade();
+        merge(store.adapterMethods, intermediateV3.adapterMethods);
+        merge(store.renamedMethods, intermediateV3.renamedMethods);
+        merge(store.conversionMethods, intermediateV3.conversionMethods);
+        store.multiValueAdapters.putAll(intermediateV3.multiValueAdapters);
+        store.untaggableTypes.putAll(intermediateV3.untaggableTypes);
+        merge(store.inverseAdapters, intermediateV3.inverseAdapters);
+        merge(store.inverseMethods, intermediateV3.inverseMethods);
+        store.twoWayMethods.putAll(intermediateV3.twoWayMethods);
     }
 
     private static <K, V, D> void merge(HashMap<K, HashMap<V, D>> first,
@@ -1256,6 +1285,90 @@ public class SetterStore {
         }
     }
 
+    private static class InverseMethodDescription implements Serializable {
+        private static final long serialVersionUID = 0xC00L;
+
+        public final boolean isStatic;
+        public final String returnType;
+        public final String method;
+        public final String[] parameterTypes;
+        public final String type;
+
+        public InverseMethodDescription(ProcessingEnvironment env, ExecutableElement method) {
+            this.isStatic = method.getModifiers().contains(Modifier.STATIC);
+            Types typeUtils = env.getTypeUtils();
+            this.returnType = getQualifiedName(typeUtils.erasure(method.getReturnType()));
+            this.method = method.getSimpleName().toString();
+            TypeElement enclosingClass = (TypeElement) method.getEnclosingElement();
+            this.type = enclosingClass.getQualifiedName().toString();
+
+            List<? extends VariableElement> parameters = method.getParameters();
+            this.parameterTypes = new String[parameters.size()];
+
+            for (int i = 0; i < parameters.size(); i++) {
+                VariableElement param  = parameters.get(i);
+                TypeMirror type = typeUtils.erasure(param.asType());
+                this.parameterTypes[i] = getQualifiedName(type);
+            }
+        }
+
+        public InverseMethodDescription(ModelMethod method) {
+            this.isStatic = method.isStatic();
+            this.returnType = method.getReturnType().erasure().getCanonicalName();
+            this.method = method.getName();
+            this.type = method.getDeclaringClass().getCanonicalName();
+
+            ModelClass[] parameters = method.getParameterTypes();
+            this.parameterTypes = new String[parameters.length];
+
+            for (int i = 0; i < parameters.length; i++) {
+                this.parameterTypes[i] = parameters[i].erasure().getCanonicalName();
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return mergedHashCode(type, isStatic, returnType, method,
+                    Arrays.hashCode(parameterTypes));
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj instanceof InverseMethodDescription) {
+                InverseMethodDescription that = (InverseMethodDescription) obj;
+                return this.isStatic == that.isStatic &&
+                        this.type.equals(that.type) &&
+                        this.returnType.equals(that.returnType) &&
+                        this.method.equals(that.method) &&
+                        Arrays.equals(this.parameterTypes, that.parameterTypes);
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            if (isStatic) {
+                sb.append("static ");
+            }
+            sb.append(returnType)
+                    .append(' ')
+                    .append(type)
+                    .append('.')
+                    .append(method)
+                    .append('(');
+            for (int i = 0; i < parameterTypes.length; i++) {
+                if (i != 0) {
+                    sb.append(", ");
+                }
+                sb.append(parameterTypes[i]);
+            }
+            sb.append(')');
+            return sb.toString();
+        }
+    }
+
     private interface Intermediate extends Serializable {
         Intermediate upgrade();
     }
@@ -1283,7 +1396,7 @@ public class SetterStore {
             v2.conversionMethods.putAll(conversionMethods);
             v2.untaggableTypes.putAll(untaggableTypes);
             v2.multiValueAdapters.putAll(multiValueAdapters);
-            return v2;
+            return v2.upgrade();
         }
     }
 
@@ -1293,6 +1406,24 @@ public class SetterStore {
                 new HashMap<String, HashMap<AccessorKey, InverseDescription>>();
         public final HashMap<String, HashMap<String, InverseDescription>> inverseMethods =
                 new HashMap<String, HashMap<String, InverseDescription>>();
+
+        @Override
+        public Intermediate upgrade() {
+            IntermediateV3 v3 = new IntermediateV3();
+            v3.adapterMethods.putAll(adapterMethods);
+            v3.renamedMethods.putAll(renamedMethods);
+            v3.conversionMethods.putAll(conversionMethods);
+            v3.untaggableTypes.putAll(untaggableTypes);
+            v3.multiValueAdapters.putAll(multiValueAdapters);
+            v3.inverseAdapters.putAll(inverseAdapters);
+            v3.inverseMethods.putAll(inverseMethods);
+            return v3.upgrade();
+        }
+    }
+
+    private static class IntermediateV3 extends IntermediateV2 {
+        private static final long serialVersionUID = 0xC00L;
+        public final HashMap<InverseMethodDescription, String> twoWayMethods = new HashMap<>();
 
         @Override
         public Intermediate upgrade() {

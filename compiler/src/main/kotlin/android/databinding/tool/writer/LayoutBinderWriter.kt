@@ -92,10 +92,10 @@ class ExprModelExt {
 
     fun getUniqueName(base : String, scope : Scope, isPublic : kotlin.Boolean) : String {
         var candidateBase = base
+        var candidate = candidateBase
         if (!isPublic && candidateBase.length > 20) {
             candidateBase = candidateBase.substring(0, 20);
         }
-        var candidate = candidateBase
         if (scope == Scope.CALLBACK || scope == Scope.EXECUTE_PENDING_METHOD) {
             candidate = candidate.decapitalize()
         }
