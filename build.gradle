@@ -241,11 +241,13 @@ def fullJar(project) {
                 // input is our inputLibrary
                 zipfileset(src: inputLibrary)
                 // rule to repackage antlr to new package
-                rule pattern: 'org.antlr.**', result: 'com.google.repacked.org.antlr.@1'
-                rule pattern: 'org.abego.treelayout.**', result: 'com.google.repacked.treelayout.@1'
+                rule pattern: 'org.antlr.**', result: 'android.databinding.repacked.org.antlr.@1'
+                rule pattern: 'org.abego.treelayout.**', result: 'android.databinding.repacked.treelayout.@1'
                 // rule to repackage commons
-                rule pattern: 'org.apache.**', result: 'com.google.repacked.apache.@1'
-                rule pattern: 'kotlin.**', result: 'com.google.repacked.kotlin.@1'
+                rule pattern: 'org.apache.**', result: 'android.databinding.repacked.apache.@1'
+                rule pattern: 'kotlin.**', result: 'android.databinding.repacked.kotlin.@1'
+                rule pattern: 'org.stringtemplate.**', result: 'android.databinding.repacked.stringtemplate.@1'
+                rule pattern: 'com.google.**', result: 'android.databinding.repacked.google.@1'
             }
         }
     }
