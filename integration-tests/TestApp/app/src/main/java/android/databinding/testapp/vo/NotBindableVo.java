@@ -26,6 +26,7 @@ public class NotBindableVo {
     private String mStringValue;
     private int mStringValueGetCount;
     private final String mFinalString = "this has final content";
+    public Boolean boolObject;
     public final int publicField = 3;
     public static AtomicInteger sStaticCounter = new AtomicInteger();
 

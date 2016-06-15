@@ -64,6 +64,14 @@ public class UnaryExpr extends Expr {
         return constructDynamicChildrenDependencies();
     }
 
+    @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        Expr expr = getExpr();
+        if (expr.getResolvedType().isNullable()) {
+            safeUnboxChild(model, expr);
+        }
+    }
+
     private String getOpStr() {
         switch (mOp.charAt(0)) {
             case '~' : return "bitNot";

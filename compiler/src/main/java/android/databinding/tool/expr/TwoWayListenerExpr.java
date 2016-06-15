@@ -51,6 +51,11 @@ public class TwoWayListenerExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // nothing to unbox
+    }
+
+    @Override
     public Expr cloneToModel(ExprModel model) {
         return model.twoWayListenerExpr(mInverseBinding);
     }

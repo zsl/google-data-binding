@@ -71,6 +71,11 @@ public class ExprTest{
         }
 
         @Override
+        public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+
+        }
+
+        @Override
         public boolean isDynamic() {
             return true;
         }
@@ -107,6 +112,11 @@ public class ExprTest{
             @Override
             protected String getInvertibleError() {
                 return null;
+            }
+
+            @Override
+            public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+
             }
         };
         expr.getUniqueKey();
@@ -148,7 +158,7 @@ public class ExprTest{
         DummyExpr c = model.register(new DummyExpr("c", a, b));
         a.enableDirectInvalidation();
         b.enableDirectInvalidation();
-        c.setBindingExpression(true);
+        c.markAsBindingExpression();
         model.seal();
         assertFlags(c, a, b);
     }
@@ -161,7 +171,7 @@ public class ExprTest{
         DummyExpr c = model.register(new DummyExpr("c", b));
         a.enableDirectInvalidation();
         b.enableDirectInvalidation();
-        c.setBindingExpression(true);
+        c.markAsBindingExpression();
         model.seal();
         assertFlags(c, a, b);
     }
@@ -171,7 +181,7 @@ public class ExprTest{
         ExprModel model = new ExprModel();
         DummyExpr a = model.register(new DummyExpr("a"));
         a.enableDirectInvalidation();
-        a.setBindingExpression(true);
+        a.markAsBindingExpression();
         model.seal();
         assertFlags(a, a);
     }
@@ -184,8 +194,8 @@ public class ExprTest{
         DummyExpr c = model.register(new DummyExpr("c", b));
         a.enableDirectInvalidation();
         b.enableDirectInvalidation();
-        b.setBindingExpression(true);
-        c.setBindingExpression(true);
+        b.markAsBindingExpression();
+        c.markAsBindingExpression();
         model.seal();
         assertFlags(b, a, b);
         assertFlags(c, a, b);

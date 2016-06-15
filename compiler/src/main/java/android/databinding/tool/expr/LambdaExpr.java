@@ -83,6 +83,11 @@ public class LambdaExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // nothing to do here
+    }
+
+    @Override
     protected KCode generateCode() {
         Preconditions
                 .checkNotNull(mCallbackWrapper, "Cannot find the callback method for %s", this);

@@ -117,6 +117,15 @@ public class BracketExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        Expr arg = getArg();
+        ModelClass resolvedType = arg.getResolvedType();
+        if (resolvedType.isNullable()) {
+            safeUnboxChild(model, arg);
+        }
+    }
+
+    @Override
     protected KCode generateCode() {
         String cast = argCastsInteger() ? "(Integer) " : "";
         switch (getAccessor()) {

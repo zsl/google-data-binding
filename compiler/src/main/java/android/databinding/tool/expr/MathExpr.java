@@ -26,7 +26,6 @@ import com.google.common.collect.Lists;
 import java.util.List;
 
 public class MathExpr extends Expr {
-    static final String DYNAMIC_UTIL = "android.databinding.DynamicUtil";
     final String mOp;
 
     MathExpr(Expr left, String op, Expr right) {
@@ -104,6 +103,21 @@ public class MathExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        final Expr left = getLeft();
+        final Expr right = getRight();
+        if (left.getResolvedType().isString() || right.getResolvedType().isString()) {
+            return;
+        }
+        if (left.getResolvedType().isNullable()) {
+            safeUnboxChild(model, left);
+        }
+        if (right.getResolvedType().isNullable()) {
+            safeUnboxChild(model, right);
+        }
+    }
+
+    @Override
     public Expr generateInverse(ExprModel model, Expr value, String bindingClassName) {
         final Expr left = getLeft();
         final Expr right = getRight();
@@ -146,10 +160,7 @@ public class MathExpr extends Expr {
     }
 
     private Expr parseInverse(ExprModel model, Expr value, Expr prev) {
-        IdentifierExpr dynamicUtil = model.staticIdentifier(DYNAMIC_UTIL);
-        dynamicUtil.setUserDefinedType(DYNAMIC_UTIL);
-
-        return model.methodCall(dynamicUtil, "parse", Lists.newArrayList(value, prev));
+        return model.methodCall(model.dynamicUtil(), "parse", Lists.newArrayList(value, prev));
     }
 
     @Override

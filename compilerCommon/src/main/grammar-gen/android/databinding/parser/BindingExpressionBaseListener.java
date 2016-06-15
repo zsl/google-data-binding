@@ -268,6 +268,18 @@ public class BindingExpressionBaseListener implements BindingExpressionListener 
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterGlobalMethodInvocation(BindingExpressionParser.GlobalMethodInvocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitGlobalMethodInvocation(BindingExpressionParser.GlobalMethodInvocationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterMathOp(BindingExpressionParser.MathOpContext ctx) { }
 	/**
 	 * {@inheritDoc}

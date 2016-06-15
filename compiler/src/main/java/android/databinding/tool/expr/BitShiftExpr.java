@@ -44,6 +44,18 @@ public class BitShiftExpr extends Expr {
         return constructDynamicChildrenDependencies();
     }
 
+    @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        Expr left = getLeft();
+        if (left.getResolvedType().isNullable()) {
+            safeUnboxChild(model, left);
+        }
+        Expr right = getRight();
+        if(right.getResolvedType().isNullable()) {
+            safeUnboxChild(model, right);
+        }
+    }
+
     public String getOp() {
         return mOp;
     }

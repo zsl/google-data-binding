@@ -20,6 +20,8 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.writer.KCode;
 
+import com.google.common.base.Joiner;
+
 import java.util.List;
 
 /**
@@ -45,6 +47,25 @@ public class ArgListExpr extends Expr {
     protected KCode generateCode() {
         throw new IllegalStateException("should never try to convert an argument expressions"
                 + " into code");
+    }
+
+    @Override
+    public String toString() {
+        return "(" + Joiner.on(",").join(getChildren()) + ")";
+    }
+
+    @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // binding class will call injectSafeUnboxingForParams to do the replacement
+    }
+
+    public void injectSafeUnboxingForParams(ExprModel exprModel, ModelClass[] params) {
+        for (int  i = 0; i < params.length; i++) {
+            Expr child = getChildren().get(i);
+            if (!params[i].isNullable() && child.getResolvedType().isNullable()) {
+                safeUnboxChild(exprModel, child);
+            }
+        }
     }
 
     @Override

@@ -58,7 +58,7 @@ public class MergedBinding extends Binding {
             args.add(binding.getExpr());
         }
         Expr expr = model.argListExpr(args);
-        expr.setBindingExpression(true);
+        expr.markAsBindingExpression();
         return expr;
     }
 
@@ -68,6 +68,13 @@ public class MergedBinding extends Binding {
             sb.append(binding.getName());
         }
         return sb.toString();
+    }
+
+    @Override
+    public void injectSafeUnboxing(ExprModel exprModel) {
+        ModelClass[] params = mMultiAttributeSetter.getParameterTypes();
+        ArgListExpr args = (ArgListExpr) getExpr();
+        args.injectSafeUnboxingForParams(exprModel, params);
     }
 
     public Expr[] getComponentExpressions() {

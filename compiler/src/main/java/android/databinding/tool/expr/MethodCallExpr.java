@@ -122,6 +122,25 @@ public class MethodCallExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        ModelMethod method = mMethod;
+        int limit = getArgs().size();
+        for (int i = 0; i < limit; i++) {
+            Expr arg = getArgs().get(i);
+            ModelClass expected = method.getParameterAt(i);
+            if (arg.getResolvedType().isNullable() && !expected.isNullable()) {
+                safeUnboxChild(model, arg);
+            }
+        }
+    }
+
+    @Override
+    protected void resetResolvedType() {
+        super.resetResolvedType();
+        mGetter = null;
+    }
+
+    @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
         if (mGetter == null) {
             List<ModelClass> args = new ArrayList<ModelClass>();
@@ -181,8 +200,8 @@ public class MethodCallExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(getTarget().computeUniqueKey(), mName,
-                super.computeUniqueKey());
+        return join(getTarget().computeUniqueKey(), mName, "(",
+                super.computeUniqueKey(), ")");
     }
 
     public Expr getTarget() {

@@ -88,6 +88,11 @@ public class ExprModelTest {
         protected String getInvertibleError() {
             return "DummyExpr cannot be 2-way.";
         }
+
+        @Override
+        public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+
+        }
     }
 
     ExprModel mExprModel;

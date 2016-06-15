@@ -69,6 +69,7 @@ expression
 //    |   expression '.' explicitGenericInvocation        # ExplicitGenericInvocationOp
     |   expression '[' expression ']'                   # BracketOp
     |   target=expression '.' methodName=Identifier '(' args=expressionList? ')' # MethodInvocation
+    |   methodName=Identifier '(' args=expressionList? ')' # GlobalMethodInvocation
     |   '(' type ')' expression                         # CastOp
     |   op=('+'|'-') expression                         # UnaryOp
     |   op=('~'|'!') expression                         # UnaryOp

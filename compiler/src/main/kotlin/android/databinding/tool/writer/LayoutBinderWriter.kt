@@ -1019,7 +1019,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     if (!assignedValues.isEmpty()) {
                         val assignment = kcode("") {
                             assignedValues.forEach { expr: Expr ->
-                                tab("// read ${expr}")
+                                tab("// read $expr")
                                 tab("${expr.executePendingLocalName}").app(" = ", expr.toFullCode()).app(";")
                             }
                         }
@@ -1053,7 +1053,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                 val ternaryFlags = it.shouldReadWithConditionalsFlagSet
                                 "if(${tmpDirtyFlags.mapOr(ternaryFlags){ suffix, index ->
                                     "(${tmpDirtyFlags.localValue(index)} & ${ternaryFlags.localValue(index)}) != 0"
-                                }.joinToString(" || ")}) {"
+                                }.joinToString(" || ")})"
                             } else {
                                 // TODO if it is behind a ternary, we should set it when its predicate is elevated
                                 // Normally, this would mean that there is another code path to re-read our current expression.
@@ -1064,9 +1064,14 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             }
                         }.forEach {
                             val hasAnotherIf = it.key != ""
-                            if (hasAnotherIf) {
-                                tab(it.key) {
-                                    tab("if (${expr.executePendingLocalName}) {") {
+                            val cond : (KCode.() -> Unit) = {
+                                it.apply {
+                                    val predicate = if (expr.resolvedType.isNullable) {
+                                        "Boolean.TRUE.equals(${expr.executePendingLocalName})"
+                                    } else {
+                                        expr.executePendingLocalName
+                                    }
+                                    block("if($predicate)") {
                                         it.value.forEach {
                                             val set = it.getRequirementFlagSet(true)
                                             mDirtyFlags.mapOr(set) { suffix, index ->
@@ -1074,32 +1079,20 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                             }
                                         }
                                     }
-                                    tab("} else {") {
+                                    block("else") {
                                         it.value.forEach {
                                             val set = it.getRequirementFlagSet(false)
                                             mDirtyFlags.mapOr(set) { suffix, index ->
                                                 tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
                                             }
                                         }
-                                    }.tab("}")
-                                }.app("}")
-                            } else {
-                                tab("if (${expr.executePendingLocalName}) {") {
-                                    it.value.forEach {
-                                        val set = it.getRequirementFlagSet(true)
-                                        mDirtyFlags.mapOr(set) { suffix, index ->
-                                            tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
-                                        }
                                     }
                                 }
-                                tab("} else {") {
-                                    it.value.forEach {
-                                        val set = it.getRequirementFlagSet(false)
-                                        mDirtyFlags.mapOr(set) { suffix, index ->
-                                            tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
-                                        }
-                                    }
-                                } app("}")
+                            }
+                            if (hasAnotherIf) {
+                                block(it.key, cond)
+                            } else {
+                                cond()
                             }
                         }
                         val chosen = expr.dependants.filter {

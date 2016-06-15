@@ -18,6 +18,7 @@ package android.databinding.tool;
 
 import android.databinding.tool.expr.Expr;
 import android.databinding.tool.expr.ExprModel;
+import android.databinding.tool.expr.TwoWayListenerExpr;
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
@@ -68,6 +69,7 @@ public class BindingTarget implements LocationScopeProvider {
         expr.assertIsInvertible();
         final InverseBinding inverseBinding = new InverseBinding(this, name, expr, bindingClass);
         mInverseBindings.add(inverseBinding);
+        expr.markAsBindingExpression();
         mBindings.add(new Binding(this, inverseBinding.getEventAttribute(),
                 mModel.twoWayListenerExpr(inverseBinding),
                 inverseBinding.getEventSetter()));
@@ -77,8 +79,9 @@ public class BindingTarget implements LocationScopeProvider {
     public InverseBinding addInverseBinding(String name, BindingGetterCall call) {
         final InverseBinding inverseBinding = new InverseBinding(this, name, call);
         mInverseBindings.add(inverseBinding);
-        mBindings.add(new Binding(this, inverseBinding.getEventAttribute(),
-                mModel.twoWayListenerExpr(inverseBinding)));
+        TwoWayListenerExpr expr = mModel.twoWayListenerExpr(inverseBinding);
+        expr.markAsBindingExpression();
+        mBindings.add(new Binding(this, inverseBinding.getEventAttribute(), expr));
         return inverseBinding;
     }
 
@@ -143,6 +146,15 @@ public class BindingTarget implements LocationScopeProvider {
 
     public void setModel(ExprModel model) {
         mModel = model;
+    }
+
+    /**
+     * Called after experiment model is sealed to avoid NPE problems caused by boxed primitives.
+     */
+    public void injectSafeUnboxing(ExprModel exprModel) {
+        for (Binding binding : mBindings) {
+            binding.injectSafeUnboxing(exprModel);
+        }
     }
 
     public void resolveListeners() {
@@ -230,7 +242,6 @@ public class BindingTarget implements LocationScopeProvider {
             }
 
             for (Binding binding : mergedBindings) {
-                binding.getExpr().setBindingExpression(false);
                 mBindings.remove(binding);
             }
             MergedBinding mergedBinding = new MergedBinding(getModel(), setter, this,

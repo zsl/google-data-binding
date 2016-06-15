@@ -119,6 +119,11 @@ public class ResourceExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // nothing to unbox
+    }
+
+    @Override
     protected List<Dependency> constructDependencies() {
         return constructDynamicChildrenDependencies();
     }

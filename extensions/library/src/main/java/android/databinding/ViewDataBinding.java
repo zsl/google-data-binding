@@ -957,6 +957,46 @@ public abstract class ViewDataBinding extends BaseObservable {
         }
     }
 
+    /** @hide */
+    protected static int safeUnbox(java.lang.Integer boxed) {
+        return boxed == null ? 0 : (int)boxed;
+    }
+
+    /** @hide */
+    protected static long safeUnbox(java.lang.Long boxed) {
+        return boxed == null ? 0L : (long)boxed;
+    }
+
+    /** @hide */
+    protected static short safeUnbox(java.lang.Short boxed) {
+        return boxed == null ? 0 : (short)boxed;
+    }
+
+    /** @hide */
+    protected static byte safeUnbox(java.lang.Byte boxed) {
+        return boxed == null ? 0 : (byte)boxed;
+    }
+
+    /** @hide */
+    protected static char safeUnbox(java.lang.Character boxed) {
+        return boxed == null ? '\u0000' : (char)boxed;
+    }
+
+    /** @hide */
+    protected static double safeUnbox(java.lang.Double boxed) {
+        return boxed == null ? 0.0 : (double)boxed;
+    }
+
+    /** @hide */
+    protected static float safeUnbox(java.lang.Float boxed) {
+        return boxed == null ? 0f : (float)boxed;
+    }
+
+    /** @hide */
+    protected static boolean safeUnbox(java.lang.Boolean boxed) {
+        return boxed == null ? false : (boolean)boxed;
+    }
+
     /**
      * Walks the view hierarchy under roots and pulls out tagged Views, includes, and views with
      * IDs into an Object[] that is returned. This is used to walk the view hierarchy once to find

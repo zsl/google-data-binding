@@ -63,7 +63,7 @@ public class Binding implements LocationScopeProvider {
         final ModelClass listenerParameter = getListenerParameter(mTarget, mName, mExpr.getModel());
         Expr listenerExpr = mExpr.resolveListeners(listenerParameter, null);
         if (listenerExpr != mExpr) {
-            listenerExpr.setBindingExpression(true);
+            listenerExpr.markAsBindingExpression();
             mExpr = listenerExpr;
         }
     }
@@ -214,7 +214,7 @@ public class Binding implements LocationScopeProvider {
         return mName;
     }
 
-    public Expr getExpr() {
+    public final Expr getExpr() {
         return mExpr;
     }
 
@@ -228,6 +228,21 @@ public class Binding implements LocationScopeProvider {
     private static boolean isListenerAttribute(String name) {
         return ("android:onInflate".equals(name) ||
                 "android:onInflateListener".equals(name));
+    }
+
+    public void injectSafeUnboxing(ExprModel exprModel) {
+        ModelClass setterParam = getSetterCall().getParameterTypes()[0];
+        ModelClass resolvedType = getExpr().getResolvedType();
+        if (setterParam == null || resolvedType == null) {
+            return;
+        }
+        if (!setterParam.isNullable() && resolvedType.isNullable()
+                && mExpr.getResolvedType().unbox() != mExpr.getResolvedType()) {
+            L.w(ErrorMessages.BOXED_VALUE_CASTING, mExpr, mName, mExpr);
+            Expr prev = mExpr;
+            mExpr = exprModel.safeUnbox(mExpr);
+            mExpr.markAsBindingExpression();
+        }
     }
 
     private static class ViewStubSetterCall extends SetterCall {

@@ -19,17 +19,40 @@ import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.StringUtils;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Booleans;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static android.databinding.tool.reflection.Callable.CAN_BE_INVALIDATED;
 import static android.databinding.tool.reflection.Callable.DYNAMIC;
 import static android.databinding.tool.reflection.Callable.STATIC;
 
 public abstract class ModelClass {
+    public static Map<Class, Class> BOX_MAPPING;
+    public static Map<Class, Class> UNBOX_MAPPING;
+    {
+        BOX_MAPPING = ImmutableMap.<Class, Class>builder()
+                .put(int.class, Integer.class)
+                .put(long.class, Long.class)
+                .put(short.class, Short.class)
+                .put(byte.class, Byte.class)
+                .put(char.class, Character.class)
+                .put(double.class, Double.class)
+                .put(float.class, Float.class)
+                .put(boolean.class, Boolean.class)
+                .build();
+        ImmutableMap.Builder<Class, Class> reverseBuilder = ImmutableMap.<Class, Class>builder();
+        for (Map.Entry<Class, Class> entry : BOX_MAPPING.entrySet()) {
+            reverseBuilder.put(entry.getValue(), entry.getKey());
+        }
+        UNBOX_MAPPING = reverseBuilder.build();
+    }
     public abstract String toJavaCode();
 
     /**

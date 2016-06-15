@@ -1,10 +1,15 @@
 package android.databinding.tool.writer;
 
+import android.databinding.tool.expr.ExprModel
+import android.databinding.tool.reflection.ModelAnalyzer
+import android.databinding.tool.reflection.ModelClass
+
 class DynamicUtilWriter() {
     public fun write(targetSdk : kotlin.Int) : KCode = kcode("package android.databinding;") {
         nl("")
         nl("import android.os.Build.VERSION;")
         nl("import android.os.Build.VERSION_CODES;")
+        nl("import android.databinding.BindingConversion;")
         nl("")
         block("public class DynamicUtil") {
             nl("@SuppressWarnings(\"deprecation\")")
@@ -96,6 +101,12 @@ class DynamicUtilWriter() {
                     nl("return fallback;")
                 }
                 nl("return str.charAt(0);")
+            }
+            val analyzer = ModelAnalyzer.getInstance();
+            ModelClass.UNBOX_MAPPING.forEach {
+                block("public static ${it.value.simpleName} ${ExprModel.SAFE_UNBOX_METHOD_NAME}(${it.key.canonicalName} boxed)") {
+                    nl("return boxed == null ? ${analyzer.getDefaultValue(it.value.simpleName)} : (${it.value.canonicalName})boxed;");
+                }
             }
         }
    }

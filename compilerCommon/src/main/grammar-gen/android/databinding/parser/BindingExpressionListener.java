@@ -252,6 +252,18 @@ public interface BindingExpressionListener extends ParseTreeListener {
 	 */
 	void exitDotOp(BindingExpressionParser.DotOpContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code GlobalMethodInvocation}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterGlobalMethodInvocation(BindingExpressionParser.GlobalMethodInvocationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code GlobalMethodInvocation}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitGlobalMethodInvocation(BindingExpressionParser.GlobalMethodInvocationContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code MathOp}
 	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree

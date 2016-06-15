@@ -48,6 +48,40 @@ public abstract class TypeUtil {
 
     abstract public String getDescription(ModelMethod modelMethod);
 
+    public String toBinaryName(String name) {
+        if (name.endsWith("[]")) {
+            return "[" + toBinaryName(name.substring(0, name.length() - 2));
+        }
+        if (boolean.class.getSimpleName().equals(name)) {
+            return BOOLEAN;
+        }
+        if (byte.class.getSimpleName().equals(name)) {
+            return BYTE;
+        }
+        if (short.class.getSimpleName().equals(name)) {
+            return SHORT;
+        }
+        if (int.class.getSimpleName().equals(name)) {
+            return INT;
+        }
+        if (long.class.getSimpleName().equals(name)) {
+            return LONG;
+        }
+        if (char.class.getSimpleName().equals(name)) {
+            return CHAR;
+        }
+        if (float.class.getSimpleName().equals(name)) {
+            return FLOAT;
+        }
+        if (double.class.getSimpleName().equals(name)) {
+            return DOUBLE;
+        }
+        if (void.class.getSimpleName().equals(name)) {
+            return VOID;
+        }
+        return name;
+    }
+
     public static TypeUtil getInstance() {
         if (sInstance == null) {
             sInstance = ModelAnalyzer.getInstance().createTypeUtil();

@@ -53,6 +53,14 @@ public class CastExpr extends Expr {
         return getChildren().get(0);
     }
 
+    @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        Expr castExpr = getCastExpr();
+        if (castExpr.getResolvedType().isNullable() && !getResolvedType().isNullable()) {
+            safeUnboxChild(model, castExpr);
+        }
+    }
+
     public String getCastType() {
         return getResolvedType().toJavaCode();
     }

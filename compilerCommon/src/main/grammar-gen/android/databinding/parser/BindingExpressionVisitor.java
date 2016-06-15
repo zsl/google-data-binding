@@ -154,6 +154,13 @@ public interface BindingExpressionVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitDotOp(BindingExpressionParser.DotOpContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code GlobalMethodInvocation}
+	 * labeled alternative in {@link BindingExpressionParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGlobalMethodInvocation(BindingExpressionParser.GlobalMethodInvocationContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code MathOp}
 	 * labeled alternative in {@link BindingExpressionParser#expression}.
 	 * @param ctx the parse tree

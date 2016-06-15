@@ -13,6 +13,7 @@
 
 package android.databinding.tool;
 
+import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.reflection.InjectedClass;
 import android.databinding.tool.reflection.InjectedMethod;
 import android.databinding.tool.reflection.ModelAnalyzer;
@@ -25,8 +26,14 @@ import android.databinding.tool.writer.DataBinderWriter;
 import android.databinding.tool.writer.DynamicUtilWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
+import com.google.common.collect.Maps;
+
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+
+import javax.lang.model.type.PrimitiveType;
+import javax.lang.model.type.TypeKind;
 
 /**
  * Chef class for compiler.
@@ -154,6 +161,13 @@ public class CompilerChef {
                 "double", "java.lang.String", "double"));
         injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
                 "char", "java.lang.String", "char"));
+        for (Map.Entry<Class, Class> entry : ModelClass.BOX_MAPPING.entrySet()) {
+            injectedClass.addMethod(new InjectedMethod(injectedClass, true,
+                    ExprModel.SAFE_UNBOX_METHOD_NAME,
+                    entry.getKey().getCanonicalName(), entry.getValue().getCanonicalName()));
+        }
+
+
         ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
         analyzer.injectClass(injectedClass);
         return injectedClass;

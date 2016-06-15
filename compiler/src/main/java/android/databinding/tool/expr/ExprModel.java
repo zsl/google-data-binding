@@ -19,6 +19,7 @@ package android.databinding.tool.expr;
 import android.databinding.tool.BindingTarget;
 import android.databinding.tool.CallbackWrapper;
 import android.databinding.tool.InverseBinding;
+import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
@@ -29,17 +30,21 @@ import android.databinding.tool.writer.ExprModelExt;
 import android.databinding.tool.writer.FlagSet;
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExprModel {
+    static final String DYNAMIC_UTIL = "android.databinding.DynamicUtil";
+    public static final String SAFE_UNBOX_METHOD_NAME = "safeUnbox";
 
     Map<String, Expr> mExprMap = new HashMap<String, Expr>();
 
@@ -199,6 +204,38 @@ public class ExprModel {
 
     public ViewFieldExpr viewFieldExpr(BindingTarget bindingTarget) {
         return register(new ViewFieldExpr(bindingTarget));
+    }
+
+    public IdentifierExpr dynamicUtil() {
+        IdentifierExpr dynamicUtil = staticIdentifier(DYNAMIC_UTIL);
+        dynamicUtil.setUserDefinedType(DYNAMIC_UTIL);
+        return dynamicUtil;
+    }
+
+    public MethodCallExpr safeUnbox(Expr expr) {
+        ModelClass resolvedType = expr.getResolvedType();
+        Preconditions.check(resolvedType.unbox() != resolvedType, ErrorMessages.CANNOT_UNBOX_TYPE,
+                resolvedType);
+        MethodCallExpr methodCallExpr = methodCall(dynamicUtil(), SAFE_UNBOX_METHOD_NAME,
+                Collections.singletonList(expr));
+        for (Location location : expr.getLocations()) {
+            methodCallExpr.addLocation(location);
+        }
+        return methodCallExpr;
+    }
+
+    /**
+     * These are global methods in the expressions.
+     * <p>
+     * To keep this list under control, we validate the method name instead of just resolving to
+     * DynamicUtil or parent.
+     */
+    public Expr globalMethodCall(String methodName, List<Expr> args) {
+        Preconditions.check(SAFE_UNBOX_METHOD_NAME.equals(methodName),
+                ErrorMessages.CANNOT_FIND_METHOD_ON_OWNER, methodName, "ViewDataBinding");
+        Preconditions.check(args.size() == 1,
+                ErrorMessages.ARGUMENT_COUNT_MISMATCH, 1, args.size());
+        return methodCall(dynamicUtil(), SAFE_UNBOX_METHOD_NAME, args);
     }
 
     /**
@@ -494,6 +531,18 @@ public class ExprModel {
             for (Expr expr : exprs) {
                 expr.updateExpr(modelAnalyzer);
             }
+        }
+        injectSafeUnboxing(modelAnalyzer);
+    }
+
+    /**
+     * This traverses each expression to inject a null-safe auto-unboxing th each expression
+     * that needs it.
+     */
+    private void injectSafeUnboxing(ModelAnalyzer modelAnalyzer) {
+        ArrayList<Expr> expressions = new ArrayList<Expr>(mBindingExpressions);
+        for (Expr expr : expressions) {
+            expr.recursivelyInjectSafeUnboxing(modelAnalyzer, this);
         }
     }
 

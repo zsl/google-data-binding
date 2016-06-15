@@ -15,12 +15,13 @@ dependencies {
 afterEvaluate {
     tasks['test'].systemProperties['useReleaseVersion'] = dataBindingConfig.inReleaseBuild ? 'true' : 'false'
     tasks['test'].systemProperties['addRemoteRepos'] = dataBindingConfig.addRemoteRepos ? 'true' : 'false'
+    tasks['test'].dependsOn(rootProject.subprojects.uploadArchives)
 }
 
 sourceSets {
     test {
         java {
-            srcDirs += "${project.rootProject.getProjectDir().getAbsolutePath()}/compiler/src/test/java/android/databinding/tool/reflection/java"
+            srcDirs += "src/test/compiler-test"
         }
     }
 }

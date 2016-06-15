@@ -18,6 +18,7 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
@@ -63,6 +64,10 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     // means this expression can directly be invalidated by the user
     private boolean mCanBeInvalidated = false;
 
+    // temporary variable used when recursively unboxing children. This allows us to decide
+    // whether we should re-consider the return type or not
+    private boolean mUnboxedAChild = false;
+
     @Nullable
     private List<Location> mLocations = new ArrayList<Location>();
 
@@ -92,7 +97,13 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
      */
     BitSet mShouldReadWithConditionals;
 
-    private boolean mIsBindingExpression;
+    /**
+     * Marks this expression such that it is the final result of an expression evaluation.
+     * <p>
+     * An expression may lose this property if it is wrapped or used via a multi-arg-adapter
+     * but we never unset it.
+     */
+    private boolean mIsBindingExpression = false;
 
     /**
      * Used by generators when this expression is resolved.
@@ -155,10 +166,9 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         return bitSet;
     }
 
-    public void setBindingExpression(boolean isBindingExpression) {
-        mIsBindingExpression = isBindingExpression;
+    public void markAsBindingExpression() {
+        mIsBindingExpression = true;
     }
-
     public boolean isBindingExpression() {
         return mIsBindingExpression;
     }
@@ -178,6 +188,25 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         }
         resetResolvedType();
         return this;
+    }
+
+    /**
+     * Tries to create a safe unbox method for the given expression.
+     * <p>
+     * Sometimes, the child might be just any object (especially returned from bracket expressions where any value type
+     * might be unknown). In this case, child stays instact.
+     * @param model ExprModel
+     * @param child The child that will be replaced with a safe unbox call.
+     */
+    public void safeUnboxChild(ExprModel model, Expr child) {
+        if (child.getResolvedType().unbox() == child.getResolvedType()) {
+            return;
+        }
+        mUnboxedAChild = true;
+        L.w(ErrorMessages.BOXED_VALUE_CASTING, child, this, child);
+        int index = getChildren().indexOf(child);
+        child.getParents().remove(this);
+        getChildren().set(index, model.safeUnbox(child));
     }
 
     public Expr resolveTwoWayExpressions(Expr parent) {
@@ -215,7 +244,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         // ensure we have invalid flags
         BitSet bitSet = new BitSet();
         // if i'm invalid, that DOES NOT mean i should be read :/.
-        if (mIsBindingExpression) {
+        if (isBindingExpression()) {
             bitSet.or(getInvalidFlags());
         }
 
@@ -236,7 +265,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         if (isRead()) {
             return bitSet;
         }
-        if (mIsBindingExpression) {
+        if (isBindingExpression()) {
             bitSet.or(getInvalidFlags());
         }
         for (Dependency dependency : getDependants()) {
@@ -310,7 +339,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         return false;
     }
 
-    public ModelClass getResolvedType() {
+    public final ModelClass getResolvedType() {
         if (mResolvedType == null) {
             // TODO not get instance
             try {
@@ -601,7 +630,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     @Override
     public String toString() {
-        return getUniqueKey();
+        return "[" + getClass().getSimpleName() + ":" + getUniqueKey() + "]";
     }
 
     public BitSet getReadSoFar() {
@@ -787,6 +816,39 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         }
         return false;
     }
+
+    public final boolean recursivelyInjectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        getResolvedType();
+        try {
+            Scope.enter(this);
+            mUnboxedAChild = false;
+            for (int i = getChildren().size() - 1; i >= 0; i--) {
+                Expr child = getChildren().get(i);
+                child.recursivelyInjectSafeUnboxing(modelAnalyzer, model);
+                mUnboxedAChild |= child.mUnboxedAChild;
+            }
+            if (mUnboxedAChild) {
+                // reset our resolved type since it may be depending on children
+                resetResolvedType();
+                getResolvedType();
+                mUnboxedAChild = false;
+            }
+            injectSafeUnboxing(modelAnalyzer, model);
+            if (mUnboxedAChild) {
+                // re calculate
+                resetResolvedType();
+                getResolvedType();
+            }
+        } finally {
+            Scope.exit();
+        }
+        return mUnboxedAChild;
+    }
+
+    /**
+     * Called after experiment model is sealed to avoid NPE problems caused by boxed primitives.
+     */
+    abstract protected void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model);
 
     static class Node {
 

@@ -86,13 +86,9 @@ public class JavaAnalyzer extends ModelAnalyzer {
         loaded = loadPrimitive(className);
         if (loaded == null) {
             try {
-                if (className.startsWith("[") && className.contains("L")) {
-                    int indexOfL = className.indexOf('L');
-                    JavaClass baseClass = (JavaClass) findClass(
-                            className.substring(indexOfL + 1, className.length() - 1), null);
-                    String realClassName = className.substring(0, indexOfL + 1) +
-                            baseClass.mClass.getCanonicalName() + ';';
-                    loaded = new JavaClass(Class.forName(realClassName, false, mClassLoader));
+                className = TypeUtil.getInstance().toBinaryName(className);
+                if (className.startsWith("[")) {
+                    loaded = new JavaClass(Class.forName(className, false, mClassLoader));
                     mClassCache.put(className, loaded);
                 } else {
                     loaded = loadRecursively(className);

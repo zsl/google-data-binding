@@ -323,6 +323,27 @@ class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
     }
 
     @Override
+    public Expr visitGlobalMethodInvocation(
+            BindingExpressionParser.GlobalMethodInvocationContext ctx) {
+        try {
+            onEnter(ctx);
+            List<Expr> args = new ArrayList<Expr>();
+            if (ctx.args != null) {
+                for (ParseTree item : ctx.args.children) {
+                    if (Objects.equal(item.getText(), ",")) {
+                        continue;
+                    }
+                    args.add(item.accept(this));
+                }
+            }
+
+            return mModel.globalMethodCall(ctx.methodName.getText(), args);
+        } finally {
+            onExit(ctx);
+        }
+    }
+
+    @Override
     public Expr visitMathOp(@NonNull BindingExpressionParser.MathOpContext ctx) {
         try {
             onEnter(ctx);

@@ -72,6 +72,23 @@ public class ComparisonExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        Expr left = getLeft();
+        Expr right = getRight();
+        if (left.getResolvedType().isNullable() && right.getResolvedType().isNullable()) {
+            if ("==".equals(mOp)) {
+                return;
+            }
+            safeUnboxChild(model, left);
+            safeUnboxChild(model, right);
+        } else if (left.getResolvedType().isNullable()) {
+            safeUnboxChild(model, left);
+        } else if (right.getResolvedType().isNullable()) {
+            safeUnboxChild(model, right);
+        }
+    }
+
+    @Override
     public Expr cloneToModel(ExprModel model) {
         return model.comparison(mOp, getLeft().cloneToModel(model), getRight().cloneToModel(model));
     }

@@ -63,6 +63,24 @@ public class TernaryExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        if (getPred().getResolvedType().isNullable()) {
+            safeUnboxChild(model, getPred());
+        }
+
+        if (!getResolvedType().isNullable()) {
+            Expr ifTrue = getIfTrue();
+            Expr ifFalse = getIfFalse();
+            if (ifTrue.getResolvedType().isNullable()) {
+                safeUnboxChild(model, ifTrue);
+            }
+            if (ifFalse.getResolvedType().isNullable()) {
+                safeUnboxChild(model, ifFalse);
+            }
+        }
+    }
+
+    @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
         final Expr ifTrue = getIfTrue();
         final Expr ifFalse = getIfFalse();

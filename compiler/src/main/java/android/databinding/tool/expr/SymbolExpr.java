@@ -54,6 +54,11 @@ public class SymbolExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // nothing to unbox
+    }
+
+    @Override
     protected KCode generateCode() {
         return new KCode(getText());
     }

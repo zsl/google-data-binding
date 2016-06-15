@@ -238,6 +238,7 @@ public class LayoutBinder implements FileScopeProvider {
                     bindingTarget.resolveTwoWayExpressions();
                     bindingTarget.resolveMultiSetters();
                     bindingTarget.resolveListeners();
+                    bindingTarget.injectSafeUnboxing(mExprModel);
                 } finally {
                     Scope.exit();
                 }
@@ -298,7 +299,7 @@ public class LayoutBinder implements FileScopeProvider {
 
     public Expr parse(String input, @Nullable Location locationInFile, BindingTarget target) {
         final Expr parsed = mExpressionParser.parse(input, locationInFile, target);
-        parsed.setBindingExpression(true);
+        parsed.markAsBindingExpression();
         return parsed;
     }
 

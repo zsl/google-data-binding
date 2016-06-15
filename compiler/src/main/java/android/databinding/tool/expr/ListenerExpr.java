@@ -50,6 +50,11 @@ public class ListenerExpr extends Expr {
         return mListenerType;
     }
 
+    @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // nothing to unbox
+    }
+
     public ModelMethod getMethod() {
         return mMethod;
     }

@@ -70,6 +70,11 @@ public class IdentifierExpr extends Expr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // nothing to unbox
+    }
+
+    @Override
     protected List<Dependency> constructDependencies() {
         return new ArrayList<Dependency>();
     }

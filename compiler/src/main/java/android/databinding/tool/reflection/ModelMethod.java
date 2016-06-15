@@ -111,6 +111,10 @@ public abstract class ModelMethod {
         return getReturnType(null);
     }
 
+    public ModelClass getParameterAt(int index) {
+        return getParameter(index, getParameterTypes());
+    }
+
     private ModelClass getParameter(int index, ModelClass[] parameterTypes) {
         int normalParamCount = isVarArgs() ? parameterTypes.length - 1 : parameterTypes.length;
         if (index < normalParamCount) {
@@ -188,9 +192,14 @@ public abstract class ModelMethod {
             }
             int fromConversionLevel = getImplicitConversionLevel(from);
             int toConversionLevel = getImplicitConversionLevel(to);
-            return fromConversionLevel < toConversionLevel;
+            return fromConversionLevel <= toConversionLevel;
         } else {
-            return false;
+            ModelClass unboxedFrom = from.unbox();
+            ModelClass unboxedTo = to.unbox();
+            if (unboxedFrom != from || unboxedTo != to) {
+                return isImplicitConversion(unboxedFrom, unboxedTo);
+            }
         }
+        return false;
     }
 }

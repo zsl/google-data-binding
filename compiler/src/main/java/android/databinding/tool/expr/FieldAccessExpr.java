@@ -57,6 +57,12 @@ public class FieldAccessExpr extends MethodBaseExpr {
     }
 
     @Override
+    protected void resetResolvedType() {
+        super.resetResolvedType();
+        mGetter = null;
+    }
+
+    @Override
     public String getInvertibleError() {
         if (getGetter() == null) {
             return "Listeners do not support two-way binding";
@@ -70,6 +76,11 @@ public class FieldAccessExpr extends MethodBaseExpr {
                     " property " + mName;
         }
         return null;
+    }
+
+    @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // nothing to unbox
     }
 
     public int getMinApi() {

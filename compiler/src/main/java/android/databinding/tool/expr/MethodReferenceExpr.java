@@ -49,6 +49,11 @@ public class MethodReferenceExpr extends MethodBaseExpr {
     }
 
     @Override
+    public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
+        // nothing to unbox
+    }
+
+    @Override
     public Expr resolveListeners(ModelClass listener, Expr parent) {
         try {
             return resolveListenersAsMethodReference(listener, parent);
