@@ -16,11 +16,15 @@
 
 package android.databinding.tool.util;
 
+import android.databinding.tool.DataBindingBuilder;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -46,6 +50,34 @@ import javax.tools.StandardLocation;
  */
 public class GenerationalClassUtil {
     private static List[] sCache = null;
+
+    /**
+     * An extra folder where data binding processor can read/write data
+     */
+    @Nullable
+    private static File sBuildDir;
+
+    @Nullable
+    private static File sInputDir;
+    @Nullable
+    private static File sIncrementalDir;
+
+    public static void setBuildInput(String buildInputFolder) {
+        if (StringUtils.isNotBlank(buildInputFolder)) {
+            sBuildDir = new File(buildInputFolder);
+            sIncrementalDir = new File(buildInputFolder, DataBindingBuilder.INCREMENTAL_BIN_DIR);
+            sInputDir = new File(buildInputFolder, DataBindingBuilder.RESOURCE_FILES_DIR);
+            sIncrementalDir.mkdirs();
+        } else {
+            sBuildDir = null;
+        }
+    }
+
+    @Nullable
+    public static File getBuildDir() {
+        return sBuildDir;
+    }
+
     public static <T extends Serializable> List<T> loadObjects(ExtensionFilter filter) {
         if (sCache == null) {
             buildCache();
@@ -86,9 +118,28 @@ public class GenerationalClassUtil {
                 L.d("cannot open zip file from %s", url);
             }
         }
+        loadFromBuildInfo();
+    }
+
+    /**
+     * To compile with jack, included jars are converted to an intermediate format which does not
+     * keep .bin files.
+     * <p>
+     * To workaround this issue, we have a gradle transform that extracts bin files from jars into
+     * a folder before they are sent to jack. The processor later checks the folder and parses
+     * the .bin files.
+     * <p>
+     * This is a backward compatibility measure and should eventually be phased out after we move
+     * to an aar based information retrieval model.
+     */
+    private static void loadFromBuildInfo() {
+        loadFromDirectory(sInputDir);
     }
 
     private static void loadFromDirectory(File directory) {
+        if (directory == null || !directory.canRead() || !directory.isDirectory()) {
+            return;
+        }
         for (File file : FileUtils.listFiles(directory, TrueFileFilter.INSTANCE,
                 TrueFileFilter.INSTANCE)) {
             for (ExtensionFilter filter : ExtensionFilter.values()) {
@@ -156,11 +207,17 @@ public class GenerationalClassUtil {
     public static void writeIntermediateFile(ProcessingEnvironment processingEnv,
             String packageName, String fileName, Serializable object) {
         ObjectOutputStream oos = null;
+        OutputStream ios = null;
         try {
-            FileObject intermediate = processingEnv.getFiler().createResource(
-                    StandardLocation.CLASS_OUTPUT, packageName,
-                    fileName);
-            OutputStream ios = intermediate.openOutputStream();
+            if (sIncrementalDir == null) {
+                FileObject intermediate = processingEnv.getFiler().createResource(
+                        StandardLocation.CLASS_OUTPUT, packageName,
+                        fileName);
+                ios = intermediate.openOutputStream();
+            } else {
+                File out = new File(sIncrementalDir, packageName + "-" + fileName);
+                ios = new FileOutputStream(out);
+            }
             oos = new ObjectOutputStream(ios);
             oos.writeObject(object);
             oos.close();
@@ -169,6 +226,7 @@ public class GenerationalClassUtil {
             L.e(e, "Could not write to intermediate file: %s", fileName);
         } finally {
             IOUtils.closeQuietly(oos);
+            IOUtils.closeQuietly(ios);
         }
     }
 

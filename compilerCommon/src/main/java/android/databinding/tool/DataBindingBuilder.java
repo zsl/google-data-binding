@@ -31,6 +31,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,7 +42,16 @@ import java.util.Properties;
 @SuppressWarnings("unused")
 public class DataBindingBuilder {
     Versions mVersions;
-    private final static String EXCLUDE_PATTERN = "android/databinding/layouts/*.*";
+    private static final String EXCLUDE_PATTERN = "android/databinding/layouts/*.*";
+    public static String PROCESSOR_NAME =
+            "android.databinding.annotationprocessor.ProcessDataBinding";
+    public static final String RESOURCE_FILES_DIR = "resource-files";
+    public static final String INCREMENTAL_BIN_DIR = "bin-files";
+    // the folder used by data binding to read / write data about the build process
+    public static final String BUILD_FOLDER_NAME = "android.databinding.bindingBuildFolder";
+
+    public static final List<String> RESOURCE_FILE_EXTENSIONS =
+            Arrays.asList("-br.bin", "-layoutinfo.bin", "-setter_store.bin");
     public String getCompilerVersion() {
         return getVersions().compiler;
     }

@@ -11,6 +11,9 @@ android {
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
+        jackOptions {
+            enabled dataBindingConfig.useJack
+        }
     }
     buildTypes {
         release {
@@ -22,6 +25,7 @@ android {
     packagingOptions {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_6
         targetCompatibility JavaVersion.VERSION_1_6

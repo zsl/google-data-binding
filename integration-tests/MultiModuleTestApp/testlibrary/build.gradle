@@ -22,7 +22,7 @@ android {
 
     defaultConfig {
         minSdkVersion 7
-        targetSdkVersion 21
+        targetSdkVersion dataBindingConfig.targetSdkVersion
         versionCode 1
         versionName "1.0"
     }

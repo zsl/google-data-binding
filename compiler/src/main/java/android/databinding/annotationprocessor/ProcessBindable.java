@@ -26,10 +26,17 @@ import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -109,7 +116,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
         L.d("************* Generating BR file %s. use final: %s", pkg, useFinalFields);
         HashSet<String> properties = new HashSet<String>();
         mProperties.captureProperties(properties);
-        List<Intermediate> previousIntermediates = loadPreviousBRFiles();
+        Collection<Intermediate> previousIntermediates = loadPreviousBRFiles(pkg + ".BR");
         for (Intermediate intermediate : previousIntermediates) {
             intermediate.captureProperties(properties);
         }
@@ -221,9 +228,19 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                 element.getReturnType().getKind() == TypeKind.BOOLEAN;
     }
 
-    private List<Intermediate> loadPreviousBRFiles() {
-        return GenerationalClassUtil
+    @SuppressWarnings("CodeBlock2Expr")
+    private Collection<Intermediate> loadPreviousBRFiles(String... excludePackages) {
+        List<Intermediate> brFiles = GenerationalClassUtil
                 .loadObjects(GenerationalClassUtil.ExtensionFilter.BR);
+        Set<String> excludeMap = Arrays.stream(excludePackages).collect(Collectors.toSet());
+        // dedupe
+        Map<String, Intermediate> items = new HashMap<>();
+        brFiles.stream()
+                .filter(intermediate -> !excludeMap.contains(intermediate.getPackage()))
+                .forEach(intermediate -> {
+                    items.put(intermediate.getPackage(), intermediate);
+                });
+        return items.values();
     }
 
     private interface Intermediate extends Serializable {

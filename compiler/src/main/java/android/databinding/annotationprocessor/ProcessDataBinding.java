@@ -18,8 +18,10 @@ package android.databinding.annotationprocessor;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
+import android.databinding.tool.DataBindingBuilder;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.reflection.ModelAnalyzer;
+import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.AnnotationJavaFileWriter;
@@ -54,6 +56,7 @@ import javax.xml.bind.JAXBException;
  */
 public class ProcessDataBinding extends AbstractProcessor {
     private List<ProcessingStep> mProcessingSteps;
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (mProcessingSteps == null) {
@@ -62,6 +65,12 @@ public class ProcessDataBinding extends AbstractProcessor {
         final BindingBuildInfo buildInfo = BuildInfoUtil.load(roundEnv);
         if (buildInfo == null) {
             return false;
+        }
+        if (buildInfo.isLibrary() && GenerationalClassUtil.getBuildDir() != null) {
+            // Jack already does not support library builds but this is necessary to be future
+            // proof so that even if tools start supporting it, we will prevent it until the
+            // data binding part is implemented.
+            throw new IllegalStateException("Jack compilation is not support in library builds");
         }
         boolean done = true;
         for (ProcessingStep step : mProcessingSteps) {
@@ -133,6 +142,13 @@ public class ProcessDataBinding extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
+        String buildInfoPath = processingEnv.getOptions().get(
+                DataBindingBuilder.BUILD_FOLDER_NAME);
+        if (buildInfoPath != null) {
+            // only set for Jack builds now but will be the only way to pass information into the
+            // compiler going forward.
+            GenerationalClassUtil.setBuildInput(buildInfoPath);
+        }
         ModelAnalyzer.setProcessingEnvironment(processingEnv);
     }
 

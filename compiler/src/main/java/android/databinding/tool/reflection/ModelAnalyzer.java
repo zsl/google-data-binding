@@ -325,6 +325,8 @@ public abstract class ModelAnalyzer {
         if (mViewBindingType == null) {
             mViewBindingType = findClass(VIEW_DATA_BINDING, null);
         }
+        Preconditions.checkNotNull(mViewBindingType, "Cannot find %s class. Something is wrong "
+                + "in the classpath, please submit a bug report", VIEW_DATA_BINDING);
         return mViewBindingType;
     }
 
