@@ -35,10 +35,17 @@ def jarName = "android-data-binding"
 def workingDir = "${project.buildDir}/intermediates/fullJar"
 def fatJar = "${workingDir}/${jarName}-fat.jar"
 def jarJar = project.jar.archivePath
-
 configurations {
     jarJarArchives
 }
+
+def sourcesJarTask = project.tasks.create(name: "sourceJar", type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.java.srcDirs
+}
+
+artifacts.add('archives', sourcesJarTask);
+
 
 tasks.create(name: 'fatJar', type: Jar) {
     baseName = jarName + '-fat'
