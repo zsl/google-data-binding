@@ -8,7 +8,7 @@ java_library(
       "compilerCommon/src/main/xml-gen/**/*.java",
       "compilerCommon/src/main/grammar-gen/**/*.java",
     ]),
-  resource_strip_prefix="tools/data-binding/db-compilerCommon.resources",
+  resource_strip_prefix = "tools/data-binding/db-compilerCommon.resources",
   resources = [
       "//tools/data-binding:db-compilerCommon.res",
     ],
@@ -23,6 +23,7 @@ java_library(
       "//prebuilts/tools/common/m2:repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3",
       "//tools/base/annotations:android-annotations",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -32,7 +33,7 @@ kotlin_library(
       "compiler/src/main/java",
       "compiler/src/main/kotlin",
     ],
-  resource_strip_prefix="tools/data-binding/db-compiler.resources",
+  resource_strip_prefix = "tools/data-binding/db-compiler.resources",
   resources = [
       "//tools/data-binding:db-compiler.res",
     ],
@@ -48,6 +49,7 @@ kotlin_library(
       "//prebuilts/tools/common/m2:repository/junit/junit/4.12/junit-4.12",
       "//prebuilts/tools/common/m2:repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -70,6 +72,7 @@ java_library(
       "//prebuilts/tools/common/m2:repository/junit/junit/4.12/junit-4.12",
       "//prebuilts/tools/common/m2:repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -78,7 +81,7 @@ java_library(
   srcs = glob([
       "baseLibrary/src/main/java/**/*.java",
     ]),
-  resource_strip_prefix="tools/data-binding/db-baseLibrary.resources",
+  resource_strip_prefix = "tools/data-binding/db-baseLibrary.resources",
   resources = [
       "//tools/data-binding:db-baseLibrary.res",
     ],
@@ -87,6 +90,7 @@ java_library(
       "//prebuilts/tools/common/m2:repository/junit/junit/4.12/junit-4.12",
       "//prebuilts/tools/common/m2:repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
 
@@ -113,7 +117,22 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
+)
+
+java_test(
+  name = "db-compiler_tests",
+  srcs = glob([
+    ]),
+  runtime_deps = [
+      ":db-compiler_testlib",
+      "//tools/base/bazel:test_runner",
+    ],
+  jvm_flags = [
+      "-Dtest.suite.jar=db-compiler_testlib.jar",
+    ],
+  test_class = "com.android.tools.BazelTestSuite",
+  javacopts = ["-extra_checks:off"],
+  visibility = ["//visibility:public"],
 )
 
 fileset(
@@ -137,7 +156,22 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
+)
+
+java_test(
+  name = "db-compilerCommon_tests",
+  srcs = glob([
+    ]),
+  runtime_deps = [
+      ":db-compilerCommon_testlib",
+      "//tools/base/bazel:test_runner",
+    ],
+  jvm_flags = [
+      "-Dtest.suite.jar=db-compilerCommon_testlib.jar",
+    ],
+  test_class = "com.android.tools.BazelTestSuite",
+  javacopts = ["-extra_checks:off"],
+  visibility = ["//visibility:public"],
 )
 
 fileset(
@@ -159,7 +193,6 @@ fileset(
   deps = [
       "@local_jdk//:langtools-neverlink",
     ],
-   visibility = ["//visibility:public"],
 )
 
 java_library(
@@ -179,5 +212,6 @@ java_library(
       "//prebuilts/tools/common/m2:repository/junit/junit/4.12/junit-4.12",
       "//prebuilts/tools/common/m2:repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3",
     ],
+  javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
