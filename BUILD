@@ -58,6 +58,10 @@ java_library(
   srcs = glob([
       "compiler/src/test/java/**/*.java",
     ]),
+  resource_strip_prefix = "tools/data-binding/db-compiler_testlib.resources",
+  resources = [
+      "//tools/data-binding:db-compiler_testlib.res",
+    ],
   deps = [
       "@local_jdk//:langtools-neverlink",
       "//tools/data-binding:db-compiler",
@@ -125,14 +129,35 @@ java_test(
     ]),
   runtime_deps = [
       ":db-compiler_testlib",
-      "//tools/base/bazel:test_runner",
+      "//tools/base/testutils:testutils",
     ],
   jvm_flags = [
       "-Dtest.suite.jar=db-compiler_testlib.jar",
     ],
-  test_class = "com.android.tools.BazelTestSuite",
+  test_class = "com.android.testutils.JarTestSuite",
   javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
+)
+
+fileset(
+  name = "db-compilerCommon_testlib.res",
+  srcs = glob([
+      "compilerCommon/src/test/java/**/*",
+    ],
+    exclude = [
+      "**/* *",
+      "**/*.java",
+      "**/*.kt",
+      "**/*.groovy",
+      "**/*$*",
+      "**/.DS_Store",
+    ]),
+  mappings = {
+      "compilerCommon/src/test/java": "db-compilerCommon_testlib.resources",
+    },
+  deps = [
+      "@local_jdk//:langtools-neverlink",
+    ],
 )
 
 fileset(
@@ -158,18 +183,39 @@ fileset(
     ],
 )
 
+fileset(
+  name = "db-compiler_testlib.res",
+  srcs = glob([
+      "compiler/src/test/java/**/*",
+    ],
+    exclude = [
+      "**/* *",
+      "**/*.java",
+      "**/*.kt",
+      "**/*.groovy",
+      "**/*$*",
+      "**/.DS_Store",
+    ]),
+  mappings = {
+      "compiler/src/test/java": "db-compiler_testlib.resources",
+    },
+  deps = [
+      "@local_jdk//:langtools-neverlink",
+    ],
+)
+
 java_test(
   name = "db-compilerCommon_tests",
   srcs = glob([
     ]),
   runtime_deps = [
       ":db-compilerCommon_testlib",
-      "//tools/base/bazel:test_runner",
+      "//tools/base/testutils:testutils",
     ],
   jvm_flags = [
       "-Dtest.suite.jar=db-compilerCommon_testlib.jar",
     ],
-  test_class = "com.android.tools.BazelTestSuite",
+  test_class = "com.android.testutils.JarTestSuite",
   javacopts = ["-extra_checks:off"],
   visibility = ["//visibility:public"],
 )
@@ -200,6 +246,10 @@ java_library(
   srcs = glob([
       "compilerCommon/src/test/java/**/*.java",
     ]),
+  resource_strip_prefix = "tools/data-binding/db-compilerCommon_testlib.resources",
+  resources = [
+      "//tools/data-binding:db-compilerCommon_testlib.res",
+    ],
   deps = [
       "@local_jdk//:langtools-neverlink",
       "//tools/data-binding:db-compilerCommon",
