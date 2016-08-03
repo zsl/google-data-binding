@@ -11,7 +11,7 @@ iml_module(
     test_srcs = ["compilerCommon/src/test/java"],
     deps = [
         "//tools/data-binding:db-baseLibrary[module]",
-        "//tools/idea:lib/guava-18.0",
+        "//tools:idea/lib/guava-18.0",
         "//tools/adt/idea:android/lib/commons-io-2.4",
         "//tools/adt/idea:android/lib/juniversalchardet-1.0.3",
         "//tools/adt/idea:android/lib/antlr4-runtime-4.5.3",
@@ -20,7 +20,7 @@ iml_module(
         "//tools/base/annotations:android-annotations[module]",
     ],
     exports = [
-        "//tools/idea:lib/guava-18.0",
+        "//tools:idea/lib/guava-18.0",
         "//tools/adt/idea:android/lib/commons-io-2.4",
         "//tools/adt/idea:android/lib/juniversalchardet-1.0.3",
         "//tools/adt/idea:android/lib/antlr4-runtime-4.5.3",
