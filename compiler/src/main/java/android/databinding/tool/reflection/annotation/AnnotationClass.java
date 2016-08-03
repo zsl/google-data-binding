@@ -58,7 +58,7 @@ class AnnotationClass extends ModelClass {
         if (isIncomplete()) {
             return getCanonicalName();
         }
-        return mTypeMirror.toString();
+        return AnnotationTypeUtil.getInstance().toJava(mTypeMirror);
     }
 
     @Override
@@ -334,7 +334,7 @@ class AnnotationClass extends ModelClass {
 
     @Override
     public String getCanonicalName() {
-        return getTypeUtils().erasure(mTypeMirror).toString();
+        return AnnotationTypeUtil.getInstance().toJava(getTypeUtils().erasure(mTypeMirror));
     }
 
     @Override
@@ -381,7 +381,7 @@ class AnnotationClass extends ModelClass {
 
     @Override
     public String toString() {
-        return mTypeMirror.toString();
+        return AnnotationTypeUtil.getInstance().toJava(mTypeMirror);
     }
 
     @Override
@@ -395,6 +395,6 @@ class AnnotationClass extends ModelClass {
 
     @Override
     public int hashCode() {
-        return mTypeMirror.toString().hashCode();
+        return AnnotationTypeUtil.getInstance().toJava(mTypeMirror).hashCode();
     }
 }

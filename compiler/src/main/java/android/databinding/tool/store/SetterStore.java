@@ -16,10 +16,10 @@
 package android.databinding.tool.store;
 
 import android.databinding.InverseBindingListener;
-import android.databinding.InverseMethod;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
+import android.databinding.tool.reflection.annotation.AnnotationTypeUtil;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
@@ -390,7 +390,7 @@ public class SetterStore {
             DeclaredType declaredType = (DeclaredType) type;
             return declaredType.asElement().toString();
         } else {
-            return type.toString();
+            return ((AnnotationTypeUtil)AnnotationTypeUtil.getInstance()).toJava(type);
         }
     }
 
