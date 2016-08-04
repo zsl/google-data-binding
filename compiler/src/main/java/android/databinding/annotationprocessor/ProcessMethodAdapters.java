@@ -26,6 +26,7 @@ import android.databinding.InverseBindingMethods;
 import android.databinding.InverseMethod;
 import android.databinding.Untaggable;
 import android.databinding.tool.reflection.ModelAnalyzer;
+import android.databinding.tool.reflection.annotation.AnnotationTypeUtil;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
@@ -210,7 +211,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 try {
                     type = bindingMethod.type().getCanonicalName();
                 } catch (MirroredTypeException e) {
-                    type = e.getTypeMirror().toString();
+                    type = AnnotationTypeUtil.getInstance().toJava(e.getTypeMirror());
                 }
                 store.addRenamedMethod(attribute, type, method, (TypeElement) element);
             }
@@ -298,7 +299,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 try {
                     type = bindingMethod.type().getCanonicalName();
                 } catch (MirroredTypeException e) {
-                    type = e.getTypeMirror().toString();
+                    type = AnnotationTypeUtil.getInstance().toJava(e.getTypeMirror());
                 }
                 store.addInverseBindingMethod(attribute, event, type, method, (TypeElement)element);
             }
