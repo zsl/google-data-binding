@@ -135,6 +135,7 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
         JustIdBinding binding = JustIdBinding.inflate(getActivity().getLayoutInflater());
         assertNotNull(binding);
         assertNotNull(binding.textView);
+        assertNotNull(binding.superLongIdThatYouWouldNeverUseButWeWillAcceptItEvenIfItTotallySucks);
     }
 
     @UiThreadTest
