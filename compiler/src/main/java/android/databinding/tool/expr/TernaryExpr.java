@@ -144,10 +144,10 @@ public class TernaryExpr extends Expr {
     @Override
     protected KCode generateCode() {
         return new KCode()
-                .app("(", getPred().toCode())
+                .app("((", getPred().toCode())
                 .app(") ? (", getIfTrue().toCode())
                 .app(") : (", getIfFalse().toCode())
-                .app(")");
+                .app("))");
     }
 
     @Override

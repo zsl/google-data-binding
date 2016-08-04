@@ -16,6 +16,7 @@
         <import type="java.util.Collection"/>
         <import type="java.util.ArrayList"/>
         <import type="java.util.Map"/>
+        <import type="android.databinding.testapp.vo.PublicFinalTestVo"/>
         <variable name="list" type="Collection&lt;String&gt;"/>
         <variable name="map" type="Object"/>
     </data>
@@ -32,5 +33,9 @@
                 android:id="@+id/textView1"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="@{((Map&lt;String, String&gt;)map)[`hello`]}"/>
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="@{String.valueOf(((String)PublicFinalTestVo.OBJ_FIELD).length())}"/>
     </LinearLayout>
 </layout>

@@ -68,10 +68,10 @@ public class CastExpr extends Expr {
     @Override
     protected KCode generateCode() {
         return new KCode()
-                .app("(")
+                .app("((")
                 .app(getCastType())
                 .app(") (", getCastExpr().toCode())
-                .app(")");
+                .app("))");
     }
 
     @Override

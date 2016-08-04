@@ -14,6 +14,8 @@
 package android.databinding.testapp.vo;
 
 public class PublicFinalTestVo {
+    public static final Object OBJ_FIELD = "goodbye";
+
     public final int myField;
 
     public PublicFinalTestVo(int field) {
