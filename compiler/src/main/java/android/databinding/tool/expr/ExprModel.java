@@ -212,12 +212,19 @@ public class ExprModel {
         return dynamicUtil;
     }
 
+    public IdentifierExpr viewDataBinding() {
+        IdentifierExpr viewDataBinding = staticIdentifier(ModelAnalyzer.VIEW_DATA_BINDING);
+        viewDataBinding.setUserDefinedType(ModelAnalyzer.VIEW_DATA_BINDING);
+        return viewDataBinding;
+    }
+
     public MethodCallExpr safeUnbox(Expr expr) {
         ModelClass resolvedType = expr.getResolvedType();
         Preconditions.check(resolvedType.unbox() != resolvedType, ErrorMessages.CANNOT_UNBOX_TYPE,
                 resolvedType);
         MethodCallExpr methodCallExpr = methodCall(dynamicUtil(), SAFE_UNBOX_METHOD_NAME,
                 Collections.singletonList(expr));
+        methodCallExpr.setAllowProtected();
         for (Location location : expr.getLocations()) {
             methodCallExpr.addLocation(location);
         }
@@ -235,7 +242,9 @@ public class ExprModel {
                 ErrorMessages.CANNOT_FIND_METHOD_ON_OWNER, methodName, "ViewDataBinding");
         Preconditions.check(args.size() == 1,
                 ErrorMessages.ARGUMENT_COUNT_MISMATCH, 1, args.size());
-        return methodCall(dynamicUtil(), SAFE_UNBOX_METHOD_NAME, args);
+        MethodCallExpr expr = methodCall(dynamicUtil(), SAFE_UNBOX_METHOD_NAME, args);
+        expr.setAllowProtected();
+        return expr;
     }
 
     /**

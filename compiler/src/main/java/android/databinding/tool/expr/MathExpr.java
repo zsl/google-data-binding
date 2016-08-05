@@ -160,7 +160,10 @@ public class MathExpr extends Expr {
     }
 
     private Expr parseInverse(ExprModel model, Expr value, Expr prev) {
-        return model.methodCall(model.dynamicUtil(), "parse", Lists.newArrayList(value, prev));
+        MethodCallExpr expr =
+                model.methodCall(model.viewDataBinding(), "parse", Lists.newArrayList(value, prev));
+        expr.setAllowProtected();
+        return expr;
     }
 
     @Override

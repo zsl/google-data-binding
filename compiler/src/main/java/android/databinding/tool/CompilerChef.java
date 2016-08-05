@@ -140,33 +140,11 @@ public class CompilerChef {
     public static InjectedClass pushDynamicUtilToAnalyzer() {
         InjectedClass injectedClass = new InjectedClass("android.databinding.DynamicUtil",
                 "java.lang.Object");
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "getColorFromResource",
-                "int", "android.view.View", "int"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true,
-                "getColorStateListFromResource", "android.content.res.ColorStateList",
-                "android.view.View", "int"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "getDrawableFromResource",
-                "android.graphics.drawable.Drawable", "android.view.View", "int"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
-                "boolean", "java.lang.String", "boolean"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
-                "short", "java.lang.String", "short"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
-                "int", "java.lang.String", "int"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
-                "long", "java.lang.String", "long"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
-                "float", "java.lang.String", "float"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
-                "double", "java.lang.String", "double"));
-        injectedClass.addMethod(new InjectedMethod(injectedClass, true, "parse",
-                "char", "java.lang.String", "char"));
         for (Map.Entry<Class, Class> entry : ModelClass.BOX_MAPPING.entrySet()) {
             injectedClass.addMethod(new InjectedMethod(injectedClass, true,
                     ExprModel.SAFE_UNBOX_METHOD_NAME,
                     entry.getKey().getCanonicalName(), entry.getValue().getCanonicalName()));
         }
-
 
         ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
         analyzer.injectClass(injectedClass);
