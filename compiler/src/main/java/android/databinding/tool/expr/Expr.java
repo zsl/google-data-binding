@@ -111,6 +111,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     private boolean mRead;
     private boolean mIsUsed = false;
     private boolean mIsUsedInCallback = false;
+    private boolean mUnwrapObservableFields = true;
 
     Expr(Iterable<Expr> children) {
         for (Expr expr : children) {
@@ -179,6 +180,10 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     public boolean isObservable() {
         return getResolvedType().isObservable();
+    }
+
+    public void setUnwrapObservableFields(boolean unwrapObservableFields) {
+        mUnwrapObservableFields = unwrapObservableFields;
     }
 
     public Expr resolveListeners(ModelClass valueType, Expr parent) {
@@ -341,6 +346,10 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     public final ModelClass getResolvedType() {
         if (mResolvedType == null) {
+            if (mUnwrapObservableFields) {
+                unwrapAllObservableFieldChildren();
+                mUnwrapObservableFields = false;
+            }
             // TODO not get instance
             try {
                 Scope.enter(this);
@@ -843,6 +852,42 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
             Scope.exit();
         }
         return mUnboxedAChild;
+    }
+
+    public Expr unwrapObservableField() {
+        Expr expr = this;
+        while (expr.getResolvedType().isObservableField()) {
+            Expr unwrapped = mModel.methodCall(expr, "get", Collections.EMPTY_LIST);
+            mModel.bindingExpr(unwrapped);
+            unwrapped.setUnwrapObservableFields(false);
+            expr = unwrapped;
+        }
+        return expr;
+    }
+
+    /**
+     * Iterates through all children and expands all ObservableFields to call "get()" on them
+     * instead.
+     */
+    private void unwrapAllObservableFieldChildren() {
+        for (int i = 0; i < mChildren.size(); i++) {
+            final Expr child = mChildren.get(i);
+            Expr unwrapped = null;
+            Expr expr = child;
+            while (expr.getResolvedType().isObservableField()) {
+                unwrapped = mModel.methodCall(expr, "get", Collections.EMPTY_LIST);
+                if (unwrapped == this) {
+                    L.w(ErrorMessages.OBSERVABLE_FIELD_GET, this);
+                    return; // This was already unwrapped!
+                }
+                unwrapped.setUnwrapObservableFields(false);
+                expr = unwrapped;
+            }
+            if (unwrapped != null) {
+                child.getParents().remove(this);
+                mChildren.set(i, unwrapped);
+            }
+        }
     }
 
     /**

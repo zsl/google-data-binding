@@ -180,18 +180,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
                 target = getTarget();
             }
 
-            if (mGetter.resolvedType.isObservableField()) {
-                // Make this the ".get()" and add an extra field access for the observable field
-                target.getParents().remove(this);
-                getChildren().remove(target);
-
-                FieldAccessExpr observableField = getModel().observableField(target, mName);
-                getChildren().add(observableField);
-                observableField.getParents().add(this);
-                mGetter = mGetter.resolvedType.findGetterOrField("", false);
-                mName = "";
-                mBrName = ExtKt.br(mName);
-            } else if (hasBindableAnnotations()) {
+            if (hasBindableAnnotations()) {
                 mBrName = ExtKt.br(BrNameUtil.brKey(mGetter));
             }
         }
@@ -304,7 +293,10 @@ public class FieldAccessExpr extends MethodBaseExpr {
         Expr castExpr = model.castExpr(getResolvedType().toJavaCode(), value);
         Expr target = getTarget().cloneToModel(model);
         Expr result;
-        if (getGetter().type == Callable.Type.FIELD) {
+        if (mName.isEmpty()) {
+            result = model.methodCall(target, "set", Lists.newArrayList(castExpr));
+            result.setUnwrapObservableFields(false);
+        } else if (getGetter().type == Callable.Type.FIELD) {
             result = model.assignment(target, mName, castExpr);
         } else {
             result = model.methodCall(target, mGetter.setterName, Lists.newArrayList(castExpr));

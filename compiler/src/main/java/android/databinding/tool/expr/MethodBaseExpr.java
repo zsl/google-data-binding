@@ -48,6 +48,7 @@ public abstract class MethodBaseExpr extends Expr {
             for (ExecutionPath path : targetPaths) {
                 final ComparisonExpr cmp = getModel()
                         .comparison("!=", getTarget(), getModel().symbol("null", Object.class));
+                cmp.setUnwrapObservableFields(false);
                 path.addPath(cmp);
                 final ExecutionPath subPath = path.addBranch(cmp, true);
                 if (subPath != null) {
@@ -144,7 +145,7 @@ public abstract class MethodBaseExpr extends Expr {
     public void updateExpr(ModelAnalyzer modelAnalyzer) {
         try {
             Scope.enter(this);
-            resolveType(modelAnalyzer);
+            getResolvedType();
             super.updateExpr(modelAnalyzer);
         } finally {
             Scope.exit();

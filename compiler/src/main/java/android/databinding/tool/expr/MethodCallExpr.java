@@ -27,6 +27,8 @@ import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.KCode;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +61,7 @@ public class MethodCallExpr extends Expr {
     public void updateExpr(ModelAnalyzer modelAnalyzer) {
         try {
             Scope.enter(this);
-            resolveType(modelAnalyzer);
+            getResolvedType();
             super.updateExpr(modelAnalyzer);
         } finally {
             Scope.exit();
@@ -107,6 +109,7 @@ public class MethodCallExpr extends Expr {
             for (ExecutionPath path : targetPaths) {
                 Expr cmp = getModel()
                         .comparison("!=", getTarget(), getModel().symbol("null", Object.class));
+                cmp.setUnwrapObservableFields(false);
                 path.addPath(cmp);
                 final ExecutionPath subPath = path.addBranch(cmp, true);
                 if (subPath != null) {
@@ -231,6 +234,10 @@ public class MethodCallExpr extends Expr {
         if (mMethod == null) {
             return "Could not find the method " + mName + " to inverse for two-way binding";
         }
+        if (mName.equals("get") && getTarget().getResolvedType().isObservableField() &&
+                getArgs().isEmpty()) {
+            return null;
+        }
         String inverse = setterStore.getInverseMethod(mMethod);
         if (inverse == null) {
             return "There is no inverse for method " + mName + ", you must add an " +
@@ -243,6 +250,14 @@ public class MethodCallExpr extends Expr {
     @Override
     public Expr generateInverse(ExprModel model, Expr value, String bindingClassName) {
         getResolvedType(); // ensure mMethod has been resolved.
+        if (mName.equals("get") && getTarget().getResolvedType().isObservableField() &&
+                getArgs().isEmpty()) {
+            Expr castExpr = model.castExpr(getResolvedType().toJavaCode(), value);
+            Expr target = getTarget().cloneToModel(model);
+            Expr inverse = model.methodCall(target, "set", Lists.newArrayList(castExpr));
+            inverse.setUnwrapObservableFields(false);
+            return inverse;
+        }
         SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
         String methodName = setterStore.getInverseMethod(mMethod);
         List<Expr> theseArgs = getArgs();

@@ -150,10 +150,6 @@ public class ResourceExpr extends Expr {
                 cloneToModel(model, getChildren()));
     }
 
-    public String getResourceId() {
-        return mPackage + "R." + getResourceObject() + "." + mResourceId;
-    }
-
     @Override
     public String getInvertibleError() {
         return "Resources may not be the target of a two-way binding expression: " +

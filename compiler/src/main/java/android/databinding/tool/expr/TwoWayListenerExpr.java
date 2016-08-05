@@ -70,4 +70,10 @@ public class TwoWayListenerExpr extends Expr {
     public String getInvertibleError() {
         return "Inverted expressions are already inverted!";
     }
+
+    @Override
+    public String toString() {
+        return LayoutBinderWriterKt.getFieldName(mInverseBinding.getTarget()) + '(' +
+                mInverseBinding.getEventAttribute() + ')';
+    }
 }

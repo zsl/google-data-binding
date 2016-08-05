@@ -28,6 +28,7 @@ import android.databinding.tool.writer.LayoutBinderWriterKt;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class LambdaExpr extends Expr {
     private static AtomicInteger sIdCounter = new AtomicInteger();
@@ -151,5 +152,13 @@ public class LambdaExpr extends Expr {
         mExecutionPath = ExecutionPath.createRoot();
         getExpr().toExecutionPath(mExecutionPath);
         mCallbackExprModel.seal();
+    }
+
+    @Override
+    public String toString() {
+        String parameters = mCallbackExprModel.getArguments().stream()
+                .map(arg -> arg.getName())
+                .collect(Collectors.joining(", "));
+        return '(' + parameters + ") -> " + getExpr();
     }
 }

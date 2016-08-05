@@ -59,6 +59,7 @@ public class MergedBinding extends Binding {
         }
         Expr expr = model.argListExpr(args);
         expr.markAsBindingExpression();
+        expr.setUnwrapObservableFields(false);
         return expr;
     }
 
@@ -94,6 +95,10 @@ public class MergedBinding extends Binding {
     @Override
     public boolean requiresOldValue() {
         return mMultiAttributeSetter.requiresOldValue();
+    }
+
+    public SetterStore.MultiAttributeSetter getMultiAttributeSetter() {
+        return mMultiAttributeSetter;
     }
 
     @Override
