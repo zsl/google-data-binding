@@ -16,7 +16,6 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.CastTestBinding;
-
 import android.support.v4.util.ArrayMap;
 import android.test.UiThreadTest;
 
@@ -45,5 +44,6 @@ public class CastTest extends BaseDataBinderTest<CastTestBinding> {
         mBinder.executePendingBindings();
         assertEquals("hello", mBinder.textView0.getText().toString());
         assertEquals("world", mBinder.textView1.getText().toString());
+        assertEquals("7", mBinder.textView2.getText().toString());
     }
 }

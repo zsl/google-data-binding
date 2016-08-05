@@ -154,6 +154,10 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         String rain = getActivity().getResources().getString(R.string.rain);
         assertEquals(mBinder.getBool1() ? appName : mBinder.getBool2() ? rain : "",
                 mBinder.textView18.getText().toString());
+
+        // tests whether ternary expressions are properly contained when working with non-dynamic
+        // sub-expressions
+        assertEquals("1", mBinder.textView22.getText().toString());
     }
 
     @UiThreadTest

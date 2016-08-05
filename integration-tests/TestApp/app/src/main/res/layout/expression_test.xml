@@ -116,5 +116,10 @@
                 android:text='@{@bool/alwaysFalse ? "" + var1 : "" + var2}'
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"/>
+        <TextView
+            android:id="@+id/textView22"
+            android:text='@{String.valueOf((@bool/alwaysTrue ? "1" : "12").length())}'
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"/>
     </LinearLayout>
 </layout>
