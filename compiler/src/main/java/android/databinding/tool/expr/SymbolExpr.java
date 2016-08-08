@@ -45,7 +45,7 @@ public class SymbolExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return mType.getSimpleName() + mText;
+        return mType.getCanonicalName() + "-" + mText;
     }
 
     @Override

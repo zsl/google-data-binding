@@ -92,8 +92,7 @@ public class BracketExpr extends Expr {
     }
 
     protected String computeUniqueKey() {
-        final String targetKey = getTarget().computeUniqueKey();
-        return join(targetKey, "$", getArg().computeUniqueKey(), "$");
+        return join(getTarget() + "[" + getArg() + "]");
     }
 
     @Override

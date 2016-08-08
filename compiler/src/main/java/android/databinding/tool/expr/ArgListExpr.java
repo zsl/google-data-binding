@@ -40,7 +40,7 @@ public class ArgListExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return "ArgList[" + mId + "]" + super.computeUniqueKey();
+        return "ArgList[" + mId + "]" + join(getChildren());
     }
 
     @Override

@@ -35,7 +35,7 @@ public class MethodReferenceExpr extends MethodBaseExpr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(mName, "::", getTarget().getUniqueKey());
+        return join(getTarget(), "::", mName);
     }
 
     @Override

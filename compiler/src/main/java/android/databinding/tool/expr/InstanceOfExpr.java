@@ -33,7 +33,7 @@ public class InstanceOfExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join("instanceof", super.computeUniqueKey(), mTypeStr);
+        return join(getExpr(), "instanceof", mTypeStr);
     }
 
     @Override

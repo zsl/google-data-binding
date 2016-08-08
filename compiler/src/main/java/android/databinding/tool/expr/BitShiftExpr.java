@@ -31,7 +31,7 @@ public class BitShiftExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(getLeft().getUniqueKey(), mOp, getRight().getUniqueKey());
+        return join(getLeft(), mOp, getRight());
     }
 
     @Override

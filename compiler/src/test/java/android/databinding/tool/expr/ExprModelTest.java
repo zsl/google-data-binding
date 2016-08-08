@@ -71,7 +71,7 @@ public class ExprModelTest {
 
         @Override
         protected String computeUniqueKey() {
-            return mKey + super.computeUniqueKey();
+            return mKey + join(getChildren());
         }
 
         @Override

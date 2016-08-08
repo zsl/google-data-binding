@@ -24,6 +24,7 @@ import android.databinding.tool.writer.LayoutBinderWriterKt;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ResourceExpr extends Expr {
 
@@ -130,12 +131,8 @@ public class ResourceExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        String base = toString();
-        String view = "";
-        if (requiresView()) {
-            view = LayoutBinderWriterKt.getFieldName(mTarget);
-        }
-        return join(base, view, computeChildrenKey());
+        String view = requiresView() ? LayoutBinderWriterKt.getFieldName(mTarget) : "";
+        return join(view, toString(), join(getChildren()));
     }
 
     @Override
@@ -152,8 +149,7 @@ public class ResourceExpr extends Expr {
 
     @Override
     public String getInvertibleError() {
-        return "Resources may not be the target of a two-way binding expression: " +
-                computeUniqueKey();
+        return "Resources may not be the target of a two-way binding expression: " + this;
     }
 
     private boolean requiresView() {

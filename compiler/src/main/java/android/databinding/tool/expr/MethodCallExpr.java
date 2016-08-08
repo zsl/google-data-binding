@@ -32,6 +32,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static android.databinding.tool.reflection.Callable.DYNAMIC;
 import static android.databinding.tool.reflection.Callable.STATIC;
@@ -203,8 +204,7 @@ public class MethodCallExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(getTarget().computeUniqueKey(), mName, "(",
-                super.computeUniqueKey(), ")");
+        return join(getTarget(), ".", mName, join(getArgs()));
     }
 
     public Expr getTarget() {

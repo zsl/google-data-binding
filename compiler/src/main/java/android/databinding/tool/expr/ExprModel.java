@@ -409,7 +409,7 @@ public class ExprModel {
             expr.setId(counter++);
             mObservables.add(expr);
             notifiableExpressions.add(expr);
-            L.d("observable %s", expr.getUniqueKey());
+            L.d("observable %s", expr.toString());
         }
 
         // non-observable identifiers gets next ids
@@ -418,7 +418,7 @@ public class ExprModel {
             flagMapping.add(expr.getUniqueKey());
             expr.setId(counter++);
             notifiableExpressions.add(expr);
-            L.d("non-observable %s", expr.getUniqueKey());
+            L.d("non-observable %s", expr.toString());
         }
 
         // descendants of observables gets following ids
@@ -437,7 +437,7 @@ public class ExprModel {
                         flagMapping.add(parent.getUniqueKey());
                         parent.setId(counter++);
                         notifiableExpressions.add(parent);
-                        L.d("notifiable field %s : %s for %s : %s", parent.getUniqueKey(),
+                        L.d("notifiable field %s : %s for %s : %s", parent.toString(),
                                 Integer.toHexString(System.identityHashCode(parent)),
                                 expr.getUniqueKey(),
                                 Integer.toHexString(System.identityHashCode(expr)));
@@ -639,7 +639,7 @@ public class ExprModel {
                     continue;
                 }
                 if (expr.markAsReadIfDone()) {
-                    L.d("marked %s as read ", expr.getUniqueKey());
+                    L.d("marked %s as read ", expr.toString());
                     marked = true;
                     markedAsReadList.add(expr);
                     markedSomeFlagsAsRead.remove(expr);

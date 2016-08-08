@@ -30,7 +30,7 @@ import android.widget.TextView;
 
 public class PortraitConfigTest extends BaseDataBinderTest<MultiResLayoutBinding> {
     public PortraitConfigTest() {
-        super(MultiResLayoutBinding.class, ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        super(MultiResLayoutBinding.class);
     }
 
     @Override

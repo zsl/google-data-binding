@@ -20,6 +20,8 @@
             >
         <activity android:name=".TestActivity"
                 android:screenOrientation="portrait"/>
+        <activity android:name=".LandscapeActivity"
+                  android:screenOrientation="landscape"/>
     </application>
 
 </manifest>
