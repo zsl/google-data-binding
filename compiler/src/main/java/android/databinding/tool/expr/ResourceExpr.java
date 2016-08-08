@@ -179,12 +179,12 @@ public class ResourceExpr extends Expr {
         if ("anim".equals(mResourceType)) return "android.view.animation.AnimationUtils.loadAnimation(" + context + ", " + resourceName + ")";
         if ("animator".equals(mResourceType)) return "android.animation.AnimatorInflater.loadAnimator(" + context + ", " + resourceName + ")";
         if ("bool".equals(mResourceType)) return resources + ".getBoolean(" + resourceName + ")";
-        if ("color".equals(mResourceType)) return "android.databinding.DynamicUtil.getColorFromResource(" + viewName + ", " + resourceName + ")";
-        if ("colorStateList".equals(mResourceType)) return "android.databinding.DynamicUtil.getColorStateListFromResource(" + viewName + ", " + resourceName + ")";
+        if ("color".equals(mResourceType)) return "getColorFromResource(" + viewName + ", " + resourceName + ")";
+        if ("colorStateList".equals(mResourceType)) return "getColorStateListFromResource(" + viewName + ", " + resourceName + ")";
         if ("dimen".equals(mResourceType)) return resources + ".getDimension(" + resourceName + ")";
         if ("dimenOffset".equals(mResourceType)) return resources + ".getDimensionPixelOffset(" + resourceName + ")";
         if ("dimenSize".equals(mResourceType)) return resources + ".getDimensionPixelSize(" + resourceName + ")";
-        if ("drawable".equals(mResourceType)) return "android.databinding.DynamicUtil.getDrawableFromResource(" + viewName + ", " + resourceName + ")";
+        if ("drawable".equals(mResourceType)) return "getDrawableFromResource(" + viewName + ", " + resourceName + ")";
         if ("fraction".equals(mResourceType)) {
             String base = getChildCode(0, "1");
             String pbase = getChildCode(1, "1");
