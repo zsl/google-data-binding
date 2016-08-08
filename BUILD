@@ -15,8 +15,8 @@ iml_module(
         "//tools/adt/idea:android/lib/commons-io-2.4",
         "//tools/adt/idea:android/lib/juniversalchardet-1.0.3",
         "//tools/adt/idea:android/lib/antlr4-runtime-4.5.3",
-        "//prebuilts/tools/common/m2:repository/junit/junit/4.12/junit-4.12[test]",
-        "//prebuilts/tools/common/m2:repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3[test]",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
         "//tools/base/annotations:android-annotations[module]",
     ],
     exports = [
@@ -40,8 +40,8 @@ iml_module(
     deps = [
         "//tools/data-binding:db-baseLibrary[module]",
         "//tools/data-binding:db-compilerCommon[module]",
-        "//prebuilts/tools/common/m2:repository/junit/junit/4.12/junit-4.12[test]",
-        "//prebuilts/tools/common/m2:repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3[test]",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
     ],
     exports = ["//tools/data-binding:db-baseLibrary"],
     javacopts = ["-extra_checks:off"],
@@ -52,8 +52,8 @@ iml_module(
     name = "db-baseLibrary",
     srcs = ["baseLibrary/src/main/java"],
     deps = [
-        "//prebuilts/tools/common/m2:repository/junit/junit/4.12/junit-4.12[test]",
-        "//prebuilts/tools/common/m2:repository/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3[test]",
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
     ],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
