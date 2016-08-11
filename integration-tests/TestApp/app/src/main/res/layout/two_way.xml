@@ -12,7 +12,8 @@
   ~ limitations under the License.
   -->
 
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable name="obj" type="android.databinding.testapp.vo.TwoWayBindingObject"/>
     </data>
@@ -259,6 +260,12 @@
                 android:text="@={obj.fromPigLatin(obj.pigLatin)}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
+        <EditText
+            android:id="@+id/sameTarget"
+            android:text="Hello World"
+            app:error="@{sameTarget.text}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
     </LinearLayout>
 </layout>

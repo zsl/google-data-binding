@@ -180,7 +180,8 @@ public class BindingTarget implements LocationScopeProvider {
     }
 
     public void resolveTwoWayExpressions() {
-        for (Binding binding : mBindings) {
+        List<Binding> bindings = new ArrayList<>(mBindings);
+        for (Binding binding : bindings) {
             try {
                 Scope.enter(binding);
                 binding.resolveTwoWayExpressions();

@@ -21,6 +21,7 @@ import android.databinding.testapp.databinding.TwoWayBinding;
 import android.databinding.testapp.vo.TwoWayBindingObject;
 import android.os.Debug;
 import android.os.SystemClock;
+import android.test.UiThreadTest;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.BackgroundColorSpan;
@@ -1027,11 +1028,34 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
         final long timeout = SystemClock.uptimeMillis() + 500;
-        while ("atinLay".equals(mBindingObject.pigLatin.get()) &&
-                SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return "atinLay".equals(mBindingObject.pigLatin.get());
+            }
+        });
         assertEquals("igPay", mBindingObject.pigLatin.get());
+    }
+
+    /**
+     * Tests two-way binding when the target is the same Target as expression.
+     */
+    public void testSameTarget() throws Throwable {
+        makeVisible(mBinder.sameTarget);
+        assertEquals("Hello World", mBinder.sameTarget.getError().toString());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.sameTarget.setText("Goodbye World");
+            }
+        });
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBinder.sameTarget.getError().toString().equals("Hello World");
+            }
+        });
+        assertEquals("Goodbye World", mBinder.sameTarget.getError().toString());
     }
 
     private void makeVisible(final View... views) throws Throwable {
@@ -1074,6 +1098,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.genericInstanceMethod.setVisibility(View.GONE);
                 mBinder.typedInstanceMethod.setVisibility(View.GONE);
                 mBinder.arrayMethod.setVisibility(View.GONE);
+                mBinder.sameTarget.setVisibility(View.GONE);
                 for (View view : views) {
                     view.setVisibility(View.VISIBLE);
                 }
