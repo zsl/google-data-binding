@@ -88,4 +88,11 @@ public class ErrorMessages {
     public static String CANNOT_FIND_METHOD_ON_OWNER = "Cannot find method %s on %s";
 
     public static String ARGUMENT_COUNT_MISMATCH = "Expected number of args:%d. Received: %d";
+
+    public static String OBSERVABLE_FIELD_USE = "Use of ObservableField and primitive cousins " +
+        "directly as method parameters is deprecated and support will be removed soon. Use the " +
+            "contents as parameters instead in method %s";
+
+    public static String OBSERVABLE_FIELD_GET = "Do not explicitly call 'get()' on " +
+            "ObservasbleFields in an expression. This support will be removed soon. '%s'";
 }

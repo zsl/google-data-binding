@@ -32,6 +32,7 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,6 @@ public class BindingTarget implements LocationScopeProvider {
     }
 
     public InverseBinding addInverseBinding(String name, Expr expr, String bindingClass) {
-        expr.assertIsInvertible();
         final InverseBinding inverseBinding = new InverseBinding(this, name, expr, bindingClass);
         mInverseBindings.add(inverseBinding);
         expr.markAsBindingExpression();
@@ -201,22 +201,63 @@ public class BindingTarget implements LocationScopeProvider {
     public void resolveMultiSetters() {
         L.d("resolving multi setters for %s", getId());
         final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
-        final String[] attributes = new String[mBindings.size()];
-        final ModelClass[] types = new ModelClass[mBindings.size()];
+        String[] attributes = new String[mBindings.size()];
+        ModelClass[] types = new ModelClass[mBindings.size()];
+        boolean hasObservableFields = false;
+
+        // Start by trying attributes with the ObservableField component
         for (int i = 0; i < mBindings.size(); i ++) {
             Binding binding = mBindings.get(i);
             try {
                 Scope.enter(binding);
                 attributes[i] = binding.getName();
-                types[i] = binding.getExpr().getResolvedType();
+                final ModelClass type = binding.getExpr().getResolvedType();
+                if (type.isObservableField()) {
+                    hasObservableFields = true;
+                    types[i] = binding.getExpr().unwrapObservableField().getResolvedType();
+                } else {
+                    types[i] = type;
+                }
             } finally {
                 Scope.exit();
             }
         }
-        final List<SetterStore.MultiAttributeSetter> multiAttributeSetterCalls = setterStore
-                .getMultiAttributeSetterCalls(attributes, getResolvedType(), types);
+        List<SetterStore.MultiAttributeSetter> multiAttributeSetterCalls = setterStore.
+                getMultiAttributeSetterCalls(attributes, getResolvedType(), types);
+        List<MergedBinding> merged = createMultiSetters(multiAttributeSetterCalls, hasObservableFields);
+
+        if (hasObservableFields) {
+            // Now try the attributes for ObservableField direct bindings
+            attributes = new String[mBindings.size()];
+            types = new ModelClass[mBindings.size()];
+            for (int i = 0; i < mBindings.size(); i++) {
+                Binding binding = mBindings.get(i);
+                try {
+                    Scope.enter(binding);
+                    attributes[i] = binding.getName();
+                    types[i] = binding.getExpr().getResolvedType();
+                } finally {
+                    Scope.exit();
+                }
+            }
+            multiAttributeSetterCalls = setterStore.
+                    getMultiAttributeSetterCalls(attributes, getResolvedType(), types);
+            List<MergedBinding> observableFieldCalls =
+                    createMultiSetters(multiAttributeSetterCalls, false);
+            observableFieldCalls.forEach(call -> L.w(ErrorMessages.OBSERVABLE_FIELD_USE,
+                    call.getMultiAttributeSetter().getDescription()));
+            merged.addAll(observableFieldCalls);
+        }
+
+        mBindings.addAll(merged);
+    }
+
+    private List<MergedBinding> createMultiSetters(
+            List<SetterStore.MultiAttributeSetter> multiAttributeSetterCalls,
+            boolean unwrapObservableFields) {
+        final List<MergedBinding> mergeBindings = new ArrayList<>();
         if (multiAttributeSetterCalls.isEmpty()) {
-            return;
+            return mergeBindings;
         }
         final Map<String, Binding> lookup = new HashMap<String, Binding>();
         for (Binding binding : mBindings) {
@@ -232,7 +273,6 @@ public class BindingTarget implements LocationScopeProvider {
                 }
             }
         }
-        List<MergedBinding> mergeBindings = new ArrayList<MergedBinding>();
         for (final SetterStore.MultiAttributeSetter setter : multiAttributeSetterCalls) {
             L.d("resolved %s", setter);
             final List<Binding> mergedBindings = new ArrayList<Binding>();
@@ -240,17 +280,16 @@ public class BindingTarget implements LocationScopeProvider {
                 Binding binding = lookup.get(attribute);
                 Preconditions.checkNotNull(binding, "cannot find binding for %s", attribute);
                 mergedBindings.add(binding);
+                if (unwrapObservableFields) {
+                    binding.unwrapObservableFieldExpression();
+                }
             }
 
-            for (Binding binding : mergedBindings) {
-                mBindings.remove(binding);
-            }
+            mBindings.removeAll(mergedBindings);
             MergedBinding mergedBinding = new MergedBinding(getModel(), setter, this,
                     mergedBindings);
             mergeBindings.add(mergedBinding);
         }
-        for (MergedBinding binding : mergeBindings) {
-            mBindings.add(binding);
-        }
+        return mergeBindings;
     }
 }

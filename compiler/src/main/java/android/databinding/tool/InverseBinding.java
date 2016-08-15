@@ -53,7 +53,8 @@ public class InverseBinding implements LocationScopeProvider {
         mTarget = target;
         mName = name;
         mCallbackExprModel = new CallbackExprModel(expr.getModel());
-        mExpr = expr.cloneToModel(mCallbackExprModel);
+        mExpr = expr.cloneToModel(mCallbackExprModel).unwrapObservableField();
+        mExpr.assertIsInvertible();
         setGetterCall(mExpr);
         mVariableExpr = mCallbackExprModel.callbackArg("callbackArg_0");
         ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();

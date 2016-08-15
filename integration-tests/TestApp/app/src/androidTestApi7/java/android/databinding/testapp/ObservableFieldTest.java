@@ -13,6 +13,7 @@
 
 package android.databinding.testapp;
 
+import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.ObservableFieldTestBinding;
 import android.databinding.testapp.vo.ObservableFieldBindingObject;
 
@@ -151,5 +152,45 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 
         assertEquals(x.getText().toString(), String.valueOf(mObj.pField.get().getX()));
         assertEquals(y.getText().toString(), mObj.pField.get().getY());
+    }
+
+    @UiThreadTest
+    public void testObservableVariables() {
+        ObservableBoolean enabled = new ObservableBoolean(false);
+        mBinder.setEnabled(enabled);
+        mBinder.executePendingBindings();
+        assertFalse(mBinder.enabledView.isEnabled());
+        enabled.set(true);
+        mBinder.executePendingBindings();
+        assertTrue(mBinder.enabledView.isEnabled());
+    }
+
+    @UiThreadTest
+    public void testNestedObservables() {
+        ObservableBoolean enabled = new ObservableBoolean(false);
+        mBinder.setEnabled(enabled);
+        mBinder.executePendingBindings();
+        assertFalse(mBinder.nestedObservableView.isEnabled());
+        assertEquals(mObj.oField.get(), mBinder.nestedObservableView.getText().toString());
+
+        enabled.set(true);
+        mObj.oField.set("Blah");
+        mBinder.executePendingBindings();
+        assertTrue(mBinder.nestedObservableView.isEnabled());
+        assertEquals(mObj.oField.get(), mBinder.nestedObservableView.getText().toString());
+    }
+
+    /**
+     * TODO: This should disappear in Android Studio 2.4 after this capapbility has been removed.
+     */
+    @UiThreadTest
+    public void testObservableGet() {
+        ObservableBoolean enabled = new ObservableBoolean(false);
+        mBinder.setEnabled(enabled);
+        mBinder.executePendingBindings();
+        assertFalse(mBinder.useGet.isEnabled());
+        enabled.set(true);
+        mBinder.executePendingBindings();
+        assertTrue(mBinder.useGet.isEnabled());
     }
 }

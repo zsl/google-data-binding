@@ -13,7 +13,9 @@
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
+        <import type="android.databinding.testapp.ObservableFieldMethods"/>
         <variable name="obj" type="android.databinding.testapp.vo.ObservableFieldBindingObject"/>
+        <variable name="enabled" type="android.databinding.ObservableBoolean"/>
     </data>
     <LinearLayout
             android:orientation="vertical"
@@ -76,5 +78,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{obj.pField.y}"/>
+
+        <TextView
+            android:id="@+id/enabledView"
+            android:enabled="@{enabled}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hello"/>
+
+        <TextView
+            android:id="@+id/nestedObservableView"
+            android:text="@{ObservableFieldMethods.crazyNested(ObservableFieldMethods.crazyNested(obj.oField))}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="@{ObservableFieldMethods.makeObservable(ObservableFieldMethods.makeObservable(enabled))}"/>
+
+        <!-- This should be removed for Android Studio 2.4 -->
+        <TextView
+            android:id="@+id/useGet"
+            android:enabled="@{enabled.get()}"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hello"/>
+
     </LinearLayout>
 </layout>

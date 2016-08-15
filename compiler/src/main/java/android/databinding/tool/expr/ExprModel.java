@@ -30,7 +30,6 @@ import android.databinding.tool.writer.ExprModelExt;
 import android.databinding.tool.writer.FlagSet;
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -41,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class ExprModel {
     static final String DYNAMIC_UTIL = "android.databinding.DynamicUtil";
@@ -172,10 +172,6 @@ public class ExprModel {
 
     public FieldAccessExpr field(Expr parent, String name) {
         return register(new FieldAccessExpr(parent, name));
-    }
-
-    public FieldAccessExpr observableField(Expr parent, String name) {
-        return register(new ObservableFieldExpr(parent, name));
     }
 
     public MethodReferenceExpr methodReference(Expr parent, String name) {
@@ -378,6 +374,7 @@ public class ExprModel {
         if (!mBindingExpressions.contains(bindingExpr)) {
             mBindingExpressions.add(bindingExpr);
         }
+        bindingExpr.markAsBindingExpression();
         return bindingExpr;
     }
 
@@ -396,13 +393,14 @@ public class ExprModel {
      */
     public void seal() {
         L.d("sealing model");
+        resolveTypes();
         List<Expr> notifiableExpressions = new ArrayList<Expr>();
         //ensure class analyzer. We need to know observables at this point
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         updateExpressions(modelAnalyzer);
 
         int counter = 0;
-        final Iterable<Expr> observables = filterObservables(modelAnalyzer);
+        final Iterable<Expr> observables = filterObservables();
         List<String> flagMapping = new ArrayList<String>();
         mObservables = new ArrayList<Expr>();
         for (Expr expr : observables) {
@@ -588,14 +586,23 @@ public class ExprModel {
         return result;
     }
 
-    private Iterable<Expr> filterObservables(final ModelAnalyzer modelAnalyzer) {
-        List<Expr> result = new ArrayList<Expr>();
-        for (Expr input : mExprMap.values()) {
-            if (input.isObservable()) {
-                result.add(input);
-            }
-        }
-        return result;
+    private Iterable<Expr> filterObservables() {
+        return mExprMap.values().stream()
+                .filter(expr -> expr.isObservable())
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Calls getResolvedType() on all expressions until no more changes are made.
+     */
+    private void resolveTypes() {
+        int numExpressions;
+        do {
+            numExpressions = mExprMap.size();
+            mExprMap.values().stream()
+                    .collect(Collectors.toList())
+                    .forEach(expr -> expr.getResolvedType());
+        } while (mExprMap.size() != numExpressions);
     }
 
     public List<Expr> getPendingExpressions() {

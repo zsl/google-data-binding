@@ -16,6 +16,7 @@
 package android.databinding.tool.store;
 
 import android.databinding.InverseBindingListener;
+import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
@@ -46,6 +48,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
@@ -253,6 +256,12 @@ public class SetterStore {
         }
 
         adapters.put(key, new MethodDescription(bindingMethod, 1, takesComponent));
+
+        if (mClassAnalyzer.findClass(value, null).isObservableField()) {
+            ExecutableType executableType = (ExecutableType) bindingMethod.asType();
+            L.w(bindingMethod, ErrorMessages.OBSERVABLE_FIELD_USE,
+                    AnnotationTypeUtil.getInstance().toJava(bindingMethod, executableType));
+        }
     }
 
     public void addInverseAdapter(ProcessingEnvironment processingEnv, String attribute,
@@ -349,6 +358,16 @@ public class SetterStore {
         MethodDescription methodDescription = new MethodDescription(bindingMethod,
                 attributes.length, takesComponent);
         mStore.multiValueAdapters.put(key, methodDescription);
+
+        final long numObservableFields = Arrays.stream(key.parameterTypes)
+                .map(type -> mClassAnalyzer.findClass(type, null))
+                .filter(type -> type.isObservableField())
+                .count();
+        if (numObservableFields > 0) {
+            ExecutableType executableType = (ExecutableType) bindingMethod.asType();
+            L.w(bindingMethod, ErrorMessages.OBSERVABLE_FIELD_USE,
+                    AnnotationTypeUtil.getInstance().toJava(bindingMethod, executableType));
+        }
     }
 
     private static void testRepeatedAttributes(MultiValueAdapterKey key, ExecutableElement method) {
@@ -1121,7 +1140,7 @@ public class SetterStore {
             final int argStart = 1 + (takesComponent ? 1 : 0);
             this.viewType = getQualifiedName(eraseType(processingEnv,
                     parameters.get(argStart - 1).asType()));
-            this.parameterTypes = new String[parameters.size() - argStart];
+            this.parameterTypes = new String[attributes.length];
             for (int i = 0; i < attributes.length; i++) {
                 TypeMirror typeMirror = eraseType(processingEnv,
                         parameters.get(i + argStart).asType());
@@ -1471,6 +1490,11 @@ public class SetterStore {
         public String getBindingAdapterInstanceClass() {
             return null;
         }
+
+        @Override
+        public String getDescription() {
+            return "view." + mMethodName;
+        }
     }
 
     public static class AdapterSetter extends SetterCall {
@@ -1515,6 +1539,11 @@ public class SetterStore {
         public String getBindingAdapterInstanceClass() {
             return mAdapter.isStatic ? null : mAdapter.type;
         }
+
+        @Override
+        public String getDescription() {
+            return mAdapter.type + "." + mAdapter.method;
+        }
     }
 
     public static class ModelMethodSetter extends SetterCall {
@@ -1557,6 +1586,16 @@ public class SetterStore {
         public String getBindingAdapterInstanceClass() {
             return null;
         }
+
+        @Override
+        public String getDescription() {
+            String args = Arrays.stream(mModelMethod.getParameterTypes())
+                    .map(param -> param.toJavaCode())
+                    .collect(Collectors.joining(", "));
+            return mModelMethod.getDeclaringClass().toJavaCode() + '.' +
+                    mModelMethod.getName() + '(' + args + ')';
+
+        }
     }
 
     public interface BindingSetterCall {
@@ -1570,6 +1609,9 @@ public class SetterStore {
         ModelClass[] getParameterTypes();
 
         String getBindingAdapterInstanceClass();
+
+        // A description of the setter method to be used in an error message
+        String getDescription();
     }
 
     public static abstract class SetterCall implements BindingSetterCall {
@@ -1743,6 +1785,11 @@ public class SetterStore {
                     ", mKey=" + mKey +
                     '}';
         }
+
+        @Override
+        public String getDescription() {
+            return mAdapter.type + "." + mAdapter.method;
+        }
     }
 
     public static class ViewDataBindingEventSetter implements BindingSetterCall {
@@ -1778,6 +1825,11 @@ public class SetterStore {
         @Override
         public String getBindingAdapterInstanceClass() {
             return null;
+        }
+
+        @Override
+        public String getDescription() {
+            return "ViewDataBinding.setBindingInverseListener";
         }
     }
 

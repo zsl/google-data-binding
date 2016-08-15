@@ -42,6 +42,7 @@ public class Binding implements LocationScopeProvider {
     private Expr mExpr;
     private final BindingTarget mTarget;
     private BindingSetterCall mSetterCall;
+    private boolean mUnwrapObservableFields = true;
 
     public Binding(BindingTarget target, String name, Expr expr) {
         this(target, name, expr, null);
@@ -120,6 +121,7 @@ public class Binding implements LocationScopeProvider {
     private void resolveSetterCall() {
         ModelClass viewType = mTarget.getResolvedType();
         if (viewType != null && viewType.extendsViewStub()) {
+            mExpr = mExpr.unwrapObservableField();
             if (isListenerAttribute(mName)) {
                 ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
                 ModelClass viewStubProxy = modelAnalyzer.
@@ -133,9 +135,29 @@ public class Binding implements LocationScopeProvider {
                 mSetterCall = new ViewStubSetterCall(mName);
             }
         } else {
-            final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
-            mSetterCall = setterStore.getSetterCall(mName,
-                    viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
+            ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
+            boolean warn = false;
+            if (mExpr.getResolvedType().isObservableField()) {
+                // If it is an ObservableField, try with the contents of it first.
+                Expr expr = mExpr.unwrapObservableField();
+                mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
+                        viewType, expr.getResolvedType(), mExpr.getModel().getImports());
+                if (mSetterCall != null) {
+                    mExpr = expr;
+                } else {
+                    // No setter for the contents of the ObservableField.
+                    // If we find one for the ObservbleField, we should warn.
+                    warn = true;
+                }
+            }
+            if (mSetterCall == null) {
+                // Now try with the value object directly
+                mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
+                        viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
+                if (warn) {
+                    L.w(ErrorMessages.OBSERVABLE_FIELD_USE, mSetterCall.getDescription());
+                }
+            }
         }
     }
 
@@ -239,10 +261,13 @@ public class Binding implements LocationScopeProvider {
         if (!setterParam.isNullable() && resolvedType.isNullable()
                 && mExpr.getResolvedType().unbox() != mExpr.getResolvedType()) {
             L.w(ErrorMessages.BOXED_VALUE_CASTING, mExpr, mName, mExpr);
-            Expr prev = mExpr;
             mExpr = exprModel.safeUnbox(mExpr);
             mExpr.markAsBindingExpression();
         }
+    }
+
+    public void unwrapObservableFieldExpression() {
+        mExpr = mExpr.unwrapObservableField();
     }
 
     private static class ViewStubSetterCall extends SetterCall {
@@ -285,6 +310,11 @@ public class Binding implements LocationScopeProvider {
         @Override
         public String getBindingAdapterInstanceClass() {
             return null;
+        }
+
+        @Override
+        public String getDescription() {
+            return "ViewDataBinding.setVariable(BR." + mName + ", value)";
         }
     }
 
@@ -335,6 +365,11 @@ public class Binding implements LocationScopeProvider {
         @Override
         public String getBindingAdapterInstanceClass() {
             return mWrappedCall.getBindingAdapterInstanceClass();
+        }
+
+        @Override
+        public String getDescription() {
+            return mWrappedCall.toString();
         }
     }
 }

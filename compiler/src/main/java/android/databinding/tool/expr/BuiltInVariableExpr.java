@@ -16,8 +16,6 @@
 
 package android.databinding.tool.expr;
 
-import android.databinding.tool.reflection.ModelAnalyzer;
-import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.writer.KCode;
 
 import java.util.ArrayList;
@@ -35,12 +33,6 @@ public class BuiltInVariableExpr extends IdentifierExpr {
     @Override
     public boolean isDynamic() {
         return false;
-    }
-
-    @Override
-    protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
-        ModelClass modelClass = super.resolveType(modelAnalyzer);
-        return modelClass;
     }
 
     @Override

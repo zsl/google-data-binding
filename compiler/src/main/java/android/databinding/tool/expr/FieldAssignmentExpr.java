@@ -51,7 +51,7 @@ public class FieldAssignmentExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
-        getTarget().resolveType(modelAnalyzer);
+        getTarget().getResolvedType();
         return modelAnalyzer.findClass(void.class);
     }
 
@@ -95,6 +95,7 @@ public class FieldAssignmentExpr extends Expr {
             for (ExecutionPath path : targetPaths) {
                 final ComparisonExpr cmp = getModel()
                         .comparison("!=", child, getModel().symbol("null", Object.class));
+                cmp.setUnwrapObservableFields(false);
                 path.addPath(cmp);
                 final ExecutionPath subPath = path.addBranch(cmp, true);
                 if (subPath != null) {

@@ -68,6 +68,7 @@ public class BracketExpr extends Expr {
             for (ExecutionPath path : targetPaths) {
                 Expr cmp = getModel().comparison("!=", getTarget(),
                         getModel().symbol("null", Object.class));
+                cmp.setUnwrapObservableFields(false);
                 path.addPath(cmp);
                 final ExecutionPath subPath = path.addBranch(cmp, true);
                 if (subPath != null) {

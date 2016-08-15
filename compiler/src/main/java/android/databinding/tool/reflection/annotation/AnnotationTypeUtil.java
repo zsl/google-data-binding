@@ -111,9 +111,9 @@ public class AnnotationTypeUtil extends TypeUtil {
         final String methodName = executableElement.getSimpleName().toString();
         final String args = executableType.getParameterTypes().stream()
                 .map(arg -> getDescription(arg))
-                .collect(Collectors.joining(""));
+                .collect(Collectors.joining("", "(", ")"));
         // TODO detect constructor?
-        return methodName + "(" + args + ")" + getDescription(
+        return methodName + args + getDescription(
                 executableType.getReturnType());
     }
 
@@ -204,8 +204,11 @@ public class AnnotationTypeUtil extends TypeUtil {
     }
 
     private String toJava(ExecutableType executableType) {
+        return toJava((ExecutableElement) mTypes.asElement(executableType), executableType);
+    }
+
+    public String toJava(ExecutableElement executableElement, ExecutableType executableType) {
         StringBuilder sb = new StringBuilder();
-        ExecutableElement executableElement = (ExecutableElement) mTypes.asElement(executableType);
         if (executableElement.getModifiers() != null) {
             sb.append(executableElement.getModifiers().stream()
                     .map(mod -> mod.toString())
