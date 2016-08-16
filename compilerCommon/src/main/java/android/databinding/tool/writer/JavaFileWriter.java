@@ -27,7 +27,7 @@ public abstract class JavaFileWriter {
         parent.mkdirs();
         try {
             L.d("writing file %s", exactPath.getAbsoluteFile());
-            FileUtils.writeStringToFile(exactPath, contents);
+            FileUtils.writeStringToFile(exactPath, contents, "utf-8");
         } catch (IOException e) {
             L.e(e, "Could not write to %s", exactPath);
         }

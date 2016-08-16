@@ -639,6 +639,7 @@ public class ResourceBundle implements Serializable {
                 JAXBContext context = JAXBContext
                         .newInstance(ResourceBundle.LayoutFileBundle.class);
                 sMarshaller = context.createMarshaller();
+                sMarshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             }
             return sMarshaller;
         }
