@@ -30,6 +30,7 @@ import android.databinding.ObservableLong;
 import android.databinding.ObservableShort;
 import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
+import android.widget.SpinnerAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,6 +46,7 @@ public class TwoWayBindingObject {
             "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"
     };
     public final ListAdapter adapter;
+    public final SpinnerAdapter spinnerAdapter;
     public final ObservableInt selectedItemPosition = new ObservableInt();
     public final ObservableLong date = new ObservableLong(System.currentTimeMillis());
     public final ObservableBoolean checked = new ObservableBoolean();
@@ -93,6 +95,8 @@ public class TwoWayBindingObject {
             map.put(VALUES[i], i + 1);
             stringList.get().add(VALUES[i]);
         }
+        this.spinnerAdapter =
+                new ArrayAdapter<>(context, android.R.layout.simple_list_item_1, VALUES);
     }
 
     public void textChanged1(CharSequence s, int start, int before, int count) {
