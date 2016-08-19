@@ -38,7 +38,7 @@ public class FieldAssignmentExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(getTarget().getUniqueKey(), mName, "=", getValueExpr().getUniqueKey());
+        return join(getTarget(), ".", mName, "=", getValueExpr());
     }
 
     public Expr getTarget() {

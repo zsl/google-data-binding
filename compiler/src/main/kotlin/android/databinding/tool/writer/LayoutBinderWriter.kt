@@ -171,7 +171,7 @@ val BindingTarget.constructorParamName by lazyProp { target : BindingTarget ->
 // not necessarily unique. Uniqueness is decided per scope
 val Expr.readableName by lazyProp { expr : Expr ->
     val stripped = expr.uniqueKey.stripNonJava()
-    L.d("readableUniqueName for [%s] %s is %s", System.identityHashCode(expr), expr.uniqueKey, stripped)
+    L.d("readableUniqueName for [%s] %s is %s", System.identityHashCode(expr), expr, stripped)
     stripped
 }
 

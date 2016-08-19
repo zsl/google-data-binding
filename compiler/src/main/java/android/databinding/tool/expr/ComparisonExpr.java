@@ -31,7 +31,7 @@ public class ComparisonExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(mOp, super.computeUniqueKey());
+        return join(getLeft(), mOp, getRight());
     }
 
     @Override

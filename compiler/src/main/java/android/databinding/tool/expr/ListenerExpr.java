@@ -82,7 +82,7 @@ public class ListenerExpr extends Expr {
     }
 
     protected String computeUniqueKey() {
-        return join(getResolvedType().getCanonicalName(), getTarget().computeUniqueKey(), mName);
+        return join(getTarget(), "::", mName, "(", getResolvedType().getCanonicalName(), ")");
     }
 
     @Override

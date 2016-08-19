@@ -45,7 +45,7 @@ public class TernaryExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return "?:" + super.computeUniqueKey();
+        return join(getPred(), "?", getIfTrue(), ":", getIfFalse());
     }
 
     @Override

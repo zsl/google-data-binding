@@ -51,7 +51,7 @@ public class IdentifierExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(mName, super.computeUniqueKey());
+        return mName;
     }
 
     public String getUserDefinedType() {

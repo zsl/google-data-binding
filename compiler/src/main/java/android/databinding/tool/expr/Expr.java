@@ -33,10 +33,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 abstract public class Expr implements VersionProvider, LocationScopeProvider {
     public static final int NO_ID = -1;
@@ -451,6 +454,10 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     }
 
     protected static final String KEY_JOIN = "~";
+    protected static final String KEY_JOIN_START = "(";
+    protected static final String KEY_JOIN_END = ")";
+    protected static final String KEY_START = "@";
+    protected static final String KEY_END = "#";
 
     /**
      * Returns a unique string key that can identify this expression.
@@ -461,22 +468,17 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
      */
     public final String getUniqueKey() {
         if (mUniqueKey == null) {
-            mUniqueKey = computeUniqueKey();
-            Preconditions.checkNotNull(mUniqueKey,
-                    "if there are no children, you must override computeUniqueKey");
-            Preconditions.check(!mUniqueKey.trim().equals(""),
-                    "if there are no children, you must override computeUniqueKey");
+            String uniqueKey = computeUniqueKey();
+            Preconditions.checkNotNull(uniqueKey,
+                    "you must override computeUniqueKey to return non-null String");
+            Preconditions.check(!uniqueKey.trim().isEmpty(),
+                    "you must override computeUniqueKey to return a non-empty String");
+            mUniqueKey = KEY_START + uniqueKey + KEY_END;
         }
         return mUniqueKey;
     }
 
-    protected String computeUniqueKey() {
-        return computeChildrenKey();
-    }
-
-    protected final String computeChildrenKey() {
-        return join(mChildren);
-    }
+    protected abstract String computeUniqueKey();
 
     public void enableDirectInvalidation() {
         mCanBeInvalidated = true;
@@ -741,26 +743,23 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         }
     }
 
-    protected static String join(String... items) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < items.length; i ++) {
-            if (i > 0) {
-                result.append(KEY_JOIN);
-            }
-            result.append(items[i]);
+    protected static String join(List<?> vals) {
+        if (vals == null || vals.isEmpty()) {
+            return "";
         }
-        return result.toString();
+        return join(vals.stream());
     }
 
-    protected static String join(List<Expr> items) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < items.size(); i ++) {
-            if (i > 0) {
-                result.append(KEY_JOIN);
-            }
-            result.append(items.get(i).getUniqueKey());
+    protected static String join(Object... vals) {
+        if (vals == null || vals.length == 0) {
+            return "";
         }
-        return result.toString();
+        return join(Arrays.stream(vals));
+    }
+
+    private static String join(Stream<?> vals) {
+        return vals.map(val -> (val instanceof Expr ? ((Expr)val).getUniqueKey() : val.toString()))
+                .collect(Collectors.joining(KEY_JOIN, KEY_JOIN_START, KEY_JOIN_END));
     }
 
     protected String asPackage() {

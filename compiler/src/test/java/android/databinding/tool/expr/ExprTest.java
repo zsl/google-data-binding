@@ -52,7 +52,7 @@ public class ExprTest{
 
         @Override
         protected String computeUniqueKey() {
-            return mKey + super.computeUniqueKey();
+            return mKey + join(getChildren());
         }
 
         @Override
@@ -92,6 +92,11 @@ public class ExprTest{
             @Override
             protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
                 return modelAnalyzer.findClass(Integer.class);
+            }
+
+            @Override
+            protected String computeUniqueKey() {
+                return join(getChildren());
             }
 
             @Override

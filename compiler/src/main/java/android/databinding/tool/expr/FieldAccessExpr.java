@@ -136,7 +136,11 @@ public class FieldAccessExpr extends MethodBaseExpr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(mName, ".", getTarget().getUniqueKey());
+        if (mName.isEmpty()) {
+            return join(getTarget(), ".get-()");
+        } else {
+            return join(getTarget(), '.', mName);
+        }
     }
 
     public String getBrName() {

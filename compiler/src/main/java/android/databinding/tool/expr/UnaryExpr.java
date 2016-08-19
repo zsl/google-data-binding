@@ -36,7 +36,7 @@ public class UnaryExpr extends Expr {
 
     @Override
     protected String computeUniqueKey() {
-        return join(getOpStr(), getExpr().getUniqueKey());
+        return join(mOp, getExpr());
     }
 
     @Override

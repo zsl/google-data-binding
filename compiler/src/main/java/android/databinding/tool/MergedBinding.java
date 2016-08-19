@@ -123,7 +123,7 @@ public class MergedBinding extends Binding {
             oldValues = Arrays.asList(new String[args.getChildren().size()]);
         }
         final String[] expressions = concat(oldValues, newValues, String.class);
-        L.d("merged binding arg: %s", args.getUniqueKey());
+        L.d("merged binding arg: %s", args.toString());
         return mMultiAttributeSetter.toJava(bindingComponent, targetViewName, expressions);
     }
 
