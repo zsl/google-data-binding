@@ -497,8 +497,7 @@ public class SetterStore {
 
     public void write(String projectPackage, ProcessingEnvironment processingEnvironment)
             throws IOException {
-        GenerationalClassUtil.writeIntermediateFile(processingEnvironment,
-                projectPackage, projectPackage +
+        GenerationalClassUtil.writeIntermediateFile(projectPackage, projectPackage +
                         GenerationalClassUtil.ExtensionFilter.SETTER_STORE.getExtension(), mStore);
     }
 

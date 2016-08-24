@@ -16,6 +16,7 @@
 
 package android.databinding;
 
+import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.LayoutXmlProcessor;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
@@ -82,18 +83,11 @@ public class AndroidDataBinding {
 
     private static LayoutXmlProcessor createXmlProcessor(ProcessXmlOptions processXmlOptions) {
         final ExecFileWriter fileWriter = new ExecFileWriter(processXmlOptions.getResOutput());
-        return new LayoutXmlProcessor(
-                processXmlOptions.getAppId(),
-                fileWriter,
-                processXmlOptions.getMinSdk(),
-                processXmlOptions.isLibrary(),
-                new MyFileLookup()
+        return new LayoutXmlProcessor(processXmlOptions.getAppId(), fileWriter, new MyFileLookup()
         );
     }
 
     static class MyFileLookup implements LayoutXmlProcessor.OriginalFileLookup {
-
-        @Override
         public File getOriginalFileFor(File file) {
             return file;
         }

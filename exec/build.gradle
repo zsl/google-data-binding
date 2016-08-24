@@ -22,9 +22,12 @@ sourceCompatibility = 1.5
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
     compile 'com.beust:jcommander:1.48'
-    compile project(':dataBinding:compiler')
+    compileOnly project(':dataBinding:compiler')
 }
 
+compileJava {
+    options.compilerArgs += ["-proc:none"]
+}
 run {
     if ( project.hasProperty("appArgs") ) {
         args Eval.me(appArgs)

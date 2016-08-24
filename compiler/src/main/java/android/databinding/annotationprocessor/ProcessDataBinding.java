@@ -18,8 +18,9 @@ package android.databinding.annotationprocessor;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
-import android.databinding.tool.DataBindingBuilder;
+import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
@@ -31,6 +32,7 @@ import android.databinding.tool.writer.JavaFileWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -56,33 +58,27 @@ import javax.xml.bind.JAXBException;
  */
 public class ProcessDataBinding extends AbstractProcessor {
     private List<ProcessingStep> mProcessingSteps;
-
+    private DataBindingCompilerArgs mCompilerArgs;
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         if (mProcessingSteps == null) {
+            readArguments();
             initProcessingSteps();
         }
-        final BindingBuildInfo buildInfo = BuildInfoUtil.load(roundEnv);
-        if (buildInfo == null) {
+        if (mCompilerArgs == null) {
             return false;
-        }
-        if (buildInfo.isLibrary() && GenerationalClassUtil.getBuildDir() != null) {
-            // Jack already does not support library builds but this is necessary to be future
-            // proof so that even if tools start supporting it, we will prevent it until the
-            // data binding part is implemented.
-            throw new IllegalStateException("Jack compilation is not support in library builds");
         }
         boolean done = true;
         for (ProcessingStep step : mProcessingSteps) {
             try {
-                done = step.runStep(roundEnv, processingEnv, buildInfo) && done;
+                done = step.runStep(roundEnv, processingEnv, mCompilerArgs) && done;
             } catch (JAXBException e) {
                 L.e(e, "Exception while handling step %s", step);
             }
         }
         if (roundEnv.processingOver()) {
             for (ProcessingStep step : mProcessingSteps) {
-                step.onProcessingOver(roundEnv, processingEnv, buildInfo);
+                step.onProcessingOver(roundEnv, processingEnv, mCompilerArgs);
             }
         }
         Scope.assertNoError();
@@ -139,17 +135,30 @@ public class ProcessDataBinding extends AbstractProcessor {
         }
     }
 
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
-        String buildInfoPath = processingEnv.getOptions().get(
-                DataBindingBuilder.BUILD_FOLDER_NAME);
-        if (buildInfoPath != null) {
-            // only set for Jack builds now but will be the only way to pass information into the
-            // compiler going forward.
-            GenerationalClassUtil.setBuildInput(buildInfoPath);
+    /**
+     * use this instead of init method so that we won't become a problem when data binding happens
+     * to be in annotation processor classpath by chance
+     */
+    public synchronized void readArguments() {
+        try {
+            mCompilerArgs = DataBindingCompilerArgs
+                    .readFromOptions(processingEnv.getOptions());
+            L.setDebugLog(mCompilerArgs.enableDebugLogs());
+            ScopedException.encodeOutput(mCompilerArgs.shouldPrintEncodedErrorLogs());
+        } catch (Throwable t) {
+            String allParam = processingEnv.getOptions().entrySet().stream().map(
+                    (entry) -> entry.getKey() + " : " + entry.getValue())
+                    .collect(Collectors.joining("\n"));
+            throw new RuntimeException("Failed to parse data binding compiler options. Params:\n"
+                    + allParam, t);
         }
+        GenerationalClassUtil.init(mCompilerArgs);
         ModelAnalyzer.setProcessingEnvironment(processingEnv);
+    }
+
+    @Override
+    public Set<String> getSupportedOptions() {
+        return DataBindingCompilerArgs.ALL_PARAMS;
     }
 
     /**
@@ -166,11 +175,11 @@ public class ProcessDataBinding extends AbstractProcessor {
 
         private boolean runStep(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
-                BindingBuildInfo buildInfo) throws JAXBException {
+                DataBindingCompilerArgs args) throws JAXBException {
             if (mDone) {
                 return true;
             }
-            mDone = onHandleStep(roundEnvironment, processingEnvironment, buildInfo);
+            mDone = onHandleStep(roundEnvironment, processingEnvironment, args);
             return mDone;
         }
 
@@ -181,7 +190,7 @@ public class ProcessDataBinding extends AbstractProcessor {
          */
         abstract public boolean onHandleStep(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
-                BindingBuildInfo buildInfo) throws JAXBException;
+                DataBindingCompilerArgs args) throws JAXBException;
 
         /**
          * Invoked when processing is done. A good place to generate the output if the
@@ -189,7 +198,7 @@ public class ProcessDataBinding extends AbstractProcessor {
          */
         abstract public void onProcessingOver(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
-                BindingBuildInfo buildInfo);
+                DataBindingCompilerArgs args);
     }
 
     interface Callback {

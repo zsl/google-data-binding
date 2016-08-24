@@ -25,7 +25,6 @@ import org.junit.rules.TestName;
 
 import android.databinding.tool.store.Location;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,10 +36,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,7 +64,10 @@ public class BaseCompilationTest {
     public static final String KEY_INCLUDE_ID = "INCLUDEID";
     public static final String KEY_VIEW_ID = "VIEWID";
 
-    protected final File testFolder = new File("./build/build-test");
+    @Rule
+    public TemporaryBuildFolder tmpBuildFolder =
+            new TemporaryBuildFolder(new File("./build/build-test"));
+    File testFolder;
 
     protected void copyResourceTo(String name, String path) throws IOException {
         copyResourceTo(name, new File(testFolder, path));
@@ -99,9 +99,7 @@ public class BaseCompilationTest {
 
     @Before
     public void clear() throws IOException {
-        if (testFolder.exists()) {
-            FileUtils.forceDelete(testFolder);
-        }
+        testFolder = tmpBuildFolder.getFolder();
     }
 
     /**

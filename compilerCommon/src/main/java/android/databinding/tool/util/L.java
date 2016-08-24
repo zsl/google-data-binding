@@ -29,14 +29,11 @@ import javax.tools.Diagnostic.Kind;
 
 public class L {
     private static boolean sEnableDebug = false;
-    private static final Client sSystemClient = new Client() {
-        @Override
-        public void printMessage(Kind kind, String message, Element element) {
-            if (kind == Kind.ERROR) {
-                System.err.println(message);
-            } else {
-                System.out.println(message);
-            }
+    private static final Client sSystemClient = (kind, message, element) -> {
+        if (kind == Kind.ERROR) {
+            System.err.println(message);
+        } else {
+            System.out.println(message);
         }
     };
 

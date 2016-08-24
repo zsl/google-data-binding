@@ -25,6 +25,7 @@ import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
 import android.databinding.InverseMethod;
 import android.databinding.Untaggable;
+import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.annotation.AnnotationTypeUtil;
 import android.databinding.tool.store.SetterStore;
@@ -58,7 +59,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
 
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnv,
-            ProcessingEnvironment processingEnvironment, BindingBuildInfo buildInfo) {
+            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args) {
         L.d("processing adapters");
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         Preconditions.checkNotNull(modelAnalyzer, "Model analyzer should be"
@@ -75,7 +76,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
         addInverseMethods(roundEnv, processingEnvironment, store);
 
         try {
-            store.write(buildInfo.modulePackage(), processingEnvironment);
+            store.write(args.getModulePackage(), processingEnvironment);
         } catch (IOException e) {
             L.e(e, "Could not write BindingAdapter intermediate file.");
         }
@@ -84,7 +85,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
 
     @Override
     public void onProcessingOver(RoundEnvironment roundEnvironment,
-            ProcessingEnvironment processingEnvironment, BindingBuildInfo buildInfo) {
+            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args) {
 
     }
 
