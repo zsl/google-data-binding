@@ -2,6 +2,17 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 iml_module(
+    name = "db-baseLibrary",
+    srcs = ["baseLibrary/src/main/java"],
+    deps = [
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
+    ],
+    javacopts = ["-extra_checks:off"],
+    visibility = ["//visibility:public"],
+)
+
+iml_module(
     name = "db-compilerCommon",
     srcs = [
         "compilerCommon/src/main/java",
@@ -44,17 +55,6 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
     ],
     exports = ["//tools/data-binding:db-baseLibrary"],
-    javacopts = ["-extra_checks:off"],
-    visibility = ["//visibility:public"],
-)
-
-iml_module(
-    name = "db-baseLibrary",
-    srcs = ["baseLibrary/src/main/java"],
-    deps = [
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
-    ],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
 )
