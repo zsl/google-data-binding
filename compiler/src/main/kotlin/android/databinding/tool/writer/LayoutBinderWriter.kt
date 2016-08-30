@@ -334,15 +334,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         model.exprMap.values.filterIsInstance(IdentifierExpr::class.java).filter { it.isVariable() }
     }
 
-    val usedVariables by lazy {
-        variables.filter {it.isUsed || it.isIsUsedInCallback }
-    }
-
     val callbacks by lazy {
         model.exprMap.values.filterIsInstance(LambdaExpr::class.java)
     }
 
-    public fun write(minSdk : kotlin.Int) : String  {
+    fun write(minSdk : kotlin.Int) : String  {
         Scope.reset()
         layoutBinder.resolveWhichExpressionsAreUsed()
         calculateIndices();
@@ -683,18 +679,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     fun declareSetVariable() = kcode("") {
         nl("public boolean setVariable(int variableId, Object variable) {") {
             tab("switch(variableId) {") {
-                usedVariables.forEach {
+                variables.forEach {
                     tab ("case ${it.name.br()} :") {
                         tab("${it.setterName}((${it.resolvedType.toJavaCode()}) variable);")
                         tab("return true;")
-                    }
-                }
-                val declaredOnly = variables.filter { !it.isUsed && !it.isIsUsedInCallback && it.isDeclared };
-                declaredOnly.forEachIndexed { i, identifierExpr ->
-                    tab ("case ${identifierExpr.name.br()} :") {
-                        if (i == declaredOnly.size - 1) {
-                            tab("return true;")
-                        }
                     }
                 }
             }
@@ -705,40 +693,33 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     }
 
     fun variableSettersAndGetters() = kcode("") {
-        variables.filterNot{ usedVariables.contains(it) }.forEach {
-            nl("public void ${it.setterName}(${it.resolvedType.toJavaCode()} ${it.readableName}) {") {
-                tab("// not used, ignore")
-            }
-            nl("}")
-            nl("")
-            nl("public ${it.resolvedType.toJavaCode()} ${it.getterName}() {") {
-                tab("return ${it.defaultValue};")
-            }
-            nl("}")
-        }
-        usedVariables.forEach {
+        variables.forEach {
             if (it.userDefinedType != null) {
                 block("public void ${it.setterName}(${it.resolvedType.toJavaCode()} ${it.readableName})") {
-                    if (it.isObservable) {
+                    val used = it.isIsUsedInCallback || it.isUsed
+                    if (used && it.isObservable) {
                         nl("updateRegistration(${it.id}, ${it.readableName});");
                     }
                     nl("this.${it.fieldName} = ${it.readableName};")
-                    // set dirty flags!
-                    val flagSet = it.invalidateFlagSet
-                    block("synchronized(this)") {
-                        mDirtyFlags.mapOr(flagSet) { suffix, index ->
-                            nl("${mDirtyFlags.localName}$suffix |= ${flagSet.localValue(index)};")
+                    if (used) {
+                        // set dirty flags!
+                        val flagSet = it.invalidateFlagSet
+                        block("synchronized(this)") {
+                            mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                                nl("${mDirtyFlags.localName}$suffix |= ${flagSet.localValue(index)};")
+                            }
                         }
-                    }
-                    // TODO: Remove this condition after releasing version 1.1 of SDK
-                    if (ModelAnalyzer.getInstance().findClass("android.databinding.ViewDataBinding", null).isObservable) {
                         nl("notifyPropertyChanged(${it.name.br()});")
+                        nl("super.requestRebind();")
                     }
-                    nl("super.requestRebind();")
                 }
-                nl("")
-                block("public ${it.resolvedType.toJavaCode()} ${it.getterName}()") {
-                    nl("return ${it.fieldName};")
+                // if there are variations, we'll use base class to generate the fields and their
+                // getters
+                if (!layoutBinder.hasVariations()) {
+                    nl("")
+                    block("public ${it.resolvedType.toJavaCode()} ${it.getterName}()") {
+                        nl("return ${it.fieldName};")
+                    }
                 }
             }
         }
@@ -812,8 +793,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     }
 
     fun declareVariables() = kcode("// variables") {
-        usedVariables.forEach {
-            nl("private ${it.resolvedType.toJavaCode()} ${it.fieldName};")
+        //if it has variations, fields are declared in the base class as well as getters
+        if (!layoutBinder.hasVariations()) {
+            variables.forEach {
+                nl("private ${it.resolvedType.toJavaCode()} ${it.fieldName};")
+            }
         }
         callbacks.forEach {
             val wrapper = it.callbackWrapper
@@ -1228,6 +1212,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab("public final ${it.interfaceClass} ${it.fieldName};")
             }
             nl("")
+            tab("// variables") {
+                variables.forEach {
+                    nl("protected ${it.resolvedType.toJavaCode()} ${it.fieldName};")
+                }
+            }
+
             tab("protected $baseClassName(android.databinding.DataBindingComponent bindingComponent, android.view.View root_, int localFieldCount") {
                 layoutBinder.sortedTargets.filter{it.id != null}.forEach {
                     tab(", ${it.interfaceClass} ${it.constructorParamName}")
@@ -1240,11 +1230,15 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
             }
             tab("}")
-            nl("")
-            variables.forEach {
-                if (it.userDefinedType != null) {
-                    val type = ModelAnalyzer.getInstance().applyImports(it.userDefinedType, model.imports)
-                    tab("public abstract void ${it.setterName}($type ${it.readableName});")
+            tab("//getters and abstract setters") {
+                variables.forEach {
+                    val typeCode = it.resolvedType.toJavaCode()
+                    nl("public abstract void ${it.setterName}($typeCode ${it.readableName});")
+                    nl("")
+                    block("public $typeCode ${it.getterName}()") {
+                        nl("return ${it.fieldName};")
+                    }
+                    nl("")
                 }
             }
             tab("public static $baseClassName inflate(android.view.LayoutInflater inflater, android.view.ViewGroup root, boolean attachToRoot) {") {

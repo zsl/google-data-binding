@@ -60,7 +60,10 @@ public class PortraitConfigTest extends BaseDataBinderTest<MultiResLayoutBinding
     public void testSetVariable() throws Throwable {
         assertTrue(mBinder.setVariable(BR.objectInBoth, null));
         assertTrue(mBinder.setVariable(BR.objectInDefault, null));
+        assertTrue(mBinder.setVariable(BR.objectInLand, null));
         assertFalse(mBinder.setVariable(BR.obj, null));
-        assertFalse(mBinder.setVariable(BR.objectInLand, null));
+        NotBindableVo landscape = new NotBindableVo();
+        mBinder.setVariable(BR.objectInLand, landscape);
+        assertSame(landscape, mBinder.getObjectInLand());
     }
 }

@@ -20,6 +20,7 @@ import android.view.LayoutInflater;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActivity>
@@ -104,11 +105,33 @@ public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActiv
     }
 
     protected void assertMethod(Class<?> klass, String methodName) throws NoSuchMethodException {
-        assertEquals(klass, mBinder.getClass().getDeclaredMethod(methodName).getReturnType());
+        assertEquals(klass, getDeclaredMethodWithInherited(methodName, mBinder.getClass()).getReturnType());
     }
 
     protected void assertField(Class<?> klass, String fieldName) throws NoSuchFieldException {
-        assertEquals(klass, mBinder.getClass().getDeclaredField(fieldName).getType());
+        assertEquals(klass, getDeclaredFieldWithInherited(fieldName, mBinder.getClass()).getType());
+    }
+
+    protected static Field getDeclaredFieldWithInherited(String fieldName, Class klass) {
+        if (klass == null || klass == Object.class) {
+            return null;
+        }
+        try {
+            return klass.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            return getDeclaredFieldWithInherited(fieldName, klass.getSuperclass());
+        }
+    }
+
+    protected static Method getDeclaredMethodWithInherited(String methodName, Class klass) {
+        if (klass == null || klass == Object.class) {
+            return null;
+        }
+        try {
+            return klass.getDeclaredMethod(methodName);
+        } catch (NoSuchMethodException e) {
+            return getDeclaredMethodWithInherited(methodName, klass.getSuperclass());
+        }
     }
 
     protected void assertPublicField(Class<?> klass, String fieldName) throws NoSuchFieldException {
