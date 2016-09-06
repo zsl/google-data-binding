@@ -45,10 +45,10 @@ public class DataBindingBuilder {
     private static final String EXCLUDE_PATTERN = "android/databinding/layouts/*.*";
     public static String PROCESSOR_NAME =
             "android.databinding.annotationprocessor.ProcessDataBinding";
-    public static final String RESOURCE_FILES_DIR = "resource-files";
-    public static final String INCREMENTAL_BIN_DIR = "bin-files";
-    // the folder used by data binding to read / write data about the build process
-    public static final String BUILD_FOLDER_NAME = "android.databinding.bindingBuildFolder";
+
+    public static final String ARTIFACT_FILES_DIR_FROM_LIBS = "dependent-lib-artifacts";
+    public static final String INCREMENTAL_BIN_AAR_DIR = "bin-files";
+    public static final String DATA_BINDING_ROOT_FOLDER_IN_AAR = "data-binding";
 
     public static final List<String> RESOURCE_FILE_EXTENSIONS =
             Arrays.asList("-br.bin", "-layoutinfo.bin", "-setter_store.bin");

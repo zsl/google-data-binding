@@ -19,6 +19,7 @@ package android.databinding.annotationprocessor;
 import android.databinding.Bindable;
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef.BindableHolder;
+import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
@@ -56,9 +57,9 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
 
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnv, ProcessingEnvironment processingEnv,
-            BindingBuildInfo buildInfo) {
+            DataBindingCompilerArgs args) {
         if (mProperties == null) {
-            mProperties = new IntermediateV1(buildInfo.modulePackage());
+            mProperties = new IntermediateV1(args.getModulePackage());
             mergeLayoutVariables();
             mLayoutVariables.clear();
             TypeElement observableType = processingEnv.getElementUtils().
@@ -85,10 +86,9 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                     mProperties.addProperty(enclosing.getQualifiedName().toString(), name);
                 }
             }
-            GenerationalClassUtil.writeIntermediateFile(processingEnv,
-                    mProperties.getPackage(),
+            GenerationalClassUtil.writeIntermediateFile(mProperties.getPackage(),
                     createIntermediateFileName(mProperties.getPackage()), mProperties);
-            generateBRClasses(!buildInfo.isLibrary(), mProperties.getPackage());
+            generateBRClasses(!args.isLibrary(), mProperties.getPackage());
         }
         return false;
     }
@@ -105,7 +105,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
 
     @Override
     public void onProcessingOver(RoundEnvironment roundEnvironment,
-            ProcessingEnvironment processingEnvironment, BindingBuildInfo buildInfo) {
+            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args) {
     }
 
     private String createIntermediateFileName(String appPkg) {

@@ -13,31 +13,22 @@
 
 package android.databinding.tool;
 
-import com.google.common.escape.Escaper;
-
-import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.store.LayoutFileParser;
 import android.databinding.tool.store.ResourceBundle;
-import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
-import android.databinding.tool.util.SourceCodeEscapers;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -54,21 +45,15 @@ public class LayoutXmlProcessor {
     public static final String CLASS_NAME = "DataBindingInfo";
     private final JavaFileWriter mFileWriter;
     private final ResourceBundle mResourceBundle;
-    private final int mMinSdk;
-
     private boolean mProcessingComplete;
     private boolean mWritten;
-    private final boolean mIsLibrary;
     private final String mBuildId = UUID.randomUUID().toString();
     private final OriginalFileLookup mOriginalFileLookup;
 
     public LayoutXmlProcessor(String applicationPackage,
-            JavaFileWriter fileWriter, int minSdk, boolean isLibrary,
-            OriginalFileLookup originalFileLookup) {
+            JavaFileWriter fileWriter, OriginalFileLookup originalFileLookup) {
         mFileWriter = fileWriter;
         mResourceBundle = new ResourceBundle(applicationPackage);
-        mMinSdk = minSdk;
-        mIsLibrary = isLibrary;
         mOriginalFileLookup = originalFileLookup;
     }
 
@@ -79,6 +64,10 @@ public class LayoutXmlProcessor {
         processExistingIncrementalFiles(input.getRootInputFolder(), input.getAdded(), callback);
         processExistingIncrementalFiles(input.getRootInputFolder(), input.getChanged(), callback);
         processRemovedIncrementalFiles(input.getRootInputFolder(), input.getRemoved(), callback);
+    }
+
+    public static String exportLayoutNameFromInfoFileName(String infoFileName) {
+        return infoFileName.substring(0, infoFileName.indexOf('-'));
     }
 
     private static void processExistingIncrementalFiles(File inputRoot, List<File> files,
@@ -118,15 +107,18 @@ public class LayoutXmlProcessor {
         FileUtils.deleteDirectory(input.getRootOutputFolder());
         Preconditions.check(input.getRootOutputFolder().mkdirs(), "out dir should be re-created");
         Preconditions.check(input.getRootInputFolder().isDirectory(), "it must be a directory");
+        //noinspection ConstantConditions
         for (File firstLevel : input.getRootInputFolder().listFiles()) {
             if (firstLevel.isDirectory()) {
                 if (layoutFolderFilter.accept(firstLevel, firstLevel.getName())) {
                     callback.processLayoutFolder(firstLevel);
+                    //noinspection ConstantConditions
                     for (File xmlFile : firstLevel.listFiles(xmlFileFilter)) {
                         callback.processLayoutFile(xmlFile);
                     }
                 } else {
                     callback.processOtherFolder(firstLevel);
+                    //noinspection ConstantConditions
                     for (File file : firstLevel.listFiles()) {
                         callback.processOtherFile(firstLevel, file);
                     }
@@ -284,55 +276,27 @@ public class LayoutXmlProcessor {
         return fileName + '-' + dirName + ".xml";
     }
 
-    public static String exportLayoutNameFromInfoFileName(String infoFileName) {
-        return infoFileName.substring(0, infoFileName.indexOf('-'));
-    }
-
-    public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir,
-            /*Nullable*/ File exportClassListTo) {
-        writeInfoClass(sdkDir, xmlOutDir, exportClassListTo, false, false);
-    }
-
     public String getPackage() {
         return mResourceBundle.getAppPackage();
     }
 
-    public void writeInfoClass(/*Nullable*/ File sdkDir, File xmlOutDir, File exportClassListTo,
-            boolean enableDebugLogs, boolean printEncodedErrorLogs) {
-        Escaper javaEscaper = SourceCodeEscapers.javaCharEscaper();
-        final String sdkPath = sdkDir == null ? null : javaEscaper.escape(sdkDir.getAbsolutePath());
+    /**
+     * Just writes the file w/ build ID w/o any properties.
+     */
+    public void writeEmptyInfoClass() {
         final Class annotation = BindingBuildInfo.class;
-        final String layoutInfoPath = javaEscaper.escape(xmlOutDir.getAbsolutePath());
-        final String exportClassListToPath = exportClassListTo == null ? "" :
-                javaEscaper.escape(exportClassListTo.getAbsolutePath());
         String classString = "package " + RESOURCE_BUNDLE_PACKAGE + ";\n\n" +
                 "import " + annotation.getCanonicalName() + ";\n\n" +
-                "@" + annotation.getSimpleName() + "(buildId=\"" + mBuildId + "\", " +
-                "modulePackage=\"" + mResourceBundle.getAppPackage() + "\", " +
-                "sdkRoot=" + "\"" + (sdkPath == null ? "" : sdkPath) + "\"," +
-                "layoutInfoDir=\"" + layoutInfoPath + "\"," +
-                "exportClassListTo=\"" + exportClassListToPath + "\"," +
-                "isLibrary=" + mIsLibrary + "," +
-                "minSdk=" + mMinSdk + "," +
-                "enableDebugLogs=" + enableDebugLogs + "," +
-                "printEncodedError=" + printEncodedErrorLogs + ")\n" +
+                "@" + annotation.getSimpleName() + "(buildId=\"" + mBuildId + "\")\n" +
                 "public class " + CLASS_NAME + " {}\n";
         mFileWriter.writeToFile(RESOURCE_BUNDLE_PACKAGE + "." + CLASS_NAME, classString);
     }
 
-    private static final FilenameFilter layoutFolderFilter = new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-            return name.startsWith("layout");
-        }
-    };
+    private static final FilenameFilter layoutFolderFilter = (dir, name)
+            -> name.startsWith("layout");
 
-    private static final FilenameFilter xmlFileFilter = new FilenameFilter() {
-        @Override
-        public boolean accept(File dir, String name) {
-            return name.toLowerCase().endsWith(".xml");
-        }
-    };
+    private static final FilenameFilter xmlFileFilter = (dir, name)
+            -> name.toLowerCase().endsWith(".xml");
 
     /**
      * Helper interface that can find the original copy of a resource XML.
@@ -354,9 +318,9 @@ public class LayoutXmlProcessor {
         private final File mRootInputFolder;
         private final File mRootOutputFolder;
 
-        private List<File> mAdded = new ArrayList<File>();
-        private List<File> mRemoved = new ArrayList<File>();
-        private List<File> mChanged = new ArrayList<File>();
+        private List<File> mAdded = new ArrayList<>();
+        private List<File> mRemoved = new ArrayList<>();
+        private List<File> mChanged = new ArrayList<>();
 
         public ResourceInput(boolean incremental, File rootInputFolder, File rootOutputFolder) {
             mIncremental = incremental;

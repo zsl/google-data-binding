@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.android.databinding.testapp"
-        minSdkVersion 7
+        minSdkVersion 9
         targetSdkVersion dataBindingConfig.targetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -35,8 +35,8 @@ android {
         incremental = !dataBindingConfig.useJack
     }
     productFlavors {
-        api7 {
-            minSdkVersion 7
+        api9 {
+            minSdkVersion 9
         }
         api14 {
             minSdkVersion 14

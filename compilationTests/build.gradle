@@ -18,6 +18,10 @@ afterEvaluate {
     tasks['test'].dependsOn(rootProject.subprojects.uploadArchives)
 }
 
+compileJava {
+    options.compilerArgs += ["-proc:none"]
+}
+
 sourceSets {
     test {
         java {

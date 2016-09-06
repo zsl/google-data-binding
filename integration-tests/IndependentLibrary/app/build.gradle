@@ -20,7 +20,7 @@ android {
     buildToolsVersion dataBindingConfig.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 7
+        minSdkVersion 9
         targetSdkVersion dataBindingConfig.targetSdkVersion
         versionCode 1
         versionName "1.0"

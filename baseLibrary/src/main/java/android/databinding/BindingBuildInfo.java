@@ -26,21 +26,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.SOURCE)
 public @interface BindingBuildInfo {
-    String buildId();
-    String modulePackage();
-    String sdkRoot();
-    int minSdk();
-
-    /**
-     * The folder that includes xml files which are exported by aapt or gradle plugin from layout files
-     */
-    String layoutInfoDir();
-
-    /**
-     * The file to which the list of generated classes should be exported
-     */
-    String exportClassListTo();
-    boolean isLibrary();
-    boolean enableDebugLogs() default false;
-    boolean printEncodedError() default false;
+    String buildId() default "";
 }

@@ -17,11 +17,13 @@
 package android.databinding.tool.util;
 
 import android.databinding.tool.DataBindingBuilder;
+import android.databinding.tool.DataBindingCompilerArgs;
+
+import com.android.annotations.Nullable;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -31,18 +33,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
 
 /**
  * A utility class that helps adding build specific objects to the jar file
@@ -51,31 +43,24 @@ import javax.tools.StandardLocation;
 public class GenerationalClassUtil {
     private static List[] sCache = null;
 
-    /**
-     * An extra folder where data binding processor can read/write data
-     */
     @Nullable
-    private static File sBuildDir;
+    private static List<File> sInputDirs = new ArrayList<>();
 
     @Nullable
-    private static File sInputDir;
-    @Nullable
-    private static File sIncrementalDir;
+    private static File sIncrementalOutDir;
 
-    public static void setBuildInput(String buildInputFolder) {
-        if (StringUtils.isNotBlank(buildInputFolder)) {
-            sBuildDir = new File(buildInputFolder);
-            sIncrementalDir = new File(buildInputFolder, DataBindingBuilder.INCREMENTAL_BIN_DIR);
-            sInputDir = new File(buildInputFolder, DataBindingBuilder.RESOURCE_FILES_DIR);
-            sIncrementalDir.mkdirs();
+    public static void init(DataBindingCompilerArgs args) {
+        if (StringUtils.isNotBlank(args.getAarOutFolder())) {
+            sIncrementalOutDir = new File(args.getAarOutFolder(),
+                    DataBindingBuilder.INCREMENTAL_BIN_AAR_DIR);
         } else {
-            sBuildDir = null;
+            sIncrementalOutDir = null;
         }
-    }
-
-    @Nullable
-    public static File getBuildDir() {
-        return sBuildDir;
+        sInputDirs = new ArrayList<>();
+        if (StringUtils.isNotBlank(args.getBuildFolder())) {
+            sInputDirs.add(new File(args.getBuildFolder(),
+                    DataBindingBuilder.ARTIFACT_FILES_DIR_FROM_LIBS));
+        }
     }
 
     public static <T extends Serializable> List<T> loadObjects(ExtensionFilter filter) {
@@ -88,35 +73,10 @@ public class GenerationalClassUtil {
 
     private static void buildCache() {
         L.d("building generational class cache");
-        ClassLoader classLoader = GenerationalClassUtil.class.getClassLoader();
-        Preconditions.check(classLoader instanceof URLClassLoader, "Class loader must be an"
-                + "instance of URLClassLoader. %s", classLoader);
-        //noinspection ConstantConditions
-        final URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
+
         sCache = new List[ExtensionFilter.values().length];
         for (ExtensionFilter filter : ExtensionFilter.values()) {
             sCache[filter.ordinal()] = new ArrayList();
-        }
-        for (URL url : urlClassLoader.getURLs()) {
-            L.d("checking url %s for intermediate data", url);
-            try {
-                final File file = new File(url.toURI());
-                if (!file.exists()) {
-                    L.d("cannot load file for %s", url);
-                    continue;
-                }
-                if (file.isDirectory()) {
-                    // probably exported classes dir.
-                    loadFromDirectory(file);
-                } else {
-                    // assume it is a zip file
-                    loadFomZipFile(file);
-                }
-            } catch (IOException e) {
-                L.d("cannot open zip file from %s", url);
-            } catch (URISyntaxException e) {
-                L.d("cannot open zip file from %s", url);
-            }
         }
         loadFromBuildInfo();
     }
@@ -133,7 +93,7 @@ public class GenerationalClassUtil {
      * to an aar based information retrieval model.
      */
     private static void loadFromBuildInfo() {
-        loadFromDirectory(sInputDir);
+        sInputDirs.forEach(GenerationalClassUtil::loadFromDirectory);
     }
 
     private static void loadFromDirectory(File directory) {
@@ -166,37 +126,6 @@ public class GenerationalClassUtil {
         }
     }
 
-    private static void loadFomZipFile(File file)
-            throws IOException {
-        ZipFile zipFile = new ZipFile(file);
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = entries.nextElement();
-            for (ExtensionFilter filter : ExtensionFilter.values()) {
-                if (!filter.accept(entry.getName())) {
-                    continue;
-                }
-                InputStream inputStream = null;
-                try {
-                    inputStream = zipFile.getInputStream(entry);
-                    Serializable item = fromInputStream(inputStream);
-                    L.d("loaded item %s from zip file", item);
-                    if (item != null) {
-                        //noinspection unchecked
-                        sCache[filter.ordinal()].add(item);
-                    }
-                } catch (IOException e) {
-                    L.e(e, "Could not merge in Bindables from %s", file.getAbsolutePath());
-                } catch (ClassNotFoundException e) {
-                    L.e(e, "Could not read Binding properties intermediate file. %s",
-                            file.getAbsolutePath());
-                } finally {
-                    IOUtils.closeQuietly(inputStream);
-                }
-            }
-        }
-    }
-
     private static Serializable fromInputStream(InputStream inputStream)
             throws IOException, ClassNotFoundException {
         ObjectInputStream in = new ObjectInputStream(inputStream);
@@ -204,20 +133,17 @@ public class GenerationalClassUtil {
 
     }
 
-    public static void writeIntermediateFile(ProcessingEnvironment processingEnv,
-            String packageName, String fileName, Serializable object) {
+    public static void writeIntermediateFile(String packageName, String fileName,
+            Serializable object) {
         ObjectOutputStream oos = null;
         OutputStream ios = null;
         try {
-            if (sIncrementalDir == null) {
-                FileObject intermediate = processingEnv.getFiler().createResource(
-                        StandardLocation.CLASS_OUTPUT, packageName,
-                        fileName);
-                ios = intermediate.openOutputStream();
-            } else {
-                File out = new File(sIncrementalDir, packageName + "-" + fileName);
-                ios = new FileOutputStream(out);
-            }
+            Preconditions.checkNotNull(sIncrementalOutDir, "incremental out directory should be"
+                    + " set to aar output directory.");
+            //noinspection ResultOfMethodCallIgnored
+            sIncrementalOutDir.mkdirs();
+            File out = new File(sIncrementalOutDir, packageName + "-" + fileName);
+            ios = new FileOutputStream(out);
             oos = new ObjectOutputStream(ios);
             oos.writeObject(object);
             oos.close();

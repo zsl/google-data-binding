@@ -1,5 +1,5 @@
 buildscript {
-    ext.dataBindingRootFolder = new File(project.projectDir, "../../..")
+    ext.dataBindingRootFolder = new File(project.projectDir, "../../../..")
     apply from: "${project.projectDir}/propLoaderClone.gradle"
     ext.addRepos(repositories)
     dependencies {

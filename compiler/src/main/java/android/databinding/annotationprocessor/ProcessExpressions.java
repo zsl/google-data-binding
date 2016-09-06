@@ -24,6 +24,7 @@ import org.apache.commons.io.IOUtils;
 
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
+import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.LayoutXmlProcessor;
 import android.databinding.tool.reflection.SdkUtil;
 import android.databinding.tool.store.ResourceBundle;
@@ -59,11 +60,11 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnvironment,
-            ProcessingEnvironment processingEnvironment, BindingBuildInfo buildInfo)
+            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args)
             throws JAXBException {
         ResourceBundle resourceBundle;
-        SdkUtil.initialize(buildInfo.minSdk(), new File(buildInfo.sdkRoot()));
-        resourceBundle = new ResourceBundle(buildInfo.modulePackage());
+        SdkUtil.initialize(args.getMinApi(), new File(args.getSdkDir()));
+        resourceBundle = new ResourceBundle(args.getModulePackage());
         List<IntermediateV2> intermediateList = loadDependencyIntermediates();
         for (Intermediate intermediate : intermediateList) {
             try {
@@ -73,18 +74,18 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             }
         }
 
-        IntermediateV2 mine = createIntermediateFromLayouts(buildInfo.layoutInfoDir(),
+        IntermediateV2 mine = createIntermediateFromLayouts(args.getXmlOutDir(),
                 intermediateList);
         if (mine != null) {
             mine.updateOverridden(resourceBundle);
             intermediateList.add(mine);
-            saveIntermediate(processingEnvironment, buildInfo, mine);
+            saveIntermediate(processingEnvironment, args, mine);
             mine.appendTo(resourceBundle);
         }
         // generate them here so that bindable parser can read
         try {
-            writeResourceBundle(resourceBundle, buildInfo.isLibrary(), buildInfo.minSdk(),
-                    buildInfo.exportClassListTo());
+            writeResourceBundle(resourceBundle, args.isLibrary(), args.getMinApi(),
+                    args.getExportClassListTo());
         } catch (Throwable t) {
             L.e(t, "cannot generate view binders");
         }
@@ -107,16 +108,16 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     }
 
     private void saveIntermediate(ProcessingEnvironment processingEnvironment,
-            BindingBuildInfo buildInfo, IntermediateV2 intermediate) {
-        GenerationalClassUtil.writeIntermediateFile(processingEnvironment,
-                buildInfo.modulePackage(), buildInfo.modulePackage() +
+            DataBindingCompilerArgs args, IntermediateV2 intermediate) {
+        GenerationalClassUtil.writeIntermediateFile(args.getModulePackage(),
+                args.getModulePackage() +
                         GenerationalClassUtil.ExtensionFilter.LAYOUT.getExtension(),
                 intermediate);
     }
 
     @Override
     public void onProcessingOver(RoundEnvironment roundEnvironment,
-            ProcessingEnvironment processingEnvironment, BindingBuildInfo buildInfo) {
+            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args) {
     }
 
     private IntermediateV2 createIntermediateFromLayouts(String layoutInfoFolderPath,

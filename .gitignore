@@ -7,3 +7,6 @@ maven-repo
 .idea/workspace.xml
 .idea/libraries
 .idea/modules
+old-version-projects/tmp-maven-repo
+integration-tests/*/build
+old-version-projects/*/build
