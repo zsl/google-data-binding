@@ -132,19 +132,19 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         MotionEvent event = MotionEvent.obtain(downTime, eventTime,
                 MotionEvent.ACTION_DOWN, x, y, 0);
         inst.sendPointerSync(event);
-        inst.waitForIdleSync();
+        waitForUISync();
 
         eventTime = SystemClock.uptimeMillis();
         final int touchSlop = ViewConfiguration.get(view.getContext()).getScaledTouchSlop();
         event = MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_MOVE,
                 x + (touchSlop / 2.0f), y + (touchSlop / 2.0f), 0);
         inst.sendPointerSync(event);
-        inst.waitForIdleSync();
+        waitForUISync();
 
         eventTime = SystemClock.uptimeMillis();
         event = MotionEvent.obtain(downTime, eventTime, MotionEvent.ACTION_UP, x, y, 0);
         inst.sendPointerSync(event);
-        inst.waitForIdleSync();
+        waitForUISync();
     }
 
     private void clickChild(View view, float offsetX) throws Throwable {
@@ -775,7 +775,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        getInstrumentation().waitForIdleSync();
+        waitForUISync();
         assertTrue(mBindingObject.booleanField.get());
         assertEquals(123, mBindingObject.byteField.get());
         assertEquals(1234, mBindingObject.shortField.get());
@@ -820,7 +820,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        getInstrumentation().waitForIdleSync();
+        waitForUISync();
         assertFalse(mBindingObject.booleanField.get());
         assertEquals(1, mBindingObject.byteField.get());
         assertEquals(12, mBindingObject.shortField.get());
@@ -1128,7 +1128,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 }
             }
         });
-        getInstrumentation().waitForIdleSync();
+        waitForUISync();
     }
 
     private interface TestCondition {

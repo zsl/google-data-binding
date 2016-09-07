@@ -13,14 +13,16 @@
 
 package android.databinding.testapp;
 
+import android.databinding.ViewDataBinding;
 import android.databinding.testapp.databinding.LayoutWithIncludeBinding;
 import android.databinding.testapp.databinding.MergeContainingMergeBinding;
 import android.databinding.testapp.databinding.MergeLayoutBinding;
 import android.databinding.testapp.vo.NotBindableVo;
-
 import android.test.UiThreadTest;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
+import java.lang.reflect.Field;
 
 public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding> {
 
@@ -73,5 +75,38 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         assertEquals("b 1 third 5b", merge1.innerTextView2.getText().toString());
         assertEquals("a 2 third 5b", merge2.innerTextView1.getText().toString());
         assertEquals("b 2 third 5b", merge2.innerTextView2.getText().toString());
+    }
+
+    // Make sure that when an included layout's executePendingBindings is run that the includer
+    // is run prior.
+    @UiThreadTest
+    public void testCorrectOrder() throws Throwable {
+        initBinder();
+        NotBindableVo.sTrackedValues.clear();
+        NotBindableVo vo = new NotBindableVo(3, "a");
+        mBinder.setOuterObject(vo);
+        mBinder.trackedInclude.executePendingBindings();
+
+        // Ensure that the including binding is evaluated before the included binding
+        assertNotNull(mBinder.trackedInclude.getInnerObject());
+        assertFalse(NotBindableVo.sTrackedValues.isEmpty());
+        assertNotNull(NotBindableVo.sTrackedValues.get(0));
+        assertEquals(1, NotBindableVo.sTrackedValues.size());
+    }
+
+    // Make sure that includes don't cause infinite loops with requestRebind
+    public void testNoInfiniteLoop() throws Throwable {
+        initBinder();
+        NotBindableVo vo = new NotBindableVo(3, "a");
+        mBinder.setOuterObject(vo);
+
+        waitForUISync();
+
+        // Make sure that a rebind hasn't been requested again after executePendingBindings
+        Field field = ViewDataBinding.class.getDeclaredField("mPendingRebind");
+        field.setAccessible(true);
+        assertFalse(field.getBoolean(mBinder));
+        assertFalse(field.getBoolean(mBinder.trackedInclude));
+        assertFalse(field.getBoolean(mBinder.includedLayout));
     }
 }

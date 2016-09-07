@@ -524,6 +524,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         taggedViews.forEach {
             if (!layoutBinder.hasVariations() || it.id == null) {
                 tab("this.${it.fieldName} = ${fieldConversion(it)};")
+                if (it.isBinder) {
+                    tab("setContainedBinding(this.${it.fieldName});")
+                }
             }
             if (!it.isBinder) {
                 if (it.resolvedType != null && it.resolvedType.extendsViewStub()) {
@@ -969,13 +972,13 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
             }
             includedBinders.filter{it.isUsed }.forEach { binder ->
-                nl("${binder.fieldName}.executePendingBindings();")
+                nl("executeBindingsOn(${binder.fieldName});")
             }
             layoutBinder.sortedTargets.filter{
                 it.isUsed && it.resolvedType != null && it.resolvedType.extendsViewStub()
             }.forEach {
                 block("if (${it.fieldName}.getBinding() != null)") {
-                    nl("${it.fieldName}.getBinding().executePendingBindings();")
+                    nl("executeBindingsOn(${it.fieldName}.getBinding());")
                 }
             }
         }
@@ -1227,6 +1230,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab("super(bindingComponent, root_, localFieldCount);")
                 layoutBinder.sortedTargets.filter{it.id != null}.forEach {
                     tab("this.${it.fieldName} = ${it.constructorParamName};")
+                    if (it.isBinder) {
+                        tab("setContainedBinding(this.${it.fieldName});")
+                    }
                 }
             }
             tab("}")

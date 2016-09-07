@@ -15,6 +15,7 @@ package android.databinding.testapp.vo;
 
 import android.view.View;
 
+import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class NotBindableVo {
@@ -29,6 +30,7 @@ public class NotBindableVo {
     public Boolean boolObject;
     public final int publicField = 3;
     public static AtomicInteger sStaticCounter = new AtomicInteger();
+    public static ArrayList<String> sTrackedValues = new ArrayList<>();
 
     public NotBindableVo() {
     }
@@ -96,5 +98,10 @@ public class NotBindableVo {
     public static boolean incStaticCounter() {
         sStaticCounter.incrementAndGet();
         return true;
+    }
+
+    public static String trackValue(String value) {
+        sTrackedValues.add(value);
+        return value;
     }
 }

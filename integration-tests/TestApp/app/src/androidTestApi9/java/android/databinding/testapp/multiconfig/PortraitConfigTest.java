@@ -37,7 +37,7 @@ public class PortraitConfigTest extends BaseDataBinderTest<MultiResLayoutBinding
     protected void setUp() throws Exception {
         super.setUp();
         initBinder();
-        getInstrumentation().waitForIdleSync();
+        waitForUISync();
     }
 
     public void testSharedViewIdAndVariableInheritance()

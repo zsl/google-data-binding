@@ -67,7 +67,7 @@ public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActiv
         assertNull("should not initialize binder twice", mBinder);
         if (Looper.myLooper() != Looper.getMainLooper()) {
             getActivity();// ensure activity is created
-            getInstrumentation().waitForIdleSync();
+            waitForUISync();
         }
 
         final Method[] method = {null};
@@ -146,5 +146,17 @@ public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActiv
             ex[0] = e;
         }
         assertNotNull(ex[0]);
+    }
+
+    protected void waitForUISync() {
+        try {
+            runTestOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                }
+            });
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
     }
 }
