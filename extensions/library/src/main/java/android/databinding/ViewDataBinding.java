@@ -221,6 +221,13 @@ public abstract class ViewDataBinding extends BaseObservable {
     protected final DataBindingComponent mBindingComponent;
 
     /**
+     * If this ViewDataBinding is an include in another ViewDataBinding, this is the one
+     * that contains this. mContainingBinding is used to order executeBindings -- containing
+     * bindings should execute prior to included bindings.
+     */
+    private ViewDataBinding mContainingBinding;
+
+    /**
      * @hide
      */
     protected ViewDataBinding(DataBindingComponent bindingComponent, View root, int localFieldCount) {
@@ -334,6 +341,17 @@ public abstract class ViewDataBinding extends BaseObservable {
      * modified variables. This <b>must</b> be run on the UI thread.
      */
     public void executePendingBindings() {
+        if (mContainingBinding == null) {
+            executeBindingsInternal();
+        } else {
+            mContainingBinding.executePendingBindings();
+        }
+    }
+
+    /**
+     * Evaluates the pending bindings without executing the parent bindings.
+     */
+    private void executeBindingsInternal() {
         if (mIsExecutingPendingBindings) {
             requestRebind();
             return;
@@ -359,6 +377,16 @@ public abstract class ViewDataBinding extends BaseObservable {
         }
         mIsExecutingPendingBindings = false;
     }
+
+    /**
+     * Calls executeBindingsInternal on the other ViewDataBinding
+     *
+     * @hide
+     */
+    protected static void executeBindingsOn(ViewDataBinding other) {
+        other.executeBindingsInternal();
+    }
+
 
     void forceExecuteBindings() {
         executeBindings();
@@ -443,18 +471,21 @@ public abstract class ViewDataBinding extends BaseObservable {
      * @hide
      */
     protected void requestRebind() {
-        synchronized (this) {
-            if (mPendingRebind) {
-                return;
-            }
-            mPendingRebind = true;
-        }
-        if (USE_CHOREOGRAPHER) {
-            mChoreographer.postFrameCallback(mFrameCallback);
+        if (mContainingBinding != null) {
+            mContainingBinding.requestRebind();
         } else {
-            mUIThreadHandler.post(mRebindRunnable);
+            synchronized (this) {
+                if (mPendingRebind) {
+                    return;
+                }
+                mPendingRebind = true;
+            }
+            if (USE_CHOREOGRAPHER) {
+                mChoreographer.postFrameCallback(mFrameCallback);
+            } else {
+                mUIThreadHandler.post(mRebindRunnable);
+            }
         }
-
     }
 
     /**
@@ -995,6 +1026,17 @@ public abstract class ViewDataBinding extends BaseObservable {
     /** @hide */
     protected static boolean safeUnbox(java.lang.Boolean boxed) {
         return boxed == null ? false : (boolean)boxed;
+    }
+
+    /**
+     * Used internally to set the containing binding for an included binding to this.
+     *
+     * @hide
+     */
+    protected void setContainedBinding(ViewDataBinding included) {
+        if (included != null) {
+            included.mContainingBinding = this;
+        }
     }
 
     /**
