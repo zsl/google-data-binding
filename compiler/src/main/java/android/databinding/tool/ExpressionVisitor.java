@@ -419,11 +419,27 @@ class ExpressionVisitor extends BindingExpressionBaseVisitor<Expr> {
             final String resourceReference = ctx.ResourceReference().getText();
             final int colonIndex = resourceReference.indexOf(':');
             final int slashIndex = resourceReference.indexOf('/');
-            final String packageName = colonIndex < 0 ? null :
-                    resourceReference.substring(1, colonIndex).trim();
-            final int startIndex = Math.max(1, colonIndex + 1);
-            final String resourceType = resourceReference.substring(startIndex, slashIndex).trim();
-            final String resourceName = resourceReference.substring(slashIndex + 1).trim();
+            final int lastColonIndex = resourceReference.lastIndexOf(':');
+            final int startNameIndex;
+            final int startTypeIndex;
+            final int startPackageIndex;
+            final int endPackageIndex;
+            if (lastColonIndex > slashIndex) {
+                startPackageIndex = slashIndex + 1;
+                endPackageIndex = lastColonIndex;
+                startNameIndex = lastColonIndex + 1;
+                startTypeIndex = colonIndex == lastColonIndex ? 1 : colonIndex + 1;
+            } else {
+                startPackageIndex = 1;
+                endPackageIndex = colonIndex == -1 ? 0 : colonIndex;
+                startTypeIndex = endPackageIndex + 1;
+                startNameIndex = slashIndex + 1;
+            }
+            final String packageName = startPackageIndex >= endPackageIndex ? null :
+                    resourceReference.substring(startPackageIndex, endPackageIndex).trim();
+            final String resourceType =
+                    resourceReference.substring(startTypeIndex, slashIndex).trim();
+            final String resourceName = resourceReference.substring(startNameIndex).trim();
             return mModel.resourceExpr(mTarget, packageName, resourceType, resourceName, args);
         } finally {
             onExit(ctx);
