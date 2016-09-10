@@ -22,18 +22,13 @@ import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.BRWriter;
-import android.databinding.tool.writer.DataBinderWriter;
+import android.databinding.tool.writer.BindingMapperWriter;
 import android.databinding.tool.writer.DynamicUtilWriter;
 import android.databinding.tool.writer.JavaFileWriter;
-
-import com.google.common.collect.Maps;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import javax.lang.model.type.PrimitiveType;
-import javax.lang.model.type.TypeKind;
 
 /**
  * Chef class for compiler.
@@ -151,11 +146,11 @@ public class CompilerChef {
         return injectedClass;
     }
 
-    public void writeDataBinderMapper(int minSdk, BRWriter brWriter) {
+    public void writeDataBinderMapper(DataBindingCompilerArgs compilerArgs, BRWriter brWriter) {
         ensureDataBinder();
         final String pkg = "android.databinding";
-        DataBinderWriter dbr = new DataBinderWriter(pkg, mResourceBundle.getAppPackage(),
-                "DataBinderMapper", mDataBinder.getLayoutBinders(), minSdk);
+        BindingMapperWriter dbr = new BindingMapperWriter(pkg, "DataBinderMapper",
+                mDataBinder.getLayoutBinders(), compilerArgs);
         mFileWriter.writeToFile(pkg + "." + dbr.getClassName(), dbr.write(brWriter));
     }
 

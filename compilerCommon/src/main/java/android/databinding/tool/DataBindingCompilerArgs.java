@@ -42,7 +42,7 @@ public class DataBindingCompilerArgs {
 
     private static final String PARAM_SDK_DIR = PREFIX + "sdkDir";
 
-    private static final String PARAM_IS_LIBRARY = PREFIX + "isLibrary";
+    private static final String PARAM_ARTIFACT_TYPE = PREFIX + "artifactType";
 
     private static final String PARAM_XML_OUT_DIR = PREFIX + "xmlOutDir";
 
@@ -56,10 +56,15 @@ public class DataBindingCompilerArgs {
 
     private static final String PARAM_PRINT_ENCODED_ERROR_LOGS = PREFIX + "printEncodedErrors";
 
+    private static final String PARAM_IS_TEST_VARIANT = PREFIX + "isTestVariant";
+
+    private static final String PARAM_ENABLE_FOR_TESTS = PREFIX + "enableForTests";
+
     public static final Set<String> ALL_PARAMS = Sets.newHashSet( PARAM_BUILD_FOLDER,
-            PARAM_AAR_OUT_FOLDER, PARAM_SDK_DIR, PARAM_IS_LIBRARY, PARAM_XML_OUT_DIR,
+            PARAM_AAR_OUT_FOLDER, PARAM_SDK_DIR, PARAM_ARTIFACT_TYPE, PARAM_XML_OUT_DIR,
             PARAM_EXPORT_CLASS_LIST_TO, PARAM_MODULE_PKG, PARAM_MIN_API,
-            PARAM_ENABLE_DEBUG_LOGS, PARAM_PRINT_ENCODED_ERROR_LOGS);
+            PARAM_ENABLE_DEBUG_LOGS, PARAM_PRINT_ENCODED_ERROR_LOGS, PARAM_IS_TEST_VARIANT,
+            PARAM_ENABLE_FOR_TESTS);
 
     private String mBuildFolder;
     private String mAarOutFolder;
@@ -68,9 +73,11 @@ public class DataBindingCompilerArgs {
     private String mExportClassListTo;
     private String mModulePackage;
     private int mMinApi;
-    private boolean mIsLibrary;
+    private Type mArtifactType;
+    private boolean mIsTestVariant;
     private boolean mEnableDebugLogs;
     private boolean mPrintEncodedErrorLogs;
+    private boolean mEnabledForTests;
 
     private DataBindingCompilerArgs() {}
 
@@ -83,9 +90,14 @@ public class DataBindingCompilerArgs {
         args.mExportClassListTo = options.get(PARAM_EXPORT_CLASS_LIST_TO);
         args.mModulePackage = options.get(PARAM_MODULE_PKG);
         args.mMinApi = Integer.parseInt(options.get(PARAM_MIN_API));
-        args.mIsLibrary = deserialize(options.get(PARAM_IS_LIBRARY));
+        // use string for artifact type, easier to read
+        String artifactType = options.get(PARAM_ARTIFACT_TYPE);
+        Type buildType = Type.valueOf(artifactType);
+        args.mArtifactType = buildType;
         args.mEnableDebugLogs = deserialize(options.get(PARAM_ENABLE_DEBUG_LOGS));
         args.mPrintEncodedErrorLogs = deserialize(options.get(PARAM_PRINT_ENCODED_ERROR_LOGS));
+        args.mIsTestVariant = deserialize(options.get(PARAM_IS_TEST_VARIANT));
+        args.mEnabledForTests = deserialize(options.get(PARAM_ENABLE_FOR_TESTS));
         return args;
     }
 
@@ -115,8 +127,21 @@ public class DataBindingCompilerArgs {
         return mModulePackage;
     }
 
+    public Type artifactType() {
+        return mArtifactType;
+    }
+
+
+    public boolean isTestVariant() {
+        return mIsTestVariant;
+    }
+
     public boolean isLibrary() {
-        return mIsLibrary;
+        return mArtifactType == Type.LIBRARY;
+    }
+
+    public boolean isApp() {
+        return mArtifactType == Type.APPLICATION;
     }
 
     public boolean enableDebugLogs() {
@@ -131,19 +156,32 @@ public class DataBindingCompilerArgs {
         return mMinApi;
     }
 
+    public boolean isEnabledForTests() {
+        return mEnabledForTests;
+    }
+
     public Map<String, String> toMap() {
         Map<String, String> args = new HashMap<>();
-        args.put(PARAM_BUILD_FOLDER, mBuildFolder);
-        args.put(PARAM_AAR_OUT_FOLDER, mAarOutFolder);
-        args.put(PARAM_SDK_DIR, mSdkDir);
-        args.put(PARAM_XML_OUT_DIR, mXmlOutDir);
-        args.put(PARAM_EXPORT_CLASS_LIST_TO, mExportClassListTo);
-        args.put(PARAM_MODULE_PKG, mModulePackage);
+        putIfNotNull(mBuildFolder, args, PARAM_BUILD_FOLDER, mBuildFolder);
+        putIfNotNull(mAarOutFolder, args, PARAM_AAR_OUT_FOLDER, mAarOutFolder);
+        putIfNotNull(mSdkDir, args, PARAM_SDK_DIR, mSdkDir);
+        putIfNotNull(mXmlOutDir, args, PARAM_XML_OUT_DIR, mXmlOutDir);
+        putIfNotNull(mExportClassListTo, args, PARAM_EXPORT_CLASS_LIST_TO, mExportClassListTo);
+        putIfNotNull(mModulePackage, args, PARAM_MODULE_PKG, mModulePackage);
         args.put(PARAM_MIN_API, String.valueOf(mMinApi));
-        args.put(PARAM_IS_LIBRARY, serialize(mIsLibrary));
+        putIfNotNull(mArtifactType, args, PARAM_ARTIFACT_TYPE, mArtifactType.name());
         args.put(PARAM_ENABLE_DEBUG_LOGS, serialize(mEnableDebugLogs));
         args.put(PARAM_PRINT_ENCODED_ERROR_LOGS, serialize(mPrintEncodedErrorLogs));
+        args.put(PARAM_IS_TEST_VARIANT, serialize(mIsTestVariant));
+        args.put(PARAM_ENABLE_FOR_TESTS, serialize(mEnabledForTests));
         return args;
+    }
+
+    private static void putIfNotNull(Object data, Map<String, String> map, String key,
+            String value) {
+        if (data != null) {
+            map.put(key, value);
+        }
     }
 
     private static String serialize(boolean boolValue) {
@@ -169,6 +207,8 @@ public class DataBindingCompilerArgs {
         private Integer mMinApi;
         private boolean mEnableDebugLogs;
         private boolean mPrintEncodedErrorLogs;
+        private boolean mIsTestVariant;
+        private boolean mEnabledForTests;
 
         private Builder() {}
         public Builder buildFolder(File buildFolder) {
@@ -213,12 +253,21 @@ public class DataBindingCompilerArgs {
             return this;
         }
 
+        public Builder testVariant(boolean testVariant) {
+            mIsTestVariant = testVariant;
+            return this;
+        }
+
+        public Builder enabledForTests(boolean enabledForTests) {
+            mEnabledForTests = enabledForTests;
+            return this;
+        }
+
         public DataBindingCompilerArgs build() {
             DataBindingCompilerArgs args = new DataBindingCompilerArgs();
-            Preconditions.checkNotNull(mType, "Must specify type of the build. Lib or App ?"
+            Preconditions.checkNotNull(mType, "Must specify type of the build. Lib or App or Test?"
                     + " or not");
-            boolean library = mType == Type.LIBRARY;
-            args.mIsLibrary = library;
+            args.mArtifactType = mType;
 
             Preconditions.checkNotNull(mBuildFolder, "Must provide the build folder for data "
                     + "binding");
@@ -230,12 +279,13 @@ public class DataBindingCompilerArgs {
             Preconditions.checkNotNull(mXmlOutDir, "Must provide xml out directory");
             args.mXmlOutDir = mXmlOutDir.getAbsolutePath();
 
-            Preconditions.check(!library || mBundleFolder != null, "Must specify bundle folder "
-                    + "(aar out folder) for library projects");
+            Preconditions.check(mType != Type.LIBRARY || mIsTestVariant || mBundleFolder != null,
+                    "Must specify bundle folder (aar out folder) for library projects");
             args.mAarOutFolder = mBundleFolder.getAbsolutePath();
 
-            Preconditions.check(!library || mExportClassListTo != null, "Must provide a folder "
-                    + "to export generated class list");
+            Preconditions.check(mType != Type.LIBRARY || mIsTestVariant
+                    || mExportClassListTo != null, "Must provide a folder to export generated "
+                    + "class list");
 
             Preconditions.checkNotNull(mModulePackage, "Must provide a module package");
             args.mModulePackage = mModulePackage;
@@ -248,6 +298,8 @@ public class DataBindingCompilerArgs {
             }
             args.mEnableDebugLogs = mEnableDebugLogs;
             args.mPrintEncodedErrorLogs = mPrintEncodedErrorLogs;
+            args.mIsTestVariant = mIsTestVariant;
+            args.mEnabledForTests = mEnabledForTests;
             return args;
         }
     }

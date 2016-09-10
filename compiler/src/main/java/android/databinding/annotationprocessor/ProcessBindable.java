@@ -88,7 +88,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             }
             GenerationalClassUtil.writeIntermediateFile(mProperties.getPackage(),
                     createIntermediateFileName(mProperties.getPackage()), mProperties);
-            generateBRClasses(!args.isLibrary(), mProperties.getPackage());
+            generateBRClasses(args, mProperties.getPackage());
         }
         return false;
     }
@@ -112,8 +112,9 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
         return appPkg + GenerationalClassUtil.ExtensionFilter.BR.getExtension();
     }
 
-    private void generateBRClasses(boolean useFinalFields, String pkg) {
-        L.d("************* Generating BR file %s. use final: %s", pkg, useFinalFields);
+    private void generateBRClasses(DataBindingCompilerArgs compilerArgs, String pkg) {
+        DataBindingCompilerArgs.Type artifactType = compilerArgs.artifactType();
+        L.d("************* Generating BR file %s. use final: %s", pkg, artifactType.name());
         HashSet<String> properties = new HashSet<String>();
         mProperties.captureProperties(properties);
         Collection<Intermediate> previousIntermediates = loadPreviousBRFiles(pkg + ".BR");
@@ -121,10 +122,14 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             intermediate.captureProperties(properties);
         }
         final JavaFileWriter writer = getWriter();
-        BRWriter brWriter = new BRWriter(properties, useFinalFields);
+        boolean useFinal = artifactType == DataBindingCompilerArgs.Type.APPLICATION
+                || compilerArgs.isTestVariant();
+        BRWriter brWriter = new BRWriter(properties, useFinal);
         writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
-        //writeBRClass(useFinalFields, pkg, properties);
-        if (useFinalFields) {
+        // generate BR files for others only if we are compiling an app
+        // if we are compiling a test, we'll respect the application
+        if (compilerArgs.isApp() != compilerArgs.isTestVariant() ||
+                compilerArgs.isEnabledForTests()) {
             // generate BR for all previous packages
             for (Intermediate intermediate : previousIntermediates) {
                 writer.writeToFile(intermediate.getPackage() + ".BR",

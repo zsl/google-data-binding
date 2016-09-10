@@ -21,6 +21,9 @@ import android.databinding.tool.store.SetterStore;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Component is not created for test targets.
+ */
 public class ComponentWriter {
     private static final String INDENT = "    ";
 

@@ -22,7 +22,6 @@ import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.LayoutXmlProcessor;
@@ -84,8 +83,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         }
         // generate them here so that bindable parser can read
         try {
-            writeResourceBundle(resourceBundle, args.isLibrary(), args.getMinApi(),
-                    args.getExportClassListTo());
+            writeResourceBundle(resourceBundle, args);
         } catch (Throwable t) {
             L.e(t, "cannot generate view binders");
         }
@@ -180,33 +178,40 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     }
 
-    private void writeResourceBundle(ResourceBundle resourceBundle, boolean forLibraryModule,
-            final int minSdk, String exportClassNamesTo)
-            throws JAXBException {
+    private void writeResourceBundle(ResourceBundle resourceBundle,
+            DataBindingCompilerArgs compilerArgs) throws JAXBException {
         final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle, getWriter());
         compilerChef.sealModels();
-        compilerChef.writeComponent();
+        // write this only if we are compiling an app or a library test app.
+        // even if data binding is enabled for tests, we should not re-generate this.
+        if (compilerArgs.isLibrary() || !compilerArgs.isTestVariant()) {
+            compilerChef.writeComponent();
+        }
         if (compilerChef.hasAnythingToGenerate()) {
-            compilerChef.writeViewBinderInterfaces(forLibraryModule);
-            if (!forLibraryModule) {
-                compilerChef.writeViewBinders(minSdk);
+            compilerChef.writeViewBinderInterfaces(compilerArgs.isLibrary()
+                    && !compilerArgs.isTestVariant());
+            if (compilerArgs.isApp() != compilerArgs.isTestVariant() ||
+                    compilerArgs.isEnabledForTests()) {
+                compilerChef.writeViewBinders(compilerArgs.getMinApi());
             }
         }
-        if (forLibraryModule && exportClassNamesTo == null) {
+        if (compilerArgs.isLibrary() && !compilerArgs.isTestVariant() &&
+                compilerArgs.getExportClassListTo() == null) {
             L.e("When compiling a library module, build info must include exportClassListTo path");
         }
-        if (forLibraryModule) {
+        if (compilerArgs.isLibrary() && !compilerArgs.isTestVariant()) {
             Set<String> classNames = compilerChef.getWrittenClassNames();
             String out = Joiner.on(StringUtils.LINE_SEPARATOR).join(classNames);
-            L.d("Writing list of classes to %s . \nList:%s", exportClassNamesTo, out);
+            L.d("Writing list of classes to %s . \nList:%s",
+                    compilerArgs.getExportClassListTo(), out);
             try {
                 //noinspection ConstantConditions
-                FileUtils.write(new File(exportClassNamesTo), out);
+                FileUtils.write(new File(compilerArgs.getExportClassListTo()), out);
             } catch (IOException e) {
                 L.e(e, "Cannot create list of written classes");
             }
         }
-        mCallback.onChefReady(compilerChef, forLibraryModule, minSdk);
+        mCallback.onChefReady(compilerChef);
     }
 
     public interface Intermediate extends Serializable {

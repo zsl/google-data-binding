@@ -18,6 +18,7 @@ buildscript {
         maven { url "$checkoutRoot/prebuilts/maven_repo/android" }
         maven { url "$checkoutRoot/out/repo" }
         maven { url "$checkoutRoot/prebuilts/tools/common/offline-m2" }
+        jcenter()
     }
 }
 
@@ -31,6 +32,7 @@ allprojects {
         maven { url "$checkoutRoot/prebuilts/maven_repo/android" }
         maven { url "$checkoutRoot/out/repo" }
         maven { url "$checkoutRoot/prebuilts/tools/common/offline-m2" }
+        jcenter()
     }
 }
 

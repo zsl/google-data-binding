@@ -13,15 +13,39 @@
 
 package android.databinding.tool.writer
 
+import android.databinding.tool.DataBindingCompilerArgs
 import android.databinding.tool.LayoutBinder
 
-class DataBinderWriter(val pkg: String, val projectPackage: String, val className: String,
-        val layoutBinders : List<LayoutBinder>, val minSdk : kotlin.Int) {
+class BindingMapperWriter(var pkg : String, var className: String, val layoutBinders : List<LayoutBinder>,
+                          val compilerArgs: DataBindingCompilerArgs) {
+    private val appClassName : String = className
+    private val testClassName = "Test$className"
+    val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
+    val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
+    init {
+        if (generateAsTest) {
+            className = "Test${className}"
+        }
+    }
     fun write(brWriter : BRWriter) = kcode("") {
         nl("package $pkg;")
-        nl("import $projectPackage.BR;")
-        block("class $className") {
-            nl("final static int TARGET_MIN_SDK = $minSdk;")
+        nl("import ${compilerArgs.modulePackage}.BR;")
+        val extends = if (generateAsTest) "extends $appClassName" else ""
+        block("class $className $extends") {
+            nl("final static int TARGET_MIN_SDK = ${compilerArgs.minApi};")
+            if (generateTestOverride) {
+                nl("static $appClassName mTestOverride;")
+                block("static") {
+                    block("try") {
+                        nl("mTestOverride = ($appClassName)$appClassName.class.getClassLoader().loadClass(\"$pkg.$testClassName\").newInstance();")
+                    }
+                    block("catch(Throwable ignored)") {
+                        nl("// ignore, we are not running in test mode")
+                        nl("mTestOverride = null;")
+                    }
+
+                }
+            }
             nl("")
             block("public $className()") {
             }
@@ -58,6 +82,11 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
                         }
                     }
                 }
+                if (generateTestOverride) {
+                    block("if(mTestOverride != null)") {
+                        nl("return mTestOverride.getDataBinder(bindingComponent, view, layoutId);")
+                    }
+                }
                 nl("return null;")
             }
             block("android.databinding.ViewDataBinding getDataBinder(android.databinding.DataBindingComponent bindingComponent, android.view.View[] views, int layoutId)") {
@@ -78,6 +107,11 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
                                 }
                             }
                         }
+                    }
+                }
+                if (generateTestOverride) {
+                    block("if(mTestOverride != null)") {
+                        nl("return mTestOverride.getDataBinder(bindingComponent, views, layoutId);")
                     }
                 }
                 nl("return null;")
@@ -102,11 +136,21 @@ class DataBinderWriter(val pkg: String, val projectPackage: String, val classNam
 
                     }
                 }
+                if (generateTestOverride) {
+                    block("if(mTestOverride != null)") {
+                        nl("return mTestOverride.getLayoutId(tag);")
+                    }
+                }
                 nl("return 0;")
             }
 
             block("String convertBrIdToString(int id)") {
                 block("if (id < 0 || id >= InnerBrLookup.sKeys.length)") {
+                    if (generateTestOverride) {
+                        block("if(mTestOverride != null)") {
+                            nl("return mTestOverride.convertBrIdToString(id);")
+                        }
+                    }
                     nl("return null;")
                 }
                 nl("return InnerBrLookup.sKeys[id];")

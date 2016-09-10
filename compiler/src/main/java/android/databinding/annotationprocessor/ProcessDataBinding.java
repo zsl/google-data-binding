@@ -68,6 +68,11 @@ public class ProcessDataBinding extends AbstractProcessor {
         if (mCompilerArgs == null) {
             return false;
         }
+        if (mCompilerArgs.isTestVariant() && !mCompilerArgs.isEnabledForTests() &&
+                !mCompilerArgs.isLibrary()) {
+            L.d("data binding processor is invoked but not enabled, skipping...");
+            return false;
+        }
         boolean done = true;
         for (ProcessingStep step : mProcessingSteps) {
             try {
@@ -100,25 +105,27 @@ public class ProcessDataBinding extends AbstractProcessor {
         Callback dataBinderWriterCallback = new Callback() {
             CompilerChef mChef;
             BRWriter mBRWriter;
-            boolean mLibraryProject;
-            int mMinSdk;
 
             @Override
-            public void onChefReady(CompilerChef chef, boolean libraryProject, int minSdk) {
+            public void onChefReady(CompilerChef chef) {
                 Preconditions.checkNull(mChef, "Cannot set compiler chef twice");
                 chef.addBRVariables(processBindable);
                 mChef = chef;
-                mLibraryProject = libraryProject;
-                mMinSdk = minSdk;
                 considerWritingMapper();
-                mChef.writeDynamicUtil();
+                if (mCompilerArgs.isApp() != mCompilerArgs.isTestVariant() ||
+                        mCompilerArgs.isEnabledForTests()) {
+                    mChef.writeDynamicUtil();
+                }
             }
 
             private void considerWritingMapper() {
-                if (mLibraryProject || mChef == null || mBRWriter == null) {
+                boolean justLibrary =
+                        mCompilerArgs.artifactType() == DataBindingCompilerArgs.Type.LIBRARY &&
+                        !mCompilerArgs.isTestVariant();
+                if (justLibrary || mChef == null || mBRWriter == null) {
                     return;
                 }
-                mChef.writeDataBinderMapper(mMinSdk, mBRWriter);
+                mChef.writeDataBinderMapper(mCompilerArgs, mBRWriter);
             }
 
             @Override
@@ -202,7 +209,7 @@ public class ProcessDataBinding extends AbstractProcessor {
     }
 
     interface Callback {
-        void onChefReady(CompilerChef chef, boolean libraryProject, int minSdk);
+        void onChefReady(CompilerChef chef);
         void onBrWriterReady(BRWriter brWriter);
     }
 }

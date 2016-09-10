@@ -99,7 +99,7 @@ backwardCompatibleVersions.each { gradleVersion ->
     compileLibTask.workingDir file("old-version-projects/library-project")
     compileLibTask.environment OLD_GRADLE_VERSION: gradleVersion
     compileLibTask.commandLine './gradlew'
-    compileLibTask.args 'clean', 'uploadArchives', '--info'
+    compileLibTask.args 'clean', 'uploadArchives', '--info', "-PaddRemoteRepos=true"
 
     def testAppWithOldDependency = project.tasks.create "testAppThatDependsOnLibraryBuiltWith$gradleVersion", Exec
     testAppWithOldDependency.workingDir file("old-version-projects/TestAppWithOldDependency")
