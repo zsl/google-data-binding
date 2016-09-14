@@ -18,7 +18,9 @@ import android.databinding.testapp.databinding.LayoutWithIncludeBinding;
 import android.databinding.testapp.databinding.MergeContainingMergeBinding;
 import android.databinding.testapp.databinding.MergeLayoutBinding;
 import android.databinding.testapp.vo.NotBindableVo;
+
 import android.test.UiThreadTest;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
@@ -75,6 +77,13 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         assertEquals("b 1 third 5b", merge1.innerTextView2.getText().toString());
         assertEquals("a 2 third 5b", merge2.innerTextView1.getText().toString());
         assertEquals("b 2 third 5b", merge2.innerTextView2.getText().toString());
+
+        assertEquals(View.VISIBLE, mBinder.includedPlainLayout.getVisibility());
+        assertEquals(View.VISIBLE, mBinder.includedLayout.getRoot().getVisibility());
+        mBinder.setVisibility(View.INVISIBLE);
+        mBinder.executePendingBindings();
+        assertEquals(View.INVISIBLE, mBinder.includedPlainLayout.getVisibility());
+        assertEquals(View.INVISIBLE, mBinder.includedLayout.getRoot().getVisibility());
     }
 
     // Make sure that when an included layout's executePendingBindings is run that the includer
