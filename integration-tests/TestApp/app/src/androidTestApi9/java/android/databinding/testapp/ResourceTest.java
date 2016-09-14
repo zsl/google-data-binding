@@ -79,4 +79,12 @@ public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
         TextView view = mBinder.fractionTwoParameters;
         assertEquals("9.0", view.getText().toString());
     }
+
+    @UiThreadTest
+    public void testAndroidResources() throws Throwable {
+        TextView list = mBinder.list;
+        assertEquals(String.valueOf(android.R.id.list), list.getText().toString());
+        TextView message = mBinder.message;
+        assertEquals(String.valueOf(android.R.id.message), message.getText().toString());
+    }
 }

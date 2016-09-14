@@ -478,7 +478,7 @@ WS  :  [ \t\r\n\u000C]+ -> skip
 //
 
 ResourceReference
-    :   '@' (PackageName ':')? ResourceType '/' Identifier
+    :   '@' (PackageName ':')? ResourceType '/' ('android' ':')? Identifier
     ;
 
 PackageName

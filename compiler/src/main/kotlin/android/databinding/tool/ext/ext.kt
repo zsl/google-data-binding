@@ -73,7 +73,14 @@ public fun Class<*>.toJavaCode() : String {
     }
 }
 
-public fun String.androidId() : String = this.split("/")[1]
+public fun String.androidId() : String {
+    val name = this.split("/")[1]
+    if (name.contains(':')) {
+        return name.split(':')[1]
+    } else {
+        return name
+    }
+}
 
 public fun String.toCamelCase() : String {
     val split = this.split("_")
