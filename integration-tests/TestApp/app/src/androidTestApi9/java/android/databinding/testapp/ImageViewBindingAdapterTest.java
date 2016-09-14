@@ -57,8 +57,8 @@ public class ImageViewBindingAdapterTest
         assertNull(mBinder.view3.getDrawable());
 
         String uriString = ContentResolver.SCHEME_ANDROID_RESOURCE + "://" +
-                getActivity().getResources().getResourcePackageName(R.drawable.ic_launcher) + "/" +
-                R.drawable.ic_launcher;
+                getActivity().getResources().getResourcePackageName(R.drawable.android_dude) + "/" +
+                R.drawable.android_dude;
         mBinder.setUriString(uriString);
         mBinder.setUri(Uri.parse(uriString));
         mBinder.executePendingBindings();

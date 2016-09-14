@@ -115,7 +115,7 @@
                 android:id="@+id/backgroundDrawable"
                 android:layout_width="10dp"
                 android:layout_height="10dp"
-                android:background="@{@drawable/ic_launcher}"/>
+                android:background="@{@drawable/android_dude}"/>
         <View
                 android:id="@+id/backgroundWithTheme"
                 android:layout_width="10dp"

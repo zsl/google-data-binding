@@ -41,7 +41,7 @@
         <ImageView
                 android:layout_width="match_parent" android:layout_height="match_parent"
                 android:id="@+id/view4"
-                android:src="@{obj == null ? @drawable/ic_launcher : null}"
+                android:src="@{obj == null ? @drawable/android_dude : null}"
                 />
     </LinearLayout>
 </layout>
