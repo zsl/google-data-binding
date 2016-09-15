@@ -293,7 +293,7 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
             final int remainderIndex = (index / Long.SIZE) - 1;
             if (mRemainderRemoved == null) {
                 mRemainderRemoved = new long[mCallbacks.size() / Long.SIZE];
-            } else if (mRemainderRemoved.length < remainderIndex) {
+            } else if (mRemainderRemoved.length <= remainderIndex) {
                 // need to make it bigger
                 long[] newRemainders = new long[mCallbacks.size() / Long.SIZE];
                 System.arraycopy(mRemainderRemoved, 0, newRemainders, 0, mRemainderRemoved.length);

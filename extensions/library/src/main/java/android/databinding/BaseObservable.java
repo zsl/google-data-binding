@@ -27,27 +27,35 @@ public class BaseObservable implements Observable {
     }
 
     @Override
-    public synchronized void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
-        if (mCallbacks == null) {
-            mCallbacks = new PropertyChangeRegistry();
+    public void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+        synchronized (this) {
+            if (mCallbacks == null) {
+                mCallbacks = new PropertyChangeRegistry();
+            }
         }
         mCallbacks.add(callback);
     }
 
     @Override
-    public synchronized void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
-        if (mCallbacks != null) {
-            mCallbacks.remove(callback);
+    public void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+        synchronized (this) {
+            if (mCallbacks == null) {
+                return;
+            }
         }
+        mCallbacks.remove(callback);
     }
 
     /**
      * Notifies listeners that all properties of this instance have changed.
      */
-    public synchronized void notifyChange() {
-        if (mCallbacks != null) {
-            mCallbacks.notifyCallbacks(this, 0, null);
+    public void notifyChange() {
+        synchronized (this) {
+            if (mCallbacks == null) {
+                return;
+            }
         }
+        mCallbacks.notifyCallbacks(this, 0, null);
     }
 
     /**
@@ -58,8 +66,11 @@ public class BaseObservable implements Observable {
      * @param fieldId The generated BR id for the Bindable field.
      */
     public void notifyPropertyChanged(int fieldId) {
-        if (mCallbacks != null) {
-            mCallbacks.notifyCallbacks(this, fieldId, null);
+        synchronized (this) {
+            if (mCallbacks == null) {
+                return;
+            }
         }
+        mCallbacks.notifyCallbacks(this, fieldId, null);
     }
 }

@@ -38,6 +38,8 @@ import android.view.ViewGroup;
 
 import com.android.databinding.library.R;
 
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +129,8 @@ public abstract class ViewDataBinding extends BaseObservable {
         }
     };
 
+    private static final ReferenceQueue<ViewDataBinding> sReferenceQueue = new ReferenceQueue<>();
+
     private static final OnAttachStateChangeListener ROOT_REATTACHED_LISTENER;
 
     static {
@@ -159,6 +163,8 @@ public abstract class ViewDataBinding extends BaseObservable {
             synchronized (this) {
                 mPendingRebind = false;
             }
+            processReferenceQueue();
+
             if (VERSION.SDK_INT >= VERSION_CODES.KITKAT) {
                 // Nested so that we don't get a lint warning in IntelliJ
                 if (!mRoot.isAttachedToWindow()) {
@@ -418,11 +424,6 @@ public abstract class ViewDataBinding extends BaseObservable {
                 weakListener.unregister();
             }
         }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        unbind();
     }
 
     static ViewDataBinding getBinding(View v) {
@@ -1221,6 +1222,19 @@ public abstract class ViewDataBinding extends BaseObservable {
         return val;
     }
 
+    /**
+     * Polls sReferenceQueue to remove listeners on ViewDataBindings that have been collected.
+     */
+    private static void processReferenceQueue() {
+        Reference<? extends ViewDataBinding> ref;
+        while ((ref = sReferenceQueue.poll()) != null) {
+            if (ref instanceof WeakListener) {
+                WeakListener listener = (WeakListener) ref;
+                listener.unregister();
+            }
+        }
+    }
+
     private interface ObservableReference<T> {
         WeakListener<T> getListener();
         void addListener(T target);
@@ -1234,7 +1248,7 @@ public abstract class ViewDataBinding extends BaseObservable {
 
         public WeakListener(ViewDataBinding binder, int localFieldId,
                 ObservableReference<T> observable) {
-            super(binder);
+            super(binder, sReferenceQueue);
             mLocalFieldId = localFieldId;
             mObservable = observable;
         }
