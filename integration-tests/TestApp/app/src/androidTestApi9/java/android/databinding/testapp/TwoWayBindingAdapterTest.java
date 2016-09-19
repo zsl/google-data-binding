@@ -1082,6 +1082,35 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertEquals("Goodbye World", mBinder.sameTarget.getError().toString());
     }
 
+    /**
+     * Two-way binding introduces new attribute expressions, so if there is already an expression on
+     * a View, it must resolve the multi-attribute binding adapters after the two-way expressions
+     * are resolved.
+     */
+    public void testCrossAttributes() throws Throwable {
+        makeVisible(mBinder.mixView1, mBinder.mixView2);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+        assertFalse(mBinder.mixView2.isEnabled());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.mixView1.setText("a");
+            }
+        });
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return !mBinder.mixView2.isEnabled();
+            }
+        });
+        assertTrue(mBinder.mixView2.isEnabled());
+    }
+
     private void makeVisible(final View... views) throws Throwable {
         runTestOnUiThread(new Runnable() {
             @Override
@@ -1123,6 +1152,8 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.typedInstanceMethod.setVisibility(View.GONE);
                 mBinder.arrayMethod.setVisibility(View.GONE);
                 mBinder.sameTarget.setVisibility(View.GONE);
+                mBinder.mixView1.setVisibility(View.GONE);
+                mBinder.mixView2.setVisibility(View.GONE);
                 for (View view : views) {
                     view.setVisibility(View.VISIBLE);
                 }

@@ -209,4 +209,8 @@ public class TwoWayBindingObject {
         }
         return string.charAt(string.length() - 3) + string.substring(0, string.length() - 3);
     }
+
+    public boolean validate(CharSequence text) {
+        return text != null && text.toString().contains("a");
+    }
 }
