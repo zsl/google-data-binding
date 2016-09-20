@@ -16,6 +16,7 @@
         xmlns:bind="http://schemas.android.com/apk/res-auto">
     <data>
         <variable name="outerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
+        <variable name="visibility" type="int"/>
     </data>
     <FrameLayout
             android:layout_width="match_parent"
@@ -31,6 +32,7 @@
             <include layout="@layout/included_layout" android:id="@+id/includedLayout"
                      bind:innerObject="@{outerObject}"
                      bind:innerValue="@{`modified ` + outerObject.intValue}"
+                     android:visibility="@{visibility}"
                     />
 
             <!-- Add custom layout that adds its own inflated view -->
@@ -65,7 +67,8 @@
             <FrameLayout android:layout_width="wrap_content"
                          android:layout_height="wrap_content">
                 <!-- an included layout with just an id -->
-                <include android:id="@+id/includedPlainLayout" layout="@layout/plain_layout"/>
+                <include android:id="@+id/includedPlainLayout" layout="@layout/plain_layout"
+                    android:visibility="@{visibility}"/>
             </FrameLayout>
             <include
                 android:id="@+id/trackedInclude"
