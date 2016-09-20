@@ -16,12 +16,15 @@ package android.databinding.testapp;
 import android.databinding.ViewDataBinding;
 import android.os.Looper;
 import android.test.ActivityInstrumentationTestCase2;
+import android.view.Choreographer;
 import android.view.LayoutInflater;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActivity>
         extends ActivityInstrumentationTestCase2<U> {
@@ -150,11 +153,19 @@ public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActiv
 
     protected void waitForUISync() {
         try {
+            final CountDownLatch latch = new CountDownLatch(1);
             runTestOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Choreographer.getInstance().postFrameCallback(new Choreographer.FrameCallback() {
+                        @Override
+                        public void doFrame(long frameTimeNanos) {
+                            latch.countDown();
+                        }
+                    });
                 }
             });
+            assertTrue(latch.await(1, TimeUnit.SECONDS));
         } catch (Throwable t) {
             throw new RuntimeException(t);
         }
