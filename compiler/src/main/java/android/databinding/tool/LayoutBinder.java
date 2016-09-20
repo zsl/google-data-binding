@@ -236,6 +236,16 @@ public class LayoutBinder implements FileScopeProvider {
                     // resolve callbacks first because they introduce local variables.
                     bindingTarget.resolveCallbackParams();
                     bindingTarget.resolveTwoWayExpressions();
+                } finally {
+                    Scope.exit();
+                }
+            }
+
+            // Resolve the multi-setters after resolving two-way expressions because resolving
+            // a two-way expression can add an expression to other targets
+            for (BindingTarget bindingTarget : mBindingTargets) {
+                try {
+                    Scope.enter(bindingTarget.mBundle);
                     bindingTarget.resolveMultiSetters();
                     bindingTarget.resolveListeners();
                     bindingTarget.injectSafeUnboxing(mExprModel);
@@ -243,6 +253,7 @@ public class LayoutBinder implements FileScopeProvider {
                     Scope.exit();
                 }
             }
+
             mSortedBindingTargets = new ArrayList<BindingTarget>(mBindingTargets);
             Collections.sort(mSortedBindingTargets, COMPARE_FIELD_NAME);
         } finally {
