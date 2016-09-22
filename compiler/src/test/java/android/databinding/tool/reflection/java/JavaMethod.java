@@ -88,6 +88,11 @@ public class JavaMethod extends ModelMethod {
     }
 
     @Override
+    public Bindable getBindableAnnotation() {
+        return mMethod.getAnnotation(Bindable.class);
+    }
+
+    @Override
     public int getMinApi() {
         return SdkUtil.getMinApi(this);
     }

@@ -16,6 +16,7 @@
 
 package android.databinding.tool.expr;
 
+import android.databinding.Bindable;
 import android.databinding.tool.Binding;
 import android.databinding.tool.BindingTarget;
 import android.databinding.tool.InverseBinding;
@@ -26,16 +27,20 @@ import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.reflection.ModelField;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.store.SetterStore.BindingGetterCall;
 import android.databinding.tool.util.BrNameUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+import android.databinding.tool.util.StringUtils;
 import android.databinding.tool.writer.KCode;
 
 import com.google.common.collect.Lists;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FieldAccessExpr extends MethodBaseExpr {
     // notification name for the field. Important when we map this to a method w/ different name
@@ -151,6 +156,70 @@ public class FieldAccessExpr extends MethodBaseExpr {
             Scope.enter(this);
             Preconditions.checkNotNull(mGetter, "cannot get br name before resolving the getter");
             return mBrName;
+        } finally {
+            Scope.exit();
+        }
+    }
+
+    /**
+     * @return The list of all properties that dirty this expression. This will also contain the
+     * the BR identifier for this property if there is one. If the property is not bindable,
+     * it will contain an empty list.
+     */
+    public String[] getDirtyingProperties() {
+        String[] names = null;
+        if (mGetter != null && mGetter.canBeInvalidated()) {
+            if (mGetter.type == Type.FIELD) {
+                if (mGetter.bindableAnnotation != null &&
+                    mGetter.bindableAnnotation.value().length != 0) {
+                    L.e("Bindable annotation with property names is only supported on methods. " +
+                                    "Field '%s.%s' has @Bindable(\"%s\")",
+                            getTarget().getResolvedType().toJavaCode(), mGetter.name,
+                            StringUtils.join(mGetter.bindableAnnotation.value(), "\", \""));
+                }
+            } else if (mGetter.method != null && mGetter.canBeInvalidated() &&
+                    mGetter.bindableAnnotation != null) {
+                String[] dependencies = mGetter.bindableAnnotation.value();
+                validateDependencies(dependencies);
+                names = new String[dependencies.length + 1];
+                for (int i = 0; i < dependencies.length; i++) {
+                    names[i] = "BR." + dependencies[i];
+                }
+                names[dependencies.length] = getBrName();
+            }
+        }
+        if (names == null) {
+            String br = getBrName();
+            if (br == null) {
+                names = new String[0];
+            } else {
+                names = new String[] { br };
+            }
+        }
+        return names;
+    }
+
+    /**
+     * Validates the dependent properties -- they must exist and be Bindable.
+     */
+    private void validateDependencies(String[] dependencies) {
+        try {
+            Scope.enter(this);
+            Arrays.stream(dependencies).forEach(field -> {
+                ModelClass resolvedType = getTarget().getResolvedType();
+                Callable getter = resolvedType.findGetterOrField(field, mGetter.isStatic());
+                if (getter == null) {
+                    L.e("Could not find dependent property '%s' referenced in " +
+                                    "@Bindable annotation on %s.%s", field,
+                            mGetter.method.getDeclaringClass().toJavaCode(),
+                            mGetter.method.getName());
+                } else if (!getter.canBeInvalidated()) {
+                    L.e("The dependent property '%s' referenced in @Bindable annotation on " +
+                                    "%s.%s must be annotated with @Bindable", field,
+                            mGetter.method.getDeclaringClass().toJavaCode(),
+                            mGetter.method.getName());
+                }
+            });
         } finally {
             Scope.exit();
         }

@@ -16,6 +16,8 @@
 
 package android.databinding.tool.reflection;
 
+import android.databinding.Bindable;
+
 import java.util.Map;
 
 /**
@@ -61,5 +63,10 @@ public class InjectedField extends ModelField {
     @Override
     public ModelClass getFieldType() {
         return ModelAnalyzer.getInstance().findClass(mType, null);
+    }
+
+    @Override
+    public Bindable getBindableAnnotation() {
+        return null;
     }
 }
