@@ -15,8 +15,12 @@
  */
 package android.databinding.testapp.vo;
 
+import android.databinding.ObservableArrayMap;
+import android.databinding.ObservableMap;
+
 import java.util.HashMap;
 
 public class BracketObject {
     public HashMap<String, String> map = new HashMap<>();
+    public ObservableMap<String, String> observableMap = new ObservableArrayMap<>();
 }

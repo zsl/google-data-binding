@@ -43,6 +43,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
     Callable mGetter;
     boolean mIsListener;
     boolean mIsViewAttributeAccess;
+    boolean mIsMap;
 
     FieldAccessExpr(Expr parent, String name) {
         super(parent, name);
@@ -116,7 +117,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
     @Override
     public Expr resolveListeners(ModelClass listener, Expr parent) {
         final ModelClass targetType = getTarget().getResolvedType();
-        if (getGetter() == null && (listener == null || !mIsListener)) {
+        if (getGetter() == null && (listener == null || !mIsListener) && !mIsMap) {
             L.e("Could not resolve %s.%s as an accessor or listener on the attribute.",
                     targetType.getCanonicalName(), mName);
             return this;
@@ -127,7 +128,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
                     toString(), getTarget(), getName());
             return listenerExpr;
         } catch (IllegalStateException e) {
-            if (getGetter() == null) {
+            if (getGetter() == null && !mIsMap) {
                 L.e("%s", e.getMessage());
             }
             return this;
@@ -163,7 +164,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
         }
         if (mGetter == null) {
             Expr target = getTarget();
-            target.getResolvedType();
+            mIsMap = target.getResolvedType().isMap();
             boolean isStatic = target instanceof StaticIdentifierExpr;
             ModelClass resolvedType = target.getResolvedType();
             L.d("resolving %s. Resolved class type: %s", this, resolvedType);
@@ -172,10 +173,13 @@ public class FieldAccessExpr extends MethodBaseExpr {
 
             if (mGetter == null) {
                 mIsListener = !resolvedType.findMethods(mName, isStatic).isEmpty();
-                if (!mIsListener) {
+                if (!mIsListener && !mIsMap) {
                     L.e("Could not find accessor %s.%s", resolvedType.getCanonicalName(), mName);
+                } else if (mIsMap) {
+                    return target.getResolvedType().getComponentType();
+                } else {
+                    return modelAnalyzer.findClass(Object.class);
                 }
-                return modelAnalyzer.findClass(Object.class);
             }
 
             if (mGetter.isStatic() && !isStatic) {
@@ -282,13 +286,18 @@ public class FieldAccessExpr extends MethodBaseExpr {
     protected KCode generateCode() {
         // once we can deprecate using Field.access for callbacks, we can get rid of this since
         // it will be detected when resolve type is run.
-        Preconditions.checkNotNull(getGetter(), ErrorMessages.CANNOT_RESOLVE_TYPE, this);
+        Callable getter = getGetter();
+        if (!mIsMap) {
+            Preconditions.checkNotNull(getter, ErrorMessages.CANNOT_RESOLVE_TYPE, this);
+        }
         KCode code = new KCode()
                 .app("", getTarget().toCode()).app(".");
-        if (getGetter().type == Callable.Type.FIELD) {
-            return code.app(getGetter().name);
+        if (getter == null && mIsMap) {
+            return code.app("get(\"").app(mName).app("\")");
+        } else if (getter.type == Callable.Type.FIELD) {
+            return code.app(getter.name);
         } else {
-            return code.app(getGetter().name).app("()");
+            return code.app(getter.name).app("()");
         }
     }
 

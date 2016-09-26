@@ -72,5 +72,15 @@
                   android:layout_height="wrap_content"
                   android:id="@+id/bracketMap"
                   android:text='@{obj.map["Hello"]}'/>
+
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:id="@+id/dotMap"
+                  android:text='@{obj.map.Hello}'/>
+
+        <TextView android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:id="@+id/observableMap"
+                  android:text='@{obj.observableMap.Hello}'/>
     </LinearLayout>
 </layout>
