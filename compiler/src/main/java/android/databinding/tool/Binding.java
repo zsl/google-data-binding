@@ -156,7 +156,7 @@ public class Binding implements LocationScopeProvider {
                 // Now try with the value object directly
                 mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
                         viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
-                if (warn) {
+                if (warn && mSetterCall != null) {
                     L.w(ErrorMessages.OBSERVABLE_FIELD_USE, mSetterCall.getDescription());
                 }
             }
