@@ -25,14 +25,6 @@ public class BasicObject extends BaseObservable {
     @Bindable
     private String mField2;
 
-    @Bindable
-    public String field3;
-
-    @Bindable("field3")
-    private String mField4 = "+";
-
-    private String mJoin = " ";
-
     public String getField1() {
         return mField1;
     }
@@ -48,23 +40,7 @@ public class BasicObject extends BaseObservable {
 
     public void setField2(String field2) {
         this.mField2 = field2;
-        notifyPropertyChanged(BR.field2);
-    }
-
-    @Bindable({"field1", "field2", "field3"})
-    public String getCombo() {
-        return mField1 + mJoin + mField2 + mJoin + field3;
-    }
-
-    public void setJoin(String join) {
-        mJoin = join;
-        mField4 = join;
-        notifyPropertyChanged(BR.combo);
-        notifyPropertyChanged(BR.field4);
-    }
-
-    public String getField4() {
-        return mField4 + field3;
+        notifyPropertyChanged(BR.field1);
     }
 
     @Bindable

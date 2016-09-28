@@ -186,7 +186,7 @@ public class MethodCallExpr extends Expr {
                 flags |= STATIC;
             }
             mGetter = new Callable(Type.METHOD, mMethod.getName(), null, mMethod.getReturnType(args),
-                    mMethod.getParameterTypes().length, flags, mMethod, null);
+                    mMethod.getParameterTypes().length, flags, mMethod);
         }
         return mGetter.resolvedType;
     }

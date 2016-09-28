@@ -19,9 +19,6 @@ package android.databinding.tool.util;
 import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Strings;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 public class StringUtils {
 
     public static final String LINE_SEPARATOR = StandardSystemProperty.LINE_SEPARATOR.value();
@@ -77,19 +74,7 @@ public class StringUtils {
                 .replace(LFEED_ENTITY, "\n");
     }
 
-    /**
-     * Merges the array of strings together using a separator string.
-     * @param strings The array of strings to merge into one string.
-     * @param sep The separator between the string values.
-     * @return The merge of all string values, separated by sep or null if strings is null
-     */
-    public static <T extends CharSequence> String join(T[] strings, String sep) {
-        if (strings == null) {
-            return null;
-        }
-        return Arrays.stream(strings).collect(Collectors.joining(sep));
-    }
-
     private StringUtils() {
     }
+
 }

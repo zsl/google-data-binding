@@ -147,11 +147,6 @@ class AnnotationMethod extends ModelMethod {
     }
 
     @Override
-    public Bindable getBindableAnnotation() {
-        return mExecutableElement.getAnnotation(Bindable.class);
-    }
-
-    @Override
     public int getMinApi() {
         if (mApiLevel == -1) {
             mApiLevel = SdkUtil.getMinApi(this);

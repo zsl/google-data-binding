@@ -16,8 +16,6 @@
 
 package android.databinding.tool.reflection;
 
-import android.databinding.Bindable;
-
 import java.util.List;
 import java.util.Map;
 
@@ -107,11 +105,6 @@ public class InjectedMethod extends ModelMethod {
     @Override
     public boolean isBindable() {
         return false;
-    }
-
-    @Override
-    public Bindable getBindableAnnotation() {
-        return null;
     }
 
     @Override
