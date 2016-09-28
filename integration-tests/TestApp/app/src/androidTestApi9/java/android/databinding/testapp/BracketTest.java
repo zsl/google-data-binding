@@ -15,6 +15,7 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.BracketTestBinding;
 
+import android.databinding.testapp.vo.BracketObject;
 import android.test.UiThreadTest;
 import android.util.LongSparseArray;
 import android.util.SparseArray;
@@ -101,5 +102,20 @@ public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
     @UiThreadTest
     public void testBracketMap() throws Throwable {
         assertEquals("", mBinder.bracketMap.getText().toString());
+    }
+
+    @UiThreadTest
+    public void testDotSubstitute() throws Throwable {
+        BracketObject bracketObject = new BracketObject();
+        bracketObject.map.put("Hello", "World");
+        bracketObject.observableMap.put("Hello", "Goodbye");
+        mBinder.setObj(bracketObject);
+        mBinder.executePendingBindings();
+        assertEquals("World", mBinder.dotMap.getText().toString());
+        assertEquals("Goodbye", mBinder.observableMap.getText().toString());
+
+        bracketObject.observableMap.put("Hello", "Cruel World");
+        mBinder.executePendingBindings();
+        assertEquals("Cruel World", mBinder.observableMap.getText().toString());
     }
 }
