@@ -392,4 +392,84 @@ public class SimpleCompilationTest extends BaseCompilationTest {
             assertNotNull("Method " + method + " not found", modelMethod);
         }
     }
+
+    @Test
+    public void testDependantDoesNotExist() throws Throwable {
+        prepareProject();
+        copyResourceTo("/layout/layout_with_dependency.xml",
+                "/app/src/main/res/layout/layout_with_dependency.xml");
+        copyResourceTo(
+                "/android/databinding/compilationTest/badJava/ObservableNoDependent.java",
+                "/app/src/main/java/android/databinding/compilationTest/badJava/MyObservable.java");
+
+        CompilationResult result = runGradle("assembleDebug");
+        assertNotEquals(0, result.resultCode);
+        List<ScopedException> errors = ScopedException.extractErrors(result.error);
+        assertEquals(result.error, 1, errors.size());
+        final ScopedException ex = errors.get(0);
+        final ScopedErrorReport report = ex.getScopedErrorReport();
+        final File errorFile = new File(report.getFilePath());
+        assertTrue(errorFile.exists());
+        assertEquals(new File(testFolder,
+                        "/app/src/main/res/layout/layout_with_dependency.xml")
+                        .getCanonicalFile(),
+                errorFile.getCanonicalFile());
+        assertEquals("Could not find dependent property 'notExist' referenced in " +
+                        "@Bindable annotation on " +
+                        "android.databinding.compilationTest.badJava.MyObservable.getField",
+                ex.getBareMessage());
+    }
+
+    @Test
+    public void testDependantNotBindable() throws Throwable {
+        prepareProject();
+        copyResourceTo("/layout/layout_with_dependency.xml",
+                "/app/src/main/res/layout/layout_with_dependency.xml");
+        copyResourceTo(
+                "/android/databinding/compilationTest/badJava/ObservableNotBindableDependent.java",
+                "/app/src/main/java/android/databinding/compilationTest/badJava/MyObservable.java");
+
+        CompilationResult result = runGradle("assembleDebug");
+        assertNotEquals(0, result.resultCode);
+        List<ScopedException> errors = ScopedException.extractErrors(result.error);
+        assertEquals(result.error, 1, errors.size());
+        final ScopedException ex = errors.get(0);
+        final ScopedErrorReport report = ex.getScopedErrorReport();
+        final File errorFile = new File(report.getFilePath());
+        assertTrue(errorFile.exists());
+        assertEquals(new File(testFolder,
+                        "/app/src/main/res/layout/layout_with_dependency.xml")
+                        .getCanonicalFile(),
+                errorFile.getCanonicalFile());
+        assertEquals("The dependent property 'otherField' referenced in " +
+                "@Bindable annotation on " +
+                "android.databinding.compilationTest.badJava.MyObservable.getField " +
+                "must be annotated with @Bindable", ex.getBareMessage());
+    }
+
+    @Test
+    public void testDependantField() throws Throwable {
+        prepareProject();
+        copyResourceTo("/layout/layout_with_dependency.xml",
+                "/app/src/main/res/layout/layout_with_dependency.xml");
+        copyResourceTo(
+                "/android/databinding/compilationTest/badJava/ObservableFieldDependent.java",
+                "/app/src/main/java/android/databinding/compilationTest/badJava/MyObservable.java");
+
+        CompilationResult result = runGradle("assembleDebug");
+        assertNotEquals(0, result.resultCode);
+        List<ScopedException> errors = ScopedException.extractErrors(result.error);
+        assertEquals(result.error, 1, errors.size());
+        final ScopedException ex = errors.get(0);
+        final ScopedErrorReport report = ex.getScopedErrorReport();
+        final File errorFile = new File(report.getFilePath());
+        assertTrue(errorFile.exists());
+        assertEquals(new File(testFolder,
+                        "/app/src/main/res/layout/layout_with_dependency.xml")
+                        .getCanonicalFile(),
+                errorFile.getCanonicalFile());
+        assertEquals("Bindable annotation with property names is only supported on methods. " +
+                "Field 'android.databinding.compilationTest.badJava.MyObservable.field' has " +
+                "@Bindable(\"otherField\")", ex.getBareMessage());
+    }
 }

@@ -70,6 +70,11 @@ class AnnotationField extends ModelField {
     }
 
     @Override
+    public Bindable getBindableAnnotation() {
+        return mField.getAnnotation(Bindable.class);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj instanceof AnnotationField) {
             AnnotationField that = (AnnotationField) obj;

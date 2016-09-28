@@ -16,6 +16,8 @@
 
 package android.databinding.tool.reflection;
 
+import android.databinding.Bindable;
+
 import java.util.List;
 import java.util.Map;
 

@@ -15,6 +15,8 @@
  */
 package android.databinding.tool.reflection;
 
+import android.databinding.Bindable;
+
 public abstract class ModelField {
 
     /**
@@ -46,4 +48,11 @@ public abstract class ModelField {
      * @return The declared type of the field variable.
      */
     public abstract ModelClass getFieldType();
+
+    /**
+     * @return the Bindable annotation on the field or null if there isn't one.
+     */
+    public Bindable getBindableAnnotation() {
+        return null;
+    }
 }

@@ -15,6 +15,7 @@
  */
 package android.databinding.tool.reflection;
 
+import android.databinding.Bindable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.StringUtils;
@@ -417,7 +418,7 @@ public abstract class ModelClass {
     public Callable findGetterOrField(String name, boolean staticOnly) {
         if ("length".equals(name) && isArray()) {
             return new Callable(Type.FIELD, name, null,
-                    ModelAnalyzer.getInstance().loadPrimitive("int"), 0, 0, null);
+                    ModelAnalyzer.getInstance().loadPrimitive("int"), 0, 0, null, null);
         }
         String capitalized = StringUtils.capitalize(name);
         String[] methodNames = {
@@ -435,8 +436,10 @@ public abstract class ModelClass {
                     if (method.isStatic()) {
                         flags |= STATIC;
                     }
+                    final Bindable bindable;
                     if (method.isBindable()) {
                         flags |= CAN_BE_INVALIDATED;
+                        bindable = method.getBindableAnnotation();
                     } else {
                         // if method is not bindable, look for a backing field
                         final ModelField backingField = getField(name, true, method.isStatic());
@@ -444,13 +447,16 @@ public abstract class ModelClass {
                                 backingField == null ? "NOT FOUND" : backingField.getName());
                         if (backingField != null && backingField.isBindable()) {
                             flags |= CAN_BE_INVALIDATED;
+                            bindable = backingField.getBindableAnnotation();
+                        } else {
+                            bindable = null;
                         }
                     }
                     final ModelMethod setterMethod = findSetter(method, name);
                     final String setterName = setterMethod == null ? null : setterMethod.getName();
                     final Callable result = new Callable(Callable.Type.METHOD, methodName,
                             setterName, method.getReturnType(null), method.getParameterTypes().length,
-                            flags, method);
+                            flags, method, bindable);
                     return result;
                 }
             }
@@ -484,7 +490,8 @@ public abstract class ModelClass {
         if (publicField.isBindable()) {
             flags |= CAN_BE_INVALIDATED;
         }
-        return new Callable(Callable.Type.FIELD, name, setterFieldName, fieldType, 0, flags, null);
+        return new Callable(Callable.Type.FIELD, name, setterFieldName, fieldType, 0, flags, null,
+                publicField.getBindableAnnotation());
     }
 
     public ModelMethod findInstanceGetter(String name) {
