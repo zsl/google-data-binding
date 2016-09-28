@@ -749,15 +749,14 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 block("switch (fieldId)", {
                     val accessedFields: List<FieldAccessExpr> = it.parents.filterIsInstance(FieldAccessExpr::class.java)
                     accessedFields.filter { it.isUsed && it.hasBindableAnnotations() }
-                            .flatMap { expr -> expr.dirtyingProperties.map { Pair(it, expr)}  }
-                            .groupBy { it.first }
+                            .groupBy { it.brName }
                             .forEach {
                                 // If two expressions look different but resolve to the same method,
                                 // we are not yet able to merge them. This is why we merge their
                                 // flags below.
                                 block("case ${it.key}:") {
                                     block("synchronized(this)") {
-                                        val flagSet = it.value.foldRight(FlagSet()) { l, r -> l.second.invalidateFlagSet.or(r) }
+                                        val flagSet = it.value.foldRight(FlagSet()) { l, r -> l.invalidateFlagSet.or(r) }
 
                                         mDirtyFlags.mapOr(flagSet) { suffix, index ->
                                             tab("${mDirtyFlags.localValue(index)} |= ${flagSet.localValue(index)};")

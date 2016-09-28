@@ -44,11 +44,6 @@ public abstract class ModelMethod {
     public abstract boolean isBindable();
 
     /**
-     * @return the Bindable annotation on the method or null if it doesn't exist.
-     */
-    public abstract Bindable getBindableAnnotation();
-
-    /**
      * Since when this method is available. Important for Binding expressions so that we don't
      * call non-existing APIs when setting UI.
      *

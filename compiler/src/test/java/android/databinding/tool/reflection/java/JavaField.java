@@ -56,9 +56,4 @@ public class JavaField extends ModelField {
     public ModelClass getFieldType() {
         return new JavaClass(mField.getType());
     }
-
-    @Override
-    public Bindable getBindableAnnotation() {
-        return mField.getAnnotation(Bindable.class);
-    }
 }
