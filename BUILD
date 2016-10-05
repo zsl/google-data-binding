@@ -1,8 +1,9 @@
 # This file has been automatically generated, please do not modify directly.
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
+# TODO: move these to baseLibrary/, once we can use build.bazel
 iml_module(
-    name = "db-baseLibrary",
+    name = "studio.baseLibrary",
     srcs = ["baseLibrary/src/main/java"],
     deps = [
         "//tools/data-binding:db-baseLibrary_0[test]",
@@ -12,8 +13,14 @@ iml_module(
     visibility = ["//visibility:public"],
 )
 
+java_library(
+    name = "tools.baseLibrary",
+    srcs = glob(["baseLibrary/src/main/java/**"]),
+    visibility = ["//visibility:public"],
+)
+
 iml_module(
-    name = "db-compilerCommon",
+    name = "studio.compilerCommon",
     srcs = [
         "compilerCommon/src/main/java",
         "compilerCommon/src/main/xml-gen",
@@ -21,7 +28,7 @@ iml_module(
     ],
     test_srcs = ["compilerCommon/src/test/java"],
     deps = [
-        "//tools/data-binding:db-baseLibrary[module]",
+        ":studio.baseLibrary[module]",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:commons-io-2.4",
         "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
@@ -41,21 +48,51 @@ iml_module(
     visibility = ["//visibility:public"],
 )
 
+java_library(
+    name = "tools.compilerCommon",
+    srcs = glob([
+        "compilerCommon/src/main/java/**/*.java",
+        "compilerCommon/src/main/grammar-gen/**/*.java",
+        "compilerCommon/src/main/xml-gen/**/*.java",
+    ]),
+    visibility = ["//visibility:public"],
+    deps = [
+        ":tools.baseLibrary",
+        "//tools/base/annotations",
+        "//tools/base/third_party:com.google.guava_guava",
+        "//tools/base/third_party:commons-io_commons-io",
+        "//tools/base/third_party:com.googlecode.juniversalchardet_juniversalchardet",
+        "//tools/base/third_party:org.antlr_antlr4",
+    ]
+)
+
+java_test(
+    name = "tools.compilerCommon_tests",
+    srcs = glob(["compilerCommon/src/test/java/**"]),
+    jvm_flags = ["-Dtest.suite.jar=tests.jar"],
+    test_class = "com.android.testutils.JarTestSuite",
+    deps = [
+        ":tools.compilerCommon",
+        "//tools/base/third_party:junit_junit",
+    ],
+    runtime_deps = ["//tools/base/testutils:tools.testutils"],
+)
+
 iml_module(
-    name = "db-compiler",
+    name = "studio.compiler",
     srcs = [
         "compiler/src/main/java",
         "compiler/src/main/kotlin",
     ],
     test_srcs = ["compiler/src/test/java"],
     deps = [
-        "//tools/data-binding:db-baseLibrary[module]",
-        "//tools/data-binding:db-compilerCommon[module]",
+        ":studio.baseLibrary[module]",
+        ":studio.compilerCommon[module]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/data-binding:db-compiler_0[test]",
         "//tools/data-binding:db-compiler_1[test]",
     ],
-    exports = ["//tools/data-binding:db-baseLibrary"],
+    exports = [":studio.baseLibrary"],
     javacopts = ["-extra_checks:off"],
     visibility = ["//visibility:public"],
 )
