@@ -545,7 +545,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             }
                             val slashIndex = originalTag.indexOf('/')
                             val resourceId = originalTag.substring(slashIndex + 1)
-                            tagValue = "root.getResources().getString($packageName.R.string.$resourceId)"
+                            tagValue = "this.${it.fieldName}.getResources().getString($packageName.R.string.$resourceId)"
                         }
                     }
                     tab("this.${it.fieldName}.setTag($tagValue);")
