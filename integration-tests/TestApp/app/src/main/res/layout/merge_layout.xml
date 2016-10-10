@@ -25,5 +25,12 @@
                   android:id="@+id/innerTextView2"
                   android:text="@{`b ` + innerValue + innerObject.stringValue}"
                 />
+        <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <!-- using string tags in Views that have expressions has to be tested -->
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                      android:tag="@string/rain"
+                      android:text="@{`foo`}"
+            />
+        </FrameLayout>
     </merge>
 </layout>
