@@ -1,4 +1,3 @@
-# This file has been automatically generated, please do not modify directly.
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # TODO: move these to baseLibrary/, once we can use build.bazel
