@@ -1700,7 +1700,7 @@ public class SetterStore {
 
         @Override
         public final String toJava(String componentExpression, String viewExpression,
-                String[] valueExpressions) {
+                String... valueExpressions) {
             Preconditions.check(valueExpressions.length == attributes.length * 2,
                     "MultiAttributeSetter needs %s items, received %s",
                     Arrays.toString(attributes), Arrays.toString(valueExpressions));
