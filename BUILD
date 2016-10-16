@@ -4,7 +4,6 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "studio.baseLibrary",
     srcs = ["baseLibrary/src/main/java"],
-    javacopts = ["-extra_checks:off"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     deps = [
@@ -26,7 +25,6 @@ iml_module(
         "compilerCommon/src/main/xml-gen",
         "compilerCommon/src/main/grammar-gen",
     ],
-    javacopts = ["-extra_checks:off"],
     tags = ["managed"],
     test_srcs = ["compilerCommon/src/test/java"],
     visibility = ["//visibility:public"],
@@ -85,7 +83,6 @@ iml_module(
         "compiler/src/main/java",
         "compiler/src/main/kotlin",
     ],
-    javacopts = ["-extra_checks:off"],
     tags = ["managed"],
     test_srcs = ["compiler/src/test/java"],
     visibility = ["//visibility:public"],
