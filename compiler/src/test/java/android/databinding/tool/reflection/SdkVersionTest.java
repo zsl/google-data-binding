@@ -61,7 +61,7 @@ public class SdkVersionTest {
     public void testSetForeground() {
         ModelClass view = ModelAnalyzer.getInstance()
                 .findClass("android.widget.FrameLayout", null);
-        ModelMethod setForeground = view.getMethods("setForeground", 1)[0];
+        ModelMethod setForeground = view.getMethods("setForegroundGravity", 1)[0];
         assertEquals(1, SdkUtil.getMinApi(setForeground));
     }
 }
