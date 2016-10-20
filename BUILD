@@ -6,6 +6,7 @@ iml_module(
     srcs = ["baseLibrary/src/main/java"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     deps = [
         "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
@@ -20,6 +21,7 @@ java_library(
 
 iml_module(
     name = "studio.compilerCommon",
+    # do not sort: must match IML order
     srcs = [
         "compilerCommon/src/main/java",
         "compilerCommon/src/main/xml-gen",
@@ -28,6 +30,7 @@ iml_module(
     tags = ["managed"],
     test_srcs = ["compilerCommon/src/test/java"],
     visibility = ["//visibility:public"],
+    # do not sort: must match IML order
     exports = [
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:commons-io-2.4",
@@ -35,6 +38,7 @@ iml_module(
         "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
         "//tools/base/annotations:studio.android-annotations",
     ],
+    # do not sort: must match IML order
     deps = [
         "//tools/data-binding:studio.baseLibrary[module]",
         "//tools/idea/.idea/libraries:Guava",
@@ -79,6 +83,7 @@ java_test(
 
 iml_module(
     name = "studio.compiler",
+    # do not sort: must match IML order
     srcs = [
         "compiler/src/main/java",
         "compiler/src/main/kotlin",
@@ -87,6 +92,7 @@ iml_module(
     test_srcs = ["compiler/src/test/java"],
     visibility = ["//visibility:public"],
     exports = ["//tools/data-binding:studio.baseLibrary"],
+    # do not sort: must match IML order
     deps = [
         "//tools/data-binding:studio.baseLibrary[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
