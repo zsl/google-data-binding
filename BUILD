@@ -63,8 +63,8 @@ java_library(
         ":tools.baseLibrary",
         "//tools/base/annotations",
         "//tools/base/third_party:com.google.guava_guava",
-        "//tools/base/third_party:commons-io_commons-io",
         "//tools/base/third_party:com.googlecode.juniversalchardet_juniversalchardet",
+        "//tools/base/third_party:commons-io_commons-io",
         "//tools/base/third_party:org.antlr_antlr4",
     ],
 )
