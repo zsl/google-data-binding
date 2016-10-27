@@ -102,7 +102,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
     ],
     test_data = [
-        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:platforms/android-24",
         "//prebuilts/studio/sdk:platform-tools",
     ],
 )
