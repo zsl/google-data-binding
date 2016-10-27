@@ -18,10 +18,8 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.SdkUtil;
 import android.databinding.tool.reflection.TypeUtil;
 import android.databinding.tool.util.L;
-
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -136,6 +134,12 @@ public class JavaAnalyzer extends ModelAnalyzer {
         for (Map.Entry<String, String> entry : env.entrySet()) {
             L.d("%s %s", entry.getKey(), entry.getValue());
         }
+
+        String pathFromBazel = loadBazelSdk();
+        if (pathFromBazel != null) {
+            return pathFromBazel;
+        }
+
         if(env.containsKey("ANDROID_HOME")) {
             return env.get("ANDROID_HOME");
         }
@@ -162,6 +166,29 @@ public class JavaAnalyzer extends ModelAnalyzer {
         return null;
     }
 
+    private static String loadBazelSdk() {
+        String workspace = System.getenv("TEST_WORKSPACE");
+        String workspaceParent = System.getenv("TEST_SRCDIR");
+        if (workspace != null && workspaceParent != null) {
+            File workspaceRoot = new File(workspaceParent, workspace);
+            String sdkDirectoryName;
+
+            String osName = System.getProperty("os.name");
+            if (osName.startsWith("Mac")) {
+                sdkDirectoryName = "darwin";
+            } else if (osName.startsWith("Linux")) {
+                sdkDirectoryName = "linux";
+            } else if (osName.startsWith("Windows")) {
+                sdkDirectoryName = "windows";
+            } else {
+                throw new AssertionError("Unknown OS: " + osName);
+            }
+
+            return new File(workspaceRoot, "prebuilts/studio/sdk/" + sdkDirectoryName).getAbsolutePath();
+        }
+        return null;
+    }
+
     public static void initForTests() {
         String androidHome = loadAndroidHome();
         if (Strings.isNullOrEmpty(androidHome) || !new File(androidHome).exists()) {
@@ -169,7 +196,7 @@ public class JavaAnalyzer extends ModelAnalyzer {
                     "you need to have ANDROID_HOME set in your environment"
                             + " to run compiler tests");
         }
-        File androidJar = new File(androidHome + "/platforms/android-21/android.jar");
+        File androidJar = new File(androidHome + "/platforms/android-24/android.jar");
         if (!androidJar.exists() || !androidJar.canRead()) {
             throw new IllegalStateException(
                     "cannot find android jar at " + androidJar.getAbsolutePath());
