@@ -90,6 +90,10 @@ iml_module(
     ],
     resources = ["compiler/src/main/resources"],
     tags = ["managed"],
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/android-24",
+        "//prebuilts/studio/sdk:platform-tools",
+    ],
     test_srcs = ["compiler/src/test/java"],
     visibility = ["//visibility:public"],
     exports = ["//tools/data-binding:studio.baseLibrary"],
@@ -100,10 +104,6 @@ iml_module(
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
-    ],
-    test_data = [
-        "//prebuilts/studio/sdk:platforms/android-24",
-        "//prebuilts/studio/sdk:platform-tools",
     ],
 )
 
