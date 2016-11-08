@@ -43,6 +43,11 @@ public class LayoutXmlProcessor {
     // hardcoded in baseAdapters
     public static final String RESOURCE_BUNDLE_PACKAGE = "android.databinding.layouts";
     public static final String CLASS_NAME = "DataBindingInfo";
+    private static final FilenameFilter LAYOUT_FOLDER_FILTER = (dir, name)
+            -> name.startsWith("layout");
+
+    private static final FilenameFilter XML_FILE_FILTER = (dir, name)
+            -> name.toLowerCase().endsWith(".xml");
     private final JavaFileWriter mFileWriter;
     private final ResourceBundle mResourceBundle;
     private boolean mProcessingComplete;
@@ -77,8 +82,12 @@ public class LayoutXmlProcessor {
         for (File file : files) {
             File parent = file.getParentFile();
             if (inputRoot.equals(parent)) {
-                callback.processOtherRootFile(file);
-            } else if (layoutFolderFilter.accept(parent, parent.getName())) {
+                // configuration folders may show up in incremental lists. We should ignore them
+                // since any file inside them also shows up
+                if (!LAYOUT_FOLDER_FILTER.accept(file, file.getName())) {
+                    callback.processOtherRootFile(file);
+                }
+            } else if (LAYOUT_FOLDER_FILTER.accept(parent, parent.getName())) {
                 callback.processLayoutFile(file);
             } else {
                 callback.processOtherFile(parent, file);
@@ -93,7 +102,7 @@ public class LayoutXmlProcessor {
             File parent = file.getParentFile();
             if (inputRoot.equals(parent)) {
                 callback.processRemovedOtherRootFile(file);
-            } else if (layoutFolderFilter.accept(parent, parent.getName())) {
+            } else if (LAYOUT_FOLDER_FILTER.accept(parent, parent.getName())) {
                 callback.processRemovedLayoutFile(file);
             } else {
                 callback.processRemovedOtherFile(parent, file);
@@ -110,10 +119,10 @@ public class LayoutXmlProcessor {
         //noinspection ConstantConditions
         for (File firstLevel : input.getRootInputFolder().listFiles()) {
             if (firstLevel.isDirectory()) {
-                if (layoutFolderFilter.accept(firstLevel, firstLevel.getName())) {
+                if (LAYOUT_FOLDER_FILTER.accept(firstLevel, firstLevel.getName())) {
                     callback.processLayoutFolder(firstLevel);
                     //noinspection ConstantConditions
-                    for (File xmlFile : firstLevel.listFiles(xmlFileFilter)) {
+                    for (File xmlFile : firstLevel.listFiles(XML_FILE_FILTER)) {
                         callback.processLayoutFile(xmlFile);
                     }
                 } else {
@@ -291,12 +300,6 @@ public class LayoutXmlProcessor {
                 "public class " + CLASS_NAME + " {}\n";
         mFileWriter.writeToFile(RESOURCE_BUNDLE_PACKAGE + "." + CLASS_NAME, classString);
     }
-
-    private static final FilenameFilter layoutFolderFilter = (dir, name)
-            -> name.startsWith("layout");
-
-    private static final FilenameFilter xmlFileFilter = (dir, name)
-            -> name.toLowerCase().endsWith(".xml");
 
     /**
      * Helper interface that can find the original copy of a resource XML.
