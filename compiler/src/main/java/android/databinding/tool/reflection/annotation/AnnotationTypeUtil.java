@@ -176,7 +176,9 @@ public class AnnotationTypeUtil extends TypeUtil {
         TypeMirror enclosingType = declaredType.getEnclosingType();
         StringBuilder sb = new StringBuilder();
         if (enclosingType.getKind() != TypeKind.NONE) {
-            sb.append(toJava(enclosingType)).append(declaredType.asElement().getSimpleName());
+            sb.append(toJava(enclosingType))
+                    .append(".")
+                    .append(declaredType.asElement().getSimpleName());
         } else {
             sb.append(toJava(declaredType.asElement()));
         }
