@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:maven.bzl", "maven_java_library", "maven_pom")
 
 # TODO: move these to baseLibrary/, once we can use build.bazel
 iml_module(
@@ -13,10 +14,18 @@ iml_module(
     ],
 )
 
-java_library(
+maven_java_library(
     name = "tools.baseLibrary",
+    pom = ":baseLibrary.pom",
     srcs = glob(["baseLibrary/src/main/java/**"]),
     visibility = ["//visibility:public"],
+)
+
+maven_pom(
+    name = "baseLibrary.pom",
+    artifact = "baseLibrary",
+    group = "com.android.databinding",
+    source = "//tools/buildSrc/base:build_version",
 )
 
 iml_module(
@@ -51,8 +60,9 @@ iml_module(
     ],
 )
 
-java_library(
+maven_java_library(
     name = "tools.compilerCommon",
+    pom = ":compilerCommon.pom",
     srcs = glob([
         "compilerCommon/src/main/java/**/*.java",
         "compilerCommon/src/main/grammar-gen/**/*.java",
@@ -61,12 +71,19 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         ":tools.baseLibrary",
-        "//tools/base/annotations",
+        "//tools/base/annotations:annotations",
         "//tools/base/third_party:com.google.guava_guava",
         "//tools/base/third_party:com.googlecode.juniversalchardet_juniversalchardet",
         "//tools/base/third_party:commons-io_commons-io",
         "//tools/base/third_party:org.antlr_antlr4",
     ],
+)
+
+maven_pom(
+    name = "compilerCommon.pom",
+    artifact = "compilerCommon",
+    group = "com.android.databinding",
+    source = "//tools/buildSrc/base:build_version",
 )
 
 java_test(
