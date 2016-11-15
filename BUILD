@@ -16,8 +16,8 @@ iml_module(
 
 maven_java_library(
     name = "tools.baseLibrary",
-    pom = ":baseLibrary.pom",
     srcs = glob(["baseLibrary/src/main/java/**"]),
+    pom = ":baseLibrary.pom",
     visibility = ["//visibility:public"],
 )
 
@@ -62,16 +62,16 @@ iml_module(
 
 maven_java_library(
     name = "tools.compilerCommon",
-    pom = ":compilerCommon.pom",
     srcs = glob([
         "compilerCommon/src/main/java/**/*.java",
         "compilerCommon/src/main/grammar-gen/**/*.java",
         "compilerCommon/src/main/xml-gen/**/*.java",
     ]),
+    pom = ":compilerCommon.pom",
     visibility = ["//visibility:public"],
     deps = [
         ":tools.baseLibrary",
-        "//tools/base/annotations:annotations",
+        "//tools/base/annotations",
         "//tools/base/third_party:com.google.guava_guava",
         "//tools/base/third_party:com.googlecode.juniversalchardet_juniversalchardet",
         "//tools/base/third_party:commons-io_commons-io",
