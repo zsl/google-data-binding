@@ -104,4 +104,20 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         mBinder.executePendingBindings();
         assertThat(mBinder.checkBox.isChecked(), is(true));
     }
+
+    @UiThreadTest
+    public void testNullableEquality() {
+        mBinder.setAnInt(null);
+        mBinder.executePendingBindings();
+        assertEquals(Boolean.TRUE, mBinder.nullableEquality.booleanField);
+        assertEquals(Boolean.FALSE, mBinder.nullableInequality.booleanField);
+    }
+
+    @UiThreadTest
+    public void testNullableEquality2() {
+        mBinder.setAnInt(3);
+        mBinder.executePendingBindings();
+        assertEquals(Boolean.FALSE, mBinder.nullableEquality.booleanField);
+        assertEquals(Boolean.TRUE, mBinder.nullableInequality.booleanField);
+    }
 }

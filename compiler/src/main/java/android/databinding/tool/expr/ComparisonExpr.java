@@ -76,7 +76,7 @@ public class ComparisonExpr extends Expr {
         Expr left = getLeft();
         Expr right = getRight();
         if (left.getResolvedType().isNullable() && right.getResolvedType().isNullable()) {
-            if ("==".equals(mOp)) {
+            if ("==".equals(mOp) || "!=".equals(mOp)) {
                 return;
             }
             safeUnboxChild(model, left);

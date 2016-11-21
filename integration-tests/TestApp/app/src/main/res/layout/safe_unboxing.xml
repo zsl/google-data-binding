@@ -49,5 +49,11 @@
             app:integerField="@{anInt}"/>
         <CheckBox android:id="@+id/check_box" android:layout_width="wrap_content"
                   android:layout_height="wrap_content" android:checked="@{aBoolean}"/>
+        <android.databinding.testapp.view.LoggingView
+            android:id="@+id/nullable_equality" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" app:booleanField="@{anInt == null}"/>
+        <android.databinding.testapp.view.LoggingView
+            android:id="@+id/nullable_inequality" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" app:booleanField="@{anInt != null}"/>
     </LinearLayout>
 </layout>

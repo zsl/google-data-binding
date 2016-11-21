@@ -21,6 +21,7 @@ import android.view.View;
 public class LoggingView extends View {
     public int intField;
     public Integer integerField;
+    public Boolean booleanField;
 
     public LoggingView(Context context) {
         super(context);
@@ -44,5 +45,9 @@ public class LoggingView extends View {
 
     public void setIntegerField(Integer integerField) {
         this.integerField = integerField;
+    }
+
+    public void setBooleanField(boolean booleanField) {
+        this.booleanField = booleanField;
     }
 }
