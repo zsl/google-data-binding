@@ -123,24 +123,3 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
     ],
 )
-
-java_library(
-    name = "db-baseLibrary_1",
-    visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar"],
-)
-
-java_library(
-    name = "db-compilerCommon_1",
-    visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar"],
-)
-
-java_library(
-    name = "db-compiler_1",
-    visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar"],
-    runtime_deps = ["//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar"],
-)
