@@ -164,7 +164,7 @@ task copyMavenRepoToEap(type : Copy) {
     into "${dataBindingConfig.eapOutDir}/${dataBindingConfig.mavenRepoName}"
 }
 
-tasks.create(name : 'createEapdataBindingConfigFile') << {
+tasks.create(name : 'createEapdataBindingConfigFile').doLast {
     def propsFile = new File("${dataBindingConfig.eapOutDir}/databinding.properties")
     Properties props = new Properties()
     props.setProperty('version', dataBindingConfig.version)

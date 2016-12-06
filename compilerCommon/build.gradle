@@ -63,7 +63,7 @@ project.tasks.create(name : "generateGrammar", type : JavaExec) {
     args "BindingExpression.g4", "-visitor", "-o", "src/main/grammar-gen/android/databinding/parser", "-package", "android.databinding.parser"
 }
 
-tasks.create(name : 'exportBuildVersions') << {
+tasks.create(name : 'exportBuildVersions').doLast {
     def props = new HashMap();
     def buildVersionFile = new File(sourceSets.main.output.resourcesDir,"data_binding_version_info.properties")
     // Using Java Properties appends date to the output which is bad for incremental compilation.
