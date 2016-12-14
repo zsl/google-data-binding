@@ -10,3 +10,4 @@ maven-repo
 old-version-projects/tmp-maven-repo
 integration-tests/*/build
 old-version-projects/*/build
+build/kotlin-build/caches/version.txt

@@ -68,7 +68,7 @@ configurations {
 
 
 dependencies {
-    compile 'com.android.support:support-v4:21.0.3'
+    compile 'com.android.support:support-core-utils:24.2.0'
     compile "com.android.databinding:baseLibrary:${dataBindingConfig.version}"
 }
 
