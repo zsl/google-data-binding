@@ -1,4 +1,4 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "iml_module", "merged_properties")
 load("//tools/base/bazel:maven.bzl", "maven_java_library", "maven_pom")
 
 # TODO: move these to baseLibrary/, once we can use build.bazel
@@ -60,6 +60,20 @@ iml_module(
     ],
 )
 
+merged_properties(
+    name = "data_binding_version_info",
+    srcs = [
+        "//tools/buildSrc/base:version.properties",
+        "//tools/data-binding:databinding.properties",
+    ],
+    mappings = [
+        "extensionsVersion:extensions",
+        "buildVersion:compiler",
+        "buildVersion:compilerCommon",
+        "buildVersion:baseLibrary",
+    ],
+)
+
 maven_java_library(
     name = "tools.compilerCommon",
     srcs = glob([
@@ -68,6 +82,8 @@ maven_java_library(
         "compilerCommon/src/main/xml-gen/**/*.java",
     ]),
     pom = ":compilerCommon.pom",
+    resource_strip_prefix = "tools/data-binding",
+    resources = [":data_binding_version_info"],
     visibility = ["//visibility:public"],
     deps = [
         ":tools.baseLibrary",
