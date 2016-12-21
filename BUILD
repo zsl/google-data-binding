@@ -1,5 +1,7 @@
-load("//tools/base/bazel:bazel.bzl", "iml_module", "merged_properties")
+load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_java_library")
 load("//tools/base/bazel:maven.bzl", "maven_java_library", "maven_pom")
+load("//tools/base/bazel:utils.bzl", "merged_properties")
 
 # TODO: move these to baseLibrary/, once we can use build.bazel
 iml_module(
@@ -17,6 +19,10 @@ iml_module(
 maven_java_library(
     name = "tools.baseLibrary",
     srcs = glob(["baseLibrary/src/main/java/**"]),
+    javacopts = [
+        "-source 6",
+        "-target 6",
+    ],
     pom = ":baseLibrary.pom",
     visibility = ["//visibility:public"],
 )
@@ -138,4 +144,30 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
         "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
     ],
+)
+
+# TODO: Use the right version of kotlin-compiler.
+kotlin_java_library(
+    name = "tools.compiler",
+    java_dir = "compiler/src/main/java",
+    kotlin_dir = "compiler/src/main/kotlin",
+    pom = ":compiler.pom",
+    resources_dir = "compiler/src/main/resources",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":tools.baseLibrary",
+        ":tools.compilerCommon",
+        "//tools/base/annotations",
+        "//tools/base/third_party:com.google.guava_guava",
+        "//tools/base/third_party:commons-io_commons-io",
+        "//tools/base/third_party:org.antlr_antlr4",
+        "//tools/base/third_party:org.jetbrains.kotlin_kotlin-stdlib",
+    ],
+)
+
+maven_pom(
+    name = "compiler.pom",
+    artifact = "compiler",
+    group = "com.android.databinding",
+    source = "//tools/buildSrc/base:build_version",
 )
