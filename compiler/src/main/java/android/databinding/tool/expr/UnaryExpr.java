@@ -41,7 +41,7 @@ public class UnaryExpr extends Expr {
 
     @Override
     public Expr generateInverse(ExprModel model, Expr value, String bindingClassName) {
-        return model.unary(mOp, getExpr().generateInverse(model, value, bindingClassName));
+        return getExpr().generateInverse(model, model.unary(mOp, value), bindingClassName);
     }
 
     @Override

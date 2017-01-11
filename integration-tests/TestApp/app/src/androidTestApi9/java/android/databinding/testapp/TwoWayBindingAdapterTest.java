@@ -1111,6 +1111,34 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertTrue(mBinder.mixView2.isEnabled());
     }
 
+    /**
+     * This tests whether the unary not properly converts back
+     */
+    public void testUnaryNot() throws Throwable {
+        mBindingObject.checked.set(false);
+        makeVisible(mBinder.unaryNot);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+        assertTrue(mBinder.unaryNot.isChecked());
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.unaryNot.setChecked(false);
+            }
+        });
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return !mBindingObject.checked.get();
+            }
+        });
+        assertTrue(mBindingObject.checked.get());
+    }
+
     private void makeVisible(final View... views) throws Throwable {
         runTestOnUiThread(new Runnable() {
             @Override
@@ -1154,6 +1182,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.sameTarget.setVisibility(View.GONE);
                 mBinder.mixView1.setVisibility(View.GONE);
                 mBinder.mixView2.setVisibility(View.GONE);
+                mBinder.unaryNot.setVisibility(View.GONE);
                 for (View view : views) {
                     view.setVisibility(View.VISIBLE);
                 }
