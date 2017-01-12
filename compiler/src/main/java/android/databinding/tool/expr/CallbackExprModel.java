@@ -23,6 +23,7 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -60,10 +61,23 @@ public class CallbackExprModel extends ExprModel {
     @Override
     public void seal() {
         // ensure all types are calculated
-        for (Expr expr : mExprMap.values()) {
-            expr.getResolvedType();
-            expr.markAsUsedInCallback();
-        }
+
+        // Expr.getResolvedType() can modify mExprMap, so we must avoid
+        // the ConcurrentModificationException
+        HashSet<Expr> completedExprs = new HashSet<>();
+        HashSet<Expr> exprs = new HashSet<>();
+        do {
+            // Give exprs all values in mExprMap that haven't been completed
+            exprs.clear();
+            exprs.addAll(mExprMap.values());
+            exprs.removeAll(completedExprs);
+            for (Expr expr : exprs) {
+                expr.getResolvedType();
+                expr.markAsUsedInCallback();
+            }
+            // Now note all exprs that have been completed
+            completedExprs.addAll(exprs);
+        } while (!exprs.isEmpty());
         markSealed();
         // we do not resolve dependencies for these expression because they are resolved via
         // ExecutionPath and should not interfere with the main expr model's dependency graph.

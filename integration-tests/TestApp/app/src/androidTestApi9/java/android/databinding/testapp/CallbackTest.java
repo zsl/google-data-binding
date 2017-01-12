@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import android.annotation.TargetApi;
+import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.CallbacksBinding;
 import android.databinding.testapp.vo.CallbackBindingObject;
 import android.databinding.testapp.vo.NotBindableVo;
@@ -54,14 +55,17 @@ public class CallbackTest {
     CallbackBindingObject mObj;
     NotBindableVo mOther;
     CallbacksBinding mBinding;
+    ObservableBoolean mObservableBoolean;
 
     @Before
     public void setup() throws Throwable {
         mBinding = mBindingRule.getBinding();
         mObj = mock(CallbackBindingObject.class);
         mOther = new NotBindableVo();
+        mObservableBoolean = new ObservableBoolean(false);
         mBinding.setObj(mObj);
         mBinding.setOtherObj(mOther);
+        mBinding.setB(mObservableBoolean);
         mBindingRule.executePending();
         mBindingRule.runOnUiThread(new Runnable() {
             @Override
@@ -365,6 +369,18 @@ public class CallbackTest {
                 mBinding.view11.performClick();
                 verify(mObj).onFocusable();
                 verify(mObj, never()).onNotFocusable();
+            }
+        });
+    }
+
+    @Test
+    public void testPrimitiveObservableCombo() throws Throwable {
+        mBindingRule.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                verify(mObj, never()).multipleBoolean(mObservableBoolean, false);
+                mBinding.view12.performClick();
+                verify(mObj, times(1)).multipleBoolean(mObservableBoolean, false);
             }
         });
     }

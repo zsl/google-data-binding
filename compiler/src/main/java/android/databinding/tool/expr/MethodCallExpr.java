@@ -31,8 +31,8 @@ import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static android.databinding.tool.reflection.Callable.DYNAMIC;
 import static android.databinding.tool.reflection.Callable.STATIC;
@@ -151,10 +151,11 @@ public class MethodCallExpr extends Expr {
             for (Expr expr : getArgs()) {
                 args.add(expr.getResolvedType());
             }
-
             Expr target = getTarget();
             boolean isStatic = target instanceof StaticIdentifierExpr;
-            mMethod = target.getResolvedType().getMethod(mName, args, isStatic, mAllowProtected);
+            mMethod = target.getResolvedType().getMethod(mName, args, isStatic,
+                    mAllowProtected, false);
+
             if (mMethod == null) {
                 StringBuilder argTypes = new StringBuilder();
                 for (ModelClass arg : args) {
@@ -163,7 +164,8 @@ public class MethodCallExpr extends Expr {
                     }
                     argTypes.append(arg.toJavaCode());
                 }
-                String message = "cannot find method '" + mName + "(" + argTypes + ")' in class " +
+                String message = "cannot find method '" + mName + "(" + argTypes
+                        + ")' in class " +
                         target.getResolvedType().toJavaCode();
                 IllegalArgumentException e = new IllegalArgumentException(message);
                 L.e(e, "cannot find method %s(%s) in class %s", mName, argTypes,
@@ -185,10 +187,46 @@ public class MethodCallExpr extends Expr {
             if (mMethod.isStatic()) {
                 flags |= STATIC;
             }
+
             mGetter = new Callable(Type.METHOD, mMethod.getName(), null, mMethod.getReturnType(args),
                     mMethod.getParameterTypes().length, flags, mMethod, null);
         }
         return mGetter.resolvedType;
+    }
+
+    /**
+     * Check for method signature match. Unwrap the children just enough to find a signature match
+     * with the arguments. Always prefer an exact signature match. If multiple match, we'll just
+     * choose the (arbitrarily) first matching method.
+     */
+    protected void unwrapObservableFieldChildren() {
+        // unwrap the target
+        unwrapChildTo(0, null);
+        Expr target = getTarget();
+        List<Expr> args = getArgs();
+
+        ModelClass targetType = target.getResolvedType();
+
+        List<ModelClass> argTypes = new ArrayList<ModelClass>();
+        for (Expr expr : getArgs()) {
+            argTypes.add(expr.getResolvedType());
+        }
+
+        boolean isStatic = target instanceof StaticIdentifierExpr;
+        ModelMethod method = targetType.getMethod(mName, argTypes, isStatic, mAllowProtected,
+                true);
+
+        if (method == null) {
+            // Just unwrap them all. We'll give an error in resolveType() and it will look
+            // better with the unwrapped ObservableField expression values.
+            super.unwrapObservableFieldChildren();
+        } else {
+            // Unwrap observable field children to match the method.
+            for (int i = 0; i < args.size(); i++) {
+                ModelClass paramType = method.getParameterAt(i);
+                unwrapChildTo(i + 1, paramType);
+            }
+        }
     }
 
     @Override
