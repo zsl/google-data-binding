@@ -19,4 +19,6 @@
         <item quantity="one">orange</item>
         <item quantity="other">oranges</item>
     </plurals>
+    <string name="zero">there are <b>zero</b></string>
+    <string name="more">there are <b>more</b></string>
 </resources>

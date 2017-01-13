@@ -506,6 +506,7 @@ ResourceType
     |   'stateListAnimator'
     |   'string'
     |   'stringArray'
+    |   'text'
     |   'transition'
     |   'typedArray'
     ;

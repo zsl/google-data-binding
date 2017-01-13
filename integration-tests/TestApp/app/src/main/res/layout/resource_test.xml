@@ -62,5 +62,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{`` + @android:id/message}"/>
+        <TextView
+            android:id="@+id/formattedText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{count == 0 ? @text/zero : @text/more}"/>
     </LinearLayout>
 </layout>

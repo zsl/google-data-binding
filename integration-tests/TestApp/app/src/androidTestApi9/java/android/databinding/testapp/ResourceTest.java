@@ -18,6 +18,8 @@ package android.databinding.testapp;
 import android.databinding.testapp.databinding.ResourceTestBinding;
 
 import android.test.UiThreadTest;
+import android.text.SpannedString;
+import android.text.style.CharacterStyle;
 import android.widget.TextView;
 
 public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
@@ -86,5 +88,16 @@ public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
         assertEquals(String.valueOf(android.R.id.list), list.getText().toString());
         TextView message = mBinder.message;
         assertEquals(String.valueOf(android.R.id.message), message.getText().toString());
+    }
+
+    @UiThreadTest
+    public void testFormattedText() throws Throwable {
+        CharSequence formattedText = mBinder.formattedText.getText();
+        assertTrue(formattedText instanceof SpannedString);
+        assertEquals("there are zero", formattedText.toString());
+        SpannedString spannedString = (SpannedString) formattedText;
+        CharacterStyle[] spans = spannedString.getSpans(0, Integer.MAX_VALUE, CharacterStyle.class);
+        assertNotNull(spans);
+        assertEquals(1, spans.length);
     }
 }

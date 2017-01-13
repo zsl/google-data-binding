@@ -31,12 +31,13 @@ public class ResourceExpr extends Expr {
     private final static Map<String, String> RESOURCE_TYPE_TO_R_OBJECT;
     static {
         RESOURCE_TYPE_TO_R_OBJECT = new HashMap<String, String>();
-        RESOURCE_TYPE_TO_R_OBJECT.put("colorStateList", "color  ");
-        RESOURCE_TYPE_TO_R_OBJECT.put("dimenOffset", "dimen  ");
-        RESOURCE_TYPE_TO_R_OBJECT.put("dimenSize", "dimen  ");
-        RESOURCE_TYPE_TO_R_OBJECT.put("intArray", "array  ");
-        RESOURCE_TYPE_TO_R_OBJECT.put("stateListAnimator", "animator  ");
-        RESOURCE_TYPE_TO_R_OBJECT.put("stringArray", "array  ");
+        RESOURCE_TYPE_TO_R_OBJECT.put("colorStateList", "color");
+        RESOURCE_TYPE_TO_R_OBJECT.put("dimenOffset", "dimen");
+        RESOURCE_TYPE_TO_R_OBJECT.put("dimenSize", "dimen");
+        RESOURCE_TYPE_TO_R_OBJECT.put("intArray", "array");
+        RESOURCE_TYPE_TO_R_OBJECT.put("stateListAnimator", "animator");
+        RESOURCE_TYPE_TO_R_OBJECT.put("stringArray", "array");
+        RESOURCE_TYPE_TO_R_OBJECT.put("text", "string");
         RESOURCE_TYPE_TO_R_OBJECT.put("typedArray", "array");
     }
     // lazily initialized
@@ -97,6 +98,7 @@ public class ResourceExpr extends Expr {
             mResourceToTypeMapping.put("intArray", modelAnalyzer.findClass(int[].class));
             mResourceToTypeMapping.put("string", modelAnalyzer.findClass(String.class));
             mResourceToTypeMapping.put("stringArray", modelAnalyzer.findClass(String[].class));
+            mResourceToTypeMapping.put("text", modelAnalyzer.findClass(CharSequence.class));
         }
         return mResourceToTypeMapping;
     }
@@ -199,6 +201,7 @@ public class ResourceExpr extends Expr {
         if ("string".equals(mResourceType)) return makeParameterCall(resources, resourceName, "getString");
         if ("stringArray".equals(mResourceType)) return resources + ".getStringArray(" + resourceName + ")";
         if ("transition".equals(mResourceType)) return "android.transition.TransitionInflater.from(" + context + ").inflateTransition(" + resourceName + ")";
+        if ("text".equals(mResourceType)) return resources + ".getText(" + resourceName + ")";
         if ("typedArray".equals(mResourceType)) return resources + ".obtainTypedArray(" + resourceName + ")";
         final String property = Character.toUpperCase(mResourceType.charAt(0)) +
                 mResourceType.substring(1);
