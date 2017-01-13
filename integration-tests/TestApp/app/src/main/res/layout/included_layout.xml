@@ -14,8 +14,10 @@
 
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
+        <import type="android.databinding.ObservableArrayMap"/>
         <variable name="innerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
         <variable name="innerValue" type="java.lang.String"/>
+        <variable name="map" type="ObservableArrayMap&lt;String, String&gt;"/>
     </data>
     <LinearLayout
             android:orientation="vertical"
@@ -25,5 +27,9 @@
                   android:id="@+id/innerTextView"
                   android:text="@{innerValue + innerObject.stringValue}"
                 />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:id="@+id/innerViewWithMapItem"
+            android:text="@{map.value}"
+            />
     </LinearLayout>
 </layout>

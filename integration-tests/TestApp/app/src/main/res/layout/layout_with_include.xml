@@ -15,7 +15,9 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:bind="http://schemas.android.com/apk/res-auto">
     <data>
+        <import type="android.databinding.ObservableArrayMap"/>
         <variable name="outerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
+        <variable name="map" type="ObservableArrayMap&lt;String, String&gt;"/>
         <variable name="visibility" type="int"/>
     </data>
     <FrameLayout
@@ -32,6 +34,7 @@
             <include layout="@layout/included_layout" android:id="@+id/includedLayout"
                      bind:innerObject="@{outerObject}"
                      bind:innerValue="@{`modified ` + outerObject.intValue}"
+                     bind:map="@{map}"
                      android:visibility="@{visibility}"
                     />
 
