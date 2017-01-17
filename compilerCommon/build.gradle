@@ -32,14 +32,15 @@ sourceSets {
 
 }
 
+// The libs object comes from buildSrc/base/version.gradle
 dependencies {
-    testCompile 'junit:junit:4.12'
     compile project(':dataBinding:baseLibrary')
-    compile 'org.antlr:antlr4:4.5.3'
-    compile 'commons-io:commons-io:2.4'
-    compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
-    compile 'com.google.guava:guava:17.0'
+    compile libs.antlr4
+    compile libs.apache_commons_io
+    compile libs.juniversalchardet
+    compile libs.guava
     compile 'com.android.tools:annotations:24.5.0'
+    testCompile libs.junit
 }
 
 project.tasks.create(name : "generateXmlLexer", type : JavaExec) {
