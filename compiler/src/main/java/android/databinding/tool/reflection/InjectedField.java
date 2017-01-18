@@ -16,13 +16,15 @@
 
 package android.databinding.tool.reflection;
 
+import android.databinding.Bindable;
+
 import java.util.Map;
 
 /**
  * A class that can be used by ModelAnalyzer without any backing model. This is used
  * for fields on ViewDataBinding subclasses that haven't been generated yet.
  *
- * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map, java.util.HashMap)
+ * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map)
  */
 public class InjectedField extends ModelField {
     private final String mType;

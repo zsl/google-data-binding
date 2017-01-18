@@ -241,7 +241,7 @@ public abstract class ModelAnalyzer {
     }
 
     public ModelClass injectViewDataBinding(String className, Map<String, String> variables,
-            Map<String, String> fields, Map<String, String> imports) {
+            Map<String, String> fields) {
         InjectedClass injectedClass = new InjectedClass(className,
                 ModelAnalyzer.VIEW_DATA_BINDING);
 
@@ -257,10 +257,9 @@ public abstract class ModelAnalyzer {
                 String capName = StringUtils.capitalize(name);
                 String setName = "set" + capName;
                 String getName = "get" + capName;
-                injectedClass.addMethod(
-                        new InjectedMethod(injectedClass, false, getName, imports, type));
-                injectedClass.addMethod(new InjectedMethod(injectedClass, false, setName, imports,
-                        "void", type));
+                injectedClass.addMethod(new InjectedMethod(injectedClass, false, getName, type));
+                injectedClass.addMethod(new InjectedMethod(injectedClass, false, setName, "void",
+                        type));
             }
         }
         mInjectedClasses.put(className, injectedClass);

@@ -128,7 +128,7 @@ public class CompilerChef {
             }
             final String className = layoutFileBundle.getBindingClassPackage() + "." +
                     layoutFileBundle.getBindingClassName();
-            analyzer.injectViewDataBinding(className, variables, fields, imports);
+            analyzer.injectViewDataBinding(className, variables, fields);
         }
     }
 
@@ -137,7 +137,7 @@ public class CompilerChef {
                 "java.lang.Object");
         for (Map.Entry<Class, Class> entry : ModelClass.BOX_MAPPING.entrySet()) {
             injectedClass.addMethod(new InjectedMethod(injectedClass, true,
-                    ExprModel.SAFE_UNBOX_METHOD_NAME, null,
+                    ExprModel.SAFE_UNBOX_METHOD_NAME,
                     entry.getKey().getCanonicalName(), entry.getValue().getCanonicalName()));
         }
 

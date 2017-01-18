@@ -16,7 +16,8 @@
 
 package android.databinding.tool.reflection;
 
-import java.util.HashMap;
+import android.databinding.Bindable;
+
 import java.util.List;
 import java.util.Map;
 
@@ -24,26 +25,24 @@ import java.util.Map;
  * A class that can be used by ModelAnalyzer without any backing model. This is used
  * for methods on ViewDataBinding subclasses that haven't been generated yet.
  *
- * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map, java.util.Map)
+ * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map)
  */
 public class InjectedMethod extends ModelMethod {
     private final InjectedClass mContainingClass;
     private final String mName;
     private final String mReturnTypeName;
     private final String[] mParameterTypeNames;
-    private final Map<String, String> mImports;
     private ModelClass[] mParameterTypes;
     private ModelClass mReturnType;
     private boolean mIsStatic;
 
     public InjectedMethod(InjectedClass containingClass, boolean isStatic, String name,
-            Map<String, String> imports, String returnType, String... parameters) {
+            String returnType, String... parameters) {
         mContainingClass = containingClass;
         mName = name;
         mIsStatic = isStatic;
         mReturnTypeName = returnType;
         mParameterTypeNames = parameters;
-        mImports = imports;
     }
 
     @Override
@@ -60,7 +59,7 @@ public class InjectedMethod extends ModelMethod {
                 mParameterTypes = new ModelClass[mParameterTypeNames.length];
                 ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
                 for (int i = 0; i < mParameterTypeNames.length; i++) {
-                    mParameterTypes[i] = modelAnalyzer.findClass(mParameterTypeNames[i], mImports);
+                    mParameterTypes[i] = modelAnalyzer.findClass(mParameterTypeNames[i], null);
                 }
             }
         }
@@ -75,7 +74,7 @@ public class InjectedMethod extends ModelMethod {
     @Override
     public ModelClass getReturnType(List<ModelClass> args) {
         if (mReturnType == null) {
-            mReturnType = ModelAnalyzer.getInstance().findClass(mReturnTypeName, mImports);
+            mReturnType = ModelAnalyzer.getInstance().findClass(mReturnTypeName, null);
         }
         return mReturnType;
     }
