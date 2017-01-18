@@ -67,6 +67,4 @@ public interface CallbackBindingObject {
 
     void beforeTextChanged();
     void onTextChanged();
-
-    void multipleBoolean(ObservableBoolean value1, boolean value2);
 }
