@@ -20,7 +20,6 @@
         <variable name="obj" type="android.databinding.testapp.vo.CallbackBindingObject"/>
         <variable name="obj2" type="android.databinding.testapp.vo.CallbackBindingObject"/>
         <variable name="objArr" type="android.databinding.testapp.vo.CallbackBindingObject[]"/>
-        <variable name="b" type="android.databinding.ObservableBoolean"/>
     </data>
     <LinearLayout
             android:orientation="vertical"
@@ -106,9 +105,5 @@
               android:id="@+id/view11"
               android:onClick="@{(v) -> v.focusable ? obj.onFocusable() : obj.onNotFocusable()}"
               android:onLongClick="@{(v) -> v.focusable ? obj.onFocusable() : obj.onNotFocusable()}"/>
-
-        <View android:layout_width="wrap_content" android:layout_height="match_parent"
-            android:id="@+id/view12"
-            android:onClick="@{() -> obj.multipleBoolean(b, b)}"/>
     </LinearLayout>
 </layout>
