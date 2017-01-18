@@ -13,6 +13,7 @@
 
 package android.databinding.testapp;
 
+import android.databinding.ObservableArrayMap;
 import android.databinding.ViewDataBinding;
 import android.databinding.testapp.databinding.LayoutWithIncludeBinding;
 import android.databinding.testapp.databinding.MergeContainingMergeBinding;
@@ -117,5 +118,20 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         assertFalse(field.getBoolean(mBinder));
         assertFalse(field.getBoolean(mBinder.trackedInclude));
         assertFalse(field.getBoolean(mBinder.includedLayout));
+    }
+
+    // Make sure that including with a generic parameter works
+    public void testGenericIncludeValue() throws Throwable {
+        initBinder();
+        NotBindableVo vo = new NotBindableVo();
+        ObservableArrayMap<String, String> map = new ObservableArrayMap<>();
+        map.put("value", "Hello World");
+        mBinder.setOuterObject(vo);
+        mBinder.setMap(map);
+
+        waitForUISync();
+
+        assertEquals("Hello World",
+                mBinder.includedLayout.innerViewWithMapItem.getText().toString());
     }
 }
