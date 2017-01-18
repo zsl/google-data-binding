@@ -21,7 +21,6 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.primitives.Booleans;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -269,18 +268,20 @@ public abstract class ModelClass {
      * @param staticOnly Whether only static methods should be returned or both instance methods
      *                 and static methods are valid.
      * @param allowProtected true if the method can be protected as well as public.
+     * @param unwrapObservableFields true if the method should check for auto-unwrapping the
+     *                               observable field.
      *
      * @return An array containing all public methods with the name <code>name</code> and taking
      * <code>args</code> parameters.
      */
     public ModelMethod[] getMethods(String name, List<ModelClass> args, boolean staticOnly,
-            boolean allowProtected) {
+            boolean allowProtected, boolean unwrapObservableFields) {
         ModelMethod[] methods = getDeclaredMethods();
         ArrayList<ModelMethod> matching = new ArrayList<ModelMethod>();
         for (ModelMethod method : methods) {
-            if ((method.isPublic() || (allowProtected && method.isProtected())) &&
-                    (!staticOnly || method.isStatic()) &&
-                    name.equals(method.getName()) && method.acceptsArguments(args)) {
+            if ((method.isPublic() || (allowProtected && method.isProtected()))
+                    && (!staticOnly || method.isStatic()) && name.equals(method.getName())
+                    && method.acceptsArguments(args, unwrapObservableFields)) {
                 matching.add(method);
             }
         }
@@ -315,12 +316,15 @@ public abstract class ModelClass {
      * @param name The method name to find
      * @param args The arguments that the method should accept
      * @param staticOnly true if the returned method must be static or false if it does not
-     *                     matter.
+     *                   matter.
      * @param allowProtected true if the method can be protected as well as public.
+     * @param unwrapObservableFields true if the method should check for auto-unwrapping the
+     *                               observable field.
      */
     public ModelMethod getMethod(String name, List<ModelClass> args, boolean staticOnly,
-            boolean allowProtected) {
-        ModelMethod[] methods = getMethods(name, args, staticOnly, allowProtected);
+            boolean allowProtected, boolean unwrapObservableFields) {
+        ModelMethod[] methods = getMethods(name, args, staticOnly, allowProtected,
+                unwrapObservableFields);
         L.d("looking methods for %s. static only ? %s . method count: %d", name, staticOnly,
                 methods.length);
         for (ModelMethod method : methods) {
@@ -428,7 +432,7 @@ public abstract class ModelClass {
         };
         for (String methodName : methodNames) {
             ModelMethod[] methods =
-                    getMethods(methodName, new ArrayList<ModelClass>(), staticOnly, false);
+                    getMethods(methodName, new ArrayList<ModelClass>(), staticOnly, false, false);
             for (ModelMethod method : methods) {
                 if (method.isPublic() && (!staticOnly || method.isStatic()) &&
                         !method.getReturnType(Arrays.asList(method.getParameterTypes())).isVoid()) {
@@ -503,7 +507,7 @@ public abstract class ModelClass {
         };
         for (String methodName : methodNames) {
             ModelMethod[] methods =
-                    getMethods(methodName, new ArrayList<ModelClass>(), false, false);
+                    getMethods(methodName, new ArrayList<ModelClass>(), false, false, false);
             for (ModelMethod method : methods) {
                 if (method.isPublic() && !method.isStatic() &&
                         !method.getReturnType(Arrays.asList(method.getParameterTypes())).isVoid()) {

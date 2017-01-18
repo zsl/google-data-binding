@@ -18,10 +18,10 @@ package android.databinding.tool.expr;
 
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
-import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.solver.ExecutionPath;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.util.L;
@@ -350,7 +350,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
     public final ModelClass getResolvedType() {
         if (mResolvedType == null) {
             if (mUnwrapObservableFields) {
-                unwrapAllObservableFieldChildren();
+                unwrapObservableFieldChildren();
                 mUnwrapObservableFields = false;
             }
             // TODO not get instance
@@ -868,24 +868,36 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
      * Iterates through all children and expands all ObservableFields to call "get()" on them
      * instead.
      */
-    private void unwrapAllObservableFieldChildren() {
+    protected void unwrapObservableFieldChildren() {
         for (int i = 0; i < mChildren.size(); i++) {
-            final Expr child = mChildren.get(i);
-            Expr unwrapped = null;
-            Expr expr = child;
-            while (expr.getResolvedType().isObservableField()) {
-                unwrapped = mModel.methodCall(expr, "get", Collections.EMPTY_LIST);
-                if (unwrapped == this) {
-                    L.w(ErrorMessages.OBSERVABLE_FIELD_GET, this);
-                    return; // This was already unwrapped!
-                }
-                unwrapped.setUnwrapObservableFields(false);
-                expr = unwrapped;
+            unwrapChildTo(i, null);
+        }
+    }
+
+    /**
+     * Unwraps an observable field for a specific child.
+     *
+     * @param childIndex The index into mChildren of the child to unwrap
+     * @param type The expected type or null if the child should be fully unwrapped.
+     */
+    protected void unwrapChildTo(int childIndex, ModelClass type) {
+        final Expr child = mChildren.get(childIndex);
+        Expr unwrapped = null;
+        Expr expr = child;
+        while (expr.getResolvedType().isObservableField()
+                && (type == null || (!type.isAssignableFrom(expr.getResolvedType())
+                && !ModelMethod.isImplicitConversion(expr.getResolvedType(), type)))) {
+            unwrapped = mModel.methodCall(expr, "get", Collections.EMPTY_LIST);
+            if (unwrapped == this) {
+                L.w(ErrorMessages.OBSERVABLE_FIELD_GET, this);
+                return; // This was already unwrapped!
             }
-            if (unwrapped != null) {
-                child.getParents().remove(this);
-                mChildren.set(i, unwrapped);
-            }
+            unwrapped.setUnwrapObservableFields(false);
+            expr = unwrapped;
+        }
+        if (unwrapped != null) {
+            child.getParents().remove(this);
+            mChildren.set(childIndex, unwrapped);
         }
     }
 

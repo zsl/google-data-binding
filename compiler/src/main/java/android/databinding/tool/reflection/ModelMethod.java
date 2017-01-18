@@ -17,6 +17,7 @@ package android.databinding.tool.reflection;
 
 import android.databinding.Bindable;
 
+import java.util.Collections;
 import java.util.List;
 
 public abstract class ModelMethod {
@@ -72,9 +73,11 @@ public abstract class ModelMethod {
 
     /**
      * @param args The arguments to the method
+     * @param unwrapObservableFields If true, will match against unwrapped observable field
+     *                               arguments as well as exact matches of arguments.
      * @return Whether the arguments would be accepted as parameters to this method.
      */
-    public boolean acceptsArguments(List<ModelClass> args) {
+    public boolean acceptsArguments(List<ModelClass> args, boolean unwrapObservableFields) {
         boolean isVarArgs = isVarArgs();
         ModelClass[] parameterTypes = getParameterTypes();
         if ((!isVarArgs && args.size() != parameterTypes.length) ||
@@ -82,7 +85,7 @@ public abstract class ModelMethod {
             return false; // The wrong number of parameters
         }
         boolean parametersMatch = true;
-        for (int i = 0; i < args.size(); i++) {
+        for (int i = 0; i < args.size() && parametersMatch; i++) {
             ModelClass parameterType = getParameter(i, parameterTypes);
             ModelClass arg = args.get(i);
             if (parameterType.isIncomplete()) {
@@ -90,7 +93,18 @@ public abstract class ModelMethod {
             }
             if (!parameterType.isAssignableFrom(arg) && !isImplicitConversion(arg, parameterType)) {
                 parametersMatch = false;
-                break;
+                if (unwrapObservableFields) {
+                    // try unwrapping an observable field argument, if possible
+                    while (arg.isObservableField()) {
+                        arg = arg.getMethod("get", Collections.EMPTY_LIST,
+                                false, false, false).getReturnType();
+                        if (parameterType.isAssignableFrom(arg)
+                                || isImplicitConversion(arg, parameterType)) {
+                            parametersMatch = true;
+                            break;
+                        }
+                    }
+                }
             }
         }
         return parametersMatch;

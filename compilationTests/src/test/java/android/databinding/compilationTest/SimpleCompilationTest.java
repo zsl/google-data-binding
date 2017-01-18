@@ -388,7 +388,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 args.add(analyzer.findClass(param));
             }
             ModelMethod modelMethod = injectedClass.getMethod(
-                    method.getName(), args, Modifier.isStatic(method.getModifiers()), false);
+                    method.getName(), args, Modifier.isStatic(method.getModifiers()), false, false);
             assertNotNull("Method " + method + " not found", modelMethod);
         }
     }
