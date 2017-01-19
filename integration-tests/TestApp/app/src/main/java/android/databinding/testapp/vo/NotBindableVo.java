@@ -13,8 +13,6 @@
 
 package android.databinding.testapp.vo;
 
-import android.view.View;
-
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 

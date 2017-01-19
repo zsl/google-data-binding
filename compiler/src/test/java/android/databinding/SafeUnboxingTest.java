@@ -273,7 +273,8 @@ public class SafeUnboxingTest {
         mLayoutBinder.addVariable("b", Float.class.getCanonicalName(), null, true);
         mLayoutBinder.addVariable("foo", "com.bar.Foo", null, true);
         InjectedClass injectedClass = new InjectedClass("com.bar.Foo", "java.lang.Object");
-        InjectedMethod injectedMethod = new InjectedMethod(injectedClass, false, "doIt", "boolean", "int", "float");
+        InjectedMethod injectedMethod = new InjectedMethod(injectedClass, false, "doIt", null,
+                "boolean", "int", "float");
         injectedClass.addMethod(injectedMethod);
         ModelAnalyzer.getInstance().injectClass(injectedClass);
         MethodCallExpr methodCallExpr = parse("foo.doIt(a, b)");
@@ -290,7 +291,8 @@ public class SafeUnboxingTest {
         mLayoutBinder.addVariable("b", float.class.getCanonicalName(), null, true);
         mLayoutBinder.addVariable("foo", "com.bar.Foo", null, true);
         InjectedClass injectedClass = new InjectedClass("com.bar.Foo", "java.lang.Object");
-        InjectedMethod injectedMethod = new InjectedMethod(injectedClass, false, "doIt", "boolean", "int", "float");
+        InjectedMethod injectedMethod = new InjectedMethod(injectedClass, false, "doIt", null,
+                "boolean", "int", "float");
         injectedClass.addMethod(injectedMethod);
         ModelAnalyzer.getInstance().injectClass(injectedClass);
         MethodCallExpr methodCallExpr = parse("foo.doIt(a, b)");
@@ -307,7 +309,8 @@ public class SafeUnboxingTest {
         mLayoutBinder.addVariable("b", Float.class.getCanonicalName(), null, true);
         mLayoutBinder.addVariable("foo", "com.bar.Foo", null, true);
         InjectedClass injectedClass = new InjectedClass("com.bar.Foo", "java.lang.Object");
-        InjectedMethod injectedMethod = new InjectedMethod(injectedClass, false, "doIt", "boolean", "int", "float");
+        InjectedMethod injectedMethod = new InjectedMethod(injectedClass, false, "doIt", null,
+                "boolean", "int", "float");
         injectedClass.addMethod(injectedMethod);
         ModelAnalyzer.getInstance().injectClass(injectedClass);
         MethodCallExpr methodCallExpr = parse("foo.doIt(a, b)");
@@ -324,7 +327,8 @@ public class SafeUnboxingTest {
         mLayoutBinder.addVariable("b", float.class.getCanonicalName(), null, true);
         mLayoutBinder.addVariable("foo", "com.bar.Foo", null, true);
         InjectedClass injectedClass = new InjectedClass("com.bar.Foo", "java.lang.Object");
-        InjectedMethod injectedMethod = new InjectedMethod(injectedClass, false, "doIt", "boolean", "int", "float");
+        InjectedMethod injectedMethod = new InjectedMethod(injectedClass, false, "doIt", null,
+                "boolean", "int", "float");
         injectedClass.addMethod(injectedMethod);
         ModelAnalyzer.getInstance().injectClass(injectedClass);
         MethodCallExpr methodCallExpr = parse("foo.doIt(a, b)");
