@@ -71,7 +71,7 @@ class ExportLicensesTask extends DefaultTask {
                     notices  : ["https://git-wip-us.apache.org/repos/asf?p=commons-lang.git;a=blob_plain;f=NOTICE.txt;hb=refs/heads/master"]
             ],
             [
-                    libraries: ["guava"],
+                    libraries: ["guava", "xerial", "j2objc-annotations", "easymock", "validation-api", "guava-jdk5"/*javax-validation*/],
                     licenses : ["http://www.apache.org/licenses/LICENSE-2.0.txt"]
             ],
             [
@@ -103,6 +103,26 @@ class ExportLicensesTask extends DefaultTask {
                     libraries: ["juniversalchardet"],
                     licenses: ["https://mozorg.cdn.mozilla.net/media/MPL/1.1/index.0c5913925d40.txt"]
             ],
+            [
+                    libraries: ["json"],
+                    licenses: ["http://www.json.org/license.html"]
+            ],
+            [
+                    libraries: ["gwt-user"],
+                    licenses: ["http://www.gwtproject.org/terms.html"]
+            ],
+            [
+                    libraries: ["jmock"],
+                    licenses: ["http://www.jmock.org/license.html"]
+            ],
+            [
+                    libraries: ["auto-common"],
+                    licenses: ["https://raw.githubusercontent.com/google/auto/master/LICENSE.txt"]
+            ],
+            [
+                    libraries: ["javapoet"],
+                    licenses: ["https://github.com/square/javapoet/blob/master/LICENSE.txt"]
+            ]
     ]
 
     Map<String, Object> usedLicenses = new HashMap<>();
@@ -152,7 +172,9 @@ class ExportLicensesTask extends DefaultTask {
     }
 
     public static Object findLicenseFor(String artifactId) {
-        return licenseLookup.get(artifactId)
+        def license = licenseLookup.get(artifactId)
+        println "license check result for ${artifactId} is {$license}"
+        return license
     }
 
     public static String urlToText(String url) {

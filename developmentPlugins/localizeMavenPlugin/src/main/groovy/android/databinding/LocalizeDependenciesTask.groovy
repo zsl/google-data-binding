@@ -207,12 +207,8 @@ class LocalizeDependenciesTask extends DefaultTask {
                 readArtifactDescriptor(session, descriptorRequest);
         for (Dependency dependency : descriptorResult.getDependencies()) {
             println("dependency $dependency for $artifact . scope: ${dependency.scope}")
-            if ("provided".equals(dependency.scope)) {
-                println("skipping $dependency because provided")
-                continue
-            }
-            if ("optional".equals(dependency.scope)) {
-                println("skipping $dependency because optional")
+            if (dependency.scope in ["provided", "optional", "system"]) {
+                println("skipping $dependency because ${dependency.scope}")
                 continue
             }
             if ("test".equals(dependency.scope)) {
