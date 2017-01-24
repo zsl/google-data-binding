@@ -33,17 +33,15 @@ public class MavenDependencyCollectorPlugin implements Plugin<Project> {
         }
 
         project.allprojects {
-            afterEvaluate { p ->
-                if (!p.name.equals("dataBinding")) {
-                    project.tasks.create("collectDependenciesOf${it.getName().capitalize()}", MavenDependencyCollectorTask, {
+            afterEvaluate { subProject ->
+                if (!subProject.name.equals("dataBinding")) {
+                    subProject.tasks.create("collectDependencies", MavenDependencyCollectorTask, {
                         it.localizeTask = localizeDependenciesTask
                         localizeDependenciesTask.dependsOn it
                     })
                 }
+                subProject.tasks.create("buildLicenseNotice", ExportLicensesTask)
             }
-        }
-        project.tasks.create("buildLicenseNotice", ExportLicensesTask) {
-
         }
     }
 }
