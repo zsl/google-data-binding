@@ -50,7 +50,7 @@ class AnnotationMethod extends ModelMethod {
     }
 
     @Override
-    public ModelClass getDeclaringClass() {
+    public ModelClass getReceiverType() {
         if (mReceiverType == null) {
             mReceiverType = findReceiverType(mDeclaringType);
             if (mReceiverType == null) {
@@ -58,6 +58,11 @@ class AnnotationMethod extends ModelMethod {
             }
         }
         return mReceiverType;
+    }
+
+    @Override
+    public ModelClass getDeclaringClass() {
+        return new AnnotationClass(mDeclaringType);
     }
 
     // TODO: When going to Java 1.8, use mExecutableElement.getReceiverType()

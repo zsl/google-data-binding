@@ -64,9 +64,8 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
             }
         });
         WeakReference<Object> canary = new WeakReference<Object>(new Object());
-        ArrayList<WeakReference<byte[]>> leak = new ArrayList<>();
         while (canary.get() != null) {
-            leak.add(new WeakReference<byte[]>(new byte[100]));
+            byte[] leak = new byte[100];
             System.gc();
         }
         assertNull(mWeakReference.get());

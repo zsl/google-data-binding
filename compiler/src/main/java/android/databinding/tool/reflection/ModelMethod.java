@@ -23,6 +23,10 @@ import java.util.List;
 public abstract class ModelMethod {
     public abstract ModelClass getDeclaringClass();
 
+    public ModelClass getReceiverType() {
+        return getDeclaringClass();
+    }
+
     public abstract ModelClass[] getParameterTypes();
 
     public abstract String getName();
