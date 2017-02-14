@@ -621,8 +621,8 @@ public class ResourceBundle implements Serializable {
             return mAbsoluteFilePath;
         }
 
-        private static Marshaller sMarshaller;
-        private static Unmarshaller sUmarshaller;
+        private static ThreadLocal<Marshaller> sMarshaller = new ThreadLocal<>();
+        private static ThreadLocal<Unmarshaller> sUmarshaller = new ThreadLocal<>();
 
         public String toXML() throws JAXBException {
             StringWriter writer = new StringWriter();
@@ -635,22 +635,23 @@ public class ResourceBundle implements Serializable {
         }
 
         private static Marshaller getMarshaller() throws JAXBException {
-            if (sMarshaller == null) {
+            if (sMarshaller.get() == null) {
                 JAXBContext context = JAXBContext
                         .newInstance(ResourceBundle.LayoutFileBundle.class);
-                sMarshaller = context.createMarshaller();
-                sMarshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+                Marshaller marshaller = context.createMarshaller();
+                sMarshaller.set(marshaller);
+                marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
             }
-            return sMarshaller;
+            return sMarshaller.get();
         }
 
         private static Unmarshaller getUnmarshaller() throws JAXBException {
-            if (sUmarshaller == null) {
+            if (sUmarshaller.get() == null) {
                 JAXBContext context = JAXBContext
                         .newInstance(ResourceBundle.LayoutFileBundle.class);
-                sUmarshaller = context.createUnmarshaller();
+                sUmarshaller.set(context.createUnmarshaller());
             }
-            return sUmarshaller;
+            return sUmarshaller.get();
         }
     }
 
