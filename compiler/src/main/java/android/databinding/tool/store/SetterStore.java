@@ -714,7 +714,7 @@ public class SetterStore {
             ModelClass bestViewType = null;
             ModelClass bestValueType = null;
             if (bestSetterMethod != null) {
-                bestViewType = bestSetterMethod.getDeclaringClass();
+                bestViewType = bestSetterMethod.getReceiverType();
                 bestValueType = bestSetterMethod.getParameterTypes()[0];
                 setterCall = new ModelMethodSetter(bestSetterMethod);
             }
@@ -1334,7 +1334,7 @@ public class SetterStore {
             this.isStatic = method.isStatic();
             this.returnType = method.getReturnType().erasure().getCanonicalName();
             this.method = method.getName();
-            this.type = method.getDeclaringClass().getCanonicalName();
+            this.type = method.getReceiverType().getCanonicalName();
 
             ModelClass[] parameters = method.getParameterTypes();
             this.parameterTypes = new String[parameters.length];
@@ -1591,7 +1591,7 @@ public class SetterStore {
             String args = Arrays.stream(mModelMethod.getParameterTypes())
                     .map(param -> param.toJavaCode())
                     .collect(Collectors.joining(", "));
-            return mModelMethod.getDeclaringClass().toJavaCode() + '.' +
+            return mModelMethod.getReceiverType().toJavaCode() + '.' +
                     mModelMethod.getName() + '(' + args + ')';
 
         }

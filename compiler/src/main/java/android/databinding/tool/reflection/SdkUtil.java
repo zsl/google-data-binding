@@ -58,18 +58,22 @@ public class SdkUtil {
     public static int getMinApi(ModelMethod modelMethod) {
         ModelClass declaringClass = modelMethod.getDeclaringClass();
         Preconditions.checkNotNull(sApiChecker, "should've initialized api checker");
+        int minApi = Integer.MAX_VALUE;
+        String methodDesc = modelMethod.getJniDescription();
         while (declaringClass != null) {
             String classDesc = declaringClass.getJniDescription();
-            String methodDesc = modelMethod.getJniDescription();
             int result = sApiChecker.getMinApi(classDesc, methodDesc);
             L.d("checking method api for %s, class:%s method:%s. result: %d", modelMethod.getName(),
                     classDesc, methodDesc, result);
             if (result > 0) {
-                return result;
+                minApi = Math.min(minApi, result);
             }
             declaringClass = declaringClass.getSuperclass();
         }
-        return 1;
+        if (minApi == Integer.MAX_VALUE) {
+            return 1;
+        }
+        return minApi;
     }
 
     static class ApiChecker {
