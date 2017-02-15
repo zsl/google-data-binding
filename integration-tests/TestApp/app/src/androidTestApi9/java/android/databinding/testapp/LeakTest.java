@@ -63,11 +63,15 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
                 getActivity().setContentView(new FrameLayout(getActivity()));
             }
         });
-        WeakReference<Object> canary = new WeakReference<Object>(new Object());
-        while (canary.get() != null) {
-            byte[] leak = new byte[100];
-            System.gc();
-        }
+
+        // Use a random index in the list to detect the garbage collection each time because
+        // .get() may accidentally trigger a strong reference during collection.
+        ArrayList<WeakReference<byte[]>> leak = new ArrayList<>();
+        do {
+            WeakReference<byte[]> arr = new WeakReference<byte[]>(new byte[100]);
+            leak.add(arr);
+        } while (leak.get((int)(Math.random() * leak.size())).get() != null);
+
         assertNull(mWeakReference.get());
     }
 
