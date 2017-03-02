@@ -106,7 +106,10 @@ class LocalizeDependenciesTask extends DefaultTask {
     public downloadAll(File localRepoDir, List<String> otherRepoDirs) {
         println("downloading all dependencies to $localRepoDir")
         def mavenCentral = new RemoteRepository.Builder("central", "default",
-                "http://central.maven.org/maven2/").build();
+                "https://central.maven.org/maven2/").build();
+        def jcenter = new RemoteRepository.Builder("jcenter", "default",
+                "http://jcenter.bintray.com/").build();
+        println("repositories: $mavenCentral, $jcenter")
         def system = newRepositorySystem()
         localRepoDir = localRepoDir.canonicalFile
         List<File> otherRepos = new ArrayList<>()
@@ -130,7 +133,8 @@ class LocalizeDependenciesTask extends DefaultTask {
                 println("skipping $artifact")
                 continue
             }
-            resolveArtifactWithDependencies(system, session, Arrays.asList(mavenCentral), artifact);
+            resolveArtifactWithDependencies(system, session, Arrays.asList(mavenCentral, jcenter)
+                    , artifact);
         }
     }
 
@@ -181,7 +185,8 @@ class LocalizeDependenciesTask extends DefaultTask {
         try {
             resolved = system.resolveArtifact(session, artifactRequest);
         } catch (Throwable ignored) {
-            println("cannot find $key, skipping")
+            println("cannot find $key, skipping: $ignored")
+            ignored.printStackTrace()
             failed.add(key)
             return
         }
