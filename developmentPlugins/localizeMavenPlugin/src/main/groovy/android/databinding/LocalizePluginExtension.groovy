@@ -19,5 +19,4 @@ package android.databinding
 class LocalizePluginExtension {
     def File localRepoDir;
     def List<String> otherRepoDirs;
-    def List<Object> licenseInformation;
 }

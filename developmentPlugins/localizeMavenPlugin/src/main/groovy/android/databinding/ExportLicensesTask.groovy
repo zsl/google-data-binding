@@ -122,24 +122,19 @@ class ExportLicensesTask extends DefaultTask {
             [
                     libraries: ["javapoet"],
                     licenses: ["https://github.com/square/javapoet/blob/master/LICENSE.txt"]
-            ],
-            [
-                    libraries: ["sqlite-jdbc"],
-                    licenses: ["https://raw.githubusercontent.com/xerial/sqlite-jdbc/master/LICENSE",
-                            "https://raw.githubusercontent.com/xerial/sqlite-jdbc/master/LICENSE.zentus"]
-            ],
-            [
-                    libraries: ["reactive-streams"],
-                    licenses: ["https://raw.githubusercontent.com/reactive-streams/reactive-streams-jvm/master/LICENSE"]
-            ],
-            [
-                    libraries: ["rxjava2"],
-                    licenses: ["https://raw.githubusercontent.com/ReactiveX/RxJava/2.x/LICENSE"]
             ]
     ]
 
     Map<String, Object> usedLicenses = new HashMap<>();
-    Map<String, Object> licenseLookup = new HashMap<>();
+    static Map<String, Object> licenseLookup = new HashMap<>();
+    static {
+        knownLicenses.each {license ->
+            license.libraries.each {
+                licenseLookup.put(it, license)
+            }
+        }
+    }
+
     ExportLicensesTask() {
     }
 
@@ -150,20 +145,6 @@ class ExportLicensesTask extends DefaultTask {
 
     @TaskAction
     public void exportNotice() {
-        knownLicenses.each {license ->
-            license.libraries.each {
-                licenseLookup.put(it, license)
-            }
-        }
-        LocalizePluginExtension extension = project.getRootProject().extensions.
-                getByName(MavenDependencyCollectorPlugin.EXTENSION_NAME)
-        if (extension != null) {
-            extension.licenseInformation?.each { info ->
-                info.libraries.each {
-                    licenseLookup.put(it, info)
-                }
-            }
-        }
         project.configurations.compile.getResolvedConfiguration()
                 .getFirstLevelModuleDependencies().each {
             if (!it.getModuleGroup().equals("com.android.tools.build")) {
@@ -181,22 +162,16 @@ class ExportLicensesTask extends DefaultTask {
     public void resolveLicenses() {
         artifacts.each { artifact ->
             if (!shouldSkip(artifact)) {
-                def license = licenseLookup.get(artifact.getModuleVersion().id.module.toString())
-                if (license == null) {
-                    // lookup by just name
-                    license = licenseLookup.get(artifact.name)
-                }
+                def license = licenseLookup.get(artifact.name)
                 if (license  == null) {
-                    throw new RuntimeException("Cannot find license for " +
-                            "${artifact.getModuleVersion().id.module} in ${artifact.getFile()}. " +
-                            "all licenses: ${licenseLookup}")
+                    throw new RuntimeException("Cannot find license for ${artifact.getModuleVersion().id} in ${artifact.getFile()}")
                 }
                 usedLicenses.put(artifact, license)
             }
         }
     }
 
-    public Object findLicenseFor(String artifactId) {
+    public static Object findLicenseFor(String artifactId) {
         def license = licenseLookup.get(artifactId)
         println "license check result for ${artifactId} is {$license}"
         return license
@@ -206,7 +181,7 @@ class ExportLicensesTask extends DefaultTask {
         return new URL(url).getText()
     }
 
-    public static boolean shouldSkip(ResolvedArtifact artifact) {
+    public boolean shouldSkip(ResolvedArtifact artifact) {
         return artifact.getModuleVersion().id.group.startsWith("com.android");
     }
 
