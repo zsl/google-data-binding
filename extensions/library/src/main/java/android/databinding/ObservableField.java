@@ -20,9 +20,19 @@ import java.io.Serializable;
 /**
  * An object wrapper to make it observable.
  * <p>
- * Observable field classes may be used instead of creating an Observable object:
+ * Observable field classes may be used instead of creating an Observable object. It can also
+ * create a calculated field, depending on other fields:
  * <pre><code>public class MyDataObject {
- *     public final ObservableField&lt;String&gt; name = new ObservableField&lt;String&gt;();
+ *     private Context context;
+ *     public final ObservableField&lt;String&gt; first = new ObservableField&lt;String&gt;();
+ *     public final ObservableField&lt;String&gt; last = new ObservableField&lt;String&gt;();
+ *     public final ObservableField&lt;String&gt; display =
+ *         new ObservableField&lt;String&gt;(first, last) {
+ *             &#64;Override
+ *             public String get() {
+ *                 return context.getResources().getString(R.string.name, first.get, last.get());
+ *             }
+ *         };
  *     public final ObservableInt age = new ObservableInt();
  * }</code></pre>
  * Fields of this type should be declared final because bindings only detect changes in the
@@ -31,7 +41,7 @@ import java.io.Serializable;
  * @param <T> The type parameter for the actual object.
  * @see android.databinding.ObservableParcelable
  */
-public class ObservableField<T> extends BaseObservable implements Serializable {
+public class ObservableField<T> extends BaseObservableField implements Serializable {
     static final long serialVersionUID = 1L;
     private T mValue;
 
@@ -48,6 +58,17 @@ public class ObservableField<T> extends BaseObservable implements Serializable {
      * Creates an empty observable object
      */
     public ObservableField() {
+    }
+
+    /**
+     * Creates an ObservableField that depends on {@code dependencies}. Typically,
+     * ObservableFields are passed as dependencies. When any dependency
+     * notifies changes, this ObservableField also notifies a change.
+     *
+     * @param dependencies The Observables that this ObservableField depends on.
+     */
+    public ObservableField(Observable... dependencies) {
+        super(dependencies);
     }
 
     /**

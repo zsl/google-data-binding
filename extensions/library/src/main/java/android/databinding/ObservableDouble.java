@@ -21,20 +21,26 @@ import android.os.Parcelable;
 import java.io.Serializable;
 
 /**
- * An observable class that holds a primitive double.
+ * An observable class that holds a primitive double. It can also
+ * create a calculated field, depending on other fields:
  * <p>
  * Observable field classes may be used instead of creating an Observable object:
  * <pre><code>public class MyDataObject {
- *     public final ObservableDouble temperature = new ObservableDouble();
+ *     public final ObservableDouble temperatureC = new ObservableDouble();
+ *     public final ObservableDouble temperatureF = new ObservableDouble(temperatureC) {
+ *         &#64;Override
+ *         public double get() { return (temperatureC.get() * 9 / 5) + 32; }
+ *     };
  * }</code></pre>
  * Fields of this type should be declared final because bindings only detect changes in the
  * field's value, not of the field itself.
  * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
- * data binding framework always re-registers callbacks when the view is bound.
+ * data binding framework always re-registers callbacks when the view is bound. A parceled
+ * ObservableByte will lose its dependencies.
  */
-public class ObservableDouble extends BaseObservable implements Parcelable, Serializable {
+public class ObservableDouble extends BaseObservableField implements Parcelable, Serializable {
     static final long serialVersionUID = 1L;
     private double mValue;
 
@@ -51,6 +57,17 @@ public class ObservableDouble extends BaseObservable implements Parcelable, Seri
      * Creates an ObservableDouble with the initial value of <code>0</code>.
      */
     public ObservableDouble() {
+    }
+
+    /**
+     * Creates an ObservableDouble that depends on {@code dependencies}. Typically,
+     * {@link ObservableField}s are passed as dependencies. When any dependency
+     * notifies changes, this ObservableDouble also notifies a change.
+     *
+     * @param dependencies The Observables that this ObservableDouble depends on.
+     */
+    public ObservableDouble(Observable... dependencies) {
+        super(dependencies);
     }
 
     /**

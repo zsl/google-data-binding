@@ -23,18 +23,24 @@ import java.io.Serializable;
 /**
  * An observable class that holds a primitive boolean.
  * <p>
- * Observable field classes may be used instead of creating an Observable object:
+ * Observable field classes may be used instead of creating an Observable object. It can also
+ * create a calculated field, depending on other fields:
  * <pre><code>public class MyDataObject {
  *     public final ObservableBoolean isAdult = new ObservableBoolean();
+ *     public final ObservableBoolean isChild = new ObservableBoolean(isAdult) {
+ *         &#64;Override
+ *         public boolean get() { return !isAdult.get(); }
+ *     };
  * }</code></pre>
  * Fields of this type should be declared final because bindings only detect changes in the
  * field's value, not of the field itself.
  * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
- * data binding framework always re-registers callbacks when the view is bound.
+ * data binding framework always re-registers callbacks when the view is bound. A parceled
+ * ObservableBoolean will lose its dependencies.
  */
-public class ObservableBoolean extends BaseObservable implements Parcelable, Serializable {
+public class ObservableBoolean extends BaseObservableField implements Parcelable, Serializable {
     static final long serialVersionUID = 1L;
     private boolean mValue;
 
@@ -51,6 +57,17 @@ public class ObservableBoolean extends BaseObservable implements Parcelable, Ser
      * Creates an ObservableBoolean with the initial value of <code>false</code>.
      */
     public ObservableBoolean() {
+    }
+
+    /**
+     * Creates an ObservableBoolean that depends on {@code dependencies}. Typically,
+     * {@link ObservableField}s are passed as dependencies. When any dependency
+     * notifies changes, this ObservableBoolean also notifies a change.
+     *
+     * @param dependencies The Observables that this ObservableBoolean depends on.
+     */
+    public ObservableBoolean(Observable... dependencies) {
+        super(dependencies);
     }
 
     /**

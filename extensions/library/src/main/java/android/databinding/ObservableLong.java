@@ -23,18 +23,25 @@ import java.io.Serializable;
 /**
  * An observable class that holds a primitive long.
  * <p>
- * Observable field classes may be used instead of creating an Observable object:
+ * Observable field classes may be used instead of creating an Observable object. It can also
+ * create a calculated field, depending on other fields:
  * <pre><code>public class MyDataObject {
  *     public final ObservableLong friendCount = new ObservableLong();
+ *     public final ObservableLong familyCount = new ObservableLong();
+ *     public final ObservableLong knownCount = new ObservableLong(friendCount, familyCount) {
+ *         &#64;Override
+ *         public long get() { return friendCount.get() + familyCount.get(); }
+ *     };
  * }</code></pre>
  * Fields of this type should be declared final because bindings only detect changes in the
  * field's value, not of the field itself.
  * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
- * data binding framework always re-registers callbacks when the view is bound.
+ * data binding framework always re-registers callbacks when the view is bound. A parceled
+ * ObservableLong will lose its dependencies.
  */
-public class ObservableLong extends BaseObservable implements Parcelable, Serializable {
+public class ObservableLong extends BaseObservableField implements Parcelable, Serializable {
     static final long serialVersionUID = 1L;
     private long mValue;
 
@@ -51,6 +58,17 @@ public class ObservableLong extends BaseObservable implements Parcelable, Serial
      * Creates an ObservableLong with the initial value of <code>0L</code>.
      */
     public ObservableLong() {
+    }
+
+    /**
+     * Creates an ObservableLong that depends on {@code dependencies}. Typically,
+     * {@link ObservableField}s are passed as dependencies. When any dependency
+     * notifies changes, this ObservableLong also notifies a change.
+     *
+     * @param dependencies The Observables that this ObservableLong depends on.
+     */
+    public ObservableLong(Observable... dependencies) {
+        super(dependencies);
     }
 
     /**
