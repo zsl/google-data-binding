@@ -87,6 +87,12 @@ android.libraryVariants.all { variant ->
         options.tags = ['hide']
         classpath = files(variant.javaCompile.classpath.files) + files(
                 "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
+        doFirst {
+            // There appears to be someone overwriting the classpath.
+            // This is disgusting, but it works:
+            classpath = files(variant.javaCompile.classpath.files) + files(
+                    "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
+        }
     }
 
     def javadocJarTask = project.tasks.create(name: "javadocJar${suffix}", type: Jar) {

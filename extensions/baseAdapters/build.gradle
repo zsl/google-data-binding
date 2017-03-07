@@ -55,9 +55,9 @@ android {
 dependencies {
     // we don't care about version of these because they are not listed as dependencies in the
     // final maven artifact.
-    provided 'com.android.support:core-utils:+'
-    provided 'com.android.support:cardview-v7:+'
-    provided 'com.android.support:appcompat-v7:+'
+    provided 'com.android.support:support-core-utils:24.2.0'
+    provided 'com.android.support:cardview-v7:24.2.0'
+    provided 'com.android.support:appcompat-v7:24.2.0'
 }
 
 //create jar tasks
