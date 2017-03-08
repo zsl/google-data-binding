@@ -33,6 +33,8 @@ public class BasicObject extends BaseObservable {
 
     private String mJoin = " ";
 
+    private String mField5 = "boo";
+
     public String getField1() {
         return mField1;
     }
@@ -51,20 +53,39 @@ public class BasicObject extends BaseObservable {
         notifyPropertyChanged(BR.field2);
     }
 
-    @Bindable({"field1", "field2", "field3"})
+    @Bindable({"field1", "field2", "field3", "join"})
     public String getCombo() {
         return mField1 + mJoin + mField2 + mJoin + field3;
+    }
+
+    @Bindable({"combo", "join", "field5"} )
+    public String getCombo2() {
+        return getCombo() + mJoin + getField5();
     }
 
     public void setJoin(String join) {
         mJoin = join;
         mField4 = join;
-        notifyPropertyChanged(BR.combo);
-        notifyPropertyChanged(BR.field4);
+        notifyPropertyChanged(BR.join);
+    }
+
+    @Bindable
+    public String getJoin() {
+        return mJoin;
     }
 
     public String getField4() {
         return mField4 + field3;
+    }
+
+    @Bindable
+    public String getField5() {
+        return mField5;
+    }
+
+    public void setField5(String val) {
+        mField5 = val;
+        notifyPropertyChanged(BR.field5);
     }
 
     @Bindable

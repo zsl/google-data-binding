@@ -44,6 +44,7 @@ public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
         assertEquals("World", mBinder.field2.getText().toString());
         assertEquals("Hello World 1", mBinder.combo.getText().toString());
         assertEquals("+1", mBinder.field4.getText().toString());
+        assertEquals("Hello World 1 boo", mBinder.combo2.getText().toString());
 
         obj.setField1("Goodbye");
         mBinder.executePendingBindings();
@@ -52,6 +53,7 @@ public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
         assertEquals("World", mBinder.field2.getText().toString());
         assertEquals("Goodbye World 1", mBinder.combo.getText().toString());
         assertEquals("+1", mBinder.field4.getText().toString());
+        assertEquals("Goodbye World 1 boo", mBinder.combo2.getText().toString());
 
         obj.setField2("Cruel");
         mBinder.executePendingBindings();
@@ -60,6 +62,7 @@ public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
         assertEquals("Cruel", mBinder.field2.getText().toString());
         assertEquals("Goodbye Cruel 1", mBinder.combo.getText().toString());
         assertEquals("+1", mBinder.field4.getText().toString());
+        assertEquals("Goodbye Cruel 1 boo", mBinder.combo2.getText().toString());
 
         obj.field3 = "World";
         obj.notifyPropertyChanged(BR.field3);
@@ -69,6 +72,7 @@ public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
         assertEquals("Cruel", mBinder.field2.getText().toString());
         assertEquals("Goodbye Cruel World", mBinder.combo.getText().toString());
         assertEquals("+World", mBinder.field4.getText().toString());
+        assertEquals("Goodbye Cruel World boo", mBinder.combo2.getText().toString());
 
         obj.setJoin("-");
         mBinder.executePendingBindings();
@@ -76,6 +80,12 @@ public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
         assertEquals("Goodbye", mBinder.field1.getText().toString());
         assertEquals("Cruel", mBinder.field2.getText().toString());
         assertEquals("Goodbye-Cruel-World", mBinder.combo.getText().toString());
-        assertEquals("-World", mBinder.field4.getText().toString());
+        assertEquals("+World", mBinder.field4.getText().toString());
+        assertEquals("Goodbye-Cruel-World-boo", mBinder.combo2.getText().toString());
+
+        obj.setField5("zap");
+        mBinder.executePendingBindings();
+
+        assertEquals("Goodbye-Cruel-World-zap", mBinder.combo2.getText().toString());
     }
 }

@@ -39,6 +39,7 @@ import android.databinding.tool.writer.KCode;
 import com.google.common.collect.Lists;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
     boolean mIsListener;
     boolean mIsViewAttributeAccess;
     boolean mIsMap;
+    FieldAccessExpr[] mDependencies;
 
     FieldAccessExpr(Expr parent, String name) {
         super(parent, name);
@@ -169,27 +171,30 @@ public class FieldAccessExpr extends MethodBaseExpr {
      */
     public String[] getDirtyingProperties() {
         String[] names = null;
-        if (mGetter != null && mGetter.canBeInvalidated()) {
-            if (mGetter.type == Type.FIELD) {
-                if (mGetter.bindableAnnotation != null &&
-                    mGetter.bindableAnnotation.value().length != 0) {
-                    L.e("Bindable annotation with property names is only supported on methods. " +
-                                    "Field '%s.%s' has @Bindable(\"%s\")",
-                            getTarget().getResolvedType().toJavaCode(), mGetter.name,
-                            StringUtils.join(mGetter.bindableAnnotation.value(), "\", \""));
+        if (mDependencies != null) {
+            HashSet<FieldAccessExpr> dependencies = new HashSet<>();
+            resolveDependencies(dependencies);
+            for (FieldAccessExpr expr : dependencies) {
+                if (expr.mGetter == null) {
+                    L.e("Could not find dependent property '%s' referenced in "
+                                    + "@Bindable annotation on %s.%s",
+                            expr.getName(), expr.mGetter.method.getDeclaringClass().toJavaCode(),
+                            expr.mGetter.method.getName());
+                } else if (!expr.mGetter.canBeInvalidated()) {
+                    L.e("The dependent property '%s' referenced in @Bindable "
+                                    + "annotation on %s.%s must be annotated with "
+                                    + "@Bindable",
+                            expr.getName(), expr.mGetter.method.getDeclaringClass().toJavaCode(),
+                            expr.mGetter.method.getName());
                 }
-            } else if (mGetter.method != null && mGetter.canBeInvalidated() &&
-                    mGetter.bindableAnnotation != null) {
-                String[] dependencies = mGetter.bindableAnnotation.value();
-                validateDependencies(dependencies);
-                names = new String[dependencies.length + 1];
-                for (int i = 0; i < dependencies.length; i++) {
-                    names[i] = "BR." + dependencies[i];
-                }
-                names[dependencies.length] = getBrName();
             }
-        }
-        if (names == null) {
+            dependencies.add(this);
+            names = new String[dependencies.size()];
+            int index = 0;
+            for (FieldAccessExpr dependency : dependencies) {
+                names[index++] = dependency.getBrName();
+            }
+        } else {
             String br = getBrName();
             if (br == null) {
                 names = new String[0];
@@ -200,29 +205,48 @@ public class FieldAccessExpr extends MethodBaseExpr {
         return names;
     }
 
-    /**
-     * Validates the dependent properties -- they must exist and be Bindable.
-     */
-    private void validateDependencies(String[] dependencies) {
-        try {
-            Scope.enter(this);
-            Arrays.stream(dependencies).forEach(field -> {
-                ModelClass resolvedType = getTarget().getResolvedType();
-                Callable getter = resolvedType.findGetterOrField(field, mGetter.isStatic());
-                if (getter == null) {
-                    L.e("Could not find dependent property '%s' referenced in " +
-                                    "@Bindable annotation on %s.%s", field,
-                            mGetter.method.getDeclaringClass().toJavaCode(),
-                            mGetter.method.getName());
-                } else if (!getter.canBeInvalidated()) {
-                    L.e("The dependent property '%s' referenced in @Bindable annotation on " +
-                                    "%s.%s must be annotated with @Bindable", field,
-                            mGetter.method.getDeclaringClass().toJavaCode(),
-                            mGetter.method.getName());
+    private void resolveDependencies() {
+        if (mGetter != null && mGetter.canBeInvalidated()) {
+            if (mGetter.type == Type.FIELD) {
+                if (mGetter.bindableAnnotation != null &&
+                        mGetter.bindableAnnotation.value().length != 0) {
+                    L.e("Bindable annotation with property names is only supported on methods. " +
+                                    "Field '%s.%s' has @Bindable(\"%s\")",
+                            getTarget().getResolvedType().toJavaCode(), mGetter.name,
+                            StringUtils.join(mGetter.bindableAnnotation.value(), "\", \""));
                 }
-            });
-        } finally {
-            Scope.exit();
+            } else if (mGetter.method != null && mGetter.canBeInvalidated() &&
+                    mGetter.bindableAnnotation != null) {
+                try {
+                    Scope.enter(this);
+                    String[] dependencyArray = mGetter.bindableAnnotation.value();
+
+                    Expr target = getTarget();
+                    ModelClass resolvedType = target.getResolvedType();
+                    L.d("resolving %s. Resolved class type: %s", this, resolvedType);
+
+                    mDependencies = new FieldAccessExpr[dependencyArray.length];
+                    for (int i = 0; i < dependencyArray.length; i++) {
+                        String dependency = dependencyArray[i];
+                        FieldAccessExpr expr = getModel().field(getTarget(), dependency);
+                        mDependencies[i] = expr;
+                        expr.getResolvedType(); // force it to resolve its dependencies as well
+                    }
+                } finally {
+                    Scope.exit();
+                }
+            }
+        }
+    }
+
+    private void resolveDependencies(HashSet<FieldAccessExpr> dependencies) {
+        if (mDependencies != null) {
+            for (FieldAccessExpr expr : mDependencies) {
+                if (!dependencies.contains(expr)) {
+                    dependencies.add(expr);
+                    expr.resolveDependencies(dependencies);
+                }
+            }
         }
     }
 
@@ -260,6 +284,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
             if (hasBindableAnnotations()) {
                 mBrName = ExtKt.br(BrNameUtil.brKey(mGetter));
             }
+            resolveDependencies();
         }
         return mGetter.resolvedType;
     }
