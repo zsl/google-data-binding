@@ -349,6 +349,11 @@ public abstract class ModelAnalyzer {
     }
 
     private ModelClass loadClassErasure(String className) {
-        return findClass(className, null).erasure();
+        ModelClass modelClass = findClass(className, null);
+        if (modelClass == null) {
+            return null;
+        } else {
+            return modelClass.erasure();
+        }
     }
 }

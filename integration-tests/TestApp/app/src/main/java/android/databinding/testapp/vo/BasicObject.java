@@ -17,9 +17,12 @@
 package android.databinding.testapp.vo;
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
+import android.databinding.ObservableInt;
 import android.databinding.testapp.BR;
 
 public class BasicObject extends BaseObservable {
+    public final ObservableInt val = new ObservableInt();
+
     @Bindable
     private String mField1;
     @Bindable
@@ -83,9 +86,26 @@ public class BasicObject extends BaseObservable {
         return mField5;
     }
 
+    @Bindable("val")
+    public String getStringVal() {
+        return String.valueOf(val.get());
+    }
+
     public void setField5(String val) {
         mField5 = val;
         notifyPropertyChanged(BR.field5);
+    }
+
+    // We want to ensure that if dependencies depend on each other recursively that it
+    // doesn't cause an infinite loop while building
+    @Bindable("recurseDep2")
+    public String getRecurseDep() {
+        return "hello";
+    }
+
+    @Bindable("recurseDep")
+    public String getRecurseDep2() {
+        return "world";
     }
 
     @Bindable

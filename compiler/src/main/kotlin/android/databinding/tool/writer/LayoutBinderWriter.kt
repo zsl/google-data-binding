@@ -768,7 +768,14 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
                             }
                     block("case ${"".br()}:") {
-                        val flagSet = it.invalidateFlagSet
+                        val flagSet : FlagSet
+                        if (it is FieldAccessExpr && it.resolvedType.isObservableField) {
+                            flagSet = it.bindableDependents.map { expr -> expr.invalidateFlagSet }
+                                    .foldRight(it.invalidateFlagSet) { l, r -> l.or(r) }
+                        } else {
+                            flagSet = it.invalidateFlagSet
+                        }
+
                         block("synchronized(this)") {
                             mDirtyFlags.mapOr(flagSet) { suffix, index ->
                                 tab("${mDirtyFlags.localName}$suffix |= ${flagSet.localValue(index)};")

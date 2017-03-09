@@ -40,6 +40,8 @@ public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
         mBinder.setObj(obj);
         mBinder.executePendingBindings();
 
+        assertEquals("hello", mBinder.recurseDep.getText().toString());
+        assertEquals("world", mBinder.recurseDep2.getText().toString());
         assertEquals("Hello", mBinder.field1.getText().toString());
         assertEquals("World", mBinder.field2.getText().toString());
         assertEquals("Hello World 1", mBinder.combo.getText().toString());
@@ -87,5 +89,10 @@ public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
         mBinder.executePendingBindings();
 
         assertEquals("Goodbye-Cruel-World-zap", mBinder.combo2.getText().toString());
+
+        assertEquals("0", mBinder.stringVal.getText().toString());
+        obj.val.set(1);
+        mBinder.executePendingBindings();
+        assertEquals("1", mBinder.stringVal.getText().toString());
     }
 }

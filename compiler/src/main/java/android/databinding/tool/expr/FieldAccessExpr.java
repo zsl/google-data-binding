@@ -41,6 +41,7 @@ import com.google.common.collect.Lists;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class FieldAccessExpr extends MethodBaseExpr {
@@ -51,6 +52,8 @@ public class FieldAccessExpr extends MethodBaseExpr {
     boolean mIsViewAttributeAccess;
     boolean mIsMap;
     FieldAccessExpr[] mDependencies;
+    HashSet<FieldAccessExpr> mTransitiveDependencies = new HashSet<>();
+    HashSet<FieldAccessExpr> mDependents = new HashSet<>();
 
     FieldAccessExpr(Expr parent, String name) {
         super(parent, name);
@@ -170,30 +173,12 @@ public class FieldAccessExpr extends MethodBaseExpr {
      * it will contain an empty list.
      */
     public String[] getDirtyingProperties() {
-        String[] names = null;
+        String[] names;
         if (mDependencies != null) {
-            HashSet<FieldAccessExpr> dependencies = new HashSet<>();
-            resolveDependencies(dependencies);
-            for (FieldAccessExpr expr : dependencies) {
-                if (expr.mGetter == null) {
-                    L.e("Could not find dependent property '%s' referenced in "
-                                    + "@Bindable annotation on %s.%s",
-                            expr.getName(), expr.mGetter.method.getDeclaringClass().toJavaCode(),
-                            expr.mGetter.method.getName());
-                } else if (!expr.mGetter.canBeInvalidated()) {
-                    L.e("The dependent property '%s' referenced in @Bindable "
-                                    + "annotation on %s.%s must be annotated with "
-                                    + "@Bindable",
-                            expr.getName(), expr.mGetter.method.getDeclaringClass().toJavaCode(),
-                            expr.mGetter.method.getName());
-                }
-            }
-            dependencies.add(this);
-            names = new String[dependencies.size()];
-            int index = 0;
-            for (FieldAccessExpr dependency : dependencies) {
-                names[index++] = dependency.getBrName();
-            }
+            names = mTransitiveDependencies.stream()
+                    .map(dep -> dep.getBrName())
+                    .filter(brName -> brName != null)
+                    .toArray(size -> new String[size]);
         } else {
             String br = getBrName();
             if (br == null) {
@@ -232,6 +217,33 @@ public class FieldAccessExpr extends MethodBaseExpr {
                         mDependencies[i] = expr;
                         expr.getResolvedType(); // force it to resolve its dependencies as well
                     }
+
+                    resolveDependencies(mTransitiveDependencies);
+                    for (FieldAccessExpr expr : mTransitiveDependencies) {
+                        if (expr.mGetter == null) {
+                            L.e("Could not find dependent property '%s' referenced in "
+                                            + "@Bindable annotation on %s.%s",
+                                    expr.getName(),
+                                    expr.mGetter.method.getDeclaringClass().toJavaCode(),
+                                    expr.mGetter.method.getName());
+                        } else if (!expr.mGetter.canBeInvalidated()
+                                && !expr.getResolvedType().isObservableField()) {
+                            L.e("The dependent property '%s' referenced in @Bindable "
+                                            + "annotation on %s.%s must be annotated with "
+                                            + "@Bindable",
+                                    expr.getName(),
+                                    expr.mGetter.method.getDeclaringClass().toJavaCode(),
+                                    expr.mGetter.method.getName());
+                        } else {
+                            // Make sure we listen for changes
+                            getModel().bindingExpr(expr);
+                        }
+                    }
+                    for (FieldAccessExpr expr : mTransitiveDependencies) {
+                        expr.addBindableDependent(this);
+                    }
+                    mTransitiveDependencies.add(this);
+
                 } finally {
                     Scope.exit();
                 }
@@ -248,6 +260,19 @@ public class FieldAccessExpr extends MethodBaseExpr {
                 }
             }
         }
+    }
+
+    private void addBindableDependent(FieldAccessExpr expr) {
+        if (expr != this && !mDependents.contains(expr)) {
+            mDependents.add(expr);
+            for (FieldAccessExpr dep : mTransitiveDependencies) {
+                dep.addBindableDependent(expr);
+            }
+        }
+    }
+
+    public Set<FieldAccessExpr> getBindableDependents() {
+        return mDependents;
     }
 
     @Override
