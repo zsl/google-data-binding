@@ -16,12 +16,6 @@
 
 package android.databinding.annotationprocessor;
 
-import com.google.common.base.Joiner;
-
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.LayoutXmlProcessor;
@@ -29,8 +23,15 @@ import android.databinding.tool.reflection.SdkUtil;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.LoggedErrorException;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
+
+import com.google.common.base.Joiner;
+
+import org.apache.commons.io.Charsets;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -61,31 +62,39 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     public boolean onHandleStep(RoundEnvironment roundEnvironment,
             ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args)
             throws JAXBException {
-        ResourceBundle resourceBundle;
-        SdkUtil.initialize(args.getMinApi(), new File(args.getSdkDir()));
-        resourceBundle = new ResourceBundle(args.getModulePackage());
-        List<IntermediateV2> intermediateList = loadDependencyIntermediates();
-        for (Intermediate intermediate : intermediateList) {
-            try {
-                intermediate.appendTo(resourceBundle);
-            } catch (Throwable throwable) {
-                L.e(throwable, "unable to prepare resource bundle");
-            }
-        }
-
-        IntermediateV2 mine = createIntermediateFromLayouts(args.getXmlOutDir(),
-                intermediateList);
-        if (mine != null) {
-            mine.updateOverridden(resourceBundle);
-            intermediateList.add(mine);
-            saveIntermediate(processingEnvironment, args, mine);
-            mine.appendTo(resourceBundle);
-        }
-        // generate them here so that bindable parser can read
         try {
-            writeResourceBundle(resourceBundle, args);
-        } catch (Throwable t) {
-            L.e(t, "cannot generate view binders");
+            ResourceBundle resourceBundle;
+            SdkUtil.initialize(args.getMinApi(), new File(args.getSdkDir()));
+            resourceBundle = new ResourceBundle(args.getModulePackage());
+            List<IntermediateV2> intermediateList = loadDependencyIntermediates();
+            for (Intermediate intermediate : intermediateList) {
+                try {
+                    try {
+                        intermediate.appendTo(resourceBundle);
+                    } catch (Throwable throwable) {
+                        L.e(throwable, "unable to prepare resource bundle");
+                    }
+                } catch (LoggedErrorException e) {
+                    // This will be logged later
+                }
+            }
+
+            IntermediateV2 mine = createIntermediateFromLayouts(args.getXmlOutDir(),
+                    intermediateList);
+            if (mine != null) {
+                mine.updateOverridden(resourceBundle);
+                intermediateList.add(mine);
+                saveIntermediate(processingEnvironment, args, mine);
+                mine.appendTo(resourceBundle);
+            }
+            // generate them here so that bindable parser can read
+            try {
+                writeResourceBundle(resourceBundle, args);
+            } catch (Throwable t) {
+                L.e(t, "cannot generate view binders");
+            }
+        } catch (LoggedErrorException e) {
+            // This will be logged later
         }
         return true;
     }

@@ -55,6 +55,7 @@ public class ExpressionParser {
         BindingExpressionLexer lexer = new BindingExpressionLexer(inputStream);
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         final BindingExpressionParser parser = new BindingExpressionParser(tokenStream);
+        parser.getErrorListeners().clear();
         visitor.setBindingTarget(target);
         parser.addErrorListener(new BaseErrorListener() {
             @Override

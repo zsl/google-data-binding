@@ -20,6 +20,8 @@ import android.databinding.tool.processing.scopes.FileScopeProvider;
 import android.databinding.tool.processing.scopes.LocationScopeProvider;
 import android.databinding.tool.processing.scopes.ScopeProvider;
 import android.databinding.tool.store.Location;
+import android.databinding.tool.util.L;
+import android.databinding.tool.util.LoggedErrorException;
 import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
@@ -107,7 +109,7 @@ public class Scope {
                 messages.add(message);
             }
         }
-        throw new RuntimeException("Found data binding errors.\n" + sb.toString());
+        throw new LoggedErrorException("Found data binding errors.\n" + sb.toString());
     }
 
     static String produceScopeLog() {

@@ -20,8 +20,10 @@ import android.databinding.Bindable;
 import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef.BindableHolder;
 import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.LoggedErrorException;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.JavaFileWriter;
@@ -67,23 +69,27 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             Types typeUtils = processingEnv.getTypeUtils();
             for (Element element : AnnotationUtil
                     .getElementsAnnotatedWith(roundEnv, Bindable.class)) {
-                Element enclosingElement = element.getEnclosingElement();
-                ElementKind kind = enclosingElement.getKind();
-                if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
-                    L.e("Bindable must be on a member field or method. The enclosing type is %s",
-                            enclosingElement.getKind());
-                }
-                TypeElement enclosing = (TypeElement) enclosingElement;
-                if (!typeUtils.isAssignable(enclosing.asType(), observableType.asType())) {
-                    L.e("Bindable must be on a member in an Observable class. %s is not Observable",
-                            enclosingElement.getSimpleName());
-                }
-                String name = getPropertyName(element);
-                if (name != null) {
-                    Preconditions
-                            .checkNotNull(mProperties, "Must receive app / library info before "
-                                    + "Bindable fields.");
-                    mProperties.addProperty(enclosing.getQualifiedName().toString(), name);
+                try {
+                    Element enclosingElement = element.getEnclosingElement();
+                    ElementKind kind = enclosingElement.getKind();
+                    if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
+                        L.e("Bindable must be on a member field or method. The enclosing type is %s",
+                                enclosingElement.getKind());
+                    }
+                    TypeElement enclosing = (TypeElement) enclosingElement;
+                    if (!typeUtils.isAssignable(enclosing.asType(), observableType.asType())) {
+                        L.e("Bindable must be on a member in an Observable class. %s is not Observable",
+                                enclosingElement.getSimpleName());
+                    }
+                    String name = getPropertyName(element);
+                    if (name != null) {
+                        Preconditions
+                                .checkNotNull(mProperties, "Must receive app / library info before "
+                                        + "Bindable fields.");
+                        mProperties.addProperty(enclosing.getQualifiedName().toString(), name);
+                    }
+                } catch (LoggedErrorException e) {
+                    // We'll get them later when we do the messages
                 }
             }
             GenerationalClassUtil.writeIntermediateFile(mProperties.getPackage(),
@@ -113,30 +119,34 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
     }
 
     private void generateBRClasses(DataBindingCompilerArgs compilerArgs, String pkg) {
-        DataBindingCompilerArgs.Type artifactType = compilerArgs.artifactType();
-        L.d("************* Generating BR file %s. use final: %s", pkg, artifactType.name());
-        HashSet<String> properties = new HashSet<String>();
-        mProperties.captureProperties(properties);
-        Collection<Intermediate> previousIntermediates = loadPreviousBRFiles(pkg + ".BR");
-        for (Intermediate intermediate : previousIntermediates) {
-            intermediate.captureProperties(properties);
-        }
-        final JavaFileWriter writer = getWriter();
-        boolean useFinal = artifactType == DataBindingCompilerArgs.Type.APPLICATION
-                || compilerArgs.isTestVariant();
-        BRWriter brWriter = new BRWriter(properties, useFinal);
-        writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
-        // generate BR files for others only if we are compiling an app
-        // if we are compiling a test, we'll respect the application
-        if (compilerArgs.isApp() != compilerArgs.isTestVariant() ||
-                compilerArgs.isEnabledForTests()) {
-            // generate BR for all previous packages
+        try {
+            DataBindingCompilerArgs.Type artifactType = compilerArgs.artifactType();
+            L.d("************* Generating BR file %s. use final: %s", pkg, artifactType.name());
+            HashSet<String> properties = new HashSet<String>();
+            mProperties.captureProperties(properties);
+            Collection<Intermediate> previousIntermediates = loadPreviousBRFiles(pkg + ".BR");
             for (Intermediate intermediate : previousIntermediates) {
-                writer.writeToFile(intermediate.getPackage() + ".BR",
-                        brWriter.write(intermediate.getPackage()));
+                intermediate.captureProperties(properties);
             }
+            final JavaFileWriter writer = getWriter();
+            boolean useFinal = artifactType == DataBindingCompilerArgs.Type.APPLICATION
+                    || compilerArgs.isTestVariant();
+            BRWriter brWriter = new BRWriter(properties, useFinal);
+            writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
+            // generate BR files for others only if we are compiling an app
+            // if we are compiling a test, we'll respect the application
+            if (compilerArgs.isApp() != compilerArgs.isTestVariant() ||
+                    compilerArgs.isEnabledForTests()) {
+                // generate BR for all previous packages
+                for (Intermediate intermediate : previousIntermediates) {
+                    writer.writeToFile(intermediate.getPackage() + ".BR",
+                            brWriter.write(intermediate.getPackage()));
+                }
+            }
+            mCallback.onBrWriterReady(brWriter);
+        } catch (LoggedErrorException e) {
+            // This will be logged later
         }
-        mCallback.onBrWriterReady(brWriter);
     }
 
     private String getPropertyName(Element element) {

@@ -109,6 +109,7 @@ public class XmlEditor {
                 break;
             }
         }
+
         if (noTagRoot != null) {
             TagAndContext newRootTag = new TagAndContext(
                     noTagRoot.getTag() + rootAttributes.toString(), layoutNode);
@@ -344,6 +345,7 @@ public class XmlEditor {
         BindingExpressionLexer lexer = new BindingExpressionLexer(inputStream);
         CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         BindingExpressionParser parser = new BindingExpressionParser(tokenStream);
+        parser.getErrorListeners().clear();
         BindingExpressionParser.BindingSyntaxContext root = parser.bindingSyntax();
         BindingExpressionParser.DefaultsContext defaults = root
                 .accept(new BindingExpressionBaseVisitor<BindingExpressionParser.DefaultsContext>() {

@@ -18,6 +18,7 @@ package android.databinding.tool.util;
 
 import android.databinding.tool.DataBindingBuilder;
 import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.processing.ScopedException;
 
 import com.android.annotations.Nullable;
 
@@ -138,21 +139,25 @@ public class GenerationalClassUtil {
         ObjectOutputStream oos = null;
         OutputStream ios = null;
         try {
-            Preconditions.checkNotNull(sIncrementalOutDir, "incremental out directory should be"
-                    + " set to aar output directory.");
-            //noinspection ResultOfMethodCallIgnored
-            sIncrementalOutDir.mkdirs();
-            File out = new File(sIncrementalOutDir, packageName + "-" + fileName);
-            ios = new FileOutputStream(out);
-            oos = new ObjectOutputStream(ios);
-            oos.writeObject(object);
-            oos.close();
-            L.d("wrote intermediate bindable file %s %s", packageName, fileName);
-        } catch (IOException e) {
-            L.e(e, "Could not write to intermediate file: %s", fileName);
-        } finally {
-            IOUtils.closeQuietly(oos);
-            IOUtils.closeQuietly(ios);
+            try {
+                Preconditions.checkNotNull(sIncrementalOutDir, "incremental out directory should be"
+                        + " set to aar output directory.");
+                //noinspection ResultOfMethodCallIgnored
+                sIncrementalOutDir.mkdirs();
+                File out = new File(sIncrementalOutDir, packageName + "-" + fileName);
+                ios = new FileOutputStream(out);
+                oos = new ObjectOutputStream(ios);
+                oos.writeObject(object);
+                oos.close();
+                L.d("wrote intermediate bindable file %s %s", packageName, fileName);
+            } catch (IOException e) {
+                L.e(e, "Could not write to intermediate file: %s", fileName);
+            } finally {
+                IOUtils.closeQuietly(oos);
+                IOUtils.closeQuietly(ios);
+            }
+        } catch (LoggedErrorException e) {
+            // This will be logged later, so don't worry about it
         }
     }
 

@@ -16,14 +16,19 @@
 
 package android.databinding.tool.util;
 
-import android.databinding.tool.processing.ScopedErrorReport;
 import android.databinding.tool.processing.ScopedException;
-import android.databinding.tool.processing.scopes.LocationScopeProvider;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import javax.tools.Diagnostic.Kind;
 
@@ -111,6 +116,10 @@ public class L {
                 fullMsg + " " + getStackTrace(t));
     }
 
+    public static void flushMessages() {
+        sClient.flushMessages();
+    }
+
     private static void printMessage(Element element, Diagnostic.Kind kind, String message) {
         if (kind == Kind.WARNING) {
             // try to convert it to a scoped message
@@ -122,7 +131,7 @@ public class L {
         }
         sClient.printMessage(kind, message, element);
         if (kind == Diagnostic.Kind.ERROR) {
-            throw new RuntimeException("failure, see logs for details.\n" + message);
+            throw new LoggedErrorException("failure, see logs for details.\n" + message);
         }
     }
 
@@ -132,6 +141,7 @@ public class L {
 
     public interface Client {
         void printMessage(Diagnostic.Kind kind, String message, Element element);
+        default void flushMessages() {}
     }
 
     private static String getStackTrace(Throwable t) {

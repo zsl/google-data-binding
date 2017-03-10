@@ -86,7 +86,10 @@ public class ProcessDataBinding extends AbstractProcessor {
                 step.onProcessingOver(roundEnv, processingEnv, mCompilerArgs);
             }
         }
-        Scope.assertNoError();
+        if (roundEnv.processingOver()) {
+            L.flushMessages();
+            Scope.assertNoError();
+        }
         return done;
     }
 
