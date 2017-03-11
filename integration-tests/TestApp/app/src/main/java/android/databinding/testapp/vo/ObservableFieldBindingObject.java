@@ -39,7 +39,70 @@ public class ObservableFieldBindingObject {
     public final ObservableDouble dField = new ObservableDouble();
     public final ObservableParcelable<MyParcelable> pField;
     public final ObservableField<String> oField = new ObservableField<>();
+/*
+    public final ObservableField<String> oDep = new ObservableField<String>(oField) {
+        @Override
+        public String get() {
+            return oField.get() + " dependency";
+        }
+    };
 
+    public final ObservableBoolean bDep = new ObservableBoolean(bField) {
+        @Override
+        public boolean get() {
+            return !bField.get();
+        }
+    };
+
+    public final ObservableByte tDep = new ObservableByte(tField) {
+        @Override
+        public byte get() {
+            return (byte)(tField.get() + 1);
+        }
+    };
+
+    public final ObservableShort sDep = new ObservableShort(sField) {
+        @Override
+        public short get() {
+            return (short)(sField.get() + 1);
+        }
+    };
+
+    public final ObservableChar cDep = new ObservableChar(cField) {
+        @Override
+        public char get() {
+            return cField.get() == '+' ? '-' : '+';
+        }
+    };
+
+    public final ObservableInt iDep = new ObservableInt(iField) {
+        @Override
+        public int get() {
+            return iField.get() + 1;
+        }
+    };
+
+    public final ObservableLong lDep = new ObservableLong(lField) {
+        @Override
+        public long get() {
+            return lField.get() + 1;
+        }
+    };
+
+    public final ObservableFloat fDep = new ObservableFloat(fField) {
+        @Override
+        public float get() {
+            return fField.get() + 1;
+        }
+    };
+
+    public final ObservableDouble dDep = new ObservableDouble(dField) {
+        @Override
+        public double get() {
+            return dField.get() + 1;
+        }
+    };
+*/
     public ObservableFieldBindingObject() {
         oField.set("Hello");
         MyParcelable myParcelable = new MyParcelable(3, "abc");

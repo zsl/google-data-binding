@@ -23,18 +23,24 @@ import java.io.Serializable;
 /**
  * An observable class that holds a primitive float.
  * <p>
- * Observable field classes may be used instead of creating an Observable object:
+ * Observable field classes may be used instead of creating an Observable object. It can also
+ * create a calculated field, depending on other fields:
  * <pre><code>public class MyDataObject {
- *     public final ObservableFloat temperature = new ObservableFloat();
+ *     public final ObservableFloat temperatureC = new ObservableFloat();
+ *     public final ObservableFloat temperatureF = new ObservableFloat(temperatureC) {
+ *         &#64;Override
+ *         public float get() { return (temperatureC.get() * 9 / 5) + 32; }
+ *     };
  * }</code></pre>
  * Fields of this type should be declared final because bindings only detect changes in the
  * field's value, not of the field itself.
  * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
- * data binding framework always re-registers callbacks when the view is bound.
+ * data binding framework always re-registers callbacks when the view is bound. A parceled
+ * ObservableField will lose its dependencies.
  */
-public class ObservableFloat extends BaseObservable implements Parcelable, Serializable {
+public class ObservableFloat extends BaseObservableField implements Parcelable, Serializable {
     static final long serialVersionUID = 1L;
     private float mValue;
 
@@ -51,6 +57,17 @@ public class ObservableFloat extends BaseObservable implements Parcelable, Seria
      * Creates an ObservableFloat with the initial value of <code>0f</code>.
      */
     public ObservableFloat() {
+    }
+
+    /**
+     * Creates an ObservableFloat that depends on {@code dependencies}. Typically,
+     * {@link ObservableField}s are passed as dependencies. When any dependency
+     * notifies changes, this ObservableFloat also notifies a change.
+     *
+     * @param dependencies The Observables that this ObservableFloat depends on.
+     */
+    public ObservableFloat(Observable... dependencies) {
+        super(dependencies);
     }
 
     /**

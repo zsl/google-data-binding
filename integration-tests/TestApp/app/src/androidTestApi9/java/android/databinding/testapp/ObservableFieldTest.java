@@ -42,101 +42,110 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 
     @UiThreadTest
     public void testBoolean() {
-        TextView view = mBinder.bField;
-        assertEquals("false", view.getText());
+        assertEquals("false", mBinder.bField.getText());
+//        assertEquals("true", mBinder.bDep.getText());
 
         mObj.bField.set(true);
         mBinder.executePendingBindings();
 
-        assertEquals("true", view.getText());
+        assertEquals("true", mBinder.bField.getText());
+//        assertEquals("false", mBinder.bDep.getText());
     }
 
     @UiThreadTest
     public void testByte() {
-        TextView view = mBinder.tField;
-        assertEquals("0", view.getText());
+        assertEquals("0", mBinder.tField.getText());
+//        assertEquals("1", mBinder.tDep.getText());
 
         mObj.tField.set((byte) 1);
         mBinder.executePendingBindings();
 
-        assertEquals("1", view.getText());
+        assertEquals("1", mBinder.tField.getText());
+//        assertEquals("2", mBinder.tDep.getText());
     }
 
     @UiThreadTest
     public void testShort() {
-        TextView view = mBinder.sField;
-        assertEquals("0", view.getText());
+        assertEquals("0", mBinder.sField.getText());
+//        assertEquals("1", mBinder.sDep.getText());
 
         mObj.sField.set((short) 1);
         mBinder.executePendingBindings();
 
-        assertEquals("1", view.getText());
+        assertEquals("1", mBinder.sField.getText());
+//        assertEquals("2", mBinder.sDep.getText());
     }
 
     @UiThreadTest
     public void testChar() {
-        TextView view = mBinder.cField;
-        assertEquals("\u0000", view.getText());
+        assertEquals("\u0000", mBinder.cField.getText());
+//        assertEquals("+", mBinder.cDep.getText());
 
-        mObj.cField.set('A');
+        mObj.cField.set('+');
         mBinder.executePendingBindings();
 
-        assertEquals("A", view.getText());
+        assertEquals("+", mBinder.cField.getText());
+//        assertEquals("-", mBinder.cDep.getText());
     }
 
     @UiThreadTest
     public void testInt() {
-        TextView view = mBinder.iField;
-        assertEquals("0", view.getText());
+        assertEquals("0", mBinder.iField.getText());
+//        assertEquals("1", mBinder.iDep.getText());
 
         mObj.iField.set(1);
         mBinder.executePendingBindings();
 
-        assertEquals("1", view.getText());
+        assertEquals("1", mBinder.iField.getText());
+//        assertEquals("2", mBinder.iDep.getText());
     }
 
     @UiThreadTest
     public void testLong() {
-        TextView view = mBinder.lField;
-        assertEquals("0", view.getText());
+        assertEquals("0", mBinder.lField.getText());
+//        assertEquals("1", mBinder.lDep.getText());
 
         mObj.lField.set(1);
         mBinder.executePendingBindings();
 
-        assertEquals("1", view.getText());
+        assertEquals("1", mBinder.lField.getText());
+//        assertEquals("2", mBinder.lDep.getText());
     }
 
     @UiThreadTest
     public void testFloat() {
-        TextView view = mBinder.fField;
-        assertEquals("0.0", view.getText());
+        assertEquals("0.0", mBinder.fField.getText());
+//        assertEquals("1.0", mBinder.fDep.getText());
 
         mObj.fField.set(1);
         mBinder.executePendingBindings();
 
-        assertEquals("1.0", view.getText());
+        assertEquals("1.0", mBinder.fField.getText());
+//        assertEquals("2.0", mBinder.fDep.getText());
     }
 
     @UiThreadTest
     public void testDouble() {
-        TextView view = mBinder.dField;
-        assertEquals("0.0", view.getText());
+        assertEquals("0.0", mBinder.dField.getText());
+//        assertEquals("1.0", mBinder.dDep.getText());
 
         mObj.dField.set(1);
         mBinder.executePendingBindings();
 
-        assertEquals("1.0", view.getText());
+        assertEquals("1.0", mBinder.dField.getText());
+//        assertEquals("2.0", mBinder.dDep.getText());
     }
 
     @UiThreadTest
     public void testObject() {
-        TextView view = mBinder.oField;
-        assertEquals("Hello", view.getText());
+        assertEquals("Hello", mBinder.oField.getText());
+//        assertEquals("Hello dependency", mBinder.oDep.getText());
 
         mObj.oField.set("World");
         mBinder.executePendingBindings();
 
-        assertEquals("World", view.getText());
+        assertEquals("World", mBinder.oField.getText());
+//        assertEquals("World dependency", mBinder.oDep.getText());
     }
 
     @UiThreadTest

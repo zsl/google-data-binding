@@ -23,19 +23,25 @@ import java.io.Serializable;
 /**
  * An observable class that holds a primitive int.
  * <p>
- * Observable field classes may be used instead of creating an Observable object:
+ * Observable field classes may be used instead of creating an Observable object. It can also
+ * create a calculated field, depending on other fields:
  * <pre><code>public class MyDataObject {
  *     public final ObservableField&lt;String&gt; name = new ObservableField&lt;String&gt;();
  *     public final ObservableInt age = new ObservableInt();
+ *     public final ObservableInt birthdayCount = new ObservableInt(age) {
+ *         &#64;Override
+ *         public int get() { return age.get() + 1; }
+ *     };
  * }</code></pre>
  * Fields of this type should be declared final because bindings only detect changes in the
  * field's value, not of the field itself.
  * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
- * data binding framework always re-registers callbacks when the view is bound.
+ * data binding framework always re-registers callbacks when the view is bound. An parceled
+ * ObservableInt will lose its dependencies.
  */
-public class ObservableInt extends BaseObservable implements Parcelable, Serializable {
+public class ObservableInt extends BaseObservableField implements Parcelable, Serializable {
     static final long serialVersionUID = 1L;
     private int mValue;
 
@@ -52,6 +58,17 @@ public class ObservableInt extends BaseObservable implements Parcelable, Seriali
      * Creates an ObservableInt with the initial value of <code>0</code>.
      */
     public ObservableInt() {
+    }
+
+    /**
+     * Creates an ObservableInt that depends on {@code dependencies}. Typically,
+     * {@link ObservableField}s are passed as dependencies. When any dependency
+     * notifies changes, this ObservableInt also notifies a change.
+     *
+     * @param dependencies The Observables that this ObservableInt depends on.
+     */
+    public ObservableInt(Observable... dependencies) {
+        super(dependencies);
     }
 
     /**

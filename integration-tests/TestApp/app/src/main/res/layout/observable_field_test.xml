@@ -100,6 +100,52 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Hello"/>
-
+<!--
+        <TextView
+            android:id="@+id/bDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`` + obj.bDep}"/>
+        <TextView
+            android:id="@+id/tDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`` + obj.tDep}"/>
+        <TextView
+            android:id="@+id/sDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`` + obj.sDep}"/>
+        <TextView
+            android:id="@+id/cDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`` + obj.cDep}"/>
+        <TextView
+            android:id="@+id/iDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`` + obj.iDep}"/>
+        <TextView
+            android:id="@+id/lDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`` + obj.lDep}"/>
+        <TextView
+            android:id="@+id/fDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`` + obj.fDep}"/>
+        <TextView
+            android:id="@+id/dDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{`` + obj.dDep}"/>
+        <TextView
+            android:id="@+id/oDep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{obj.oDep}"/>
+            -->
     </LinearLayout>
 </layout>

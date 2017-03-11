@@ -23,18 +23,25 @@ import java.io.Serializable;
 /**
  * An observable class that holds a primitive byte.
  * <p>
- * Observable field classes may be used instead of creating an Observable object:
+ * Observable field classes may be used instead of creating an Observable object. It can also
+ * create a calculated field, depending on other fields:
  * <pre><code>public class MyDataObject {
  *     public final ObservableByte flags = new ObservableByte();
+ *     public final ObservableByte otherFlags = new ObservableByte();
+ *     public final ObservableByte mergedFlags = new ObservableByte(flags, otherFlags) {
+ *         &#64;Override
+ *         public byte get() { return flags.get() | otherFlags.get(); }
+ *     };
  * }</code></pre>
  * Fields of this type should be declared final because bindings only detect changes in the
  * field's value, not of the field itself.
  * <p>
  * This class is parcelable and serializable but callbacks are ignored when the object is
  * parcelled / serialized. Unless you add custom callbacks, this will not be an issue because
- * data binding framework always re-registers callbacks when the view is bound.
+ * data binding framework always re-registers callbacks when the view is bound. A parceled
+ * ObservableByte will lose its dependencies.
  */
-public class ObservableByte extends BaseObservable implements Parcelable, Serializable {
+public class ObservableByte extends BaseObservableField implements Parcelable, Serializable {
     static final long serialVersionUID = 1L;
     private byte mValue;
 
@@ -51,6 +58,17 @@ public class ObservableByte extends BaseObservable implements Parcelable, Serial
      * Creates an ObservableByte with the initial value of <code>0</code>.
      */
     public ObservableByte() {
+    }
+
+    /**
+     * Creates an ObservableByte that depends on {@code dependencies}. Typically,
+     * {@link ObservableField}s are passed as dependencies. When any dependency
+     * notifies changes, this ObservableByte also notifies a change.
+     *
+     * @param dependencies The Observables that this ObservableByte depends on.
+     */
+    public ObservableByte(Observable... dependencies) {
+        super(dependencies);
     }
 
     /**
