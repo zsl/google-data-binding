@@ -39,7 +39,7 @@ public class ObservableFieldBindingObject {
     public final ObservableDouble dField = new ObservableDouble();
     public final ObservableParcelable<MyParcelable> pField;
     public final ObservableField<String> oField = new ObservableField<>();
-
+/*
     public final ObservableField<String> oDep = new ObservableField<String>(oField) {
         @Override
         public String get() {
@@ -102,7 +102,7 @@ public class ObservableFieldBindingObject {
             return dField.get() + 1;
         }
     };
-
+*/
     public ObservableFieldBindingObject() {
         oField.set("Hello");
         MyParcelable myParcelable = new MyParcelable(3, "abc");

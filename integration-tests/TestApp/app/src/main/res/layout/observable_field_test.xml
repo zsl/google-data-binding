@@ -100,7 +100,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Hello"/>
-
+<!--
         <TextView
             android:id="@+id/bDep"
             android:layout_width="wrap_content"
@@ -146,5 +146,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{obj.oDep}"/>
+            -->
     </LinearLayout>
 </layout>
