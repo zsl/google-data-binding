@@ -199,6 +199,7 @@ public class MethodCallExpr extends Expr {
      * with the arguments. Always prefer an exact signature match. If multiple match, we'll just
      * choose the (arbitrarily) first matching method.
      */
+    @Override
     protected void unwrapObservableFieldChildren() {
         // unwrap the target
         unwrapChildTo(0, null);

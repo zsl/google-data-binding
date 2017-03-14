@@ -81,6 +81,7 @@ public class ListenerExpr extends Expr {
         return dependencies;
     }
 
+    @Override
     protected String computeUniqueKey() {
         return join(getTarget(), "::", mName, "(", getResolvedType().getCanonicalName(), ")");
     }

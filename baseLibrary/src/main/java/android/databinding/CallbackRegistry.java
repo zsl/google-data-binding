@@ -372,6 +372,7 @@ public class CallbackRegistry<C, T, A> implements Cloneable {
     /**
      * @return A copy of the CallbackRegistry with all callbacks listening to both instances.
      */
+    @Override
     @SuppressWarnings("unchecked")
     public synchronized CallbackRegistry<C, T, A> clone() {
         CallbackRegistry<C, T, A> clone = null;

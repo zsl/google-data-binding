@@ -49,6 +49,7 @@ public class BuiltInVariableExpr extends IdentifierExpr {
         }
     }
 
+    @Override
     public boolean isDeclared() {
         return false;
     }

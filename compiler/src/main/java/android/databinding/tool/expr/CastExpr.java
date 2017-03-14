@@ -45,6 +45,7 @@ public class CastExpr extends Expr {
         return dependencies;
     }
 
+    @Override
     protected String computeUniqueKey() {
         return join("(", mType, ")", getCastExpr());
     }

@@ -1648,6 +1648,7 @@ public class SetterStore {
                     mConverter.type + "." + mConverter.method + "(" + valueExpression + ")";
         }
 
+        @Override
         abstract public int getMinApi();
 
         public void setCast(ModelClass castTo) {

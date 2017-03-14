@@ -78,6 +78,7 @@ public class MergedBinding extends Binding {
         args.injectSafeUnboxingForParams(exprModel, params);
     }
 
+    @Override
     public Expr[] getComponentExpressions() {
         ArgListExpr args = (ArgListExpr) getExpr();
         return args.getChildren().toArray(new Expr[args.getChildren().size()]);

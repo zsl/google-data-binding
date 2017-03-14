@@ -91,6 +91,7 @@ public class BracketExpr extends Expr {
         return dependencies;
     }
 
+    @Override
     protected String computeUniqueKey() {
         return join(getTarget() + "[" + getArg() + "]");
     }
