@@ -103,7 +103,6 @@ public class ResourceBundle implements Serializable {
                             if (target.getId() == null) {
                                 unboundIncludes.add(target);
                             } else {
-                                target.setIncludedLayout(null);
                                 target.setInterfaceType("android.view.View");
                                 target.mViewName = "android.view.View";
                             }
@@ -792,7 +791,7 @@ public class ResourceBundle implements Serializable {
         }
 
         public boolean isBinder() {
-            return mIncludedLayout != null;
+            return mIncludedLayout != null && (!"android.view.View".equals(mInterfaceType) || !"android.view.View".equals(mViewName));
         }
 
         public void setInterfaceType(String interfaceType) {

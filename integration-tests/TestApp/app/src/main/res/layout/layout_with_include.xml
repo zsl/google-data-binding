@@ -67,12 +67,13 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
 
-            <FrameLayout android:layout_width="wrap_content"
+            <LinearLayout android:layout_width="wrap_content"
                          android:layout_height="wrap_content">
                 <!-- an included layout with just an id -->
                 <include android:id="@+id/includedPlainLayout" layout="@layout/plain_layout"
                     android:visibility="@{visibility}"/>
-            </FrameLayout>
+                <include android:id="@+id/includedMergeLayout" layout="@layout/plain_merge"/>
+            </LinearLayout>
             <include
                 android:id="@+id/trackedInclude"
                 layout="@layout/include_tracker"
