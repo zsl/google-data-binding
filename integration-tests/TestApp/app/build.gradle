@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.android.databinding.testapp"
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion dataBindingConfig.targetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -34,12 +34,9 @@ android {
         // TODO get rid of this after jack's build flavor implementation is fixed
         incremental = !dataBindingConfig.useJack
     }
-    productFlavors {
-        api9 {
-            minSdkVersion 9
-        }
-        api14 {
-            minSdkVersion 14
+    sourceSets {
+        androidTest {
+            java.srcDirs = ["src/androidTest", "src/androidTestApi9"]
         }
     }
 }
