@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:kotlin.bzl", "kotlin_java_library")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_java_library", "maven_pom")
 load("//tools/base/bazel:utils.bzl", "merged_properties")
 
@@ -147,12 +147,14 @@ iml_module(
 )
 
 # TODO: Use the right version of kotlin-compiler.
-kotlin_java_library(
+kotlin_library(
     name = "tools.compiler",
-    java_dir = "compiler/src/main/java",
-    kotlin_dir = "compiler/src/main/kotlin",
+    srcs = [
+        "compiler/src/main/java",
+        "compiler/src/main/kotlin",
+    ],
     pom = ":compiler.pom",
-    resources_dir = "compiler/src/main/resources",
+    resources = glob(["compiler/src/main/resources/**"]),
     visibility = ["//visibility:public"],
     deps = [
         ":tools.baseLibrary",
