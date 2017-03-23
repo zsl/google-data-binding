@@ -352,6 +352,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             } else {
                 classDeclaration = "$className extends android.databinding.ViewDataBinding"
             }
+            nl("@SuppressWarnings(\"unchecked\")")
             block("public class $classDeclaration ${buildImplements()}") {
                 nl(declareIncludeViews())
                 nl(declareViews())
