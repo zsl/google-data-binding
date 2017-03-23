@@ -124,7 +124,7 @@ public class BindingTarget implements LocationScopeProvider {
     }
 
     public boolean isBinder() {
-        return getIncludedLayout() != null;
+        return mBundle.isBinder();
     }
 
     public boolean supportsTag() {

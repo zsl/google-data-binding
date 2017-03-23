@@ -406,8 +406,16 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         val taggedViews = layoutBinder.bindingTargets.filter{
             it.isUsed && it.tag != null && !it.isBinder
         }
-        taggedViews.forEach {
+        taggedViews.filter {
+            it.includedLayout == null
+        }.forEach {
             indices.put(it, indexFromTag(it.tag))
+        }
+        // put any included layouts after the normal views
+        taggedViews.filter {
+            it.includedLayout != null
+        }.forEach {
+            indices.put(it, maxIndex() + 1)
         }
         val indexStart = maxIndex() + 1
         layoutBinder.bindingTargets.filter{
@@ -462,7 +470,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
             }
             val viewsWithIds = layoutBinder.bindingTargets.filter {
-                it.isUsed && !it.isBinder && (!it.supportsTag() || (it.id != null && it.tag == null))
+                it.isUsed && !it.isBinder && (!it.supportsTag() || (it.id != null && (it.tag == null || it.includedLayout != null)))
             }
             if (viewsWithIds.isEmpty()) {
                 tab("sViewsWithIds = null;")
@@ -548,7 +556,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             tagValue = "this.${it.fieldName}.getResources().getString($packageName.R.string.$resourceId)"
                         }
                     }
-                    tab("this.${it.fieldName}.setTag($tagValue);")
+                    if (it.includedLayout == null) {
+                        tab("this.${it.fieldName}.setTag($tagValue);")
+                    }
                 } else if (it.tag != null && !it.tag.startsWith("binding_") &&
                     it.originalTag != null) {
                     L.e(ErrorMessages.ROOT_TAG_NOT_SUPPORTED, it.originalTag)
