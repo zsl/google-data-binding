@@ -76,9 +76,12 @@ public class DataBinder {
                     if (mWrittenClasses.contains(canonicalName)) {
                         continue;
                     }
+
+                    List<LayoutBinder> variations = getVariations(mLayoutBinders, canonicalName);
+
                     L.d("writing data binder base %s", canonicalName);
                     mFileWriter.writeToFile(canonicalName,
-                            layoutBinder.writeViewBinderBaseClass(isLibrary));
+                            layoutBinder.writeViewBinderBaseClass(isLibrary, variations));
                     mWrittenClasses.add(canonicalName);
                 }
             } catch (ScopedException ex){
@@ -87,6 +90,18 @@ public class DataBinder {
                 Scope.exit();
             }
         }
+    }
+
+    private static List<LayoutBinder> getVariations(List<LayoutBinder> mLayoutBinders, String canonicalName) {
+        List<LayoutBinder> variations = new ArrayList<>();
+        for (LayoutBinder layoutBinder : mLayoutBinders) {
+            String className = layoutBinder.getClassName();
+            String name = layoutBinder.getPackage() + "." + className;
+            if (name.equals(canonicalName)) {
+                variations.add(layoutBinder);
+            }
+        }
+        return variations;
     }
 
     public void writeBinders(int minSdk) {
