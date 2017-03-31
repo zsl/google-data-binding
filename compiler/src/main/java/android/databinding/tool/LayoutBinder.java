@@ -340,9 +340,9 @@ public class LayoutBinder implements FileScopeProvider {
         mExprModel.seal();
     }
 
-    public String writeViewBinderBaseClass(boolean forLibrary) {
+    public String writeViewBinderBaseClass(boolean forLibrary, List<LayoutBinder> variations) {
         ensureWriter();
-        return mWriter.writeBaseClass(forLibrary);
+        return mWriter.writeBaseClass(forLibrary, variations);
     }
 
     public String writeViewBinder(int minSdk) {
