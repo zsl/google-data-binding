@@ -513,7 +513,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         if (layoutBinder.hasVariations()) {
             nl("")
             nl("public $className(@Nullable android.databinding.DataBindingComponent bindingComponent, @NonNull $parameterType root) {") {
-                tab("this(bindingComponent, $superParam, mapBindings(bindingComponent, root, $bindingCount, sIncludes, sViewsWithIds));")
+                tab("this(bindingComponent, root, mapBindings(bindingComponent, root, $bindingCount, sIncludes, sViewsWithIds));")
             }
             nl("}")
             nl("private $className(android.databinding.DataBindingComponent bindingComponent, $parameterType root, Object[] bindings) {") {
