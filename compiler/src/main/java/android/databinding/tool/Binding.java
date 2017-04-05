@@ -159,6 +159,9 @@ public class Binding implements LocationScopeProvider {
                 if (warn && mSetterCall != null) {
                     L.w(ErrorMessages.OBSERVABLE_FIELD_USE, mSetterCall.getDescription());
                 }
+                if (mSetterCall == null && viewType != null && viewType.isViewDataBinding()) {
+                    mSetterCall = new SimpleSetterCall(SetterStore.getDefaultSetter(mName));
+                }
             }
         }
     }
@@ -372,6 +375,53 @@ public class Binding implements LocationScopeProvider {
         @Override
         public String getDescription() {
             return mWrappedCall.getDescription();
+        }
+    }
+
+    private static class SimpleSetterCall extends SetterCall {
+        private String mMethodName;
+
+        public SimpleSetterCall(String methodName) {
+            mMethodName = methodName;
+        }
+
+        @Override
+        public String toJavaInternal(String componentExpression, String viewExpression,
+                String valueExpression) {
+            return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
+        }
+
+        @Override
+        public String toJavaInternal(String componentExpression, String viewExpression,
+                String oldValue, String valueExpression) {
+            return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
+        }
+
+        @Override
+        public int getMinApi() {
+            return 1;
+        }
+
+        @Override
+        public boolean requiresOldValue() {
+            return false;
+        }
+
+        @Override
+        public ModelClass[] getParameterTypes() {
+            return new ModelClass[] {
+                    ModelAnalyzer.getInstance().findClass(Object.class)
+            };
+        }
+
+        @Override
+        public String getBindingAdapterInstanceClass() {
+            return null;
+        }
+
+        @Override
+        public String getDescription() {
+            return "view." + mMethodName;
         }
     }
 

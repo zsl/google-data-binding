@@ -18,6 +18,7 @@
         <variable name="innerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
         <variable name="innerValue" type="java.lang.String"/>
         <variable name="map" type="ObservableArrayMap&lt;String, String&gt;"/>
+        <variable name="observableInt" type="android.databinding.ObservableInt"/>
     </data>
     <LinearLayout
             android:orientation="vertical"

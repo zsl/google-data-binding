@@ -25,6 +25,7 @@ import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -758,10 +759,7 @@ public class SetterStore {
             }
         }
         if (setterCall == null) {
-            if (viewType != null && !viewType.isViewDataBinding()) {
-                return null; // no setter found!!
-            }
-            setterCall = new DummySetter(getDefaultSetter(attribute));
+            return null; // no setter found!!
         }
         setterCall.setConverter(conversionMethod);
         return setterCall;
@@ -974,7 +972,8 @@ public class SetterStore {
         return colonIndex == -1 ? attribute : attribute.substring(colonIndex + 1);
     }
 
-    private static String getDefaultSetter(String attribute) {
+    @NotNull
+    public static String getDefaultSetter(String attribute) {
         return "set" + StringUtils.capitalize(trimAttributeNamespace(attribute));
     }
 
@@ -1446,53 +1445,6 @@ public class SetterStore {
         @Override
         public Intermediate upgrade() {
             return this;
-        }
-    }
-
-    public static class DummySetter extends SetterCall {
-        private String mMethodName;
-
-        public DummySetter(String methodName) {
-            mMethodName = methodName;
-        }
-
-        @Override
-        public String toJavaInternal(String componentExpression, String viewExpression,
-                String valueExpression) {
-            return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
-        }
-
-        @Override
-        public String toJavaInternal(String componentExpression, String viewExpression,
-                String oldValue, String valueExpression) {
-            return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
-        }
-
-        @Override
-        public int getMinApi() {
-            return 1;
-        }
-
-        @Override
-        public boolean requiresOldValue() {
-            return false;
-        }
-
-        @Override
-        public ModelClass[] getParameterTypes() {
-            return new ModelClass[] {
-                    ModelAnalyzer.getInstance().findClass(Object.class)
-            };
-        }
-
-        @Override
-        public String getBindingAdapterInstanceClass() {
-            return null;
-        }
-
-        @Override
-        public String getDescription() {
-            return "view." + mMethodName;
         }
     }
 
