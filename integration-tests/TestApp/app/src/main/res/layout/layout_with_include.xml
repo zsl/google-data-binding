@@ -19,7 +19,6 @@
         <variable name="outerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
         <variable name="map" type="ObservableArrayMap&lt;String, String&gt;"/>
         <variable name="visibility" type="int"/>
-        <variable name="observableInt" type="android.databinding.ObservableInt"/>
     </data>
     <FrameLayout
             android:layout_width="match_parent"
@@ -37,7 +36,6 @@
                      bind:innerValue="@{`modified ` + outerObject.intValue}"
                      bind:map="@{map}"
                      android:visibility="@{visibility}"
-                     app:observableInt="@{observableInt}"
                     />
 
             <!-- Add custom layout that adds its own inflated view -->
