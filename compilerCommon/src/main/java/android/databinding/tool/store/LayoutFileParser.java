@@ -89,6 +89,20 @@ public class LayoutFileParser {
         }
     }
 
+    public static boolean stripSingleLayoutFile(File layoutFile, File outputFile)
+            throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        String encoding = LayoutFileParser.findEncoding(layoutFile);
+        String noExt = ParserHelper.stripExtension(layoutFile.getName());
+        String binderId = layoutFile.getParentFile().getName() + '/' + noExt;
+        String res = XmlEditor.strip(layoutFile, binderId, encoding);
+        if (res != null) {
+            FileUtils.writeStringToFile(outputFile, res, encoding);
+            return true;
+        }
+        return false;
+    }
+
     private ResourceBundle.LayoutFileBundle parseOriginalXml(final File original, String pkg,
             String encoding) throws IOException {
         try {
