@@ -620,37 +620,33 @@ public class ResourceBundle implements Serializable {
             return mAbsoluteFilePath;
         }
 
-        private static ThreadLocal<Marshaller> sMarshaller = new ThreadLocal<>();
-        private static ThreadLocal<Unmarshaller> sUmarshaller = new ThreadLocal<>();
+        private static final Marshaller sMarshaller;
+        private static final Unmarshaller sUnmarshaller;
+
+        static {
+            try {
+                JAXBContext context = JAXBContext.newInstance(LayoutFileBundle.class);
+                sMarshaller = context.createMarshaller();
+                sMarshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+                sUnmarshaller = context.createUnmarshaller();
+            } catch (JAXBException e) {
+                throw new RuntimeException("Cannot create the xml marshaller", e);
+            }
+        }
 
         public String toXML() throws JAXBException {
             StringWriter writer = new StringWriter();
-            getMarshaller().marshal(this, writer);
-            return writer.getBuffer().toString();
-        }
-
-        public static LayoutFileBundle fromXML(InputStream inputStream) throws JAXBException {
-            return (LayoutFileBundle) getUnmarshaller().unmarshal(inputStream);
-        }
-
-        private static Marshaller getMarshaller() throws JAXBException {
-            if (sMarshaller.get() == null) {
-                JAXBContext context = JAXBContext
-                        .newInstance(ResourceBundle.LayoutFileBundle.class);
-                Marshaller marshaller = context.createMarshaller();
-                sMarshaller.set(marshaller);
-                marshaller.setProperty(Marshaller.JAXB_ENCODING, "utf-8");
+            synchronized (sMarshaller) {
+                sMarshaller.marshal(this, writer);
+                return writer.getBuffer().toString();
             }
-            return sMarshaller.get();
         }
 
-        private static Unmarshaller getUnmarshaller() throws JAXBException {
-            if (sUmarshaller.get() == null) {
-                JAXBContext context = JAXBContext
-                        .newInstance(ResourceBundle.LayoutFileBundle.class);
-                sUmarshaller.set(context.createUnmarshaller());
+        public static LayoutFileBundle fromXML(InputStream inputStream)
+                throws JAXBException {
+            synchronized (sUnmarshaller) {
+                return (LayoutFileBundle) sUnmarshaller.unmarshal(inputStream);
             }
-            return sUmarshaller.get();
         }
     }
 
