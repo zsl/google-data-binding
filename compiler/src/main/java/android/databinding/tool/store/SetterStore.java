@@ -757,13 +757,10 @@ public class SetterStore {
                 setterCall.setCast(bestValueType);
             }
         }
-        if (setterCall == null) {
-            if (viewType != null && !viewType.isViewDataBinding()) {
-                return null; // no setter found!!
-            }
-            setterCall = new DummySetter(getDefaultSetter(attribute));
+
+        if (setterCall != null) {
+            setterCall.setConverter(conversionMethod);
         }
-        setterCall.setConverter(conversionMethod);
         return setterCall;
     }
 
@@ -867,7 +864,7 @@ public class SetterStore {
                 }
             }
         }
-        setterCandidates.add(getDefaultSetter(attribute));
+        setterCandidates.add(getSetterName(attribute));
         setterCandidates.add(trimAttributeNamespace(attribute));
 
         ModelMethod bestMethod = null;
@@ -912,7 +909,7 @@ public class SetterStore {
                         boolean isBetterViewType = bestViewType == null ||
                                 bestViewType.isAssignableFrom(methodViewType);
                         final InverseDescription inverseDescription = inverseMethods.get(className);
-                        final String name =  inverseDescription.method.isEmpty() ?
+                        final String name = inverseDescription.method.isEmpty() ?
                                 trimAttributeNamespace(attribute) : inverseDescription.method;
                         ModelMethod method = methodViewType.findInstanceGetter(name);
                         ModelClass returnType = method.getReturnType(null); // no parameters
@@ -974,7 +971,7 @@ public class SetterStore {
         return colonIndex == -1 ? attribute : attribute.substring(colonIndex + 1);
     }
 
-    private static String getDefaultSetter(String attribute) {
+    private static String getSetterName(String attribute) {
         return "set" + StringUtils.capitalize(trimAttributeNamespace(attribute));
     }
 
@@ -1449,11 +1446,14 @@ public class SetterStore {
         }
     }
 
-    public static class DummySetter extends SetterCall {
-        private String mMethodName;
 
-        public DummySetter(String methodName) {
+    public static class SimpleSetterCall extends SetterCall {
+        private final String mMethodName;
+        private final ModelClass mParameterType;
+
+        public SimpleSetterCall(String methodName, ModelClass parameterType) {
             mMethodName = methodName;
+            mParameterType = parameterType;
         }
 
         @Override
@@ -1480,9 +1480,7 @@ public class SetterStore {
 
         @Override
         public ModelClass[] getParameterTypes() {
-            return new ModelClass[] {
-                    ModelAnalyzer.getInstance().findClass(Object.class)
-            };
+            return new ModelClass[] { mParameterType };
         }
 
         @Override

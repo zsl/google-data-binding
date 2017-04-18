@@ -148,7 +148,7 @@ public class Binding implements LocationScopeProvider {
                     mExpr = expr;
                 } else {
                     // No setter for the contents of the ObservableField.
-                    // If we find one for the ObservbleField, we should warn.
+                    // If we find one for the ObservableField, we should warn.
                     warn = true;
                 }
             }
