@@ -704,63 +704,63 @@ public class SetterStore {
 
     public SetterCall getSetterCall(String attribute, ModelClass viewType,
             ModelClass valueType, Map<String, String> imports) {
+        if (viewType == null) {
+            return null;
+        }
+
+        viewType = viewType.erasure();
         attribute = stripNamespace(attribute);
+        ModelClass bestViewType = null;
+        ModelClass bestValueType = null;
         SetterCall setterCall = null;
-        MethodDescription conversionMethod = null;
-        if (viewType != null) {
-            viewType = viewType.erasure();
-            HashMap<AccessorKey, MethodDescription> adapters = mStore.adapterMethods.get(attribute);
-            ModelMethod bestSetterMethod = getBestSetter(viewType, valueType, attribute, imports);
-            ModelClass bestViewType = null;
-            ModelClass bestValueType = null;
-            if (bestSetterMethod != null) {
-                bestViewType = bestSetterMethod.getReceiverType();
-                bestValueType = bestSetterMethod.getParameterTypes()[0];
-                setterCall = new ModelMethodSetter(bestSetterMethod);
-            }
+        ModelMethod bestSetterMethod = getBestSetter(viewType, valueType, attribute, imports);
+        if (bestSetterMethod != null) {
+            bestViewType = bestSetterMethod.getReceiverType();
+            bestValueType = bestSetterMethod.getParameterTypes()[0];
+            setterCall = new ModelMethodSetter(bestSetterMethod);
+        }
 
-            if (adapters != null) {
-                for (AccessorKey key : adapters.keySet()) {
-                    try {
-                        ModelClass adapterViewType = mClassAnalyzer
-                                .findClass(key.viewType, imports).erasure();
-                        if (adapterViewType != null && adapterViewType.isAssignableFrom(viewType)) {
-                            try {
-                                L.d("setter parameter type is %s", key.valueType);
-                                final ModelClass adapterValueType = eraseType(mClassAnalyzer
-                                        .findClass(key.valueType, imports));
-                                L.d("setter %s takes type %s, compared to %s",
-                                        adapters.get(key).method, adapterValueType.toJavaCode(),
-                                        valueType.toJavaCode());
-                                boolean isBetterView = bestViewType == null ||
-                                        bestViewType.isAssignableFrom(adapterViewType);
-                                if (isBetterParameter(valueType, adapterValueType, bestValueType,
-                                        isBetterView, imports)) {
-                                    bestViewType = adapterViewType;
-                                    bestValueType = adapterValueType;
-                                    MethodDescription adapter = adapters.get(key);
-                                    setterCall = new AdapterSetter(adapter, adapterValueType);
-                                }
-
-                            } catch (Exception e) {
-                                L.e(e, "Unknown class: %s", key.valueType);
+        HashMap<AccessorKey, MethodDescription> adapters = mStore.adapterMethods.get(attribute);
+        if (adapters != null) {
+            for (AccessorKey key : adapters.keySet()) {
+                try {
+                    ModelClass adapterViewType =
+                            mClassAnalyzer.findClass(key.viewType, imports).erasure();
+                    if (adapterViewType != null && adapterViewType.isAssignableFrom(viewType)) {
+                        try {
+                            L.d("setter parameter type is %s", key.valueType);
+                            final ModelClass adapterValueType = eraseType(mClassAnalyzer
+                                    .findClass(key.valueType, imports));
+                            L.d("setter %s takes type %s, compared to %s",
+                                    adapters.get(key).method, adapterValueType.toJavaCode(),
+                                    valueType.toJavaCode());
+                            boolean isBetterView = bestViewType == null ||
+                                    bestViewType.isAssignableFrom(adapterViewType);
+                            if (isBetterParameter(valueType, adapterValueType, bestValueType,
+                                    isBetterView, imports)) {
+                                bestViewType = adapterViewType;
+                                bestValueType = adapterValueType;
+                                MethodDescription adapter = adapters.get(key);
+                                setterCall = new AdapterSetter(adapter, adapterValueType);
                             }
+                        } catch (Exception e) {
+                            L.e(e, "Unknown class: %s", key.valueType);
                         }
-                    } catch (Exception e) {
-                        L.e(e, "Unknown class: %s", key.viewType);
                     }
+                } catch (Exception e) {
+                    L.e(e, "Unknown class: %s", key.viewType);
                 }
-            }
-
-            conversionMethod = getConversionMethod(valueType, bestValueType, imports);
-            if (valueType.isObject() && setterCall != null && bestValueType.isNullable()) {
-                setterCall.setCast(bestValueType);
             }
         }
 
         if (setterCall != null) {
+            if (valueType.isObject() && bestValueType.isNullable()) {
+                setterCall.setCast(bestValueType);
+            }
+            MethodDescription conversionMethod = getConversionMethod(valueType, bestValueType, imports);
             setterCall.setConverter(conversionMethod);
         }
+
         return setterCall;
     }
 
@@ -1443,54 +1443,6 @@ public class SetterStore {
         @Override
         public Intermediate upgrade() {
             return this;
-        }
-    }
-
-
-    public static class SimpleSetterCall extends SetterCall {
-        private final String mMethodName;
-        private final ModelClass mParameterType;
-
-        public SimpleSetterCall(String methodName, ModelClass parameterType) {
-            mMethodName = methodName;
-            mParameterType = parameterType;
-        }
-
-        @Override
-        public String toJavaInternal(String componentExpression, String viewExpression,
-                String valueExpression) {
-            return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
-        }
-
-        @Override
-        public String toJavaInternal(String componentExpression, String viewExpression,
-                String oldValue, String valueExpression) {
-            return viewExpression + "." + mMethodName + "(" + valueExpression + ")";
-        }
-
-        @Override
-        public int getMinApi() {
-            return 1;
-        }
-
-        @Override
-        public boolean requiresOldValue() {
-            return false;
-        }
-
-        @Override
-        public ModelClass[] getParameterTypes() {
-            return new ModelClass[] { mParameterType };
-        }
-
-        @Override
-        public String getBindingAdapterInstanceClass() {
-            return null;
-        }
-
-        @Override
-        public String getDescription() {
-            return "view." + mMethodName;
         }
     }
 
