@@ -17,6 +17,13 @@
     <data>
         <variable name="objectInDefault" type="android.databinding.testapp.vo.NotBindableVo"/>
         <variable name="objectInBoth" type="Object"/>
+        <variable name="innerObservableInt" type="android.databinding.ObservableInt"/>
+        <variable name="innerPlainInt1" type="int"/>
+        <variable name="innerPlainInt2" type="int"/>
+        <variable name="innerPlainInt3" type="int"/>
+        <variable name="innerBoxedInt1" type="java.lang.Integer"/>
+        <variable name="innerBoxedInt2" type="java.lang.Integer"/>
+        <variable name="innerBoxedInt3" type="java.lang.Integer"/>
     </data>
     <LinearLayout
             android:orientation="vertical"

@@ -108,13 +108,8 @@ public class BindingTarget implements LocationScopeProvider {
 
     public ModelClass getResolvedType() {
         if (mResolvedClass == null) {
-            if (mBundle.isBinder()) {
-                mResolvedClass = ModelAnalyzer.getInstance().
-                        findClass(mBundle.getInterfaceType(), mModel.getImports());
-            } else {
-                mResolvedClass = ModelAnalyzer.getInstance().findClass(mBundle.getFullClassName(),
-                        mModel.getImports());
-            }
+            mResolvedClass = ModelAnalyzer.getInstance().findClass(mBundle.getFullClassName(),
+                    mModel.getImports());
         }
         return mResolvedClass;
     }
