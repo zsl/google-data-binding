@@ -58,6 +58,10 @@ class LocalizeDependenciesTask extends DefaultTask {
 
     Set<String> failed = new HashSet<>();
 
+    HashMap<String, Object> licenses = new HashMap<>();
+
+    Set<String> missingLicenses = new HashSet<>();
+
     File localRepoDir;
 
     @TaskAction
@@ -77,6 +81,12 @@ class LocalizeDependenciesTask extends DefaultTask {
         }
         localRepoDir = extension.localRepoDir
         downloadAll(extension.localRepoDir, extension.otherRepoDirs)
+
+        if (!missingLicenses.isEmpty()) {
+            throw new RuntimeException("Missing licenses for $missingLicenses")
+        }
+        println("List of new licenses:")
+        println(ExportLicensesTask.buildNotice(licenses))
     }
 
     public void add(MavenDependencyCollectorTask task, ModuleVersionIdentifier id, Configuration conf) {
@@ -96,10 +106,7 @@ class LocalizeDependenciesTask extends DefaultTask {
     public downloadAll(File localRepoDir, List<String> otherRepoDirs) {
         println("downloading all dependencies to $localRepoDir")
         def mavenCentral = new RemoteRepository.Builder("central", "default",
-                "https://central.maven.org/maven2/").build();
-        def jcenter = new RemoteRepository.Builder("jcenter", "default",
-                "http://jcenter.bintray.com/").build();
-        println("repositories: $mavenCentral, $jcenter")
+                "http://central.maven.org/maven2/").build();
         def system = newRepositorySystem()
         localRepoDir = localRepoDir.canonicalFile
         List<File> otherRepos = new ArrayList<>()
@@ -110,11 +117,7 @@ class LocalizeDependenciesTask extends DefaultTask {
             }
         }
         def session = newRepositorySystemSession(system, localRepoDir)
-        ids.findAll {
-            !it.startsWith("android.arch") &&
-                    !it.startsWith("android.support") &&
-                    !it.startsWith("com.android")
-        }.each {
+        ids.each {
             def artifact = new DefaultArtifact(it)
             artifactsToResolve.add(artifact)
         }
@@ -127,8 +130,7 @@ class LocalizeDependenciesTask extends DefaultTask {
                 println("skipping $artifact")
                 continue
             }
-            resolveArtifactWithDependencies(system, session, Arrays.asList(mavenCentral, jcenter)
-                    , artifact);
+            resolveArtifactWithDependencies(system, session, Arrays.asList(mavenCentral), artifact);
         }
     }
 
@@ -179,8 +181,7 @@ class LocalizeDependenciesTask extends DefaultTask {
         try {
             resolved = system.resolveArtifact(session, artifactRequest);
         } catch (Throwable ignored) {
-            println("cannot find $key, skipping: $ignored")
-            ignored.printStackTrace()
+            println("cannot find $key, skipping")
             failed.add(key)
             return
         }
@@ -188,6 +189,15 @@ class LocalizeDependenciesTask extends DefaultTask {
         println("         |-> resolved ${resolved.artifact.file}. Already in git? $alreadyInGit")
 
 
+
+        if (!alreadyInGit) {
+            def license = ExportLicensesTask.findLicenseFor(resolved.artifact.artifactId)
+            if (license == null) {
+                missingLicenses.add(artifactKey(artifact))
+            } else {
+                licenses.put(resolved.artifact.artifactId, license)
+            }
+        }
 
         ArtifactDescriptorRequest descriptorRequest = new ArtifactDescriptorRequest();
         descriptorRequest.setArtifact(artifact);

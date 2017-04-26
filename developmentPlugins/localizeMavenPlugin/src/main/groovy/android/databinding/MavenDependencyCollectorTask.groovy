@@ -56,9 +56,6 @@ class MavenDependencyCollectorTask extends DefaultTask {
     }
 
     void resolveDirectDependencies(Configuration conf) {
-        if (!conf.isCanBeResolved()) {
-            return
-        }
         conf.getResolvedConfiguration().getResolvedArtifacts().each {
             localizeTask.add(this, it.getModuleVersion().id, conf)
         }
