@@ -31,7 +31,7 @@ import javax.annotation.processing.ProcessingEnvironment;
  * Processor, ClassLoader, and an Android Studio plugin.
  */
 public abstract class ModelAnalyzer {
-
+    public static final String GENERATED_ANNOTATION = "javax.annotation.Generated";
     public static final String[] LIST_CLASS_NAMES = {
             "java.util.List",
             "android.util.SparseArray",
@@ -82,6 +82,11 @@ public abstract class ModelAnalyzer {
     private ModelClass[] mObservableFieldTypes;
     private ModelClass mViewBindingType;
     private ModelClass mViewStubType;
+
+    /**
+     * If it is present, we annotate generated classes with @Generated.
+     */
+    private Boolean mHasGeneratedAnnotation;
 
     private static ModelAnalyzer sAnalyzer;
     private final Map<String, InjectedClass> mInjectedClasses =
@@ -356,4 +361,13 @@ public abstract class ModelAnalyzer {
             return modelClass.erasure();
         }
     }
+
+    public final boolean hasGeneratedAnnotation() {
+        if (mHasGeneratedAnnotation == null) {
+            mHasGeneratedAnnotation = findGeneratedAnnotation();
+        }
+        return mHasGeneratedAnnotation;
+    }
+
+    protected abstract boolean findGeneratedAnnotation();
 }

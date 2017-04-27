@@ -31,6 +31,7 @@ class BindingMapperWriter(var pkg : String, var className: String, val layoutBin
         nl("package $pkg;")
         nl("import ${compilerArgs.modulePackage}.BR;")
         val extends = if (generateAsTest) "extends $appClassName" else ""
+        annotateWithGenerated()
         block("class $className $extends") {
             nl("final static int TARGET_MIN_SDK = ${compilerArgs.minApi};")
             if (generateTestOverride) {
