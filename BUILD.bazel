@@ -127,6 +127,7 @@ iml_module(
         "compiler/src/main/java",
         "compiler/src/main/kotlin",
     ],
+    javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     resources = ["compiler/src/main/resources"],
     tags = ["managed"],
     test_data = [
@@ -153,6 +154,7 @@ kotlin_library(
         "compiler/src/main/java",
         "compiler/src/main/kotlin",
     ],
+    javacopts = ["-Xep:MissingCasesInEnumSwitch:WARN"],
     pom = ":compiler.pom",
     resources = glob(["compiler/src/main/resources/**"]),
     visibility = ["//visibility:public"],
