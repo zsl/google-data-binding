@@ -156,6 +156,26 @@ task copySamplesToEap(type : Copy) {
     into "${dataBindingConfig.eapOutDir}/samples"
 }
 
+task updateGradleVersion() {
+    doLast {
+        // development task to update gradle version in sub projects
+        def props = new Properties()
+        props.put("distributionBase", "GRADLE_USER_HOME")
+        props.put("distributionPath", "wrapper/dists")
+        props.put("zipStoreBase", "GRADLE_USER_HOME")
+        props.put("zipStorePath", "wrapper/dists")
+        def distributionFile = file(project.projectDir.absolutePath
+                + "/../../tools/external/gradle/${dataBindingConfig.gradleVersion}")
+        println distributionFile.absolutePath
+        fileTree(dir: project.projectDir,
+                include: "**/gradle-wrapper.properties").each {
+            def relPath= it.parentFile.toPath().relativize( distributionFile.toPath() ).toString()
+            props.put("distributionUrl", relPath)
+            def writer = it.newWriter()
+            props.store(writer, "generated via updateGradleVersion task")
+        }
+    }
+}
 
 task copyMavenRepoToEap(type : Copy) {
     mustRunAfter deleteEap
