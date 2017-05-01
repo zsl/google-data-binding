@@ -162,9 +162,11 @@ public class AnnotationTypeUtil extends TypeUtil {
                 return toJava((IntersectionType) typeMirror);
             case ERROR:
                 return mTypes.asElement(typeMirror).getSimpleName().toString();
+            case OTHER:
+                throw new IllegalArgumentException(
+                  "Unexpected TypeMirror kind " + typeMirror.getKind() + ": " + typeMirror);
         }
-        throw new IllegalArgumentException("Unexpected TypeMirror kind " +
-                typeMirror.getKind() + ": " + typeMirror);
+        throw new AssertionError(typeMirror.getKind());
     }
 
     private String toJava(ArrayType arrayType) {
@@ -282,7 +284,20 @@ public class AnnotationTypeUtil extends TypeUtil {
                 case ENUM_CONSTANT:
                 case FIELD:
                     return toJava(enclosing) + '.' + element.getSimpleName();
+                case ANNOTATION_TYPE:
+                case PARAMETER:
+                case LOCAL_VARIABLE:
+                case EXCEPTION_PARAMETER:
+                case METHOD:
+                case CONSTRUCTOR:
+                case STATIC_INIT:
+                case INSTANCE_INIT:
+                case TYPE_PARAMETER:
+                case OTHER:
+                case RESOURCE_VARIABLE:
+                    return element.getSimpleName().toString();
             }
+            throw new AssertionError(enclosing.getKind());
         }
         return element.getSimpleName().toString();
     }
