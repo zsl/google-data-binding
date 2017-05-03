@@ -363,7 +363,7 @@ class AnnotationClass extends ModelClass {
             List<VariableElement> fields = ElementFilter.fieldsIn(members);
             declaredFields = new ModelField[fields.size()];
             for (int i = 0; i < declaredFields.length; i++) {
-                declaredFields[i] = new AnnotationField(typeElement, fields.get(i));
+                declaredFields[i] = new AnnotationField(declaredType, fields.get(i));
             }
         } else {
             declaredFields = new ModelField[0];

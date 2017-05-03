@@ -15,8 +15,12 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:bind="http://schemas.android.com/apk/res-auto">
     <data>
-        <variable name="list" type="java.util.List&lt;String>"/>
+        <import type="java.util.List"/>
+        <import type="android.databinding.testapp.vo.GenericContainer"/>
+        <import type="android.databinding.testapp.vo.BasicObject"/>
+        <variable name="list" type="List&lt;String>"/>
         <variable name="arr" type="String[]"/>
+        <variable name="container" type="GenericContainer&lt;BasicObject>"/>
     </data>
     <LinearLayout
             android:orientation="vertical"
@@ -59,5 +63,15 @@
                 bind:textList3="@{list}"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/textView8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{container.val.field1}"/>
+        <TextView
+            android:id="@+id/textView9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{container.val2.field1}"/>
     </LinearLayout>
 </layout>

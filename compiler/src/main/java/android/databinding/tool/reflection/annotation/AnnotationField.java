@@ -20,16 +20,18 @@ import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelField;
 
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Types;
 
 class AnnotationField extends ModelField {
 
     final VariableElement mField;
 
-    final TypeElement mDeclaredClass;
+    final DeclaredType mDeclaredClass;
 
-    public AnnotationField(TypeElement declaredClass, VariableElement field) {
+    public AnnotationField(DeclaredType declaredClass, VariableElement field) {
         mDeclaredClass = declaredClass;
         mField = field;
     }
@@ -66,7 +68,9 @@ class AnnotationField extends ModelField {
 
     @Override
     public ModelClass getFieldType() {
-        return new AnnotationClass(mField.asType());
+        Types typeUtils = AnnotationAnalyzer.get().getTypeUtils();
+        TypeMirror type = typeUtils.asMemberOf(mDeclaredClass, mField);
+        return new AnnotationClass(type);
     }
 
     @Override
@@ -78,8 +82,10 @@ class AnnotationField extends ModelField {
     public boolean equals(Object obj) {
         if (obj instanceof AnnotationField) {
             AnnotationField that = (AnnotationField) obj;
-            return mDeclaredClass.equals(that.mDeclaredClass) && AnnotationAnalyzer.get()
-                    .getTypeUtils().isSameType(mField.asType(), that.mField.asType());
+            Types typeUtils = AnnotationAnalyzer.get().getTypeUtils();
+            return typeUtils.isSameType(mDeclaredClass, that.mDeclaredClass)
+                    && typeUtils.isSameType(mField.asType(), that.mField.asType())
+                    && mField.getSimpleName().equals(that.mField.getSimpleName());
         } else {
             return false;
         }
