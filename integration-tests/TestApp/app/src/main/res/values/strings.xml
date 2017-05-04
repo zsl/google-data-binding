@@ -21,4 +21,5 @@
     </plurals>
     <string name="zero">there are <b>zero</b></string>
     <string name="more">there are <b>more</b></string>
+    <string name="count">%1$d</string>
 </resources>
