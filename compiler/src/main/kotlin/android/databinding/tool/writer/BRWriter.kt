@@ -24,6 +24,7 @@ class BRWriter(properties: Set<String>, val useFinal : Boolean) {
     val klass: String by lazy {
         kcode("") {
             val prefix = if (useFinal) "final " else "";
+            annotateWithGenerated()
             block("public class BR") {
                 tab("public static ${prefix}int _all = 0;")
                 indexedProps.forEach {

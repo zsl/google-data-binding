@@ -11,6 +11,7 @@ class DynamicUtilWriter() {
         nl("import android.os.Build.VERSION_CODES;")
         nl("import android.databinding.BindingConversion;")
         nl("")
+        annotateWithGenerated()
         block("public class DynamicUtil") {
             val analyzer = ModelAnalyzer.getInstance();
             ModelClass.UNBOX_MAPPING.forEach {

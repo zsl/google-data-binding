@@ -74,6 +74,15 @@ public class JavaAnalyzer extends ModelAnalyzer {
     }
 
     @Override
+    protected boolean findGeneratedAnnotation() {
+        try {
+            return Class.forName(GENERATED_ANNOTATION) != null;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    @Override
     public ModelClass findClassInternal(String className, Map<String, String> imports) {
         // TODO handle imports
         JavaClass loaded = mClassCache.get(className);

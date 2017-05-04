@@ -355,6 +355,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 classDeclaration = "$className extends android.databinding.ViewDataBinding"
             }
             nl("@SuppressWarnings(\"unchecked\")")
+            annotateWithGenerated()
             block("public class $classDeclaration ${buildImplements()}") {
                 nl(declareIncludeViews())
                 nl(declareViews())
@@ -695,6 +696,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     }
 
     fun declareSetVariable() = kcode("") {
+        nl("@Override")
         nl("public boolean setVariable(int variableId, @Nullable Object variable) {") {
             tab("switch(variableId) {") {
                 variables.forEach {
@@ -1249,6 +1251,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             nl("import android.databinding.ViewDataBinding;")
             nl("import android.support.annotation.NonNull;")
             nl("import android.support.annotation.Nullable;")
+            annotateWithGenerated()
             nl("public abstract class $baseClassName extends ViewDataBinding {")
             layoutBinder.sortedTargets.filter{it.id != null}.forEach {
                 if (variations.count{lb -> lb.sortedTargets.any {bt -> bt.isUsed && bt.id == it.id && bt.includedLayout == null}} == variations.size) {
