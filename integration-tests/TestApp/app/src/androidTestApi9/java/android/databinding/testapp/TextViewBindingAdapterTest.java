@@ -235,7 +235,7 @@ public class TextViewBindingAdapterTest
         assertEquals(mBindingObject.isTextAllCaps(), view.getTransformationMethod() != null);
         if (view.getTransformationMethod() != null) {
             assertEquals("ALL CAPS",
-                    view.getTransformationMethod().getTransformation("all caps", view));
+                    view.getTransformationMethod().getTransformation("all caps", view).toString());
         }
     }
 

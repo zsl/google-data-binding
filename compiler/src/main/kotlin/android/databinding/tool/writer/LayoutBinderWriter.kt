@@ -96,8 +96,10 @@ class ExprModelExt {
         if (scope == Scope.CALLBACK || scope == Scope.EXECUTE_PENDING_METHOD) {
             candidate = candidate.decapitalize()
         }
+        val checkFields = scope != Scope.METHOD
         var i = 0
-        while (usedFieldNames[scope]!!.contains(candidate)) {
+        while (usedFieldNames[scope]!!.contains(candidate)
+                || (checkFields && usedFieldNames[Scope.FIELD]!!.contains(candidate))) {
             i ++
             candidate = candidateBase + i
         }
