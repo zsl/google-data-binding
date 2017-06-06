@@ -81,7 +81,7 @@ prepareExtensionPrebuilds.args 'clean', 'preparePrebuilds', '--info', '--stacktr
 prepareExtensionPrebuilds.dependsOn subprojects.uploadArchives
 
 file('integration-tests').listFiles().findAll { it.isDirectory() }.each {
-    println("Creating run test task for  ${it.getAbsolutePath()}.")
+    logger.info("Creating run test task for  ${it.getAbsolutePath()}.")
     def testTask = project.tasks.create "runTestsOf${it.getName().capitalize()}", Exec
     testTask.workingDir it.getAbsolutePath()
     //on linux

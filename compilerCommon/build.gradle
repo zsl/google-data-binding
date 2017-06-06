@@ -74,7 +74,7 @@ tasks.create(name : 'exportBuildVersions').doLast {
     props.put("baseLibrary", rootProject.findProject("dataBinding:baseLibrary").version)
     props.put("extensions", dataBindingConfig.extensionsVersion)
     buildVersionFile.getParentFile().mkdirs()
-    println("writing build versions file to $buildVersionFile")
+    logger.info("writing build versions file to $buildVersionFile")
     def propText = new StringBuilder();
     props.each {
         propText.append(it.key).append("=").append(it.value).append(System.getProperty("line.separator"))

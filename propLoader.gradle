@@ -50,7 +50,7 @@ ext.dataBindingConfig.externalPrebuiltsBase = "${root}/../../prebuilts"
 
 ext.dataBindingConfig.useJack=getBooleanValue("CUSTOM_JACK", "com.android.build.gradle.integratonTest.useJack", false)
 
-println "USE jack: ${ext.dataBindingConfig.useJack}"
+logger.info("USE jack: ${ext.dataBindingConfig.useJack}")
 databindingProperties.megaRepoDir = "${databindingProperties.externalPrebuiltsBase}/tools/common/m2/repository"
 
 new File(ext.dataBindingConfig.mavenRepoDir).mkdir()
