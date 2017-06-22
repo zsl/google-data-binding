@@ -897,6 +897,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         }
         if (unwrapped != null) {
             child.getParents().remove(this);
+            unwrapped.getParents().add(this);
             mChildren.set(childIndex, unwrapped);
         }
     }

@@ -39,6 +39,7 @@ public class ObservableFieldBindingObject {
     public final ObservableDouble dField = new ObservableDouble();
     public final ObservableParcelable<MyParcelable> pField;
     public final ObservableField<String> oField = new ObservableField<>();
+    public final ObservableField<User> mField = new ObservableField<>();
 /*
     public final ObservableField<String> oDep = new ObservableField<String>(oField) {
         @Override
@@ -107,6 +108,13 @@ public class ObservableFieldBindingObject {
         oField.set("Hello");
         MyParcelable myParcelable = new MyParcelable(3, "abc");
         pField = new ObservableParcelable(myParcelable);
+
+        User user = new User();
+        user.setName("name");
+        User friend = new User();
+        friend.setName("friend name");
+        user.setFriend(friend);
+        mField.set(user);
     }
 
     public static class MyParcelable implements Parcelable {

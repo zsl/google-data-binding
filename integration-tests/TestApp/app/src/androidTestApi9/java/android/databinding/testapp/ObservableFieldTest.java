@@ -16,7 +16,7 @@ package android.databinding.testapp;
 import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.ObservableFieldTestBinding;
 import android.databinding.testapp.vo.ObservableFieldBindingObject;
-
+import android.databinding.testapp.vo.User;
 import android.test.UiThreadTest;
 import android.widget.TextView;
 
@@ -187,6 +187,54 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         mBinder.executePendingBindings();
         assertTrue(mBinder.nestedObservableView.isEnabled());
         assertEquals(mObj.oField.get(), mBinder.nestedObservableView.getText().toString());
+    }
+
+    @UiThreadTest
+    public void testModelObject() {
+        TextView view = mBinder.mFieldModel;
+        assertEquals("name", view.getText());
+
+        User newUser = new User();
+        newUser.setName("new name");
+        mObj.mField.set(newUser);
+        mBinder.executePendingBindings();
+
+        assertEquals("new name", view.getText());
+    }
+
+    @UiThreadTest
+    public void testModelProperty() {
+        TextView view = mBinder.mFieldModel;
+        assertEquals("name", view.getText());
+
+        mObj.mField.get().setName("change name");
+        mBinder.executePendingBindings();
+
+        assertEquals("change name", view.getText());
+    }
+
+    @UiThreadTest
+    public void testNestedModelObject() {
+        TextView view = mBinder.mFieldNestedModel;
+        assertEquals("friend name", view.getText());
+
+        User newFriend = new User();
+        newFriend.setName("new friend name");
+        mObj.mField.get().setFriend(newFriend);
+        mBinder.executePendingBindings();
+
+        assertEquals("new friend name", view.getText());
+    }
+
+    @UiThreadTest
+    public void testNestedModelProperty() {
+        TextView view = mBinder.mFieldNestedModel;
+        assertEquals("friend name", view.getText());
+
+        mObj.mField.get().getFriend().setName("change friend name");
+        mBinder.executePendingBindings();
+
+        assertEquals("change friend name", view.getText());
     }
 
     /**
