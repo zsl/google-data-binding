@@ -24,16 +24,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 
 public class GeneratedLayoutTest extends AndroidTestCase {
-    public void testBindToGeneratedLayout() {
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        View view = inflater.inflate(R.layout.library_layout, null);
-        // force override tag
-        view.setTag("layout-sw600dp-land-v13/library_layout_0");
-        ViewDataBinding bind = DataBindingUtil.bind(view);
-        assertEquals("IndependentLibraryBindingSw600dpLandV13Impl",
-                bind.getClass().getSimpleName());
-    }
-
     public void testBindToDefault() {
         LayoutInflater inflater = LayoutInflater.from(getContext());
         View view = inflater.inflate(R.layout.library_layout, null);
