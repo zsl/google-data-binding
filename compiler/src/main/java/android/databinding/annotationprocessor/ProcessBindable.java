@@ -120,6 +120,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
 
     private void generateBRClasses(DataBindingCompilerArgs compilerArgs, String pkg) {
         try {
+            Set<String> written = new HashSet<>();
             DataBindingCompilerArgs.Type artifactType = compilerArgs.artifactType();
             L.d("************* Generating BR file %s. use final: %s", pkg, artifactType.name());
             HashSet<String> properties = new HashSet<String>();
@@ -132,15 +133,19 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             boolean useFinal = artifactType == DataBindingCompilerArgs.Type.APPLICATION
                     || compilerArgs.isTestVariant();
             BRWriter brWriter = new BRWriter(properties, useFinal);
+            // bazel has duplicate package names so we need to avoid overwriting BR files.
             writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
+            written.add(pkg);
             // generate BR files for others only if we are compiling an app
             // if we are compiling a test, we'll respect the application
             if (compilerArgs.isApp() != compilerArgs.isTestVariant() ||
                     compilerArgs.isEnabledForTests()) {
                 // generate BR for all previous packages
                 for (Intermediate intermediate : previousIntermediates) {
-                    writer.writeToFile(intermediate.getPackage() + ".BR",
-                            brWriter.write(intermediate.getPackage()));
+                    if (written.add(intermediate.getPackage())) {
+                        writer.writeToFile(intermediate.getPackage() + ".BR",
+                                brWriter.write(intermediate.getPackage()));
+                    }
                 }
             }
             mCallback.onBrWriterReady(brWriter);
