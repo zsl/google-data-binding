@@ -216,7 +216,7 @@ public class LayoutBinder implements FileScopeProvider {
             for (BindingTarget bindingTarget : mBindingTargets) {
                 try {
                     Scope.enter(bindingTarget.mBundle);
-                    final String className = getPackage() + "." + getClassName();
+                    final String implName = getPackage() + "." + getImplementationName();
                     for (BindingTargetBundle.BindingBundle bindingBundle : bindingTarget.mBundle
                             .getBindingBundleList()) {
                         try {
@@ -227,7 +227,7 @@ public class LayoutBinder implements FileScopeProvider {
                             bindingTarget.addBinding(bindingBundle.getName(), expr);
                             if (bindingBundle.isTwoWay()) {
                                 bindingTarget.addInverseBinding(bindingBundle.getName(), expr,
-                                        className);
+                                        implName);
                             }
                         } finally {
                             Scope.exit();

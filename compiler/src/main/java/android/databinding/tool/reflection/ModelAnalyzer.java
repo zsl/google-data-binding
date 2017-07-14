@@ -245,33 +245,6 @@ public abstract class ModelAnalyzer {
         return injectedClass;
     }
 
-    public ModelClass injectViewDataBinding(String className, Map<String, String> variables,
-            Map<String, String> fields, Map<String, String> imports) {
-        InjectedClass injectedClass = new InjectedClass(className,
-                ModelAnalyzer.VIEW_DATA_BINDING);
-
-        if (fields != null) {
-            for (String name : fields.keySet()) {
-                String type = fields.get(name);
-                injectedClass.addField(new InjectedField(name, type));
-            }
-        }
-        if (variables != null) {
-            for (String name : variables.keySet()) {
-                String type = variables.get(name);
-                String capName = StringUtils.capitalize(name);
-                String setName = "set" + capName;
-                String getName = "get" + capName;
-                injectedClass.addMethod(
-                        new InjectedMethod(injectedClass, false, getName, imports, type));
-                injectedClass.addMethod(new InjectedMethod(injectedClass, false, setName, imports,
-                        "void", type));
-            }
-        }
-        mInjectedClasses.put(className, injectedClass);
-        return injectedClass;
-    }
-
     ModelClass[] getListTypes() {
         if (mListTypes == null) {
             mListTypes = new ModelClass[LIST_CLASS_NAMES.length];

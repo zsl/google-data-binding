@@ -16,6 +16,8 @@
 
 package android.databinding.tool.reflection;
 
+import android.databinding.tool.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -27,7 +29,7 @@ import java.util.Map;
  * for ViewDataBinding subclasses that haven't been generated yet, but we still want
  * to resolve methods and fields for them.
  *
- * @see ModelAnalyzer#injectViewDataBinding(String, Map, Map, java.util.HashMap)
+ * @see ModelAnalyzer#injectClass(InjectedClass) 
  */
 public class InjectedClass extends ModelClass {
     private final String mClassName;
@@ -38,6 +40,19 @@ public class InjectedClass extends ModelClass {
     public InjectedClass(String className, String superClass) {
         mClassName = className;
         mSuperClass = superClass;
+    }
+
+    public void addVariable(String name, String type, Map<String, String> imports) {
+        String capName = StringUtils.capitalize(name);
+        String setName = "set" + capName;
+        String getName = "get" + capName;
+        addMethod(new InjectedMethod(this, false, getName, imports, type));
+        addMethod(new InjectedMethod(this, false, setName, imports,
+                "void", type));
+    }
+
+    public void addField(String name, String type) {
+        addField(new InjectedField(name, type));
     }
 
     public void addField(InjectedField field) {

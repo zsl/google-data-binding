@@ -867,16 +867,16 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     fun declareInverseBindingImpls() = kcode("// Inverse Binding Event Handlers") {
         layoutBinder.sortedTargets.filter { it.isUsed }.forEach { target ->
             target.inverseBindings.forEach { inverseBinding ->
-                val className : String
+                val invClass : String
                 val param : String
                 if (inverseBinding.isOnBinder) {
-                    className = "android.databinding.ViewDataBinding.PropertyChangedInverseListener"
+                    invClass = "android.databinding.ViewDataBinding.PropertyChangedInverseListener"
                     param = "BR.${inverseBinding.eventAttribute}"
                 } else {
-                    className = "android.databinding.InverseBindingListener"
+                    invClass = "android.databinding.InverseBindingListener"
                     param = ""
                 }
-                block("private $className ${inverseBinding.fieldName} = new $className($param)") {
+                block("private $invClass ${inverseBinding.fieldName} = new $invClass($param)") {
                     nl("@Override")
                     block("public void onChange()") {
                         if (inverseBinding.inverseExpr != null) {
@@ -888,7 +888,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             nl(inverseBinding.callbackExprModel.localizeGlobalVariables(valueExpr))
                             nl(inverseBinding.executionPath.toCode())
                         } else {
-                            block("synchronized(this)") {
+                            block("synchronized($className.this)") {
                                 val flagSet = inverseBinding.chainedExpressions.fold(FlagSet(), { initial, expr ->
                                     initial.or(FlagSet(expr.id))
                                 })

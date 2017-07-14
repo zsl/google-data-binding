@@ -24,6 +24,7 @@
         <variable name="innerBoxedInt1" type="java.lang.Integer"/>
         <variable name="innerBoxedInt2" type="java.lang.Integer"/>
         <variable name="innerBoxedInt3" type="java.lang.Integer"/>
+        <variable name="checked" type="boolean"/>
     </data>
     <LinearLayout
             android:orientation="vertical"
@@ -45,5 +46,9 @@
         <include layout="@layout/conditional_binding" android:id="@+id/includedLayoutPort"
                  bind:cond1="@{objectInDefault == null}"
                 />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="@={checked}"/>
     </LinearLayout>
 </layout>

@@ -27,6 +27,8 @@ import android.databinding.tool.writer.DynamicUtilWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -104,31 +106,45 @@ public class CompilerChef {
     private void pushClassesToAnalyzer() {
         ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
         for (String layoutName : mResourceBundle.getLayoutBundles().keySet()) {
-            ResourceBundle.LayoutFileBundle layoutFileBundle =
-                    mResourceBundle.getLayoutBundles().get(layoutName).get(0);
-            final HashMap<String, String> imports = new HashMap<String, String>();
-            for (ResourceBundle.NameTypeLocation imp : layoutFileBundle.getImports()) {
-                imports.put(imp.name, imp.type);
-            }
-            final HashMap<String, String> variables = new HashMap<String, String>();
-            for (ResourceBundle.VariableDeclaration variable : layoutFileBundle.getVariables()) {
-                final String variableName = variable.name;
-                String type = variable.type;
-                if (imports.containsKey(type)) {
-                    type = imports.get(type);
+            final HashSet<String> variables = new HashSet();
+            final HashSet<String> fields = new HashSet();
+
+            List<ResourceBundle.LayoutFileBundle> bundles =
+                    mResourceBundle.getLayoutBundles().get(layoutName);
+            final String className = bundles.get(0).getBindingClassPackage() + "."
+                    + bundles.get(0).getBindingClassName();
+            InjectedClass bindingClass =
+                    new InjectedClass(className, ModelAnalyzer.VIEW_DATA_BINDING);
+            analyzer.injectClass(bindingClass);
+
+            for (ResourceBundle.LayoutFileBundle layoutFileBundle : bundles) {
+                final HashMap<String, String> imports = new HashMap<String, String>();
+                for (ResourceBundle.NameTypeLocation imp : layoutFileBundle.getImports()) {
+                    imports.put(imp.name, imp.type);
                 }
-                variables.put(variableName, type);
-            }
-            final HashMap<String, String> fields = new HashMap<String, String>();
-            for (ResourceBundle.BindingTargetBundle bindingTargetBundle :
-                    layoutFileBundle.getBindingTargetBundles()) {
-                if (bindingTargetBundle.getId() != null) {
-                    fields.put(bindingTargetBundle.getId(), bindingTargetBundle.getInterfaceType());
+
+                for (ResourceBundle.VariableDeclaration variable : layoutFileBundle.getVariables()) {
+                    if (variables.add(variable.name)) {
+                        bindingClass.addVariable(variable.name, variable.type, imports);
+                    }
+                }
+
+                for (ResourceBundle.BindingTargetBundle bindingTargetBundle :
+                        layoutFileBundle.getBindingTargetBundles()) {
+                    if (bindingTargetBundle.getId() != null) {
+                        String fieldName = bindingTargetBundle.getId();
+                        if (fields.add(fieldName)) {
+                            String fieldType = bindingTargetBundle.getInterfaceType();
+                            bindingClass.addField(fieldName, fieldType);
+                        }
+                    }
+                }
+                if (bundles.size() > 1) {
+                    // Add the implementation class
+                    final String implName = className + layoutFileBundle.getConfigName() + "Impl";
+                    analyzer.injectClass(new InjectedClass(implName, className));
                 }
             }
-            final String className = layoutFileBundle.getBindingClassPackage() + "." +
-                    layoutFileBundle.getBindingClassName();
-            analyzer.injectViewDataBinding(className, variables, fields, imports);
         }
     }
 
@@ -137,8 +153,8 @@ public class CompilerChef {
                 "java.lang.Object");
         for (Map.Entry<Class, Class> entry : ModelClass.BOX_MAPPING.entrySet()) {
             injectedClass.addMethod(new InjectedMethod(injectedClass, true,
-                    ExprModel.SAFE_UNBOX_METHOD_NAME, null,
-                    entry.getKey().getCanonicalName(), entry.getValue().getCanonicalName()));
+                    ExprModel.SAFE_UNBOX_METHOD_NAME, null, entry.getKey().getCanonicalName(),
+                    entry.getValue().getCanonicalName()));
         }
 
         ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
