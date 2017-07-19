@@ -699,19 +699,26 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     fun declareSetVariable() = kcode("") {
         nl("@Override")
-        nl("public boolean setVariable(int variableId, @Nullable Object variable) {") {
-            tab("switch(variableId) {") {
-                variables.forEach {
-                    tab ("case ${it.name.br()} :") {
-                        tab("${it.setterName}((${it.resolvedType.toJavaCode()}) variable);")
-                        tab("return true;")
-                    }
+        block("public boolean setVariable(int variableId, @Nullable Object variable) ") {
+            nl("boolean variableSet = true;")
+            variables.forEachIndexed { i, expr ->
+                val elseStr : String
+                if (i == 0) {
+                    elseStr = ""
+                } else {
+                    elseStr = "else "
+                }
+                block ("${elseStr}if (${expr.name.br()} == variableId)") {
+                    nl("${expr.setterName}((${expr.resolvedType.toJavaCode()}) variable);")
                 }
             }
-            tab("}")
-            tab("return false;")
+            if (variables.isNotEmpty()) {
+                block("else") {
+                    nl("variableSet = false;")
+                }
+            }
+            tab("return variableSet;")
         }
-        nl("}")
     }
 
     fun variableSettersAndGetters() = kcode("") {
@@ -768,44 +775,43 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
         model.observables.forEach {
             block("private boolean ${it.onChangeName}(${it.resolvedType.toJavaCode()} ${it.readableName}, int fieldId)") {
-                block("switch (fieldId)", {
-                    val accessedFields: List<FieldAccessExpr> = it.parents.filterIsInstance(FieldAccessExpr::class.java)
-                    accessedFields.filter { it.isUsed && it.hasBindableAnnotations() }
-                            .flatMap { expr -> expr.dirtyingProperties.map { Pair(it, expr)}  }
-                            .groupBy { it.first }
-                            .forEach {
-                                // If two expressions look different but resolve to the same method,
-                                // we are not yet able to merge them. This is why we merge their
-                                // flags below.
-                                block("case ${it.key}:") {
-                                    block("synchronized(this)") {
-                                        val flagSet = it.value.foldRight(FlagSet()) { l, r -> l.second.invalidateFlagSet.or(r) }
-
-                                        mDirtyFlags.mapOr(flagSet) { suffix, index ->
-                                            tab("${mDirtyFlags.localValue(index)} |= ${flagSet.localValue(index)};")
-                                        }
-                                    }
-                                    nl("return true;")
-                                }
-
-                            }
-                    block("case ${"".br()}:") {
-                        val flagSet : FlagSet
-                        if (it is FieldAccessExpr && it.resolvedType.isObservableField) {
-                            flagSet = it.bindableDependents.map { expr -> expr.invalidateFlagSet }
-                                    .foldRight(it.invalidateFlagSet) { l, r -> l.or(r) }
-                        } else {
-                            flagSet = it.invalidateFlagSet
-                        }
-
-                        block("synchronized(this)") {
-                            mDirtyFlags.mapOr(flagSet) { suffix, index ->
-                                tab("${mDirtyFlags.localName}$suffix |= ${flagSet.localValue(index)};")
-                            }
-                        }
-                        nl("return true;")
+                block("if (fieldId == ${"".br()})") {
+                    val flagSet : FlagSet
+                    if (it is FieldAccessExpr && it.resolvedType.isObservableField) {
+                        flagSet = it.bindableDependents.map { expr -> expr.invalidateFlagSet }
+                                .foldRight(it.invalidateFlagSet) { l, r -> l.or(r) }
+                    } else {
+                        flagSet = it.invalidateFlagSet
                     }
-                })
+
+                    block("synchronized(this)") {
+                        mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                            tab("${mDirtyFlags.localName}$suffix |= ${flagSet.localValue(index)};")
+                        }
+                    }
+                    nl("return true;")
+                }
+
+                val accessedFields: List<FieldAccessExpr> = it.parents.filterIsInstance(FieldAccessExpr::class.java)
+                accessedFields.filter { it.isUsed && it.hasBindableAnnotations() }
+                        .flatMap { expr -> expr.dirtyingProperties.map { Pair(it, expr)}  }
+                        .groupBy { it.first }
+                        .forEach {
+                            // If two expressions look different but resolve to the same method,
+                            // we are not yet able to merge them. This is why we merge their
+                            // flags below.
+                            block("else if (fieldId == ${it.key})") {
+                                block("synchronized(this)") {
+                                    val flagSet = it.value.foldRight(FlagSet()) { l, r -> l.second.invalidateFlagSet.or(r) }
+
+                                    mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                                        tab("${mDirtyFlags.localValue(index)} |= ${flagSet.localValue(index)};")
+                                    }
+                                }
+                                nl("return true;")
+                            }
+
+                        }
                 nl("return false;")
             }
             nl("")
