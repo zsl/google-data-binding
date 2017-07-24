@@ -72,8 +72,12 @@ public class LayoutFileParser {
             String pkg, final LayoutXmlProcessor.OriginalFileLookup originalFileLookup)
             throws ParserConfigurationException, IOException, SAXException,
             XPathExpressionException {
-        File originalFileFor = originalFileLookup.getOriginalFileFor(inputFile);
-        final String originalFilePath = originalFileFor.getAbsolutePath();
+        File originalFile = originalFileLookup.getOriginalFileFor(inputFile);
+        if (originalFile == null) {
+            // if we can't find the original file, assume the input is the original file.
+            originalFile = inputFile;
+        }
+        final String originalFilePath = originalFile.getAbsolutePath();
         try {
             Scope.enter(new FileScopeProvider() {
                 @Override
@@ -83,7 +87,7 @@ public class LayoutFileParser {
             });
             final String encoding = findEncoding(inputFile);
             stripFile(inputFile, outputFile, encoding, originalFileLookup);
-            return parseOriginalXml(originalFileFor, pkg, encoding);
+            return parseOriginalXml(originalFile, pkg, encoding);
         } finally {
             Scope.exit();
         }
