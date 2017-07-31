@@ -210,35 +210,33 @@ public class FieldAccessExpr extends MethodBaseExpr {
                     ModelClass resolvedType = target.getResolvedType();
                     L.d("resolving %s. Resolved class type: %s", this, resolvedType);
 
-                    mDependencies = new FieldAccessExpr[dependencyArray.length];
-                    for (int i = 0; i < dependencyArray.length; i++) {
-                        String dependency = dependencyArray[i];
-                        FieldAccessExpr expr = getModel().field(getTarget(), dependency);
-                        mDependencies[i] = expr;
-                        expr.getResolvedType(); // force it to resolve its dependencies as well
-                    }
-
-                    resolveDependencies(mTransitiveDependencies);
-                    for (FieldAccessExpr expr : mTransitiveDependencies) {
-                        if (expr.mGetter == null) {
+                    boolean isStatic = target instanceof StaticIdentifierExpr;
+                    for (String dependency : dependencyArray) {
+                        Callable getter = resolvedType.findGetterOrField(dependency, isStatic);
+                        if (getter == null) {
                             L.e("Could not find dependent property '%s' referenced in "
                                             + "@Bindable annotation on %s.%s",
-                                    expr.getName(),
-                                    expr.mGetter.method.getDeclaringClass().toJavaCode(),
-                                    expr.mGetter.method.getName());
-                        } else if (!expr.mGetter.canBeInvalidated()
-                                && !expr.getResolvedType().isObservableField()) {
+                                    dependency,
+                                    mGetter.method.getDeclaringClass().toJavaCode(),
+                                    mGetter.method.getName());
+                        } else if (!getter.canBeInvalidated() && !getter.resolvedType.isObservableField()) {
                             L.e("The dependent property '%s' referenced in @Bindable "
                                             + "annotation on %s.%s must be annotated with "
                                             + "@Bindable",
-                                    expr.getName(),
-                                    expr.mGetter.method.getDeclaringClass().toJavaCode(),
-                                    expr.mGetter.method.getName());
-                        } else {
-                            // Make sure we listen for changes
-                            getModel().bindingExpr(expr);
+                                    dependency,
+                                    mGetter.method.getDeclaringClass().toJavaCode(),
+                                    mGetter.method.getName());
                         }
                     }
+                    mDependencies = new FieldAccessExpr[dependencyArray.length];
+                    for (int i = 0; i < dependencyArray.length; i++) {
+                        mDependencies[i] = getModel().field(target, dependencyArray[i]);
+                        mDependencies[i].getResolvedType(); // force dependency resolution
+                        // Make sure we listen for changes
+                        getModel().bindingExpr(mDependencies[i]);
+                    }
+
+                    resolveDependencies(mTransitiveDependencies);
                     for (FieldAccessExpr expr : mTransitiveDependencies) {
                         expr.addBindableDependent(this);
                     }

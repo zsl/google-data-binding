@@ -217,7 +217,7 @@ public class BaseCompilationTest {
         FileUtils.copyFile(new File("../propLoader.gradle"),
                 new File(testFolder, "propLoaderClone.gradle"));
         FileUtils.copyFile(new File("../gradlew"), new File(testFolder, "gradlew"));
-        FileUtils.copyDirectory(new File("../gradle"), new File(testFolder, "gradle"));
+        FileUtils.copyDirectory(new File("gradle"), new File(testFolder, "gradle"));
     }
 
     protected void prepareModule(String moduleName, String packageName,

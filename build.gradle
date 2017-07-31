@@ -92,26 +92,6 @@ file('integration-tests').listFiles().findAll { it.isDirectory() }.each {
             "-PforGradlePlugin=${dataBindingConfig.forGradlePlugin ? 'true' : 'false'}"
     testTask.dependsOn subprojects.uploadArchives
 }
-def testBackwardCompatibiltyTask = project.tasks.create "testBackwardCompatibility"
-def backwardCompatibleVersions = ["2.1.3", "2.1.0"]
-backwardCompatibleVersions.each { gradleVersion ->
-    def compileLibTask = project.tasks.create "compileOldLibBuiltWith$gradleVersion", Exec
-    compileLibTask.workingDir file("old-version-projects/library-project")
-    compileLibTask.environment OLD_GRADLE_VERSION: gradleVersion
-    compileLibTask.commandLine './gradlew'
-    compileLibTask.args 'clean', 'uploadArchives', '--info', "-PaddRemoteRepos=true"
-
-    def testAppWithOldDependency = project.tasks.create "testAppThatDependsOnLibraryBuiltWith$gradleVersion", Exec
-    testAppWithOldDependency.workingDir file("old-version-projects/TestAppWithOldDependency")
-    testAppWithOldDependency.commandLine './gradlew'
-    testAppWithOldDependency.args 'clean', 'connectedCheck', '--info', '--stacktrace',
-            "-PuseReleaseVersion=${dataBindingConfig.inReleaseBuild ? 'true' : 'false'}",
-            "-PaddRemoteRepos=${dataBindingConfig.addRemoteRepos ? 'true' : 'false'}",
-            "-PforGradlePlugin=${dataBindingConfig.forGradlePlugin ? 'true' : 'false'}"
-
-    testAppWithOldDependency.dependsOn compileLibTask
-    testBackwardCompatibiltyTask.dependsOn testAppWithOldDependency
-}
 
 task runIntegrationTests {
     dependsOn tasks.findAll { task -> task.name.startsWith('runTestsOf') }
@@ -119,7 +99,6 @@ task runIntegrationTests {
 
 task runAllTests {
     dependsOn runIntegrationTests
-    dependsOn testBackwardCompatibiltyTask
 }
 
 task preparePrebuilds() {
