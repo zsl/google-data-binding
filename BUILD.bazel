@@ -7,6 +7,7 @@ load("//tools/base/bazel:utils.bzl", "merged_properties")
 iml_module(
     name = "studio.baseLibrary",
     srcs = ["baseLibrary/src/main/java"],
+    iml_files = ["baseLibrary/db-baseLibrary.iml"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -42,6 +43,7 @@ iml_module(
         "compilerCommon/src/main/xml-gen",
         "compilerCommon/src/main/grammar-gen",
     ],
+    iml_files = ["compilerCommon/db-compilerCommon.iml"],
     tags = ["managed"],
     test_srcs = ["compilerCommon/src/test/java"],
     visibility = ["//visibility:public"],
@@ -127,6 +129,7 @@ iml_module(
         "compiler/src/main/java",
         "compiler/src/main/kotlin",
     ],
+    iml_files = ["compiler/db-compiler.iml"],
     resources = ["compiler/src/main/resources"],
     tags = ["managed"],
     test_data = [
