@@ -14,4 +14,26 @@
  * limitations under the License.
  */
 
-include ':app', ':testlibrary1', ':testlibrary2'
+package android.databinding.testlibrary1;
+
+import android.databinding.Bindable;
+import android.databinding.BaseObservable;
+import android.view.View;
+
+public class TestLibObject extends BaseObservable {
+    @Bindable
+    private String mField;
+
+    public String getField() {
+        return mField;
+    }
+
+    public void setField(String field) {
+        this.mField = field;
+        notifyPropertyChanged(BR.field);
+    }
+
+    public void clickHandler(View view) {
+
+    }
+}

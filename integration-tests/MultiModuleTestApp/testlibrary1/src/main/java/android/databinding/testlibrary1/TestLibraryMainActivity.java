@@ -14,32 +14,28 @@
  * limitations under the License.
  */
 
-package android.databinding.multimoduletestapp;
+package android.databinding.testlibrary1;
 
-import android.databinding.multimoduletestapp.databinding.ActivityMainBinding;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-
-public class MainActivity extends Activity {
-    ActivityMainBinding mBinder;
+import android.databinding.testlibrary1.databinding.ActivityTestLibraryMainBinding;
+public class TestLibraryMainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mBinder = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(mBinder.getRoot());
-    }
+        ActivityTestLibraryMainBinding binder = ActivityTestLibraryMainBinding.inflate(
+                getLayoutInflater());
+        setContentView(binder.getRoot());
 
-    public ActivityMainBinding getBinder() {
-        return mBinder;
     }
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_test_library_main, menu);
         return true;
     }
 

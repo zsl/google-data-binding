@@ -16,10 +16,8 @@
 
 package android.databinding.multimoduletestapp;
 
-import android.databinding.testlibrary.ObservableInLibrary;
-
 import android.databinding.Bindable;
-import android.databinding.multimoduletestapp.BR;
+import android.databinding.testlibrary1.ObservableInLibrary;
 
 public class ObservableExtendingLib extends ObservableInLibrary {
     @Bindable

@@ -16,7 +16,7 @@
 
 package android.databinding.multimoduletestapp;
 
-import android.databinding.testlibrary.ObservableInLibrary;
+import android.databinding.testlibrary1.ObservableInLibrary;
 
 import android.databinding.Observable;
 import android.databinding.Observable.OnPropertyChangedCallback;

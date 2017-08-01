@@ -17,10 +17,8 @@
 package android.databinding.annotationprocessor;
 
 import android.databinding.Bindable;
-import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef.BindableHolder;
 import android.databinding.tool.DataBindingCompilerArgs;
-import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.LoggedErrorException;
@@ -28,18 +26,15 @@ import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
+import com.google.common.collect.Sets;
+
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -54,8 +49,8 @@ import javax.lang.model.util.Types;
 
 // binding app info and library info are necessary to trigger this.
 public class ProcessBindable extends ProcessDataBinding.ProcessingStep implements BindableHolder {
-    Intermediate mProperties;
-    HashMap<String, HashSet<String>> mLayoutVariables = new HashMap<String, HashSet<String>>();
+    private Intermediate mProperties;
+    private HashMap<String, HashSet<String>> mLayoutVariables = new HashMap<>();
 
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnv, ProcessingEnvironment processingEnv,
@@ -123,7 +118,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             Set<String> written = new HashSet<>();
             DataBindingCompilerArgs.Type artifactType = compilerArgs.artifactType();
             L.d("************* Generating BR file %s. use final: %s", pkg, artifactType.name());
-            HashSet<String> properties = new HashSet<String>();
+            HashSet<String> properties = new HashSet<>();
             mProperties.captureProperties(properties);
             Collection<Intermediate> previousIntermediates = loadPreviousBRFiles(pkg + ".BR");
             for (Intermediate intermediate : previousIntermediates) {
@@ -136,11 +131,11 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             // bazel has duplicate package names so we need to avoid overwriting BR files.
             writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
             written.add(pkg);
-            // generate BR files for others only if we are compiling an app
-            // if we are compiling a test, we'll respect the application
-            if (compilerArgs.isApp() != compilerArgs.isTestVariant() ||
-                    compilerArgs.isEnabledForTests()) {
-                // generate BR for all previous packages
+            // Generate BR files for dependencies unless we are compiling a test variant of an app
+            // and it is not enabled for tests.
+            if (!(compilerArgs.isApp() && compilerArgs.isTestVariant()
+                    && !compilerArgs.isEnabledForTests())) {
+                // Generate BR for all previous packages.
                 for (Intermediate intermediate : previousIntermediates) {
                     if (written.add(intermediate.getPackage())) {
                         writer.writeToFile(intermediate.getPackage() + ".BR",
@@ -252,7 +247,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
     private Collection<Intermediate> loadPreviousBRFiles(String... excludePackages) {
         List<Intermediate> brFiles = GenerationalClassUtil
                 .loadObjects(GenerationalClassUtil.ExtensionFilter.BR);
-        Set<String> excludeMap = Arrays.stream(excludePackages).collect(Collectors.toSet());
+        Set<String> excludeMap = Sets.newHashSet(excludePackages);
         // dedupe
         Map<String, Intermediate> items = new HashMap<>();
         brFiles.stream()
@@ -275,11 +270,10 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
     }
 
     private static class IntermediateV1 implements Serializable, Intermediate {
-
         private static final long serialVersionUID = 2L;
 
         private String mPackage;
-        private final HashMap<String, HashSet<String>> mProperties = new HashMap<String, HashSet<String>>();
+        private final HashMap<String, HashSet<String>> mProperties = new HashMap<>();
 
         public IntermediateV1(String aPackage) {
             mPackage = aPackage;

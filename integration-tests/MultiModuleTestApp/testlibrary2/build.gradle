@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion dataBindingConfig.compileSdkVersion
     buildToolsVersion dataBindingConfig.buildToolsVersion
 
     defaultConfig {
-        applicationId "com.android.databinding.multimoduletestapp"
         minSdkVersion 14
         targetSdkVersion dataBindingConfig.targetSdkVersion
         versionCode 1
@@ -44,11 +43,7 @@ android {
     }
 }
 
-println "combined ${dataBindingConfig.testGroup}.independent-library:${dataBindingConfig.version}"
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':testlibrary1')
-    compile project(':testlibrary2')
-    compile "com.android.support:support-v4:+"
-    compile "${dataBindingConfig.testGroup}:independent-library:${dataBindingConfig.version}"
+    compile project(path: ':testlibrary1')
 }

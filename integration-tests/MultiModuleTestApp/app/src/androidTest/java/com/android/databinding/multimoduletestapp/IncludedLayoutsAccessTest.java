@@ -16,7 +16,7 @@
 
 package android.databinding.multimoduletestapp;
 
-import android.databinding.testlibrary.ObservableInLibrary;
+import android.databinding.testlibrary1.ObservableInLibrary;
 
 import android.app.Application;
 import android.databinding.Observable;
@@ -27,7 +27,7 @@ import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 import java.util.Map;
 import android.databinding.multimoduletestapp.databinding.HasIncludeFromLibBinding;
-import android.databinding.testlibrary.databinding.IncludedInAppLayoutBinding;
+import android.databinding.testlibrary1.databinding.IncludedInAppLayoutBinding;
 import android.databinding.test.independentlibrary.databinding.IncludedInAppFromLibraryBinding;
 /**
  * There is nothing to assert here. If this test compiles, it passes
