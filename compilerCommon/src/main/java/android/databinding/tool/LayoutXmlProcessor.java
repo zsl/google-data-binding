@@ -54,6 +54,7 @@ public class LayoutXmlProcessor {
     private boolean mWritten;
     private final String mBuildId = UUID.randomUUID().toString();
     private final OriginalFileLookup mOriginalFileLookup;
+    private final LayoutFileParser mLayoutFileParser = new LayoutFileParser();
 
     public LayoutXmlProcessor(String applicationPackage,
             JavaFileWriter fileWriter, OriginalFileLookup originalFileLookup) {
@@ -144,6 +145,22 @@ public class LayoutXmlProcessor {
      */
     public ResourceBundle getResourceBundle() {
         return mResourceBundle;
+    }
+
+    public void processRemovedFile(File input) {
+        mResourceBundle.addRemovedFile(input);
+    }
+
+    public boolean processSingleFile(File input, File  output)
+            throws ParserConfigurationException, SAXException, XPathExpressionException,
+            IOException {
+        final ResourceBundle.LayoutFileBundle bindingLayout = mLayoutFileParser
+                .parseXml(input, output, mResourceBundle.getAppPackage(), mOriginalFileLookup);
+        if (bindingLayout != null && !bindingLayout.isEmpty()) {
+            mResourceBundle.addLayoutBundle(bindingLayout);
+            return true;
+        }
+        return false;
     }
 
     public boolean processResources(final ResourceInput input)

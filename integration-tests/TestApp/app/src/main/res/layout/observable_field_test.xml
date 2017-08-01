@@ -93,6 +93,18 @@
             android:layout_height="wrap_content"
             android:enabled="@{ObservableFieldMethods.makeObservable(ObservableFieldMethods.makeObservable(enabled))}"/>
 
+        <TextView
+            android:id="@+id/mFieldModel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{obj.mField.name}"/>
+
+        <TextView
+            android:id="@+id/mFieldNestedModel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{obj.mField.friend.name}"/>
+
         <!-- This should be removed for Android Studio 2.4 -->
         <TextView
             android:id="@+id/useGet"
