@@ -16,16 +16,8 @@
 
 package android.databinding.multimoduletestapp;
 
-import android.databinding.testlibrary.ObservableInLibrary;
-
 import android.app.Application;
-import android.databinding.Observable;
 import android.test.ApplicationTestCase;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * <a href="http://d.android.com/tools/testing/testing_android.html">Testing Fundamentals</a>

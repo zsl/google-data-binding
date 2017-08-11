@@ -16,13 +16,16 @@
 
 package android.databinding.tool;
 
-import org.apache.commons.io.IOUtils;
-
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.JavaFileWriter;
+
+import com.google.common.collect.ImmutableList;
+
+import java.util.Collections;
+import org.apache.commons.io.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,8 +33,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -43,7 +48,7 @@ import java.util.Properties;
 public class DataBindingBuilder {
     Versions mVersions;
     private static final String EXCLUDE_PATTERN = "android/databinding/layouts/*.*";
-    public static String PROCESSOR_NAME =
+    public static final String PROCESSOR_NAME =
             "android.databinding.annotationprocessor.ProcessDataBinding";
 
     public static final String ARTIFACT_FILES_DIR_FROM_LIBS = "dependent-lib-artifacts";
@@ -51,7 +56,8 @@ public class DataBindingBuilder {
     public static final String DATA_BINDING_ROOT_FOLDER_IN_AAR = "data-binding";
 
     public static final List<String> RESOURCE_FILE_EXTENSIONS =
-            Arrays.asList("-br.bin", "-layoutinfo.bin", "-setter_store.bin");
+            ImmutableList.of("-br.bin", "-layoutinfo.bin", "-setter_store.bin");
+
     public String getCompilerVersion() {
         return getVersions().compiler;
     }
@@ -104,23 +110,24 @@ public class DataBindingBuilder {
     }
 
     /**
-     * Returns the list of classes that should be excluded from package task
+     * Returns the list of classes that should be excluded from the packaging task.
      *
      * @param layoutXmlProcessor The LayoutXmlProcessor for this variant
      * @param generatedClassListFile The location of the File into which data binding compiler wrote
      *                               list of generated classes
-     *
+     * @param dataBindingCompilerBuildFolder the build folder for the data binding compiler
      * @return The list of classes to exclude. They are already in JNI format.
      */
     public List<String> getJarExcludeList(LayoutXmlProcessor layoutXmlProcessor,
-            File generatedClassListFile) {
-        List<String> excludes = new ArrayList<String>();
-        String appPkgAsClass = layoutXmlProcessor.getPackage().replace('.', '/');
-        String infoClassAsClass = layoutXmlProcessor.getInfoClassFullName().replace('.', '/');
-
-        excludes.add(infoClassAsClass + ".class");
+            File generatedClassListFile, File dataBindingCompilerBuildFolder) {
+        List<String> excludes = new ArrayList<>();
+        String infoClassAsFile = layoutXmlProcessor.getInfoClassFullName().replace('.', '/');
+        excludes.add(infoClassAsFile + ".class");
         excludes.add(EXCLUDE_PATTERN);
-        excludes.add(appPkgAsClass + "/BR.*");
+        excludes.add(layoutXmlProcessor.getPackage().replace('.', '/') + "/BR.*");
+        for (String pkg : getBRFilePackages(dataBindingCompilerBuildFolder)) {
+            excludes.add(pkg.replace('.', '/') + "/BR.*");
+        }
         excludes.add("android/databinding/DynamicUtil.class");
         if (generatedClassListFile != null) {
             List<String> generatedClasses = readGeneratedClasses(generatedClassListFile);
@@ -132,9 +139,25 @@ public class DataBindingBuilder {
         return excludes;
     }
 
+    private static List<String> getBRFilePackages(File dataBindingCompilerBuildFolder) {
+        File dir = new File(dataBindingCompilerBuildFolder, ARTIFACT_FILES_DIR_FROM_LIBS);
+        List<String> packages = new ArrayList<>();
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir.toPath())) {
+            for (Path path : directoryStream) {
+                String filename = path.getFileName().toString();
+                if (filename.endsWith("-br.bin")) {
+                    packages.add(filename.substring(0, filename.indexOf('-')));
+                }
+            }
+        } catch (IOException e) {
+            L.e(e, "Error reading contents of %s directory", dir);
+        }
+        return packages;
+    }
+
     private List<String> readGeneratedClasses(File generatedClassListFile) {
-        Preconditions.checkNotNull(generatedClassListFile, "Data binding exclude generated task"
-                + " is not configured properly");
+        Preconditions.checkNotNull(generatedClassListFile,
+                "Data binding exclude generated task is not configured properly");
         Preconditions.check(generatedClassListFile.exists(),
                 "Generated class list does not exist %s", generatedClassListFile.getAbsolutePath());
         FileInputStream fis = null;

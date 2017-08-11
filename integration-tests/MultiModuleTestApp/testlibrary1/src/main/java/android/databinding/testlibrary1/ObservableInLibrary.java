@@ -14,36 +14,39 @@
  * limitations under the License.
  */
 
-package android.databinding.multimoduletestapp;
+package android.databinding.testlibrary1;
 
 import android.databinding.Bindable;
 
 import android.databinding.BaseObservable;
 
-public class ObservableInMainApp extends BaseObservable {
+public class ObservableInLibrary extends BaseObservable {
+
     @Bindable
-    private String mAppField1;
+    private String mLibField1;
+
     @Bindable
-    private int mAppField2;
+    private String mLibField2;
+
     @Bindable
     private int mSharedField;
 
-    public String getAppField1() {
-        return mAppField1;
+    public String getLibField1() {
+        return mLibField1;
     }
 
-    public void setAppField1(String appField1) {
-        mAppField1 = appField1;
-        notifyPropertyChanged(BR.appField1);
+    public void setLibField1(String libField1) {
+        mLibField1 = libField1;
+        notifyPropertyChanged(BR.libField1);
     }
 
-    public int getAppField2() {
-        return mAppField2;
+    public String getLibField2() {
+        return mLibField2;
     }
 
-    public void setAppField2(int appField2) {
-        mAppField2 = appField2;
-        notifyPropertyChanged(BR.appField2);
+    public void setLibField2(String libField2) {
+        mLibField2 = libField2;
+        notifyPropertyChanged(BR.libField2);
     }
 
     public int getSharedField() {

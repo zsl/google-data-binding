@@ -14,4 +14,26 @@
  * limitations under the License.
  */
 
-include ':app', ':testlibrary1', ':testlibrary2'
+package android.databinding.testlibrary2;
+
+import android.databinding.BaseObservable;
+import android.databinding.Bindable;
+import android.databinding.testlibrary1.BR;
+import android.view.View;
+
+public class TestObservable extends BaseObservable {
+    @Bindable
+    private String mCat;
+
+    public String getCat() {
+        return mCat;
+    }
+
+    public void setCat(String cat) {
+        this.mCat = cat;
+        notifyPropertyChanged(BR.cat);
+    }
+
+    public void clickHandler(View view) {
+    }
+}

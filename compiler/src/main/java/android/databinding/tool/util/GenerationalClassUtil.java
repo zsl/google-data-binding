@@ -18,7 +18,6 @@ package android.databinding.tool.util;
 
 import android.databinding.tool.DataBindingBuilder;
 import android.databinding.tool.DataBindingCompilerArgs;
-import android.databinding.tool.processing.ScopedException;
 
 import com.android.annotations.Nullable;
 
