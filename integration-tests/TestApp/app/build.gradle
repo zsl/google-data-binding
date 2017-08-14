@@ -11,9 +11,6 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        jackOptions {
-            enabled dataBindingConfig.useJack
-        }
     }
     dataBinding {
         enabled = true
@@ -31,8 +28,6 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_7
         targetCompatibility JavaVersion.VERSION_1_7
-        // TODO get rid of this after jack's build flavor implementation is fixed
-        incremental = !dataBindingConfig.useJack
     }
     sourceSets {
         androidTest {

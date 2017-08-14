@@ -1139,6 +1139,41 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertTrue(mBindingObject.checked.get());
     }
 
+    /**
+     * Tests that when a lambda expression is linked to a two-way expression, that
+     * the lambda takes the correct value.
+     */
+    public void testTwoWayWithLambda() throws Throwable {
+        makeVisible(mBinder.withLambda);
+        mBindingObject.text.set("H");
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+        assertEquals(1, mBindingObject.intField.get());
+
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.withLambda.setText("Hello World");
+            }
+        });
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return !mBindingObject.text.get().equals("H");
+            }
+        });
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(11, mBindingObject.intField.get());
+            }
+        });
+    }
+
     private void makeVisible(final View... views) throws Throwable {
         runTestOnUiThread(new Runnable() {
             @Override
@@ -1183,6 +1218,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.mixView1.setVisibility(View.GONE);
                 mBinder.mixView2.setVisibility(View.GONE);
                 mBinder.unaryNot.setVisibility(View.GONE);
+                mBinder.withLambda.setVisibility(View.GONE);
                 for (View view : views) {
                     view.setVisibility(View.VISIBLE);
                 }

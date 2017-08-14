@@ -334,7 +334,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
         // the binding with that binding expression.
         for (Binding binding : bindingTarget.getBindings()) {
             if (attributeMatchesName(binding.getName(), mName)) {
-                final Expr replacement = binding.getExpr();
+                final Expr replacement = binding.getExpr().cloneToModel(getModel());
                 replaceExpression(parent, replacement);
                 return replacement;
             }

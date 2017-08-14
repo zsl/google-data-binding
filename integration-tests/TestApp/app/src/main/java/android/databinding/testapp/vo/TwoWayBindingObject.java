@@ -29,6 +29,7 @@ import android.databinding.ObservableInt;
 import android.databinding.ObservableLong;
 import android.databinding.ObservableShort;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.SpinnerAdapter;
 
@@ -212,5 +213,9 @@ public class TwoWayBindingObject {
 
     public boolean validate(CharSequence text) {
         return text != null && text.toString().contains("a");
+    }
+
+    public void doSomething(String text) {
+        intField.set(text == null ? 0 : text.length());
     }
 }

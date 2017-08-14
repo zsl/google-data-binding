@@ -148,6 +148,8 @@ public class LambdaExpr extends Expr {
                 args.get(i).setClassFromCallback(parameterTypes[i]);
             }
         }
+        getExpr().resolveTwoWayExpressions(this);
+        getExpr().getResolvedType();
         // first convert to execution path because we may add additional expressions
         mExecutionPath = ExecutionPath.createRoot();
         getExpr().toExecutionPath(mExecutionPath);

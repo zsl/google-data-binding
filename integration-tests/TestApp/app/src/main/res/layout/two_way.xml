@@ -287,5 +287,11 @@
             android:checked="@={!obj.checked}"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+        <EditText
+            android:id="@+id/withLambda"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@={obj.text}"
+            android:afterTextChanged="@{() -> obj.doSomething(withLambda.text)}"/>
     </LinearLayout>
 </layout>
