@@ -29,8 +29,8 @@ import android.databinding.tool.store.Location;
 import com.google.common.base.Joiner;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -85,8 +85,8 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         CompilationResult result = runGradle("assembleDebug");
         assertEquals(result.error, 0, result.resultCode);
         File debugOut = new File(testFolder,
-                "app/build/intermediates/data-binding-layout-out/debug");
-        Collection<File> layoutFiles = FileUtils.listFiles(debugOut, new SuffixFileFilter(".xml"),
+                "app/build/intermediates/incremental/mergeDebugResources/stripped.dir");
+        Collection<File> layoutFiles = FileUtils.listFiles(debugOut, new NameFileFilter("main.xml"),
                 new PrefixFileFilter("layout"));
         assertTrue("test sanity", layoutFiles.size() > 1);
         for (File layout : layoutFiles) {
