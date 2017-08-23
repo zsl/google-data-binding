@@ -25,5 +25,28 @@
         <Spinner android:layout_width="match_parent" android:layout_height="match_parent"
                  android:id="@+id/view2"
                  android:entries="@{obj.list}"/>
+
+        <Spinner
+            android:id="@+id/view3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adapter="@{obj.adapter}"
+            android:selectedItemPosition="@{obj.selectedItemPosition}" />
+        <Spinner
+            android:id="@+id/view4"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:adapter="@{obj.adapter}"
+            android:selection="@{obj.selectedItemPosition}" />
+        <Spinner
+            android:id="@+id/view5"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:selectedItemPosition="@{obj.selectedItemPosition}" />
+        <Spinner
+            android:id="@+id/view6"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:selection="@{obj.selectedItemPosition}" />
     </LinearLayout>
 </layout>

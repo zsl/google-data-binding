@@ -272,6 +272,18 @@
                 android:layout_height="wrap_content"
                 android:selectedItemPosition="@={obj.selectedItemPosition}"
                 android:adapter="@{obj.spinnerAdapter}"/>
+        <Spinner
+                android:id="@+id/spinner2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:selection="@={obj.selectedItemPosition}"
+                android:adapter="@{obj.spinnerAdapter}"/>
+        <Spinner
+                android:id="@+id/spinner3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:selection="@={obj.selectedItemPosition}"
+                android:setAdapter="@{obj.spinnerAdapter}"/>
         <TextView
             android:id="@+id/mix_view_1"
             android:enabled="@{obj.booleanField}"
