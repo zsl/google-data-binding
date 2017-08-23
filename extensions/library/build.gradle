@@ -142,7 +142,7 @@ class ExcludeShimTransform extends Transform {
     }
 
     public Set<Scope> getReferencedScopes() {
-        return TransformManager.SCOPE_FULL_LIBRARY;
+        return TransformManager.SCOPE_FULL_LIBRARY_WITH_LOCAL_JARS;
     }
 
     public boolean isIncremental() {
