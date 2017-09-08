@@ -55,7 +55,7 @@ public class ErrorMessages {
             "Cannot find the getter for attribute '%s' with value type %s on %s.";
 
     public static final String EXPRESSION_NOT_INVERTIBLE =
-            "The expression %s cannot cannot be inverted: %s";
+            "The expression %s cannot be inverted: %s";
 
     public static final String TWO_WAY_EVENT_ATTRIBUTE =
             "The attribute %s is a two-way binding event attribute and cannot be assigned.";
