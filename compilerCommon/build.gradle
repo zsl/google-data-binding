@@ -70,9 +70,9 @@ tasks.create(name : 'exportBuildVersions').doLast {
     // Using Java Properties appends date to the output which is bad for incremental compilation.
     // Instead, we build it manually.
     props.put("compilerCommon", project.version)
-    props.put("compiler", rootProject.findProject("dataBinding:compiler").version)
-    props.put("baseLibrary", rootProject.findProject("dataBinding:baseLibrary").version)
-    props.put("extensions", dataBindingConfig.extensionsVersion)
+    props.put("compiler", project.version)
+    props.put("baseLibrary", project.version)
+    props.put("extensions", project.version)
     buildVersionFile.getParentFile().mkdirs()
     logger.info("writing build versions file to $buildVersionFile")
     def propText = new StringBuilder();

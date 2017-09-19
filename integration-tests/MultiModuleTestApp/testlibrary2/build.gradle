@@ -17,12 +17,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion dataBindingConfig.compileSdkVersion
-    buildToolsVersion dataBindingConfig.buildToolsVersion
+    compileSdkVersion rootProject.latestCompileSdk
+    buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion dataBindingConfig.targetSdkVersion
+        targetSdkVersion rootProject.latestCompileSdk
         versionCode 1
         versionName "1.0"
     }

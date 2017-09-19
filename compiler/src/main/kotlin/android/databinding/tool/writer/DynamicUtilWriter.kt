@@ -4,8 +4,9 @@ import android.databinding.tool.expr.ExprModel
 import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.reflection.ModelClass
 
-class DynamicUtilWriter() {
-    public fun write(targetSdk : kotlin.Int) : KCode = kcode("package android.databinding;") {
+@Suppress("UNUSED_PARAMETER") // TODO remove in a followup CL, this class is not used anymore.
+class DynamicUtilWriter {
+    fun write(targetSdk : kotlin.Int) : KCode = kcode("package android.databinding;") {
         nl("")
         nl("import android.os.Build.VERSION;")
         nl("import android.os.Build.VERSION_CODES;")

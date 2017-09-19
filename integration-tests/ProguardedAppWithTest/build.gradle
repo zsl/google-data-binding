@@ -1,8 +1,6 @@
-buildscript {
-    ext.dataBindingRootFolder = new File(project.projectDir, "../..")
-    apply from: "${project.projectDir}/../../propLoader.gradle"
-    ext.addRepos(repositories)
-    dependencies {
-        classpath "com.android.tools.build:gradle:${dataBindingConfig.androidPluginVersion}"
-    }
+apply from: "../commonHeader.gradle"
+buildscript { apply from: "../commonBuildScript.gradle" }
+subprojects {
+    project.apply from: "../../commonHeader.gradle"
+    project.apply from: "../../commonLocalRepo.gradle"
 }

@@ -79,6 +79,8 @@ public class ObservableDouble extends BaseObservableField implements Parcelable,
 
     /**
      * Set the stored value.
+     *
+     * @param value The new value
      */
     public void set(double value) {
         if (value != mValue) {

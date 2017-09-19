@@ -80,6 +80,8 @@ public class ObservableByte extends BaseObservableField implements Parcelable, S
 
     /**
      * Set the stored value.
+     *
+     * @param value The new value
      */
     public void set(byte value) {
         if (value != mValue) {

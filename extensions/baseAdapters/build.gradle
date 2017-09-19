@@ -13,13 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-buildscript {
-    dependencies {
-        classpath "com.android.tools.build:gradle:${dataBindingConfig.androidPluginVersion}"
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
-}
 apply plugin: 'com.android.library'
 
 android {
@@ -55,9 +48,10 @@ android {
 dependencies {
     // we don't care about version of these because they are not listed as dependencies in the
     // final maven artifact.
-    provided 'com.android.support:support-core-utils:24.2.0'
-    provided 'com.android.support:cardview-v7:24.2.0'
-    provided 'com.android.support:appcompat-v7:24.2.0'
+    implementation project(":library")
+    compileOnly rootProject.ext.libs.android_support_core_utils
+    compileOnly rootProject.ext.libs.android_support_cardview_v7
+    compileOnly rootProject.ext.libs.android_support_appcompat_v7
 }
 
 //create jar tasks
@@ -69,7 +63,7 @@ android.libraryVariants.all { variant ->
     }
     def suffix = name.capitalize()
 
-    def javadocTask = project.tasks.create(name: "javadoc${suffix}", type: Javadoc) {
+    /*def javadocTask = project.tasks.create(name: "javadoc${suffix}", type: Javadoc) {
         source variant.javaCompile.source
         classpath = files(variant.javaCompile.classpath.files) + files(
                 "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar")
@@ -79,14 +73,14 @@ android.libraryVariants.all { variant ->
         classifier = 'javadoc'
         from 'build/docs/javadoc'
     }
-    javadocJarTask.dependsOn javadocTask
+    javadocJarTask.dependsOn javadocTask*/
 
     def sourcesJarTask = project.tasks.create(name: "sourceJar${suffix}", type: Jar) {
         classifier = 'sources'
         from android.sourceSets.main.java.srcDirs
     }
 
-    artifacts.add('archives', javadocJarTask);
+    // artifacts.add('archives', javadocJarTask);
     artifacts.add('archives', sourcesJarTask);
 }
 

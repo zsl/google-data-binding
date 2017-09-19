@@ -79,6 +79,8 @@ public class ObservableFloat extends BaseObservableField implements Parcelable, 
 
     /**
      * Set the stored value.
+     *
+     * @param value The new value
      */
     public void set(float value) {
         if (value != mValue) {

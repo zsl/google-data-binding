@@ -17,18 +17,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion dataBindingConfig.compileSdkVersion
-    buildToolsVersion dataBindingConfig.buildToolsVersion
+    compileSdkVersion rootProject.latestCompileSdk
+    buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
         applicationId "com.android.databinding.appwithspaces"
         minSdkVersion 14
-        targetSdkVersion dataBindingConfig.targetSdkVersion
+        targetSdkVersion rootProject.latestCompileSdk
         versionCode 1
         versionName "1.0"
-        jackOptions {
-            enabled dataBindingConfig.useJack
-        }
     }
     dataBinding {
         enabled = true
@@ -49,5 +46,4 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.support:support-v4:+"
 }

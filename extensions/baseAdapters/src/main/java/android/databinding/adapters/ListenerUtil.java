@@ -50,6 +50,7 @@ public class ListenerUtil {
      * @param listenerResourceId A unique resource ID associated with the listener type.
      * @return The previously tracked listener. This will be null if the View did not have
      * a previously-tracked listener.
+     * @param <T> the listener type
      */
     @SuppressWarnings("unchecked")
     public static <T> T trackListener(View view, T listener, int listenerResourceId) {
@@ -87,6 +88,7 @@ public class ListenerUtil {
      * @param listenerResourceId A unique resource ID associated with the listener type.
      * @return The previously tracked listener. This will be null if the View did not have
      * a previously-tracked listener.
+     * @param <T> the listener type
      */
     public static <T> T getListener(View view, int listenerResourceId) {
         if (VERSION.SDK_INT >= VERSION_CODES.ICE_CREAM_SANDWICH) {

@@ -80,6 +80,8 @@ public class ObservableLong extends BaseObservableField implements Parcelable, S
 
     /**
      * Set the stored value.
+     *
+     * @param value The new value
      */
     public void set(long value) {
         if (value != mValue) {

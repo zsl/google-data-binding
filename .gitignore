@@ -1,4 +1,5 @@
 */build
+**/.idea/*
 local.properties
 .gradle
 maven-repo
@@ -10,4 +11,5 @@ maven-repo
 old-version-projects/tmp-maven-repo
 integration-tests/*/build
 old-version-projects/*/build
+extensions/*/build
 build/kotlin-build/caches/version.txt

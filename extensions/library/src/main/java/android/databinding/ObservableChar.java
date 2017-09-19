@@ -79,6 +79,8 @@ public class ObservableChar extends BaseObservableField implements Parcelable, S
 
     /**
      * Set the stored value.
+     *
+     * @param value The new value
      */
     public void set(char value) {
         if (value != mValue) {

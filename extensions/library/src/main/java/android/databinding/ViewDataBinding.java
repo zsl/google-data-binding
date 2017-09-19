@@ -285,6 +285,8 @@ public abstract class ViewDataBinding extends BaseObservable {
 
     /**
      * @hide
+     *
+     * @return Returns the current build sdk
      */
     public static int getBuildSdkInt() {
         return SDK_INT;

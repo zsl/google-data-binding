@@ -90,6 +90,7 @@ class ExprModelExt {
         return set
     }
 
+    @Suppress("UNUSED_PARAMETER") // TODO fix in a followup CL
     fun getUniqueName(base : String, scope : Scope, isPublic : kotlin.Boolean) : String {
         var candidateBase = base
         var candidate = candidateBase
@@ -804,7 +805,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                 block("synchronized(this)") {
                                     val flagSet = it.value.foldRight(FlagSet()) { l, r -> l.second.invalidateFlagSet.or(r) }
 
-                                    mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                                    mDirtyFlags.mapOr(flagSet) { _, index ->
                                         tab("${mDirtyFlags.localValue(index)} |= ${flagSet.localValue(index)};")
                                     }
                                 }
@@ -898,7 +899,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                 val flagSet = inverseBinding.chainedExpressions.fold(FlagSet(), { initial, expr ->
                                     initial.or(FlagSet(expr.id))
                                 })
-                                mDirtyFlags.mapOr(flagSet) { suffix, index ->
+                                mDirtyFlags.mapOr(flagSet) { _, index ->
                                     tab("${mDirtyFlags.localValue(index)} |= ${flagSet.binaryCode(index)};")
                                 }
                             }
@@ -973,9 +974,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             layoutBinder.sortedTargets.filter { it.isUsed }
                     .flatMap { it.bindings }
                     .groupBy {
-                        "${tmpDirtyFlags.mapOr(it.expr.dirtyFlagSet) { suffix, index ->
+                        tmpDirtyFlags.mapOr(it.expr.dirtyFlagSet) { _, index ->
                             "(${tmpDirtyFlags.localValue(index)} & ${it.expr.dirtyFlagSet.localValue(index)}) != 0"
-                        }.joinToString(" || ") }"
+                        }.joinToString(" || ")
                     }.forEach {
                 block("if (${it.key})") {
                     it.value.groupBy { Math.max(1, it.minApi) }.forEach {
@@ -1000,10 +1001,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             layoutBinder.sortedTargets.filter { it.isUsed }
                     .flatMap { it.bindings }
                     .filter { it.requiresOldValue() }
-                    .groupBy {"${tmpDirtyFlags.mapOr(it.expr.dirtyFlagSet) { suffix, index ->
-                        "(${tmpDirtyFlags.localValue(index)} & ${it.expr.dirtyFlagSet.localValue(index)}) != 0"
-                    }.joinToString(" || ")
-                    }"}.forEach {
+                    .groupBy {
+                        tmpDirtyFlags.mapOr(it.expr.dirtyFlagSet) { _, index ->
+                            "(${tmpDirtyFlags.localValue(index)} & ${it.expr.dirtyFlagSet.localValue(index)}) != 0"
+                        }.joinToString(" || ")
+                    }.forEach {
                 block("if (${it.key})") {
                     it.value.groupBy { it.expr }.map { it.value.first() }.forEach {
                         it.componentExpressions.forEach { expr ->
@@ -1032,7 +1034,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             val flagSet = it.key
             val needsIfWrapper = inheritedFlags == null || !flagSet.bitsEqual(inheritedFlags)
             val expressions = it.value
-            val ifClause = "if (${tmpDirtyFlags.mapOr(flagSet){ suffix, index ->
+            val ifClause = "if (${tmpDirtyFlags.mapOr(flagSet){ _, index ->
                 "(${tmpDirtyFlags.localValue(index)} & ${flagSet.localValue(index)}) != 0"
             }.joinToString(" || ")
             })"
@@ -1076,7 +1078,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             val isBehindTernary = ternaryBitSet.nextSetBit(model.invalidateAnyFlagIndex) == -1
                             if (!isBehindTernary) {
                                 val ternaryFlags = it.shouldReadWithConditionalsFlagSet
-                                "if(${tmpDirtyFlags.mapOr(ternaryFlags){ suffix, index ->
+                                "if(${tmpDirtyFlags.mapOr(ternaryFlags){ _, index ->
                                     "(${tmpDirtyFlags.localValue(index)} & ${ternaryFlags.localValue(index)}) != 0"
                                 }.joinToString(" || ")})"
                             } else {
@@ -1099,7 +1101,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                     block("if($predicate)") {
                                         it.value.forEach {
                                             val set = it.getRequirementFlagSet(true)
-                                            mDirtyFlags.mapOr(set) { suffix, index ->
+                                            mDirtyFlags.mapOr(set) { _, index ->
                                                 tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
                                             }
                                         }
@@ -1107,7 +1109,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                                     block("else") {
                                         it.value.forEach {
                                             val set = it.getRequirementFlagSet(false)
-                                            mDirtyFlags.mapOr(set) { suffix, index ->
+                                            mDirtyFlags.mapOr(set) { _, index ->
                                                 tab("${tmpDirtyFlags.localValue(index)} |= ${set.localValue(index)};")
                                             }
                                         }

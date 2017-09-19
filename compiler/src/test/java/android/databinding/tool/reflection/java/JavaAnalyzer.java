@@ -20,6 +20,11 @@ import android.databinding.tool.reflection.TypeUtil;
 import android.databinding.tool.util.L;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Properties;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -30,6 +35,9 @@ import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.filefilter.AbstractFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 
 public class JavaAnalyzer extends ModelAnalyzer {
     public static final Map<String, Class> PRIMITIVE_TYPES;
@@ -205,10 +213,26 @@ public class JavaAnalyzer extends ModelAnalyzer {
                     "you need to have ANDROID_HOME set in your environment"
                             + " to run compiler tests");
         }
-        File androidJar = new File(androidHome + "/platforms/android-24/android.jar");
-        if (!androidJar.exists() || !androidJar.canRead()) {
-            throw new IllegalStateException(
-                    "cannot find android jar at " + androidJar.getAbsolutePath());
+        // find latest SDK
+        final File platforms = new File(androidHome + "/platforms");
+        final String prefix = "android-";
+        final Collection<File> sdks = FileUtils
+                .listFilesAndDirs(platforms, FileFilterUtils.falseFileFilter(),
+                        FileFilterUtils.prefixFileFilter(prefix));
+        File androidJar = null;
+        int maxVersion = -1;
+        for (File sdk : sdks) {
+            try {
+                int version = Integer.parseInt(sdk.getName().substring(prefix.length()));
+                if (version > maxVersion) {
+                    androidJar = new File(sdk, "android.jar");
+                }
+            } catch (NumberFormatException ex) {
+                L.d("cannot parse number from " +  sdk.getName());
+            }
+        }
+        if (androidJar == null || !androidJar.exists() || !androidJar.canRead()) {
+            throw new IllegalStateException("cannot find android jar");
         }
         // now load android data binding library as well
 
