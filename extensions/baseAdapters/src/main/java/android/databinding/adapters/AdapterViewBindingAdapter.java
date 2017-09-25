@@ -23,6 +23,7 @@ import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
 import android.view.View;
 import android.widget.AbsListView;
+import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
@@ -32,6 +33,9 @@ import android.widget.AdapterView.OnItemSelectedListener;
 })
 @InverseBindingMethods({
         @InverseBindingMethod(type = AdapterView.class, attribute = "android:selectedItemPosition"),
+        @InverseBindingMethod(type = AdapterView.class, attribute = "android:selection",
+                method = "getSelectedItemPosition",
+                event = "android:selectedItemPositionAttrChanged"),
 })
 public class AdapterViewBindingAdapter {
 
@@ -42,8 +46,28 @@ public class AdapterViewBindingAdapter {
         }
     }
 
+    @BindingAdapter("android:selection")
+    public static void setSelection(AdapterView view, int position) {
+        setSelectedItemPosition(view, position);
+    }
+
+    @BindingAdapter({"android:selectedItemPosition", "android:adapter"})
+    public static void setSelectedItemPosition(AdapterView view, int position, Adapter adapter) {
+        if (adapter != view.getAdapter()) {
+            view.setAdapter(adapter);
+            view.setSelection(position);
+        } else if (view.getSelectedItemPosition() != position) {
+            view.setSelection(position);
+        }
+    }
+
+    @BindingAdapter({"android:selection", "android:adapter"})
+    public static void setSelection(AdapterView view, int position, Adapter adapter) {
+        setSelectedItemPosition(view, position, adapter);
+    }
+
     @BindingAdapter(value = {"android:onItemSelected", "android:onNothingSelected",
-            "android:selectedItemPositionAttrChanged"}, requireAll = false)
+            "android:selectedItemPositionAttrChanged" }, requireAll = false)
     public static void setOnItemSelectedListener(AdapterView view, final OnItemSelected selected,
             final OnNothingSelected nothingSelected, final InverseBindingListener attrChanged) {
         if (selected == null && nothingSelected == null && attrChanged == null) {
