@@ -15,6 +15,8 @@
  */
 package android.databinding;
 
+import android.support.annotation.Nullable;
+
 import java.io.Serializable;
 
 /**
@@ -74,6 +76,7 @@ public class ObservableField<T> extends BaseObservableField implements Serializa
     /**
      * @return the stored value.
      */
+    @Nullable
     public T get() {
         return mValue;
     }
