@@ -16,9 +16,7 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.AutoContextBinding;
-
 import android.test.UiThreadTest;
-import android.widget.TextView;
 
 public class AutoContextTest extends BaseDataBinderTest<AutoContextBinding> {
 

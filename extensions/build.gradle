@@ -1,42 +1,50 @@
 buildscript {
     def ENV = System.getenv()
-    
+
     Properties databindingProperties = new Properties()
     databindingProperties.load(new FileInputStream("$projectDir/../databinding.properties"))
     Properties buildToolsProperties = new Properties()
     buildToolsProperties.load(new FileInputStream("$projectDir/../../buildSrc/base/version.properties"))
-    
-    def autoConfigured = !gradle.startParameter.getInitScripts().isEmpty()
+
+    def runningInIde = project.hasProperty('android.injected.invoked.from.ide')
+    // this is done by bazel but if we are in IDE it also configures so we need to distinguish
+    def autoConfigured = !gradle.startParameter.getInitScripts().isEmpty() && !runningInIde
     ext.autoConfigured = autoConfigured
+
 
     def TOOLS_VERSION = ENV['VERSION'] ?: buildToolsProperties.get("buildVersion")
     def OUT_REPO = ENV['OUT_REPO'] ?: ENV['BUILD_DIR'] ?: []
     def MAVEN_REPO = ENV['MAVEN_REPO']
     def PREBUILTS_REPO = ENV['PREBUILTS_REPO']
-    if (autoConfigured) {
+    if (runningInIde) {
+        Properties devVersions = new Properties()
+        devVersions.load(new FileInputStream("$projectDir/../../buildSrc/base/dev-version.properties"))
+        // invoked in the IDE, go w/ defaults.
+        TOOLS_VERSION = devVersions.buildVersion
+        MAVEN_REPO = MAVEN_REPO ?: "${projectDir}/../../../out/repo"
+        OUT_REPO = OUT_REPO ?: "${projectDir}/../../../out/repo"
+        PREBUILTS_REPO = PREBUILTS_REPO ?: "${projectDir}/../../../prebuilts/maven_repo/android"
+    } else if (autoConfigured) {
         if (TOOLS_VERSION == null || OUT_REPO == null) {
             throw new GradleException("""must set the following env variables:
                     VERSION:$TOOLS_VERSION // tools build version
                     OUT_REPO:$OUT_REPO // maven repo to upload artifacts""")
         }
-    } else {
-        if (TOOLS_VERSION == null
-                || MAVEN_REPO == null
-                || OUT_REPO == null
-                || PREBUILTS_REPO == null) {
-                    throw new GradleException("""must set the following env variables:
-                            VERSION:$TOOLS_VERSION // tools build version
-                            MAVEN_REPO:$MAVEN_REPO // maven repo for ToT tools build
-                            OUT_REPO:$OUT_REPO // maven repo to upload artifacts
-                            PREBUILTS_REPO:$PREBUILTS_REPO // prebuilts repo to fix support library dependencies""")
-        }
-        
+    } else if (TOOLS_VERSION == null
+            || MAVEN_REPO == null
+            || OUT_REPO == null
+            || PREBUILTS_REPO == null) {
+        throw new GradleException("""must set the following env variables:
+                        VERSION:$TOOLS_VERSION // tools build version
+                        MAVEN_REPO:$MAVEN_REPO // maven repo for ToT tools build
+                        OUT_REPO:$OUT_REPO // maven repo to upload artifacts
+                        PREBUILTS_REPO:$PREBUILTS_REPO // prebuilts repo to fix support library dependencies""")
     }
 
     databindingProperties.version = TOOLS_VERSION
-    databindingProperties.androidPluginVersion= TOOLS_VERSION
+    databindingProperties.androidPluginVersion = TOOLS_VERSION
     databindingProperties.compileSdkVersion = Integer.parseInt(databindingProperties.compileSdkVersionStr)
-    
+
     databindingProperties.maven = [:]
     if (autoConfigured) {
         // bazel build
@@ -49,18 +57,18 @@ buildscript {
         databindingProperties.maven.prebuilts_repo = file(PREBUILTS_REPO).getAbsolutePath()
     }
     ext.dataBindingConfig = databindingProperties
-    def supportLibVersion ="26.0.2"
+    def supportLibVersion = "26.0.2"
     ext.libs = [:]
     ext.libs.android_support_core_utils = "com.android.support:support-core-utils:$supportLibVersion"
     ext.libs.android_support_annotations = "com.android.tools:annotations:$supportLibVersion"
     ext.libs.android_support_v4 = "com.android.tools:support-v4:$supportLibVersion"
     ext.libs.android_support_cardview_v7 = "com.android.support:cardview-v7:$supportLibVersion"
     ext.libs.android_support_appcompat_v7 = "com.android.support:appcompat-v7:$supportLibVersion"
-    
+
     dependencies {
         classpath "com.android.tools.build:gradle:$TOOLS_VERSION"
     }
-    
+
     if (!autoConfigured) {
         repositories {
             maven {
@@ -91,8 +99,7 @@ subprojects {
             }
         }
     }
-    //tasks['build'].dependsOn 'uploadArchives'
-    
+
     uploadArchives {
         repositories {
             mavenDeployer {
@@ -102,9 +109,7 @@ subprojects {
     }
 }
 
-println "CREATING ARCHIVE ${dataBindingConfig.maven.zip_out}"
-
-task createArchive(type : Zip) {
+task createArchive(type: Zip) {
     description "Creates a maven repository that includes just the libraries compiled in this" +
             " project, without any history from prebuilts."
     from dataBindingConfig.maven.out_repo
