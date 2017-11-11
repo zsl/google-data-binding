@@ -8,8 +8,12 @@ maven-repo
 .idea/workspace.xml
 .idea/libraries
 .idea/modules
-old-version-projects/tmp-maven-repo
-integration-tests/*/build
 old-version-projects/*/build
 extensions/*/build
 build/kotlin-build/caches/version.txt
+# the gradle files below are generated locally, never commit
+integration-tests/*/build
+integration-tests/*/gradlew
+integration-tests/*/gradle
+extensions/gradle
+extensions/gradlew
