@@ -67,11 +67,11 @@ Some of data binding tests are only in AGP. To run them:
 ### Running Integration Tests
 These are run by gradle build.
 
-`cd {src}/tools && ./gradlew :b:i-t:cIT -D:base:integration-test:connectedIntegrationTest.single=DataBinding\*`
+`gw :base:build-system:integration-test:application:cIT -D:base:build-system:integration-test:application:connectedIntegrationTest.single=DataBinding\*`
 
 We also compile them in bazel builds:
 
-`bazel test //tools/base/build-system/integration-test:tests --test_filter=DataBinding\* --test_output=streamed`
+`bazel test //tools/base/build-system/integration-test/application:tests --test_filter=DataBinding\* --test_output=errors --action_env="GTEST_COLOR=1"`
 
 If you did run `./init.sh`, you can open integration tests in Android Studio.
 
@@ -91,3 +91,11 @@ re-generate the related bazel files. (if you forget, presubmit will probably cat
 
 If you add a new integration test app, update
 {src}/tools/base/build-system/integration-test/src/test/java/com/android/build/gradle/integration/databinding/DataBindingIntegrationTestAppsTest.java to include it.
+
+
+## Misc
+
+### working on compiler
+If you are working on compiler but testing via integration tests, run:
+`./gradlew :publishAndroidGradleLocal //(in tools/base)`
+then run your integration test.

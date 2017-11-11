@@ -60,11 +60,13 @@ public class DataBindingCompilerArgs {
 
     private static final String PARAM_ENABLE_FOR_TESTS = PREFIX + "enableForTests";
 
+    private static final String PARAM_ENABLE_V2 = PREFIX + "enableV2";
+
     public static final Set<String> ALL_PARAMS = Sets.newHashSet( PARAM_BUILD_FOLDER,
             PARAM_AAR_OUT_FOLDER, PARAM_SDK_DIR, PARAM_ARTIFACT_TYPE, PARAM_XML_OUT_DIR,
             PARAM_EXPORT_CLASS_LIST_TO, PARAM_MODULE_PKG, PARAM_MIN_API,
             PARAM_ENABLE_DEBUG_LOGS, PARAM_PRINT_ENCODED_ERROR_LOGS, PARAM_IS_TEST_VARIANT,
-            PARAM_ENABLE_FOR_TESTS);
+            PARAM_ENABLE_FOR_TESTS, PARAM_ENABLE_V2);
 
     private String mBuildFolder;
     private String mAarOutFolder;
@@ -78,6 +80,7 @@ public class DataBindingCompilerArgs {
     private boolean mEnableDebugLogs;
     private boolean mPrintEncodedErrorLogs;
     private boolean mEnabledForTests;
+    private boolean mEnableV2;
 
     private DataBindingCompilerArgs() {}
 
@@ -98,6 +101,7 @@ public class DataBindingCompilerArgs {
         args.mPrintEncodedErrorLogs = deserialize(options.get(PARAM_PRINT_ENCODED_ERROR_LOGS));
         args.mIsTestVariant = deserialize(options.get(PARAM_IS_TEST_VARIANT));
         args.mEnabledForTests = deserialize(options.get(PARAM_ENABLE_FOR_TESTS));
+        args.mEnableV2 = deserialize(options.get(PARAM_ENABLE_V2));
         return args;
     }
 
@@ -160,6 +164,10 @@ public class DataBindingCompilerArgs {
         return mEnabledForTests;
     }
 
+    public boolean isEnableV2() {
+        return mEnableV2;
+    }
+
     public Map<String, String> toMap() {
         Map<String, String> args = new HashMap<>();
         putIfNotNull(mBuildFolder, args, PARAM_BUILD_FOLDER, mBuildFolder);
@@ -174,6 +182,7 @@ public class DataBindingCompilerArgs {
         args.put(PARAM_PRINT_ENCODED_ERROR_LOGS, serialize(mPrintEncodedErrorLogs));
         args.put(PARAM_IS_TEST_VARIANT, serialize(mIsTestVariant));
         args.put(PARAM_ENABLE_FOR_TESTS, serialize(mEnabledForTests));
+        args.put(PARAM_ENABLE_V2, serialize(mEnableV2));
         return args;
     }
 
@@ -209,6 +218,7 @@ public class DataBindingCompilerArgs {
         private boolean mPrintEncodedErrorLogs;
         private boolean mIsTestVariant;
         private boolean mEnabledForTests;
+        private boolean mEnableV2;
 
         private Builder() {}
         public Builder buildFolder(File buildFolder) {
@@ -263,6 +273,11 @@ public class DataBindingCompilerArgs {
             return this;
         }
 
+        public Builder enableV2(boolean enableV2) {
+            mEnableV2 = enableV2;
+            return this;
+        }
+
         public DataBindingCompilerArgs build() {
             DataBindingCompilerArgs args = new DataBindingCompilerArgs();
             Preconditions.checkNotNull(mType, "Must specify type of the build. Lib or App or Test?"
@@ -300,6 +315,7 @@ public class DataBindingCompilerArgs {
             args.mPrintEncodedErrorLogs = mPrintEncodedErrorLogs;
             args.mIsTestVariant = mIsTestVariant;
             args.mEnabledForTests = mEnabledForTests;
+            args.mEnableV2 = mEnableV2;
             return args;
         }
     }

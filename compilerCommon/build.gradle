@@ -15,10 +15,18 @@
  */
 
 apply plugin: 'java'
+apply plugin: 'kotlin'
+
+buildscript {
+    dependencies {
+        classpath libs.kotlin_gradle_plugin
+    }
+}
 
 sourceSets {
     main {
         java {
+            srcDir 'src/main/kotlin'
             srcDir 'src/main/java'
             srcDir 'src/main/xml-gen'
             srcDir 'src/main/grammar-gen'
@@ -39,6 +47,9 @@ dependencies {
     compile libs.apache_commons_io
     compile libs.juniversalchardet
     compile libs.guava
+    compile libs.javapoet
+    compile libs.kotlin_stdlib
+    compile libs.gson
     compile 'com.android.tools:annotations:24.5.0'
     testCompile libs.junit
 }

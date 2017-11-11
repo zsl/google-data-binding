@@ -66,16 +66,19 @@ public class CompilerChef {
     private JavaFileWriter mFileWriter;
     private ResourceBundle mResourceBundle;
     private DataBinder mDataBinder;
+    private boolean mEnableV2;
 
     private CompilerChef() {
     }
 
-    public static CompilerChef createChef(ResourceBundle bundle, JavaFileWriter fileWriter) {
+    public static CompilerChef createChef(ResourceBundle bundle, JavaFileWriter fileWriter,
+            DataBindingCompilerArgs compilerArgs) {
         CompilerChef chef = new CompilerChef();
 
         chef.mResourceBundle = bundle;
         chef.mFileWriter = fileWriter;
         chef.mResourceBundle.validateMultiResLayouts();
+        chef.mEnableV2 = compilerArgs.isEnableV2();
         chef.pushClassesToAnalyzer();
         chef.pushDynamicUtilToAnalyzer();
         return chef;
@@ -87,7 +90,7 @@ public class CompilerChef {
 
     public void ensureDataBinder() {
         if (mDataBinder == null) {
-            mDataBinder = new DataBinder(mResourceBundle);
+            mDataBinder = new DataBinder(mResourceBundle, mEnableV2);
             mDataBinder.setFileWriter(mFileWriter);
         }
     }
@@ -113,6 +116,7 @@ public class CompilerChef {
                     mResourceBundle.getLayoutBundles().get(layoutName);
             final String className = bundles.get(0).getBindingClassPackage() + "."
                     + bundles.get(0).getBindingClassName();
+            // inject base class
             InjectedClass bindingClass =
                     new InjectedClass(className, ModelAnalyzer.VIEW_DATA_BINDING);
             analyzer.injectClass(bindingClass);
@@ -123,7 +127,8 @@ public class CompilerChef {
                     imports.put(imp.name, imp.type);
                 }
 
-                for (ResourceBundle.VariableDeclaration variable : layoutFileBundle.getVariables()) {
+                for (ResourceBundle.VariableDeclaration variable :
+                        layoutFileBundle.getVariables()) {
                     if (variables.add(variable.name)) {
                         bindingClass.addVariable(variable.name, variable.type, imports);
                     }
@@ -139,7 +144,8 @@ public class CompilerChef {
                         }
                     }
                 }
-                if (bundles.size() > 1) {
+                // inject implementation
+                if (mEnableV2 || bundles.size() > 1) {
                     // Add the implementation class
                     final String implName = className + layoutFileBundle.getConfigName() + "Impl";
                     analyzer.injectClass(new InjectedClass(implName, className));
@@ -203,7 +209,7 @@ public class CompilerChef {
         ensureDataBinder();
         mDataBinder.sealModels();
     }
-    
+
     public void writeViewBinderInterfaces(boolean isLibrary) {
         ensureDataBinder();
         mDataBinder.writerBaseClasses(isLibrary);

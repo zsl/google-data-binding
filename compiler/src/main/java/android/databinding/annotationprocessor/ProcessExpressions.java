@@ -17,6 +17,7 @@
 package android.databinding.annotationprocessor;
 
 import android.databinding.tool.CompilerChef;
+import android.databinding.tool.DataBindingBuilder;
 import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.LayoutXmlProcessor;
 import android.databinding.tool.reflection.SdkUtil;
@@ -70,7 +71,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             for (Intermediate intermediate : intermediateList) {
                 try {
                     try {
-                        intermediate.appendTo(resourceBundle);
+                        intermediate.appendTo(resourceBundle, false);
                     } catch (Throwable throwable) {
                         L.e(throwable, "unable to prepare resource bundle");
                     }
@@ -85,7 +86,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
                 mine.updateOverridden(resourceBundle);
                 intermediateList.add(mine);
                 saveIntermediate(processingEnvironment, args, mine);
-                mine.appendTo(resourceBundle);
+                mine.appendTo(resourceBundle, true);
             }
             // generate them here so that bindable parser can read
             try {
@@ -189,7 +190,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     private void writeResourceBundle(ResourceBundle resourceBundle,
             DataBindingCompilerArgs compilerArgs) throws JAXBException {
-        final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle, getWriter());
+        final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle,
+                getWriter(), compilerArgs);
         compilerChef.sealModels();
         // write this only if we are compiling an app or a library test app.
         // even if data binding is enabled for tests, we should not re-generate this.
@@ -197,8 +199,10 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             compilerChef.writeComponent();
         }
         if (compilerChef.hasAnythingToGenerate()) {
-            compilerChef.writeViewBinderInterfaces(compilerArgs.isLibrary()
-                    && !compilerArgs.isTestVariant());
+            if (!compilerArgs.isEnableV2()) {
+                compilerChef.writeViewBinderInterfaces(compilerArgs.isLibrary()
+                        && !compilerArgs.isTestVariant());
+            }
             if (compilerArgs.isApp() != compilerArgs.isTestVariant() ||
                     compilerArgs.isEnabledForTests()) {
                 compilerChef.writeViewBinders(compilerArgs.getMinApi());
@@ -227,7 +231,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
         Intermediate upgrade();
 
-        void appendTo(ResourceBundle resourceBundle) throws Throwable;
+        void appendTo(ResourceBundle resourceBundle, boolean fromSource) throws Throwable;
     }
 
     public static class IntermediateV1 implements Intermediate {
@@ -246,7 +250,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         }
 
         @Override
-        public void appendTo(ResourceBundle resourceBundle) throws JAXBException {
+        public void appendTo(ResourceBundle resourceBundle, boolean fromSource) throws
+                JAXBException {
             if (mUnmarshaller == null) {
                 JAXBContext context = JAXBContext
                         .newInstance(ResourceBundle.LayoutFileBundle.class);
@@ -257,7 +262,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
                 try {
                     final ResourceBundle.LayoutFileBundle bundle
                             = (ResourceBundle.LayoutFileBundle) mUnmarshaller.unmarshal(is);
-                    resourceBundle.addLayoutBundle(bundle);
+                    resourceBundle.addLayoutBundle(bundle, fromSource);
                     L.d("loaded layout info file %s", bundle);
                 } finally {
                     IOUtils.closeQuietly(is);
@@ -279,13 +284,13 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         // specify so that we can define updates ourselves.
         private static final long serialVersionUID = 2L;
         @Override
-        public void appendTo(ResourceBundle resourceBundle) throws JAXBException {
+        public void appendTo(ResourceBundle resourceBundle, boolean fromSource) throws JAXBException {
             for (Map.Entry<String, String> entry : mLayoutInfoMap.entrySet()) {
                 final InputStream is = IOUtils.toInputStream(entry.getValue());
                 try {
                     final ResourceBundle.LayoutFileBundle bundle = ResourceBundle.LayoutFileBundle
                             .fromXML(is);
-                    resourceBundle.addLayoutBundle(bundle);
+                    resourceBundle.addLayoutBundle(bundle, fromSource);
                     L.d("loaded layout info file %s", bundle);
                 } finally {
                     IOUtils.closeQuietly(is);

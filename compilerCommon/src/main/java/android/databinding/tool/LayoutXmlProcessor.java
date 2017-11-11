@@ -51,7 +51,6 @@ public class LayoutXmlProcessor {
     private final JavaFileWriter mFileWriter;
     private final ResourceBundle mResourceBundle;
     private boolean mProcessingComplete;
-    private boolean mWritten;
     private final String mBuildId = UUID.randomUUID().toString();
     private final OriginalFileLookup mOriginalFileLookup;
     private final LayoutFileParser mLayoutFileParser = new LayoutFileParser();
@@ -157,7 +156,7 @@ public class LayoutXmlProcessor {
         final ResourceBundle.LayoutFileBundle bindingLayout = mLayoutFileParser
                 .parseXml(input, output, mResourceBundle.getAppPackage(), mOriginalFileLookup);
         if (bindingLayout != null && !bindingLayout.isEmpty()) {
-            mResourceBundle.addLayoutBundle(bindingLayout);
+            mResourceBundle.addLayoutBundle(bindingLayout, true);
             return true;
         }
         return false;
@@ -185,7 +184,7 @@ public class LayoutXmlProcessor {
                 final ResourceBundle.LayoutFileBundle bindingLayout = layoutFileParser
                         .parseXml(file, output, mResourceBundle.getAppPackage(), mOriginalFileLookup);
                 if (bindingLayout != null && !bindingLayout.isEmpty()) {
-                    mResourceBundle.addLayoutBundle(bindingLayout);
+                    mResourceBundle.addLayoutBundle(bindingLayout, true);
                 }
             }
 
@@ -256,10 +255,11 @@ public class LayoutXmlProcessor {
         writeLayoutInfoFiles(xmlOutDir, mFileWriter);
     }
 
+    public JavaFileWriter getFileWriter() {
+        return mFileWriter;
+    }
+
     public void writeLayoutInfoFiles(File xmlOutDir, JavaFileWriter writer) throws JAXBException {
-        if (mWritten) {
-            return;
-        }
         for (List<ResourceBundle.LayoutFileBundle> layouts : mResourceBundle.getLayoutBundles()
                 .values()) {
             for (ResourceBundle.LayoutFileBundle layout : layouts) {
@@ -270,7 +270,6 @@ public class LayoutXmlProcessor {
             String exportFileName = generateExportFileName(file);
             FileUtils.deleteQuietly(new File(xmlOutDir, exportFileName));
         }
-        mWritten = true;
     }
 
     private void writeXmlFile(JavaFileWriter writer, File xmlOutDir,

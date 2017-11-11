@@ -165,7 +165,13 @@ public class LayoutBinder implements FileScopeProvider {
             "VirtualMachineError",
     };
 
-    public LayoutBinder(ResourceBundle.LayoutFileBundle layoutBundle) {
+    public final ResourceBundle.LayoutFileBundle mLayoutBundle;
+
+    private final boolean mEnableV2;
+
+    public LayoutBinder(ResourceBundle.LayoutFileBundle layoutBundle, boolean enableV2) {
+        this.mLayoutBundle = layoutBundle;
+        mEnableV2 = enableV2;
         try {
             Scope.enter(this);
             mExprModel = new ExprModel();
@@ -369,13 +375,17 @@ public class LayoutBinder implements FileScopeProvider {
     }
 
     public String getImplementationName() {
-        if (hasVariations()) {
+        if (mEnableV2 || hasVariations()) {
             return mBundle.getBindingClassName() + mBundle.getConfigName() + "Impl";
         } else {
             return mBundle.getBindingClassName();
         }
     }
-    
+
+    public boolean enableV2() {
+        return mEnableV2;
+    }
+
     public String getClassName() {
         return mBundle.getBindingClassName();
     }

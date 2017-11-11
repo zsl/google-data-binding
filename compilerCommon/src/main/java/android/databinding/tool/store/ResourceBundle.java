@@ -13,6 +13,7 @@
 
 package android.databinding.tool.store;
 
+import android.databinding.tool.DataBindingBuilder;
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
@@ -22,12 +23,19 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.Preconditions;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -56,20 +64,30 @@ public class ResourceBundle implements Serializable {
     private HashMap<String, List<LayoutFileBundle>> mLayoutBundles
             = new HashMap<String, List<LayoutFileBundle>>();
 
+    private Set<LayoutFileBundle> mLayoutFileBundlesInSource = new HashSet<>();
+
+    private Map<String, String> mDependencyBinders = new HashMap<>();
+
     private List<File> mRemovedFiles = new ArrayList<File>();
+
+    private boolean mValidated = false;
 
     public ResourceBundle(String appPackage) {
         mAppPackage = appPackage;
     }
 
-    public void addLayoutBundle(LayoutFileBundle bundle) {
+    public void addLayoutBundle(LayoutFileBundle bundle, boolean fromSource) {
         if (bundle.mFileName == null) {
             L.e("File bundle must have a name. %s does not have one.", bundle);
             return;
         }
-        if (!mLayoutBundles.containsKey(bundle.mFileName)) {
-            mLayoutBundles.put(bundle.mFileName, new ArrayList<LayoutFileBundle>());
+        if (fromSource) {
+            mLayoutFileBundlesInSource.add(bundle);
         }
+        if (!mLayoutBundles.containsKey(bundle.mFileName)) {
+            mLayoutBundles.put(bundle.mFileName, new ArrayList<>());
+        }
+
         final List<LayoutFileBundle> bundles = mLayoutBundles.get(bundle.mFileName);
         for (LayoutFileBundle existing : bundles) {
             if (existing.equals(bundle)) {
@@ -81,6 +99,15 @@ public class ResourceBundle implements Serializable {
         bundles.add(bundle);
     }
 
+
+    public void addDependencyLayouts(GenClassInfoLog genClassInfoLog) {
+        genClassInfoLog.mappings().forEach((key, value) -> mDependencyBinders.put(key, value.getName()));
+    }
+
+    public Set<LayoutFileBundle> getLayoutFileBundlesInSource() {
+        return mLayoutFileBundlesInSource;
+    }
+
     public HashMap<String, List<LayoutFileBundle>> getLayoutBundles() {
         return mLayoutBundles;
     }
@@ -89,15 +116,38 @@ public class ResourceBundle implements Serializable {
         return mAppPackage;
     }
 
+    /**
+     * Loads the class info from a folder. This log has the list of classes which are generated
+     * in previous steps.
+     */
+    public static GenClassInfoLog loadClassInfoFromFolder(File folder) throws IOException {
+        GenClassInfoLog merged = new GenClassInfoLog();
+        Collection<File> files = FileUtils.listFiles(folder,
+                new SuffixFileFilter(DataBindingBuilder.BINDING_CLASS_LIST_SUFFIX,
+                        IOCase.SYSTEM),
+                TrueFileFilter.INSTANCE);
+        for (File file : files) {
+            merged.addAll(GenClassInfoLog.fromFile(file));
+        }
+        return merged;
+    }
+
     public void validateMultiResLayouts() {
         for (List<LayoutFileBundle> layoutFileBundles : mLayoutBundles.values()) {
             for (LayoutFileBundle layoutFileBundle : layoutFileBundles) {
-                List<BindingTargetBundle> unboundIncludes = new ArrayList<BindingTargetBundle>();
+                List<BindingTargetBundle> unboundIncludes = new ArrayList<>();
                 for (BindingTargetBundle target : layoutFileBundle.getBindingTargetBundles()) {
                     if (target.isBinder()) {
                         List<LayoutFileBundle> boundTo =
                                 mLayoutBundles.get(target.getIncludedLayout());
-                        if (boundTo == null || boundTo.isEmpty()) {
+                        final String targetBinding;
+                        if (boundTo != null && !boundTo.isEmpty()) {
+                            targetBinding = boundTo.get(0).getFullBindingClass();
+                        } else {
+                            targetBinding = mDependencyBinders.getOrDefault(
+                                    target.getIncludedLayout(), null);
+                        }
+                        if (targetBinding == null) {
                             L.d("There is no binding for %s, reverting to plain layout",
                                     target.getIncludedLayout());
                             if (target.getId() == null) {
@@ -107,8 +157,7 @@ public class ResourceBundle implements Serializable {
                                 target.mViewName = "android.view.View";
                             }
                         } else {
-                            String binding = boundTo.get(0).getFullBindingClass();
-                            target.setInterfaceType(binding);
+                            target.setInterfaceType(targetBinding);
                         }
                     }
                 }
@@ -200,7 +249,7 @@ public class ResourceBundle implements Serializable {
                                 if (existingType == null) {
                                     L.d("assigning %s as %s", target.getId(),
                                             target.getFullClassName());
-                                            viewTypes.put(target.mId, target.getFullClassName());
+                                    viewTypes.put(target.mId, target.getFullClassName());
                                     if (target.isBinder()) {
                                         includes.put(target.mId, target.getIncludedLayout());
                                     }
@@ -232,8 +281,8 @@ public class ResourceBundle implements Serializable {
                     for (BindingTargetBundle target : bundle.mBindingTargetBundles) {
                         if (conflictingIds.contains(target.mId)) {
                             Scope.registerError(String.format(
-                                            ErrorMessages.MULTI_CONFIG_ID_USED_AS_IMPORT,
-                                            target.mId), bundle, target);
+                                    ErrorMessages.MULTI_CONFIG_ID_USED_AS_IMPORT,
+                                    target.mId), bundle, target);
                         }
                     }
                 }
@@ -281,7 +330,8 @@ public class ResourceBundle implements Serializable {
                     if ("layout".equals(parentFileName)) {
                         configName = "";
                     } else {
-                        configName = ParserHelper.toClassName(parentFileName.substring("layout-".length()));
+                        configName = ParserHelper.toClassName(
+                                parentFileName.substring("layout-".length()));
                     }
                 } else {
                     configName = "";
@@ -294,7 +344,7 @@ public class ResourceBundle implements Serializable {
     /**
      * Receives a list of bundles which are representations of the same layout file in different
      * configurations.
-     * @param bundles
+     *
      * @return The map for variables and their types
      */
     private Map<String, NameTypeLocation> validateAndMergeNameTypeLocations(
@@ -331,8 +381,8 @@ public class ResourceBundle implements Serializable {
                     continue;
                 }
                 Scope.registerError(String.format(
-                                errorMessage, found.name, found.type,
-                                bundle.mDirectory + "/" + bundle.getFileName()), bundle,
+                        errorMessage, found.name, found.type,
+                        bundle.mDirectory + "/" + bundle.getFileName()), bundle,
                         found.location.createScope());
             }
         }
@@ -342,7 +392,7 @@ public class ResourceBundle implements Serializable {
     /**
      * Receives a list of bundles which are representations of the same layout file in different
      * configurations.
-     * @param bundles
+     *
      * @return The shared class name for these bundles
      */
     private String validateAndGetSharedClassName(List<LayoutFileBundle> bundles) {
@@ -379,18 +429,18 @@ public class ResourceBundle implements Serializable {
     }
 
     @XmlAccessorType(XmlAccessType.NONE)
-    @XmlRootElement(name="Layout")
+    @XmlRootElement(name = "Layout")
     public static class LayoutFileBundle implements Serializable, FileScopeProvider {
-        @XmlAttribute(name="layout", required = true)
+        @XmlAttribute(name = "layout", required = true)
         public String mFileName;
-        @XmlAttribute(name="modulePackage", required = true)
+        @XmlAttribute(name = "modulePackage", required = true)
         public String mModulePackage;
-        @XmlAttribute(name="absoluteFilePath", required = true)
+        @XmlAttribute(name = "absoluteFilePath", required = true)
         public String mAbsoluteFilePath;
         private String mConfigName;
 
         // The binding class as given by the user
-        @XmlAttribute(name="bindingClass", required = false)
+        @XmlAttribute(name = "bindingClass", required = false)
         public String mBindingClass;
 
         // The location of the name of the generated class, optional
@@ -405,21 +455,22 @@ public class ResourceBundle implements Serializable {
         // The package of the binding class as determined from mBindingClass and mModulePackage
         private String mBindingPackage;
 
-        @XmlAttribute(name="directory", required = true)
+        @XmlAttribute(name = "directory", required = true)
         public String mDirectory;
         public boolean mHasVariations;
 
-        @XmlElement(name="Variables")
+        @XmlElement(name = "Variables")
         public List<VariableDeclaration> mVariables = new ArrayList<VariableDeclaration>();
 
-        @XmlElement(name="Imports")
+        @XmlElement(name = "Imports")
         public List<NameTypeLocation> mImports = new ArrayList<NameTypeLocation>();
 
-        @XmlElementWrapper(name="Targets")
-        @XmlElement(name="Target")
-        public List<BindingTargetBundle> mBindingTargetBundles = new ArrayList<BindingTargetBundle>();
+        @XmlElementWrapper(name = "Targets")
+        @XmlElement(name = "Target")
+        public List<BindingTargetBundle> mBindingTargetBundles =
+                new ArrayList<BindingTargetBundle>();
 
-        @XmlAttribute(name="isMerge", required = true)
+        @XmlAttribute(name = "isMerge", required = true)
         private boolean mIsMerge;
 
         private LocationScopeProvider mClassNameLocationProvider;
@@ -544,7 +595,7 @@ public class ResourceBundle implements Serializable {
             return mBindingPackage;
         }
 
-        private String getFullBindingClass() {
+        public String getFullBindingClass() {
             if (mFullBindingClass == null) {
                 if (mBindingClass == null) {
                     mFullBindingClass = getModulePackage() + ".databinding." +
@@ -652,13 +703,13 @@ public class ResourceBundle implements Serializable {
 
     @XmlAccessorType(XmlAccessType.NONE)
     public static class NameTypeLocation {
-        @XmlAttribute(name="type", required = true)
+        @XmlAttribute(name = "type", required = true)
         public String type;
 
-        @XmlAttribute(name="name", required = true)
+        @XmlAttribute(name = "name", required = true)
         public String name;
 
-        @XmlElement(name="location", required = false)
+        @XmlElement(name = "location", required = false)
         public Location location;
 
         public NameTypeLocation() {
@@ -720,7 +771,7 @@ public class ResourceBundle implements Serializable {
 
     @XmlAccessorType(XmlAccessType.NONE)
     public static class VariableDeclaration extends NameTypeLocation {
-        @XmlAttribute(name="declared", required = false)
+        @XmlAttribute(name = "declared", required = false)
         public boolean declared;
 
         public VariableDeclaration() {
@@ -741,27 +792,28 @@ public class ResourceBundle implements Serializable {
     public static class BindingTargetBundle implements Serializable, LocationScopeProvider {
         // public for XML serialization
 
-        @XmlAttribute(name="id")
+        @XmlAttribute(name = "id")
         public String mId;
-        @XmlAttribute(name="tag", required = true)
+        @XmlAttribute(name = "tag", required = true)
         public String mTag;
-        @XmlAttribute(name="originalTag")
+        @XmlAttribute(name = "originalTag")
         public String mOriginalTag;
-        @XmlAttribute(name="view", required = false)
+        @XmlAttribute(name = "view", required = false)
         public String mViewName;
         private String mFullClassName;
         public boolean mUsed = true;
-        @XmlElementWrapper(name="Expressions")
-        @XmlElement(name="Expression")
+        @XmlElementWrapper(name = "Expressions")
+        @XmlElement(name = "Expression")
         public List<BindingBundle> mBindingBundleList = new ArrayList<BindingBundle>();
-        @XmlAttribute(name="include")
+        @XmlAttribute(name = "include")
         public String mIncludedLayout;
-        @XmlElement(name="location")
+        @XmlElement(name = "location")
         public Location mLocation;
         private String mInterfaceType;
 
         // For XML serialization
-        public BindingTargetBundle() {}
+        public BindingTargetBundle() {
+        }
 
         public BindingTargetBundle(String id, String viewName, boolean used,
                 String tag, String originalTag, Location location) {
@@ -775,7 +827,8 @@ public class ResourceBundle implements Serializable {
 
         public void addBinding(String name, String expr, boolean isTwoWay, Location location,
                 Location valueLocation) {
-            mBindingBundleList.add(new BindingBundle(name, expr, isTwoWay, location, valueLocation));
+            mBindingBundleList.add(
+                    new BindingBundle(name, expr, isTwoWay, location, valueLocation));
         }
 
         public void setIncludedLayout(String includedLayout) {
@@ -787,7 +840,8 @@ public class ResourceBundle implements Serializable {
         }
 
         public boolean isBinder() {
-            return mIncludedLayout != null && (!"android.view.View".equals(mInterfaceType) || !"android.view.View".equals(mViewName));
+            return mIncludedLayout != null && (!"android.view.View".equals(mInterfaceType)
+                    || !"android.view.View".equals(mViewName));
         }
 
         public void setInterfaceType(String interfaceType) {
@@ -821,7 +875,7 @@ public class ResourceBundle implements Serializable {
                 } else if (mViewName.indexOf('.') == -1) {
                     if (Arrays.asList(ANDROID_VIEW_PACKAGE_VIEWS).contains(mViewName)) {
                         mFullClassName = "android.view." + mViewName;
-                    } else if("WebView".equals(mViewName)) {
+                    } else if ("WebView".equals(mViewName)) {
                         mFullClassName = "android.webkit." + mViewName;
                     } else {
                         mFullClassName = "android.widget." + mViewName;
@@ -863,7 +917,8 @@ public class ResourceBundle implements Serializable {
             private Location mValueLocation;
             private boolean mIsTwoWay;
 
-            public BindingBundle() {}
+            public BindingBundle() {
+            }
 
             public BindingBundle(String name, String expr, boolean isTwoWay, Location location,
                     Location valueLocation) {
@@ -874,12 +929,12 @@ public class ResourceBundle implements Serializable {
                 mValueLocation = valueLocation;
             }
 
-            @XmlAttribute(name="attribute", required=true)
+            @XmlAttribute(name = "attribute", required = true)
             public String getName() {
                 return mName;
             }
 
-            @XmlAttribute(name="text", required=true)
+            @XmlAttribute(name = "text", required = true)
             public String getExpr() {
                 return mExpr;
             }
@@ -896,7 +951,7 @@ public class ResourceBundle implements Serializable {
                 mIsTwoWay = isTwoWay;
             }
 
-            @XmlElement(name="Location")
+            @XmlElement(name = "Location")
             public Location getLocation() {
                 return mLocation;
             }
@@ -905,12 +960,12 @@ public class ResourceBundle implements Serializable {
                 mLocation = location;
             }
 
-            @XmlElement(name="ValueLocation")
+            @XmlElement(name = "ValueLocation")
             public Location getValueLocation() {
                 return mValueLocation;
             }
 
-            @XmlElement(name="TwoWay")
+            @XmlElement(name = "TwoWay")
             public boolean isTwoWay() {
                 return mIsTwoWay;
             }
