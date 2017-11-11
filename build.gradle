@@ -299,7 +299,11 @@ if (!dataBindingConfig.isIndependent) {
     def buildRuntimeLibrary = tasks.create(name : "buildDataBindingRuntimeArtifacts", type : Exec) {
         def libBuild = file("${dataBindingRootFolder}/extensions")
         workingDir libBuild.getAbsolutePath()
-        commandLine "$rootDir/gradlew"
+        if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+            commandLine "$rootDir\\gradlew.bat"
+        } else {
+            commandLine "$rootDir/gradlew"
+        }
         args '-q', '-p', libBuild.getAbsolutePath(), 'uploadArchives'
         environment VERSION: rootProject.buildVersion
         environment MAVEN_REPO: rootProject.ext.localRepo
