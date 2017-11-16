@@ -36,6 +36,7 @@ android {
         targetSdkVersion dataBindingConfig.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        consumerProguardFiles 'proguard-rules.txt'
     }
     compileOptions {
         sourceCompatibility dataBindingConfig.javaTargetCompatibility
@@ -62,6 +63,8 @@ configurations {
 dependencies {
     implementation rootProject.ext.libs.android_support_core_utils
     implementation "com.android.databinding:baseLibrary:${dataBindingConfig.version}"
+    compileOnly rootProject.ext.libs.android_arch_lifecycle_extensions
+    api rootProject.ext.libs.android_arch_lifecycle_runtime
 }
 
 //create jar tasks

@@ -18,7 +18,6 @@ package android.databinding.tool.reflection;
 import android.databinding.tool.reflection.annotation.AnnotationAnalyzer;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
-import android.databinding.tool.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +53,11 @@ public abstract class ModelAnalyzer {
 
     public static final String OBSERVABLE_MAP_CLASS_NAME = "android.databinding.ObservableMap";
 
+    public static final String LIVE_DATA_CLASS_NAME = "android.arch.lifecycle.LiveData";
+
+    public static final String MUTABLE_LIVE_DATA_CLASS_NAME =
+            "android.arch.lifecycle.MutableLiveData";
+
     public static final String[] OBSERVABLE_FIELDS = {
             "android.databinding.ObservableBoolean",
             "android.databinding.ObservableByte",
@@ -79,6 +83,8 @@ public abstract class ModelAnalyzer {
     private ModelClass mObservableType;
     private ModelClass mObservableListType;
     private ModelClass mObservableMapType;
+    private ModelClass mLiveDataType;
+    private ModelClass mMutableLiveDataType;
     private ModelClass[] mObservableFieldTypes;
     private ModelClass mViewBindingType;
     private ModelClass mViewStubType;
@@ -298,6 +304,20 @@ public abstract class ModelAnalyzer {
             mObservableMapType = loadClassErasure(OBSERVABLE_MAP_CLASS_NAME);
         }
         return mObservableMapType;
+    }
+
+    ModelClass getLiveDataType() {
+        if (mLiveDataType == null) {
+            mLiveDataType = loadClassErasure(LIVE_DATA_CLASS_NAME);
+        }
+        return mLiveDataType;
+    }
+
+    ModelClass getMutableLiveDataType() {
+        if (mMutableLiveDataType == null) {
+            mMutableLiveDataType = loadClassErasure(MUTABLE_LIVE_DATA_CLASS_NAME);
+        }
+        return mMutableLiveDataType;
     }
 
     ModelClass getViewDataBindingType() {

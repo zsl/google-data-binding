@@ -256,12 +256,6 @@ public class SetterStore {
         }
 
         adapters.put(key, new MethodDescription(bindingMethod, 1, takesComponent));
-
-        if (mClassAnalyzer.findClass(value, null).isObservableField()) {
-            ExecutableType executableType = (ExecutableType) bindingMethod.asType();
-            L.w(bindingMethod, ErrorMessages.OBSERVABLE_FIELD_USE,
-                    AnnotationTypeUtil.getInstance().toJava(bindingMethod, executableType));
-        }
     }
 
     public void addInverseAdapter(ProcessingEnvironment processingEnv, String attribute,
@@ -358,16 +352,6 @@ public class SetterStore {
         MethodDescription methodDescription = new MethodDescription(bindingMethod,
                 attributes.length, takesComponent);
         mStore.multiValueAdapters.put(key, methodDescription);
-
-        final long numObservableFields = Arrays.stream(key.parameterTypes)
-                .map(type -> mClassAnalyzer.findClass(type, null))
-                .filter(type -> type.isObservableField())
-                .count();
-        if (numObservableFields > 0) {
-            ExecutableType executableType = (ExecutableType) bindingMethod.asType();
-            L.w(bindingMethod, ErrorMessages.OBSERVABLE_FIELD_USE,
-                    AnnotationTypeUtil.getInstance().toJava(bindingMethod, executableType));
-        }
     }
 
     private static void testRepeatedAttributes(MultiValueAdapterKey key, ExecutableElement method) {
