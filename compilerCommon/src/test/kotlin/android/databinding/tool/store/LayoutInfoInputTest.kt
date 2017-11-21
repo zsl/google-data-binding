@@ -218,9 +218,18 @@ class LayoutInfoInputTest {
         val barClass = createClass("com.Bar")
         val libClassInfoLog = GenClassInfoLog()
         val bazClass = GenClassInfoLog.GenClass(
-                "com.Baz", mapOf(
-                "var1" to "Int",
-                "var2" to "String"))
+                qName = "com.Baz",
+                variables = mapOf(
+                        "var1" to "Int",
+                        "var2" to "String"),
+                modulePackage = "y.x",
+                implementations = setOf(
+                        GenClassInfoLog.GenClassImpl(
+                                tag = "foo",
+                                merge = false,
+                                qualifiedName = "com.Baz.Impl"
+                        )
+                ))
         libClassInfoLog.addMapping("baz", bazClass)
         val libInfo = File(dependencyClassFolder,
                 "com.baz." + DataBindingBuilder.BINDING_CLASS_LIST_SUFFIX)
@@ -259,9 +268,16 @@ class LayoutInfoInputTest {
         val fooClass = createClass("com.Foo")
         val barClass = createClass("com.Bar")
         val bazClass = GenClassInfoLog.GenClass(
-                "com.Baz", mapOf(
-                "var1" to "Int",
-                "var2" to "String"))
+                qName = "com.Baz",
+                variables = mapOf(
+                        "var1" to "Int",
+                        "var2" to "String"),
+                modulePackage = "x.y",
+                implementations = setOf(GenClassInfoLog.GenClassImpl(
+                        tag = "foo",
+                        merge = false,
+                        qualifiedName = "com.Baz.Impl"
+                )))
         val libClassInfoLog = GenClassInfoLog()
         libClassInfoLog.addMapping("baz", bazClass)
         val libInfo = File(dependencyClassFolder,
@@ -307,8 +323,14 @@ class LayoutInfoInputTest {
 
     private fun createClass(qName: String, variables: Map<String, String> = emptyMap())
             : GenClassInfoLog.GenClass {
-        return GenClassInfoLog.GenClass(name = qName,
-                variables = variables)
+        return GenClassInfoLog.GenClass(qName = qName,
+                variables = variables,
+                modulePackage = "android.x",
+                implementations = setOf(
+                        GenClassInfoLog.GenClassImpl(
+                                tag = "foo",
+                                merge = false,
+                                qualifiedName = "${qName}Impl")))
     }
 
 
@@ -320,14 +342,14 @@ class LayoutInfoInputTest {
         log?.serialize(File(baseBinderLogFolder, LayoutInfoInput.LOG_FILE_NAME))
         return LayoutInfoInput(
                 LayoutInfoInput.Args(
-                outOfDate = added,
-                removed = removed,
-                infoFolder = infoFolder,
-                dependencyClassesFolder = dependencyClassFolder,
-                incremental = incremental,
-                logFolder = baseBinderLogFolder,
-                artifactFolder = artifactFolder,
-                packageName = "foo.bar.baz")
+                        outOfDate = added,
+                        removed = removed,
+                        infoFolder = infoFolder,
+                        dependencyClassesFolder = dependencyClassFolder,
+                        incremental = incremental,
+                        logFolder = baseBinderLogFolder,
+                        artifactFolder = artifactFolder,
+                        packageName = "foo.bar.baz")
         )
     }
 }

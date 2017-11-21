@@ -22,6 +22,7 @@
     <orderEntry type="library" name="commons-lang" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" name="javapoet-1.8.0" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>

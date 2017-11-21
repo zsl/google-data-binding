@@ -14,18 +14,27 @@
 package android.databinding.tool;
 
 import android.databinding.tool.expr.ExprModel;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.reflection.InjectedClass;
 import android.databinding.tool.reflection.InjectedMethod;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.store.GenClassInfoLog;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.BindingMapperWriter;
+import android.databinding.tool.writer.BindingMapperWriterV2;
 import android.databinding.tool.writer.DynamicUtilWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.TypeSpec;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -147,7 +156,9 @@ public class CompilerChef {
                 // inject implementation
                 if (mEnableV2 || bundles.size() > 1) {
                     // Add the implementation class
-                    final String implName = className + layoutFileBundle.getConfigName() + "Impl";
+                    final String implName =
+                            layoutFileBundle.getBindingClassPackage() + "."
+                            + layoutFileBundle.createImplClassNameWithConfig();
                     analyzer.injectClass(new InjectedClass(implName, className));
                 }
             }
@@ -169,11 +180,34 @@ public class CompilerChef {
     }
 
     public void writeDataBinderMapper(DataBindingCompilerArgs compilerArgs, BRWriter brWriter) {
-        ensureDataBinder();
         final String pkg = "android.databinding";
-        BindingMapperWriter dbr = new BindingMapperWriter(pkg, "DataBinderMapper",
-                mDataBinder.getLayoutBinders(), compilerArgs);
-        mFileWriter.writeToFile(pkg + "." + dbr.getClassName(), dbr.write(brWriter));
+        final String mapperName = "DataBinderMapper";
+        if (compilerArgs.isEnableV2()) {
+            GenClassInfoLog infoLog;
+            try {
+                infoLog = ResourceBundle.loadClassInfoFromFolder(
+                        new File(compilerArgs.getClassLogDir()));
+            } catch (IOException e) {
+                Scope.defer(new ScopedException("Cannot read class info log"));
+                infoLog = new GenClassInfoLog();
+            }
+            BindingMapperWriterV2 v2 = new BindingMapperWriterV2(pkg,
+                    mapperName, infoLog, compilerArgs);
+            TypeSpec spec = v2.write(brWriter);
+            StringBuilder sb = new StringBuilder();
+            try {
+                JavaFile.builder(pkg, spec)
+                        .build().writeTo(sb);
+                mFileWriter.writeToFile(pkg + "." + v2.getClassName(), sb.toString());
+            } catch (IOException e) {
+                Scope.defer(new ScopedException("cannot generate mapper class", e));
+            }
+        } else {
+            ensureDataBinder();
+            BindingMapperWriter dbr = new BindingMapperWriter(pkg, mapperName,
+                    mDataBinder.getLayoutBinders(), compilerArgs);
+            mFileWriter.writeToFile(pkg + "." + dbr.getClassName(), dbr.write(brWriter));
+        }
     }
 
     public void writeDynamicUtil() {
@@ -225,9 +259,9 @@ public class CompilerChef {
         mDataBinder.writeComponent();
     }
 
-    public Set<String> getWrittenClassNames() {
+    public Set<String> getClassesToBeStripped() {
         ensureDataBinder();
-        return mDataBinder.getWrittenClassNames();
+        return mDataBinder.getClassesToBeStripped();
     }
 
     public interface BindableHolder {

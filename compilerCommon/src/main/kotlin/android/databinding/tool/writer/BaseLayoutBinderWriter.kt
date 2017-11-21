@@ -41,6 +41,7 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
         private val DATA_BINDING_UTIL = ClassName.get("android.databinding", "DataBindingUtil")
         private val NULLABLE = ClassName.get("android.support.annotation", "Nullable")
         private val NON_NULL = ClassName.get("android.support.annotation", "NonNull")
+        private val BINDABLE = ClassName.get("android.databinding","Bindable")
     }
 
     private val binderTypeName = ClassName.get(model.bindingClassPackage, model.bindingClassName)
@@ -204,16 +205,19 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
 
     fun generateClassInfo(): GenClassInfoLog.GenClass {
         return GenClassInfoLog.GenClass(
-                name = binderTypeName.toString(),
+                qName = binderTypeName.toString(),
+                modulePackage = model.modulePackage,
                 variables = model.variables.associate {
                     Pair(it.name, it.type.toTypeName(model.importsByAlias).toString())
-                })
+                },
+                implementations = model.generateImplInfo())
     }
 
     private fun createVariableFields(): List<FieldSpec> {
         return model.variables.map {
             FieldSpec.builder(it.type.toTypeName(model.importsByAlias), model.fieldName(it),
                     Modifier.PROTECTED)
+                    .addAnnotation(BINDABLE) // mark them bindable to trigger BR gen
                     .build()
         }
     }

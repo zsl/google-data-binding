@@ -20,6 +20,7 @@ import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
 import android.databinding.tool.writer.CallbackWrapperWriter;
 import android.databinding.tool.writer.ComponentWriter;
@@ -41,17 +42,30 @@ public class DataBinder {
 
     private JavaFileWriter mFileWriter;
 
-    Set<String> mWrittenClasses = new HashSet<String>();
+    Set<String> mClassesToBeStripped = new HashSet<String>();
+    private final boolean mEnableV2;
 
     public DataBinder(ResourceBundle resourceBundle, boolean enableV2) {
         L.d("reading resource bundle into data binder");
-        for (Map.Entry<String, List<ResourceBundle.LayoutFileBundle>> entry :
-                resourceBundle.getLayoutBundles().entrySet()) {
-            for (ResourceBundle.LayoutFileBundle bundle : entry.getValue()) {
+        mEnableV2 = enableV2;
+        if (mEnableV2) {
+            for(ResourceBundle.LayoutFileBundle bundle :
+                    resourceBundle.getLayoutFileBundlesInSource()) {
                 try {
-                    mLayoutBinders.add(new LayoutBinder(bundle, enableV2));
+                    mLayoutBinders.add(new LayoutBinder(bundle, true));
                 } catch (ScopedException ex) {
                     Scope.defer(ex);
+                }
+            }
+        } else {
+            for (Map.Entry<String, List<ResourceBundle.LayoutFileBundle>> entry :
+                    resourceBundle.getLayoutBundles().entrySet()) {
+                for (ResourceBundle.LayoutFileBundle bundle : entry.getValue()) {
+                    try {
+                        mLayoutBinders.add(new LayoutBinder(bundle, false));
+                    } catch (ScopedException ex) {
+                        Scope.defer(ex);
+                    }
                 }
             }
         }
@@ -67,13 +81,14 @@ public class DataBinder {
     }
 
     public void writerBaseClasses(boolean isLibrary) {
+        Preconditions.check(!mEnableV2, "Should not call write base classes in v2");
         for (LayoutBinder layoutBinder : mLayoutBinders) {
             try {
                 Scope.enter(layoutBinder);
                 if (isLibrary || layoutBinder.hasVariations()) {
                     String className = layoutBinder.getClassName();
                     String canonicalName = layoutBinder.getPackage() + "." + className;
-                    if (mWrittenClasses.contains(canonicalName)) {
+                    if (mClassesToBeStripped.contains(canonicalName)) {
                         continue;
                     }
 
@@ -82,7 +97,7 @@ public class DataBinder {
                     L.d("writing data binder base %s", canonicalName);
                     mFileWriter.writeToFile(canonicalName,
                             layoutBinder.writeViewBinderBaseClass(isLibrary, variations));
-                    mWrittenClasses.add(canonicalName);
+                    mClassesToBeStripped.add(canonicalName);
                 }
             } catch (ScopedException ex){
                 Scope.defer(ex);
@@ -112,7 +127,10 @@ public class DataBinder {
                 String className = layoutBinder.getImplementationName();
                 String canonicalName = layoutBinder.getPackage() + "." + className;
                 L.d("writing data binder %s", canonicalName);
-                mWrittenClasses.add(canonicalName);
+                if (!mEnableV2) {
+                    // if v2 is enable, do not record it as we don't want it to be stripped
+                    mClassesToBeStripped.add(canonicalName);
+                }
                 mFileWriter.writeToFile(canonicalName, layoutBinder.writeViewBinder(minSdk));
             } catch (ScopedException ex) {
                 Scope.defer(ex);
@@ -154,7 +172,9 @@ public class DataBinder {
             String canonicalName = wrapper.getPackage() + "." + className;
             mFileWriter.writeToFile(canonicalName, code);
             // these will be deleted for library projects.
-            mWrittenClasses.add(canonicalName);
+            if (!mEnableV2) {
+                mClassesToBeStripped.add(canonicalName);
+            }
         }
 
     }
@@ -172,12 +192,12 @@ public class DataBinder {
     public void writeComponent() {
         ComponentWriter componentWriter = new ComponentWriter();
 
-        mWrittenClasses.add(COMPONENT_CLASS);
+        mClassesToBeStripped.add(COMPONENT_CLASS);
         mFileWriter.writeToFile(COMPONENT_CLASS, componentWriter.createComponent());
     }
 
-    public Set<String> getWrittenClassNames() {
-        return mWrittenClasses;
+    public Set<String> getClassesToBeStripped() {
+        return mClassesToBeStripped;
     }
 
     public void setFileWriter(JavaFileWriter fileWriter) {

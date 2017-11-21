@@ -158,6 +158,7 @@ iml_module(
         "//tools/idea/.idea/libraries:commons-lang",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/idea/.idea/libraries:javapoet-1.8.0",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
     ],
 )
@@ -177,6 +178,7 @@ kotlin_library(
         ":tools.compilerCommon",
         "//tools/base/annotations",
         "//tools/base/third_party:com.google.guava_guava",
+        "//tools/base/third_party:com.squareup_javapoet",
         "//tools/base/third_party:commons-io_commons-io",
         "//tools/base/third_party:org.antlr_antlr4",
         "//tools/base/third_party:org.jetbrains.kotlin_kotlin-stdlib",

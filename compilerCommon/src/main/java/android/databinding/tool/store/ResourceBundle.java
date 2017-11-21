@@ -101,7 +101,8 @@ public class ResourceBundle implements Serializable {
 
 
     public void addDependencyLayouts(GenClassInfoLog genClassInfoLog) {
-        genClassInfoLog.mappings().forEach((key, value) -> mDependencyBinders.put(key, value.getName()));
+        genClassInfoLog.mappings().forEach(
+                (key, value) -> mDependencyBinders.put(key, value.getQName()));
     }
 
     public Set<LayoutFileBundle> getLayoutFileBundlesInSource() {
@@ -611,6 +612,10 @@ public class ResourceBundle implements Serializable {
             return mFullBindingClass;
         }
 
+        public String createImplClassNameWithConfig() {
+            return getBindingClassName() + getConfigName() + "Impl";
+        }
+
         public List<BindingTargetBundle> getBindingTargetBundles() {
             return mBindingTargetBundles;
         }
@@ -698,6 +703,10 @@ public class ResourceBundle implements Serializable {
             synchronized (sUnmarshaller) {
                 return (LayoutFileBundle) sUnmarshaller.unmarshal(inputStream);
             }
+        }
+
+        public String createTag() {
+            return getDirectory() + "/" + getFileName();
         }
     }
 

@@ -37,6 +37,7 @@ public class CallbackExprModel extends ExprModel {
     final ExprModel mOriginal;
     final List<CallbackArgExpr> mArguments = new ArrayList<CallbackArgExpr>();
     public CallbackExprModel(ExprModel original) {
+        super(original.modulePackage, original.enableV2);
         mOriginal = original;
     }
 

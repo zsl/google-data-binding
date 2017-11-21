@@ -157,7 +157,7 @@ public class ExprTest{
 
     @Test
     public void testInvalidationInheritance() {
-        ExprModel model = new ExprModel();
+        ExprModel model = new ExprModel("foo", true);
         DummyExpr a = model.register(new DummyExpr("a"));
         DummyExpr b = model.register(new DummyExpr("b"));
         DummyExpr c = model.register(new DummyExpr("c", a, b));
@@ -170,7 +170,7 @@ public class ExprTest{
 
     @Test
     public void testInvalidationInheritance2() {
-        ExprModel model = new ExprModel();
+        ExprModel model = new ExprModel("foo", true);
         DummyExpr a = model.register(new DummyExpr("a"));
         DummyExpr b = model.register(new DummyExpr("b", a));
         DummyExpr c = model.register(new DummyExpr("c", b));
@@ -183,7 +183,7 @@ public class ExprTest{
 
     @Test
     public void testShouldReadFlags() {
-        ExprModel model = new ExprModel();
+        ExprModel model = new ExprModel("foo", true);
         DummyExpr a = model.register(new DummyExpr("a"));
         a.enableDirectInvalidation();
         a.markAsBindingExpression();
@@ -193,7 +193,7 @@ public class ExprTest{
 
     @Test
     public void testShouldReadDependencyFlags() {
-        ExprModel model = new ExprModel();
+        ExprModel model = new ExprModel("foo", true);
         DummyExpr a = model.register(new DummyExpr("a"));
         DummyExpr b = model.register(new DummyExpr("b", a));
         DummyExpr c = model.register(new DummyExpr("c", b));

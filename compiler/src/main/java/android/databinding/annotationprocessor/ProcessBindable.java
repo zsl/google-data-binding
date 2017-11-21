@@ -127,10 +127,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             // bazel has duplicate package names so we need to avoid overwriting BR files.
             writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
             written.add(pkg);
-            // Generate BR files for dependencies unless we are compiling a test variant of an app
-            // and it is not enabled for tests.
-            if (!(compilerArgs.isApp() && compilerArgs.isTestVariant()
-                    && !compilerArgs.isEnabledForTests())) {
+            if (!compilerArgs.isTestVariant() || compilerArgs.isLibrary()) {
                 // Generate BR for all previous packages.
                 for (Intermediate intermediate : previousIntermediates) {
                     if (written.add(intermediate.getPackage())) {

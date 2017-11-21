@@ -34,15 +34,20 @@ public class CallbackWrapper {
     public final ModelClass klass;
     public final ModelMethod method;
     public final String key;
-    private static final String PACKAGE = "android.databinding.generated.callback";
+    // in v1, we always used 1 global app package
+    private static final String V1_PACKAGE = "android.databinding.generated.callback";
+    private static final String CALLBACK_PACKAGE_SUFFIX = ".generated.callback";
     private static final String LISTENER_NAME = "Listener";
     private String mClassName;
     private String mListenerMethodName;
     private boolean mInitialized;
+    private final String mPackage;
 
-    public CallbackWrapper(ModelClass klass, ModelMethod method) {
+    public CallbackWrapper(ModelClass klass, ModelMethod method, String modulePackage,
+            boolean enableV2) {
         this.klass = klass;
         this.method = method;
+        this.mPackage = enableV2 ? modulePackage + CALLBACK_PACKAGE_SUFFIX : V1_PACKAGE;
         this.key = uniqueKey(klass, method);
     }
 
@@ -56,7 +61,7 @@ public class CallbackWrapper {
     }
 
     public String getPackage() {
-        return PACKAGE;
+        return mPackage;
     }
 
     public String getClassName() {

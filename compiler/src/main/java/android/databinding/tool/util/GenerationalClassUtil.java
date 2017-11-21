@@ -49,7 +49,16 @@ public class GenerationalClassUtil {
     @Nullable
     private static File sIncrementalOutDir;
 
+    private static ExtensionFilter[] sEnabledExtensions;
+
     public static void init(DataBindingCompilerArgs args) {
+        if (args.isEnableV2()) {
+            sEnabledExtensions = new ExtensionFilter[]{ExtensionFilter.BR,
+            ExtensionFilter.SETTER_STORE};
+        } else {
+            sEnabledExtensions = new ExtensionFilter[]{ExtensionFilter.BR, ExtensionFilter.LAYOUT,
+                    ExtensionFilter.SETTER_STORE};
+        }
         if (StringUtils.isNotBlank(args.getAarOutFolder())) {
             sIncrementalOutDir = new File(args.getAarOutFolder(),
                     DataBindingBuilder.INCREMENTAL_BIN_AAR_DIR);
@@ -67,15 +76,17 @@ public class GenerationalClassUtil {
         if (sCache == null) {
             buildCache();
         }
+        List result = sCache[filter.ordinal()];
+        Preconditions.checkNotNull(result, "Invalid filter " + filter);
         //noinspection unchecked
-        return sCache[filter.ordinal()];
+        return result;
     }
 
     private static void buildCache() {
         L.d("building generational class cache");
 
         sCache = new List[ExtensionFilter.values().length];
-        for (ExtensionFilter filter : ExtensionFilter.values()) {
+        for (ExtensionFilter filter : sEnabledExtensions) {
             sCache[filter.ordinal()] = new ArrayList();
         }
         loadFromBuildInfo();
@@ -102,7 +113,7 @@ public class GenerationalClassUtil {
         }
         for (File file : FileUtils.listFiles(directory, TrueFileFilter.INSTANCE,
                 TrueFileFilter.INSTANCE)) {
-            for (ExtensionFilter filter : ExtensionFilter.values()) {
+            for (ExtensionFilter filter : sEnabledExtensions) {
                 if (filter.accept(file.getName())) {
                     InputStream inputStream = null;
                     try {

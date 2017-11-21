@@ -87,9 +87,31 @@ data class GenClassInfoLog(
      * holds the signature for a class. We only care about the class name and its variables.
      */
     data class GenClass(
-            @SerializedName("name")
-            val name: String,
+            @SerializedName("qualified_name")
+            val qName: String,
+            @SerializedName("module_package")
+            val modulePackage : String,
             @SerializedName("variables") //  var name -> type
-            val variables: Map<String, String>
+            val variables: Map<String, String>,
+            val implementations : Set<GenClassImpl>
     )
+
+    data class GenClassImpl(
+            @SerializedName("tag")
+            val tag : String,
+            @SerializedName("merge")
+            val merge : Boolean,
+            @SerializedName("qualified_name")
+            val qualifiedName: String
+    ) {
+        companion object {
+            fun from(bundle :ResourceBundle.LayoutFileBundle) =
+                GenClassImpl(
+                        tag = bundle.createTag(),
+                        merge = bundle.isMerge,
+                        qualifiedName = bundle.bindingClassPackage + "." +
+                                bundle.createImplClassNameWithConfig()
+                )
+        }
+    }
 }

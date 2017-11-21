@@ -113,7 +113,7 @@ public class ExprModelTest {
     @Before
     public void setUp() throws Exception {
         JavaAnalyzer.initForTests();
-        mExprModel = new ExprModel();
+        mExprModel = new ExprModel("foo", true);
     }
 
     @Test

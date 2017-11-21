@@ -87,7 +87,7 @@ class LayoutInfoInput(val args: Args) {
      */
     val invalidatedClasses: Set<String> by lazy(LazyThreadSafetyMode.NONE) {
         invalidOutputs.mapNotNull {
-            baseBinderLog.classInfoLog.mappings()[it]?.name
+            baseBinderLog.classInfoLog.mappings()[it]?.qName
         }.toSet()
     }
 

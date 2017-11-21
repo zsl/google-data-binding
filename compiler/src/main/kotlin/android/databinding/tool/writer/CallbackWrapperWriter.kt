@@ -34,9 +34,9 @@ fun CallbackWrapper.allArgs() =
  * For any listener type we see, we create a class that can wrap around it. This wrapper has an
  * interface which is implemented by the ViewDataBinding.
  */
-public class CallbackWrapperWriter(val wrapper: CallbackWrapper) {
+class CallbackWrapperWriter(val wrapper: CallbackWrapper) {
 
-    public fun write() = kcode("") {
+    fun write() = kcode("") {
         with(wrapper) {
             @Suppress("RemoveCurlyBracesFromTemplate")
             app("package ${`package`};")
@@ -58,7 +58,7 @@ public class CallbackWrapperWriter(val wrapper: CallbackWrapper) {
                 block("public ${method.returnType.canonicalName} ${method.name}(${wrapper.argsWithTypes()})") {
                     val evaluate = "mListener.$listenerMethodName(${wrapper.allArgs()});"
                     if (method.returnType.isVoid) {
-                        nl("$evaluate")
+                        nl(evaluate)
                     } else {
                         nl("return $evaluate")
                     }

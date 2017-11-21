@@ -18,6 +18,7 @@ package android.databinding.tool.writer
 
 import android.databinding.tool.ext.androidId
 import android.databinding.tool.ext.stripNonJava
+import android.databinding.tool.store.GenClassInfoLog
 import android.databinding.tool.store.ResourceBundle
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle
 import android.databinding.tool.store.ResourceBundle.LayoutFileBundle
@@ -156,5 +157,11 @@ class BaseLayoutModel(private val variations: List<LayoutFileBundle>) {
         FIELD,
         GETTER,
         SETTER
+    }
+
+    fun generateImplInfo(): Set<GenClassInfoLog.GenClassImpl> {
+        return variations.map{
+            GenClassInfoLog.GenClassImpl.from(it)
+        }.toSet()
     }
 }

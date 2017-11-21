@@ -180,7 +180,7 @@ public class DataBindingUtil {
             String tag = (String) tagObj;
             int layoutId = sMapper.getLayoutId(tag);
             if (layoutId == 0) {
-                throw new IllegalArgumentException("View is not a binding layout");
+                throw new IllegalArgumentException("View is not a binding layout. Tag: " + tagObj);
             }
             return (T) sMapper.getDataBinder(bindingComponent, root, layoutId);
         }

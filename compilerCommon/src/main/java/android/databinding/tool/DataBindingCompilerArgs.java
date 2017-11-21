@@ -62,11 +62,13 @@ public class DataBindingCompilerArgs {
 
     private static final String PARAM_ENABLE_V2 = PREFIX + "enableV2";
 
+    private static final String PARAM_CLASS_LOG_DIR = PREFIX + "classLogFile";
+
     public static final Set<String> ALL_PARAMS = Sets.newHashSet( PARAM_BUILD_FOLDER,
             PARAM_AAR_OUT_FOLDER, PARAM_SDK_DIR, PARAM_ARTIFACT_TYPE, PARAM_XML_OUT_DIR,
             PARAM_EXPORT_CLASS_LIST_TO, PARAM_MODULE_PKG, PARAM_MIN_API,
             PARAM_ENABLE_DEBUG_LOGS, PARAM_PRINT_ENCODED_ERROR_LOGS, PARAM_IS_TEST_VARIANT,
-            PARAM_ENABLE_FOR_TESTS, PARAM_ENABLE_V2);
+            PARAM_ENABLE_FOR_TESTS, PARAM_ENABLE_V2, PARAM_CLASS_LOG_DIR);
 
     private String mBuildFolder;
     private String mAarOutFolder;
@@ -74,6 +76,7 @@ public class DataBindingCompilerArgs {
     private String mXmlOutDir;
     private String mExportClassListTo;
     private String mModulePackage;
+    private String mClassLogDir;
     private int mMinApi;
     private Type mArtifactType;
     private boolean mIsTestVariant;
@@ -92,6 +95,7 @@ public class DataBindingCompilerArgs {
         args.mXmlOutDir = options.get(PARAM_XML_OUT_DIR);
         args.mExportClassListTo = options.get(PARAM_EXPORT_CLASS_LIST_TO);
         args.mModulePackage = options.get(PARAM_MODULE_PKG);
+        args.mClassLogDir = options.get(PARAM_CLASS_LOG_DIR);
         args.mMinApi = Integer.parseInt(options.get(PARAM_MIN_API));
         // use string for artifact type, easier to read
         String artifactType = options.get(PARAM_ARTIFACT_TYPE);
@@ -135,6 +139,9 @@ public class DataBindingCompilerArgs {
         return mArtifactType;
     }
 
+    public String getClassLogDir() {
+        return mClassLogDir;
+    }
 
     public boolean isTestVariant() {
         return mIsTestVariant;
@@ -176,6 +183,7 @@ public class DataBindingCompilerArgs {
         putIfNotNull(mXmlOutDir, args, PARAM_XML_OUT_DIR, mXmlOutDir);
         putIfNotNull(mExportClassListTo, args, PARAM_EXPORT_CLASS_LIST_TO, mExportClassListTo);
         putIfNotNull(mModulePackage, args, PARAM_MODULE_PKG, mModulePackage);
+        putIfNotNull(mClassLogDir, args, PARAM_CLASS_LOG_DIR, mClassLogDir);
         args.put(PARAM_MIN_API, String.valueOf(mMinApi));
         putIfNotNull(mArtifactType, args, PARAM_ARTIFACT_TYPE, mArtifactType.name());
         args.put(PARAM_ENABLE_DEBUG_LOGS, serialize(mEnableDebugLogs));
@@ -211,6 +219,7 @@ public class DataBindingCompilerArgs {
         private File mSdkDir;
         private File mXmlOutDir;
         private File mExportClassListTo;
+        private File mClassLogDir;
         private String mModulePackage;
         private Type mType;
         private Integer mMinApi;
@@ -239,6 +248,10 @@ public class DataBindingCompilerArgs {
         }
         public Builder xmlOutDir(File xmlOutDir) {
             mXmlOutDir = xmlOutDir;
+            return this;
+        }
+        public Builder classLogDir(File classLogDir) {
+            mClassLogDir = classLogDir;
             return this;
         }
         public Builder exportClassListTo(@Nullable File exportClassListTo) {
@@ -293,6 +306,9 @@ public class DataBindingCompilerArgs {
 
             Preconditions.checkNotNull(mXmlOutDir, "Must provide xml out directory");
             args.mXmlOutDir = mXmlOutDir.getAbsolutePath();
+
+            Preconditions.checkNotNull(mClassLogDir, "Must provide class log directory");
+            args.mClassLogDir = mClassLogDir.getAbsolutePath();
 
             Preconditions.check(mType != Type.LIBRARY || mIsTestVariant || mBundleFolder != null,
                     "Must specify bundle folder (aar out folder) for library projects");

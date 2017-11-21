@@ -174,11 +174,12 @@ public class LayoutBinder implements FileScopeProvider {
         mEnableV2 = enableV2;
         try {
             Scope.enter(this);
-            mExprModel = new ExprModel();
+            mModulePackage = layoutBundle.getModulePackage();
+            mExprModel = new ExprModel(mModulePackage, enableV2);
             mExpressionParser = new ExpressionParser(mExprModel);
             mBindingTargets = new ArrayList<BindingTarget>();
             mBundle = layoutBundle;
-            mModulePackage = layoutBundle.getModulePackage();
+
             HashSet<String> names = new HashSet<String>();
             // copy over data.
             for (ResourceBundle.VariableDeclaration variable : mBundle.getVariables()) {
@@ -376,7 +377,7 @@ public class LayoutBinder implements FileScopeProvider {
 
     public String getImplementationName() {
         if (mEnableV2 || hasVariations()) {
-            return mBundle.getBindingClassName() + mBundle.getConfigName() + "Impl";
+            return mBundle.createImplClassNameWithConfig();
         } else {
             return mBundle.getBindingClassName();
         }
@@ -391,7 +392,7 @@ public class LayoutBinder implements FileScopeProvider {
     }
 
     public String getTag() {
-        return mBundle.getDirectory() + "/" + mBundle.getFileName();
+        return mBundle.createTag();
     }
 
     public boolean hasVariations() {
