@@ -1,18 +1,15 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion dataBindingConfig.compileSdkVersion
-    buildToolsVersion dataBindingConfig.buildToolsVersion
+    compileSdkVersion rootProject.latestCompileSdk
+    buildToolsVersion rootProject.buildToolsVersion
     defaultConfig {
         applicationId "com.example.android.proguardedappwithtest"
         minSdkVersion 14
-        targetSdkVersion 24
+        targetSdkVersion rootProject.latestCompileSdk
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        jackOptions {
-            enabled dataBindingConfig.useJack
-        }
     }
     dataBinding {
         enabled = true

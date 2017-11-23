@@ -1,14 +1,7 @@
-import groovy.xml.QName
-
 buildscript {
     ext.dataBindingRootFolder = project.projectDir
     apply from: 'propLoader.gradle'
     ext.addRepos(repositories)
-    if (ext.dataBindingConfig.addRemoteRepos) {
-        dependencies {
-            classpath "com.android.databinding:localizemaven:${dataBindingConfig.extraPluginsVersion}"
-        }
-    }
     dependencies {
         classpath 'net.sf.proguard:proguard-gradle:5.2.1'
     }
@@ -17,9 +10,6 @@ buildscript {
 subprojects {
     if (dataBindingConfig.isIndependent) {
         apply plugin: 'maven'
-        if (dataBindingConfig.addRemoteRepos && !dataBindingConfig.forGradlePlugin) {
-            apply plugin: 'com.android.databinding.localizemaven'
-        }
     } else {
         apply from: "${project.projectDir}/../../buildSrc/base/baseJava.gradle"
     }
@@ -34,18 +24,6 @@ subprojects {
                 }
             }
         }
-    }
-
-    buildscript {
-        addRepos(repositories)
-    }
-
-}
-
-if (dataBindingConfig.addRemoteRepos && !dataBindingConfig.forGradlePlugin) {
-    rootProject.localizeMaven {
-        localRepoDir = file(dataBindingConfig.megaRepoDir)
-        otherRepoDirs = dataBindingConfig.localRepositories
     }
 }
 
@@ -154,28 +132,6 @@ task updateGradleVersion() {
             props.store(writer, "generated via updateGradleVersion task")
         }
     }
-}
-
-task copyMavenRepoToEap(type : Copy) {
-    mustRunAfter deleteEap
-    dependsOn rebuildRepo
-    from(dataBindingConfig.mavenRepoDir)
-    into "${dataBindingConfig.eapOutDir}/${dataBindingConfig.mavenRepoName}"
-}
-
-tasks.create(name : 'createEapdataBindingConfigFile').doLast {
-    def propsFile = new File("${dataBindingConfig.eapOutDir}/databinding.properties")
-    Properties props = new Properties()
-    props.setProperty('version', dataBindingConfig.version)
-    props.setProperty('mavenRepoName', dataBindingConfig.mavenRepoName)
-    props.store(propsFile.newWriter(), null)
-}
-
-task batchEAP() {
-    dependsOn deleteEap
-    dependsOn copyMavenRepoToEap
-    dependsOn copySamplesToEap
-    dependsOn createEapdataBindingConfigFile
 }
 
 def findChildByTag(node, tag) {
@@ -321,4 +277,40 @@ def fullJar(project) {
                 }
             }
     }
+}
+
+def getOsSdkFolderName() {
+    final String osName = System.getProperty("os.name").toLowerCase();
+    if (osName.startsWith("mac")) {
+        return "darwin";
+    } else if (osName.startsWith("linux")) {
+        return "linux";
+    } else if (osName.startsWith("windows")) {
+        return "windows";
+    }
+    throw new IllegalStateException("cannot run build on $osName")
+}
+// compilation for runtime libraries
+def getFullSdkPath() {
+    return rootProject.file("../prebuilts/studio/sdk/${getOsSdkFolderName()}")
+}
+
+if (!dataBindingConfig.isIndependent) {
+    def buildRuntimeLibrary = tasks.create(name : "buildDataBindingRuntimeArtifacts", type : Exec) {
+        def libBuild = file("${dataBindingRootFolder}/extensions")
+        workingDir libBuild.getAbsolutePath()
+        if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
+            commandLine "$rootDir\\gradlew.bat"
+        } else {
+            commandLine "$rootDir/gradlew"
+        }
+        args '-q', '-p', libBuild.getAbsolutePath(), 'uploadArchives'
+        environment VERSION: rootProject.buildVersion
+        environment MAVEN_REPO: rootProject.ext.localRepo
+        environment PREBUILTS_REPO: rootProject.file('../prebuilts/tools/common/m2/repository')
+        environment OUT_REPO: rootProject.ext.localRepo
+        environment ANDROID_HOME: getFullSdkPath()
+    }
+    apply from: '../buildSrc/base/runtimeArtifact.gradle'
+    registerRuntimeArtifactTask(buildRuntimeLibrary)
 }

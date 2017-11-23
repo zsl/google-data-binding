@@ -16,6 +16,7 @@ boolean getBooleanValue(Project proj, String propertyName, boolean defaultValue)
         return defaultValue;
     }
 }
+
 /**
  * Helper build script that reads data binding variables and sets up the projects.
  */
@@ -25,50 +26,22 @@ databindingProperties.load(new FileInputStream("${root}/databinding.properties")
 
 // load android gradle plugin's version file
 apply from: "${root}/../buildSrc/base/version.gradle"
-
 databindingProperties.version = ext.buildVersion
-databindingProperties.compileSdkVersion = Integer.parseInt(databindingProperties.compileSdkVersionStr)
-databindingProperties.targetSdkVersion = databindingProperties.compileSdkVersion
-def repoBase = databindingProperties.mavenRepoAbsolutePath == "." ? root : databindingProperties.mavenRepoAbsolutePath
-databindingProperties.androidGradlePluginRepoDir = "${root}/../../${databindingProperties.androidGradlePluginOutRepo}"
-databindingProperties.mavenRepoDir = "${databindingProperties.androidGradlePluginRepoDir}"
-databindingProperties.internalPrebuiltsRepoDir = "${root}/${databindingProperties.internalPrebuiltsRepoName}"
-
-databindingProperties.inReleaseBuild = getBooleanValue(project, "release", false)
-
-databindingProperties.runProguard = getBooleanValue(project, "runProguard", false)
-// load version from gradle build file
-apply from: "$root/../buildSrc/base/version.gradle"
 databindingProperties.androidPluginVersion=ext.buildVersion
 databindingProperties.isIndependent = rootProject.name.equals("data-binding")
-databindingProperties.eapOutDir = "${root}/${databindingProperties.eapOutFolderName}"
-databindingProperties.prebuildFolder = "${root}/${databindingProperties.prebuildFolderName}" +
-        "/${databindingProperties.releaseVersion}"
+databindingProperties.compileSdkVersion = Integer.parseInt(databindingProperties.compileSdkVersionStr)
 
 ext.dataBindingConfig = databindingProperties
-ext.dataBindingConfig.externalPrebuiltsBase = "${root}/../../prebuilts"
-
-ext.dataBindingConfig.useJack=getBooleanValue("CUSTOM_JACK", "com.android.build.gradle.integratonTest.useJack", false)
-
-logger.info("USE jack: ${ext.dataBindingConfig.useJack}")
-databindingProperties.megaRepoDir = "${databindingProperties.externalPrebuiltsBase}/tools/common/m2/repository"
-
-new File(ext.dataBindingConfig.mavenRepoDir).mkdir()
-new File(ext.dataBindingConfig.prebuildFolder).mkdir()
-
+databindingProperties.artifactOutFolder = "${root}/../../out/repo"
 def addRemoteRepos = getBooleanValue(project, "addRemoteRepos", false)
 ext.dataBindingConfig.addRemoteRepos = addRemoteRepos
-ext.dataBindingConfig.sharedSupportRepoDir = "${ext.dataBindingConfig.externalPrebuiltsBase}/maven_repo/android"
-ext.dataBindingConfig.forGradlePlugin = getBooleanValue(project, "forGradlePlugin", false)
 def dataBindingConfig = ext.dataBindingConfig
-def localRepositories = ["${dataBindingConfig.internalPrebuiltsRepoDir}",
-                         "${dataBindingConfig.megaRepoDir}",
-                         "${dataBindingConfig.mavenRepoDir}",
-                         "${dataBindingConfig.externalPrebuiltsBase}/tools/common/offline-m2",
-                         dataBindingConfig.sharedSupportRepoDir,
-                         "${dataBindingConfig.externalPrebuiltsBase}/gradle-plugin",
-                         "${dataBindingConfig.externalPrebuiltsBase}/tools/common/m2/repository",
-                         "${databindingProperties.androidGradlePluginRepoDir}"]
+
+def localRepositories = ["${root}/../../prebuilts/tools/common/offline-m2",
+                         "${root}/../../prebuilts/gradle-plugin",
+                         "${root}/../../prebuilts/tools/common/m2/repository",
+                         "${root}/../../prebuilts/maven_repo/android",
+                         databindingProperties.artifactOutFolder]
 ext.dataBindingConfig.localRepositories = localRepositories
 def addRepos(RepositoryHandler handler) {
     dataBindingConfig.localRepositories.each { repo ->
@@ -92,13 +65,12 @@ subprojects {
 }
 
 def enablePublishing(p, addJavadoc) {
-    if (!ext.dataBindingConfig.isIndependent) {
+    if (!dataBindingConfig.isIndependent) {
         p.apply from: "$dataBindingRootFolder/../buildSrc/base/publish.gradle"
         p.apply from: "$dataBindingRootFolder/../buildSrc/base/bintray.gradle"
         if (addJavadoc) {
             p.apply from: "$dataBindingRootFolder/../buildSrc/base/javadoc.gradle"
         }
-        rootProject.project(":base:gradle-core").publishLocal.dependsOn p.publishLocal
     }
 }
 ext.enablePublishing = this.&enablePublishing

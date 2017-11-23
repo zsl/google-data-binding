@@ -20,8 +20,8 @@ mainClassName = "android.databinding.AndroidDataBinding"
 sourceCompatibility = 1.8
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'com.beust:jcommander:1.48'
+    testCompile libs.junit
+    compile libs.jcommander
     compileOnly project(':dataBinding:compiler')
 }
 

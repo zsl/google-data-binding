@@ -35,7 +35,7 @@ class KCode (private val s : String? = null){
             if (cachedIndentations.get(n)) {
                 return indentCache[n]
             }
-            val s = (0..n-1).fold(""){prev, next -> "$prev    "}
+            val s = (0..n-1).fold(""){prev, _ -> "$prev    "}
             cachedIndentations.set(n, true )
             while (indentCache.size <= n) {
                 indentCache.add("");

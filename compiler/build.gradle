@@ -24,23 +24,22 @@ sourceSets {
 }
 
 buildscript {
-    // to make IJ happy
-    ext.kotlin_version = dataBindingConfig.kotlinVersion
     dependencies {
-        classpath 'commons-io:commons-io:2.4'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath libs.apache_commons_io
+        classpath libs.kotlin_gradle_plugin
     }
 }
 
 dependencies {
     compile project(':dataBinding:compilerCommon')
     compile project(':dataBinding:baseLibrary')
-    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile 'commons-io:commons-io:2.4'
-    compile 'commons-codec:commons-codec:1.10'
-    compile 'org.antlr:antlr4:4.5.3'
-    compile 'com.googlecode.juniversalchardet:juniversalchardet:1.0.3'
-    testCompile 'junit:junit:4.12'
+    compile libs.kotlin_stdlib
+
+    compile libs.apache_commons_io
+    compile libs.apache_commons_codec
+    compile libs.antlr4
+    compile libs.juniversalchardet
+    testCompile libs.junit
 }
 
 uploadArchives {

@@ -2,6 +2,10 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_java_library", "maven_pom")
 load("//tools/base/bazel:utils.bzl", "merged_properties")
+load("//tools/base/bazel:gradle.bzl", "gradle_build")
+load("//tools/base/bazel:maven.bzl", "maven_repo")
+
+exports_files(["databinding.properties"])
 
 # TODO: move these to baseLibrary/, once we can use build.bazel
 iml_module(
@@ -48,23 +52,16 @@ iml_module(
     test_srcs = ["compilerCommon/src/test/java"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    exports = [
-        "//tools/idea/.idea/libraries:Guava",
-        "//tools/idea/.idea/libraries:commons-io-2.4",
-        "//tools/adt/idea/android/lib:juniversalchardet-1.0.3",
-        "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
-        "//tools/base/annotations:studio.android-annotations",
-    ],
+    exports = ["//tools/data-binding:studio.baseLibrary"],
     # do not sort: must match IML order
     deps = [
         "//tools/data-binding:studio.baseLibrary[module]",
-        "//tools/idea/.idea/libraries:Guava",
-        "//tools/idea/.idea/libraries:commons-io-2.4",
-        "//tools/adt/idea/android/lib:juniversalchardet-1.0.3",
-        "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
         "//tools/base/annotations:studio.android-annotations[module]",
+        "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
+        "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
+        "//tools/idea/.idea/libraries:commons-io-2.4",
+        "//tools/idea/.idea/libraries:Guava",
     ],
 )
 
@@ -75,7 +72,7 @@ merged_properties(
         "//tools/data-binding:databinding.properties",
     ],
     mappings = [
-        "extensionsVersion:extensions",
+        "buildVersion:extensions",
         "buildVersion:compiler",
         "buildVersion:compilerCommon",
         "buildVersion:baseLibrary",
@@ -142,10 +139,15 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/data-binding:studio.baseLibrary[module]",
+        "//tools/base/annotations:studio.android-annotations[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
+        "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
+        "//tools/idea/.idea/libraries:commons-io-2.4",
+        "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
+        "//tools/idea/.idea/libraries:commons-lang",
+        "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
-        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
-        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
     ],
 )
 
@@ -175,4 +177,70 @@ maven_pom(
     artifact = "compiler",
     group = "com.android.databinding",
     source = "//tools/buildSrc/base:build_version",
+)
+
+maven_repo(
+    name = "external_deps",
+    # keep sorted
+    artifacts = [
+        "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/cardview-v7/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-annotations/26.0.2:jar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-compat/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-core-ui/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-core-utils/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-fragment/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-media-compat/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-v4/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/android/support/support-vector-drawable/26.0.2:aar",
+        "//prebuilts/tools/common/m2/repository/com/google/code/findbugs/jsr305/1.3.9:jar",
+    ],
+)
+
+gradle_build(
+    name = "runtimeLibraries",
+    build_file = "extensions/build.gradle",
+    data = [
+        "//tools/base/build-system:gradle-distrib",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:support_latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//tools/buildSrc/base:version.properties",
+        "//tools/data-binding:databinding.properties",
+    ] + glob(
+        ["extensions/**"],
+        exclude = [
+            "extensions/.gradle/**",
+            "extensions/build/**",
+            "extensions/local.properties",
+            "extensions/**/build",
+            "extensions/gradle/**",
+            "extensions/gradlew",
+            "extensions/gradlew.bat",
+        ],
+    ),
+    gradle_version = "4.4-20171031235950+0000",
+    output_file = "data_binding_runtime_repo.zip",
+    output_file_source = "local_repo_zip/dataBindingRuntimeRepo.zip",
+    repos = [
+        "//tools/base/bazel:offline_repo_repo.zip",
+        ":external_deps_repo.zip",
+    ],
+    tasks = ["createArchive"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "integration-test-projects",
+    srcs = glob(
+        ["integration-tests/**"],
+        exclude = [
+            "**/build/**",
+            "**/.gradle/**",
+            "integration-tests/App With Spaces/**",
+        ],
+    ),
+    visibility = ["//visibility:public"],
 )

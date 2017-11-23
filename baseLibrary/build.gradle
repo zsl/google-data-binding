@@ -33,7 +33,7 @@ sourceSets {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
+    testCompile rootProject.ext.libs.junit
 }
 
 uploadArchives {

@@ -43,6 +43,8 @@ public class DataBindingUtil {
      * <p>
      * When instance method BindingAdapters are used, the class instance for the binding adapter
      * is retrieved from the DataBindingComponent.
+     *
+     * @param bindingComponent The default binding component to use
      */
     public static void setDefaultComponent(DataBindingComponent bindingComponent) {
         sDefaultComponent = bindingComponent;
@@ -69,6 +71,7 @@ public class DataBindingUtil {
      * Use this version only if <code>layoutId</code> is unknown in advance. Otherwise, use
      * the generated Binding's inflate method to ensure type-safe inflation.
      *
+     * @param <T> Type of the generated binding class.
      * @param inflater The LayoutInflater used to inflate the binding layout.
      * @param layoutId The layout resource ID of the layout to inflate.
      * @param parent Optional view to be the parent of the generated hierarchy
@@ -94,6 +97,7 @@ public class DataBindingUtil {
      * Use this version only if <code>layoutId</code> is unknown in advance. Otherwise, use
      * the generated Binding's inflate method to ensure type-safe inflation.
      *
+     * @param <T> Type of the generated binding class.
      * @param inflater The LayoutInflater used to inflate the binding layout.
      * @param layoutId The layout resource ID of the layout to inflate.
      * @param parent Optional view to be the parent of the generated hierarchy
@@ -129,6 +133,7 @@ public class DataBindingUtil {
      * Prefer using the generated Binding's <code>bind</code> method to ensure type-safe inflation
      * when it is known that <code>root</code> has not yet been bound.
      *
+     * @param <T> Type of the generated binding class.
      * @param root The root View of the inflated binding layout.
      * @return A ViewDataBinding for the given root View. If one already exists, the
      * existing one will be returned.
@@ -147,6 +152,7 @@ public class DataBindingUtil {
      * Prefer using the generated Binding's <code>bind</code> method to ensure type-safe inflation
      * when it is known that <code>root</code> has not yet been bound.
      *
+     * @param <T> Type of the generated binding class.
      * @param root The root View of the inflated binding layout.
      * @param bindingComponent The DataBindingComponent to use in data binding.
      * @return A ViewDataBinding for the given root View. If one already exists, the
@@ -194,6 +200,7 @@ public class DataBindingUtil {
      * layout and searches for the binding associated with the root. <code>getBinding</code>
      * takes only the root view.
      *
+     * @param <T> Type of the generated binding class.
      * @param view A <code>View</code> in the bound layout.
      * @return The ViewDataBinding associated with the given view or <code>null</code> if
      * view is not part of a bound layout.
@@ -240,6 +247,7 @@ public class DataBindingUtil {
      * <code>null</code> will be returned. This uses the DataBindingComponent set in
      * {@link #setDefaultComponent(DataBindingComponent)}.
      *
+     * @param <T> Type of the generated binding class.
      * @param view The root <code>View</code> in the layout with binding.
      * @return The ViewDataBinding associated with the given view or <code>null</code> if
      * either the view is not a root View for a layout or view hasn't been bound.
@@ -252,6 +260,7 @@ public class DataBindingUtil {
      * Set the Activity's content view to the given layout and return the associated binding.
      * The given layout resource must not be a merge layout.
      *
+     * @param <T> Type of the generated binding class.
      * @param activity The Activity whose content View should change.
      * @param layoutId The resource ID of the layout to be inflated, bound, and set as the
      *                 Activity's content.
@@ -265,6 +274,7 @@ public class DataBindingUtil {
      * Set the Activity's content view to the given layout and return the associated binding.
      * The given layout resource must not be a merge layout.
      *
+     * @param <T> Type of the generated binding class.
      * @param bindingComponent The DataBindingComponent to use in data binding.
      * @param activity The Activity whose content View should change.
      * @param layoutId The resource ID of the layout to be inflated, bound, and set as the

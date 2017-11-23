@@ -79,6 +79,7 @@ public class ObservableBoolean extends BaseObservableField implements Parcelable
 
     /**
      * Set the stored value.
+     * @param value The new value
      */
     public void set(boolean value) {
         if (value != mValue) {

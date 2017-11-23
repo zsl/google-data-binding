@@ -80,6 +80,8 @@ public class ObservableInt extends BaseObservableField implements Parcelable, Se
 
     /**
      * Set the stored value.
+     *
+     * @param value The new value
      */
     public void set(int value) {
         if (value != mValue) {

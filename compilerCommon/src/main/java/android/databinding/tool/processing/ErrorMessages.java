@@ -94,5 +94,5 @@ public class ErrorMessages {
             "contents as parameters instead in method %s";
 
     public static String OBSERVABLE_FIELD_GET = "Do not explicitly call 'get()' on " +
-            "ObservasbleFields in an expression. This support will be removed soon. '%s'";
+            "ObservableFields in an expression. This support will be removed soon. '%s'";
 }

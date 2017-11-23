@@ -79,6 +79,8 @@ public class ObservableShort extends BaseObservableField implements Parcelable, 
 
     /**
      * Set the stored value.
+     *
+     * @param value The new value
      */
     public void set(short value) {
         if (value != mValue) {

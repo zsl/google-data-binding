@@ -104,8 +104,8 @@
 
         <View android:layout_width="wrap_content" android:layout_height="match_parent"
               android:id="@+id/view11"
-              android:onClick="@{(v) -> v.focusable ? obj.onFocusable() : obj.onNotFocusable()}"
-              android:onLongClick="@{(v) -> v.focusable ? obj.onFocusable() : obj.onNotFocusable()}"/>
+              android:onClick="@{(v) -> v.isFocusable() ? obj.onFocusable() : obj.onNotFocusable()}"
+              android:onLongClick="@{(v) -> v.isFocusable() ? obj.onFocusable() : obj.onNotFocusable()}"/>
 
         <View android:layout_width="wrap_content" android:layout_height="match_parent"
             android:id="@+id/view12"
