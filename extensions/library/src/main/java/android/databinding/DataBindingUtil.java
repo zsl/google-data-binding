@@ -17,6 +17,7 @@
 package android.databinding;
 
 import android.app.Activity;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.InflateException;
 import android.view.LayoutInflater;
@@ -46,7 +47,7 @@ public class DataBindingUtil {
      *
      * @param bindingComponent The default binding component to use
      */
-    public static void setDefaultComponent(DataBindingComponent bindingComponent) {
+    public static void setDefaultComponent(@Nullable DataBindingComponent bindingComponent) {
         sDefaultComponent = bindingComponent;
     }
 
@@ -59,6 +60,7 @@ public class DataBindingUtil {
      * <code>null</code> if no default was set in
      * {@link #setDefaultComponent(DataBindingComponent)}.
      */
+    @Nullable
     public static DataBindingComponent getDefaultComponent() {
         return sDefaultComponent;
     }
@@ -86,8 +88,9 @@ public class DataBindingUtil {
      * @throws InflateException When a merge layout was used and attachToParent was false.
      * @see #setDefaultComponent(DataBindingComponent)
      */
-    public static <T extends ViewDataBinding> T inflate(LayoutInflater inflater, int layoutId,
-            @Nullable ViewGroup parent, boolean attachToParent) {
+    @Nullable
+    public static <T extends ViewDataBinding> T inflate(@NonNull LayoutInflater inflater,
+            int layoutId, @Nullable ViewGroup parent, boolean attachToParent) {
         return inflate(inflater, layoutId, parent, attachToParent, sDefaultComponent);
     }
 
@@ -112,9 +115,10 @@ public class DataBindingUtil {
      * the layoutId wasn't for a binding layout.
      * @throws InflateException When a merge layout was used and attachToParent was false.
      */
+    @Nullable
     public static <T extends ViewDataBinding> T inflate(
-            LayoutInflater inflater, int layoutId, @Nullable ViewGroup parent,
-            boolean attachToParent, DataBindingComponent bindingComponent) {
+            @NonNull LayoutInflater inflater, int layoutId, @Nullable ViewGroup parent,
+            boolean attachToParent, @Nullable DataBindingComponent bindingComponent) {
         final boolean useChildren = parent != null && attachToParent;
         final int startChildren = useChildren ? parent.getChildCount() : 0;
         final View view = inflater.inflate(layoutId, parent, attachToParent);
@@ -141,7 +145,8 @@ public class DataBindingUtil {
      * @see #getBinding(View)
      */
     @SuppressWarnings("unchecked")
-    public static <T extends ViewDataBinding> T bind(View root) {
+    @Nullable
+    public static <T extends ViewDataBinding> T bind(@NonNull View root) {
         return bind(root, sDefaultComponent);
     }
 
@@ -161,7 +166,8 @@ public class DataBindingUtil {
      * @see #getBinding(View)
      */
     @SuppressWarnings("unchecked")
-    public static <T extends ViewDataBinding> T bind(View root,
+    @Nullable
+    public static <T extends ViewDataBinding> T bind(@NonNull View root,
             DataBindingComponent bindingComponent) {
         T binding = getBinding(root);
         if (binding != null) {
@@ -205,7 +211,8 @@ public class DataBindingUtil {
      * @return The ViewDataBinding associated with the given view or <code>null</code> if
      * view is not part of a bound layout.
      */
-    public static <T extends ViewDataBinding> T findBinding(View view) {
+    @Nullable
+    public static <T extends ViewDataBinding> T findBinding(@NonNull View view) {
         while (view != null) {
             ViewDataBinding binding = ViewDataBinding.getBinding(view);
             if (binding != null) {
@@ -252,7 +259,8 @@ public class DataBindingUtil {
      * @return The ViewDataBinding associated with the given view or <code>null</code> if
      * either the view is not a root View for a layout or view hasn't been bound.
      */
-    public static <T extends ViewDataBinding> T getBinding(View view) {
+    @Nullable
+    public static <T extends ViewDataBinding> T getBinding(@NonNull View view) {
         return (T) ViewDataBinding.getBinding(view);
     }
 
@@ -264,9 +272,12 @@ public class DataBindingUtil {
      * @param activity The Activity whose content View should change.
      * @param layoutId The resource ID of the layout to be inflated, bound, and set as the
      *                 Activity's content.
-     * @return The binding associated with the inflated content view.
+     * @return The binding associated with the inflated content view or {@code null} if the
+     * layoutId is not a data binding layout.
      */
-    public static <T extends ViewDataBinding> T setContentView(Activity activity, int layoutId) {
+    @Nullable
+    public static <T extends ViewDataBinding> T setContentView(@NonNull Activity activity,
+            int layoutId) {
         return setContentView(activity, layoutId, sDefaultComponent);
     }
 
@@ -279,10 +290,12 @@ public class DataBindingUtil {
      * @param activity The Activity whose content View should change.
      * @param layoutId The resource ID of the layout to be inflated, bound, and set as the
      *                 Activity's content.
-     * @return The binding associated with the inflated content view.
+     * @return The binding associated with the inflated content view or {@code null} if the
+     * layoutId is not a data binding layout.
      */
-    public static <T extends ViewDataBinding> T setContentView(Activity activity, int layoutId,
-            DataBindingComponent bindingComponent) {
+    @Nullable
+    public static <T extends ViewDataBinding> T setContentView(@NonNull Activity activity,
+            int layoutId, @Nullable DataBindingComponent bindingComponent) {
         activity.setContentView(layoutId);
         View decorView = activity.getWindow().getDecorView();
         ViewGroup contentView = (ViewGroup) decorView.findViewById(android.R.id.content);
@@ -294,8 +307,9 @@ public class DataBindingUtil {
      * purposes.
      *
      * @param id The integer id, which should be a field from BR class.
-     * @return The name if the BR id or null if id is out of bounds.
+     * @return The name if the BR id or {@code null} if id is out of bounds.
      */
+    @Nullable
     public static String convertBrIdToString(int id) {
         return sMapper.convertBrIdToString(id);
     }

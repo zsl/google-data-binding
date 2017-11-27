@@ -24,6 +24,8 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.LongSparseArray;
 import android.util.SparseArray;
@@ -318,7 +320,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      * @return <code>true</code> if the variable is declared or used in the binding or
      * <code>false</code> otherwise.
      */
-    public abstract boolean setVariable(int variableId, Object value);
+    public abstract boolean setVariable(int variableId, @Nullable Object value);
 
     /**
      * Add a listener to be called when reevaluating dirty fields. This also allows automatic
@@ -326,7 +328,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      *
      * @param listener The listener to add.
      */
-    public void addOnRebindCallback(OnRebindCallback listener) {
+    public void addOnRebindCallback(@NonNull OnRebindCallback listener) {
         if (mRebindCallbacks == null) {
             mRebindCallbacks = new CallbackRegistry<OnRebindCallback, ViewDataBinding, Void>(REBIND_NOTIFIER);
         }
@@ -338,7 +340,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      *
      * @param listener The listener to remove.
      */
-    public void removeOnRebindCallback(OnRebindCallback listener) {
+    public void removeOnRebindCallback(@NonNull OnRebindCallback listener) {
         if (mRebindCallbacks != null) {
             mRebindCallbacks.remove(listener);
         }
@@ -448,6 +450,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      *
      * @return the outermost View in the layout file associated with the Binding.
      */
+    @NonNull
     public View getRoot() {
         return mRoot;
     }

@@ -15,6 +15,7 @@
  */
 package android.databinding;
 
+import android.support.annotation.NonNull;
 import android.support.v4.util.Pools;
 
 /**
@@ -65,7 +66,7 @@ public class ListChangeRegistry
      *
      * @param list The list that changed.
      */
-    public void notifyChanged(ObservableList list) {
+    public void notifyChanged(@NonNull ObservableList list) {
         notifyCallbacks(list, ALL, null);
     }
 
@@ -76,7 +77,7 @@ public class ListChangeRegistry
      * @param start The index of the first changed element.
      * @param count The number of changed elements.
      */
-    public void notifyChanged(ObservableList list, int start, int count) {
+    public void notifyChanged(@NonNull ObservableList list, int start, int count) {
         ListChanges listChanges = acquire(start, 0, count);
         notifyCallbacks(list, CHANGED, listChanges);
     }
@@ -88,7 +89,7 @@ public class ListChangeRegistry
      * @param start The index where the elements were inserted.
      * @param count The number of elements that were inserted.
      */
-    public void notifyInserted(ObservableList list, int start, int count) {
+    public void notifyInserted(@NonNull ObservableList list, int start, int count) {
         ListChanges listChanges = acquire(start, 0, count);
         notifyCallbacks(list, INSERTED, listChanges);
     }
@@ -101,7 +102,7 @@ public class ListChangeRegistry
      * @param to The index of where the element was moved to.
      * @param count The number of elements moved.
      */
-    public void notifyMoved(ObservableList list, int from, int to, int count) {
+    public void notifyMoved(@NonNull ObservableList list, int from, int to, int count) {
         ListChanges listChanges = acquire(from, to, count);
         notifyCallbacks(list, MOVED, listChanges);
     }
@@ -113,7 +114,7 @@ public class ListChangeRegistry
      * @param start The index of the first element to be removed.
      * @param count The number of elements removed.
      */
-    public void notifyRemoved(ObservableList list, int start, int count) {
+    public void notifyRemoved(@NonNull ObservableList list, int start, int count) {
         ListChanges listChanges = acquire(start, 0, count);
         notifyCallbacks(list, REMOVED, listChanges);
     }
@@ -130,7 +131,7 @@ public class ListChangeRegistry
     }
 
     @Override
-    public synchronized void notifyCallbacks(ObservableList sender, int notificationType,
+    public synchronized void notifyCallbacks(@NonNull ObservableList sender, int notificationType,
             ListChanges listChanges) {
         super.notifyCallbacks(sender, notificationType, listChanges);
         if (listChanges != null) {

@@ -15,6 +15,8 @@
  */
 package android.databinding;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.ViewStub;
 import android.view.ViewStub.OnInflateListener;
@@ -49,12 +51,12 @@ public class ViewStubProxy {
         }
     };
 
-    public ViewStubProxy(ViewStub viewStub) {
+    public ViewStubProxy(@NonNull ViewStub viewStub) {
         mViewStub = viewStub;
         mViewStub.setOnInflateListener(mProxyListener);
     }
 
-    public void setContainingBinding(ViewDataBinding containingBinding) {
+    public void setContainingBinding(@NonNull ViewDataBinding containingBinding) {
         mContainingBinding = containingBinding;
     }
 
@@ -87,6 +89,7 @@ public class ViewStubProxy {
      * @return the data binding associated with the inflated layout once it has been inflated.
      * <code>null</code> prior to inflation or if there is no binding associated with the layout
      */
+    @Nullable
     public ViewDataBinding getBinding() {
         return mViewDataBinding;
     }
@@ -96,6 +99,7 @@ public class ViewStubProxy {
      *
      * @return the ViewStub in the layout or <code>null</code> if the ViewStub has been inflated.
      */
+    @Nullable
     public ViewStub getViewStub() {
         return mViewStub;
     }
@@ -107,7 +111,7 @@ public class ViewStubProxy {
      *
      * @param listener The OnInflateListener to notify of successful inflation
      */
-    public void setOnInflateListener(OnInflateListener listener) {
+    public void setOnInflateListener(@Nullable OnInflateListener listener) {
         if (mViewStub != null) {
             mOnInflateListener = listener;
         }
