@@ -16,34 +16,11 @@
 
 package android.databinding.compilationTest;
 
-import android.databinding.tool.CompilerChef;
-import android.databinding.tool.processing.ErrorMessages;
-import android.databinding.tool.processing.ScopedErrorReport;
-import android.databinding.tool.processing.ScopedException;
-import android.databinding.tool.reflection.InjectedClass;
-import android.databinding.tool.reflection.ModelClass;
-import android.databinding.tool.reflection.ModelMethod;
-import android.databinding.tool.reflection.java.JavaAnalyzer;
-import android.databinding.tool.store.Location;
-
-import com.google.common.base.Joiner;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.PrefixFileFilter;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -52,7 +29,17 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+@RunWith(Parameterized.class)
 public class InverseMethodTest extends BaseCompilationTest {
+
+    @Parameterized.Parameters(name = "useV2_{0}")
+    public static Object[] getParams() {
+        return new Object[]{false, true};
+    }
+
+    public InverseMethodTest(boolean enableV2) {
+        super(enableV2);
+    }
 
     @Test
     public void testInverseMethodWrongParameterType() throws Throwable {

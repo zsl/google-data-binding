@@ -32,9 +32,15 @@ import java.util.UUID;
 public class TemporaryBuildFolder extends TestWatcher {
     private File mFile;
     private File mParent;
+    private boolean mKeepOnFailure;
 
     public TemporaryBuildFolder(File parent) {
+        this(parent, false);
+    }
+
+    public TemporaryBuildFolder(File parent, boolean keepOnFailure) {
         mParent = parent;
+        mKeepOnFailure = keepOnFailure;
     }
 
     public File getFolder() {
@@ -65,8 +71,12 @@ public class TemporaryBuildFolder extends TestWatcher {
 
     @Override
     protected void failed(Throwable e, Description description) {
-        System.out.println("To re-run this, go to:" + mFile.getAbsolutePath());
-        super.failed(e, description);
+        if (mKeepOnFailure) {
+            System.out.println("To re-run this, go to:" + mFile.getAbsolutePath());
+        } else {
+            FileUtils.deleteQuietly(mFile);
+        }
 
+        super.failed(e, description);
     }
 }

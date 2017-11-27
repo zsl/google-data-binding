@@ -17,6 +17,8 @@
 package android.databinding.compilationTest;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.ScopedErrorReport;
@@ -34,7 +36,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+@RunWith(Parameterized.class)
 public class MultiLayoutVerificationTest extends BaseCompilationTest {
+    @Parameterized.Parameters(name = "useV2_{0}")
+    public static Object[] getParams() {
+        return new Object[]{false, true};
+    }
+
+    public MultiLayoutVerificationTest(boolean enableV2) {
+        super(enableV2);
+    }
+
     @Test
     public void testMultipleLayoutFilesWithNameMismatch()
             throws IOException, URISyntaxException, InterruptedException {
@@ -218,7 +230,7 @@ public class MultiLayoutVerificationTest extends BaseCompilationTest {
                 continue;
             }
             File file = new File(report.getFilePath());
-            assertTrue(file.exists());
+            assertTrue(file.getAbsolutePath() + " should exist", file.exists());
             assertEquals(result.error, 1, report.getLocations().size());
             Location location = report.getLocations().get(0);
             // validated in switch

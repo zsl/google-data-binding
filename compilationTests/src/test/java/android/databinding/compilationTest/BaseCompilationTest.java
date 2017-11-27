@@ -18,15 +18,19 @@ package android.databinding.compilationTest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
 
 import android.databinding.tool.store.Location;
+import android.databinding.tool.util.Preconditions;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,11 +50,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.android.annotations.NonNull;
+
 
 public class BaseCompilationTest {
 
     private static final String PRINT_ENCODED_ERRORS_PROPERTY
             = "android.injected.invoked.from.ide";
+    private static final String ENABLE_V2_PROPERTY
+            = "android.databinding.enableV2";
     @Rule
     public TestName name = new TestName();
     static Pattern VARIABLES = Pattern.compile("!@\\{([A-Za-z0-9_-]*)}");
@@ -66,8 +75,15 @@ public class BaseCompilationTest {
 
     @Rule
     public TemporaryBuildFolder tmpBuildFolder =
-            new TemporaryBuildFolder(new File("./build/build-test"));
+            new TemporaryBuildFolder(new File("./build", "build-test"), false);
+
+    private final boolean mEnableV2;
+
     File testFolder;
+
+    public BaseCompilationTest(boolean enableV2) {
+        mEnableV2 = enableV2;
+    }
 
     protected void copyResourceTo(String name, String path) throws IOException {
         copyResourceTo(name, new File(testFolder, path));
@@ -133,10 +149,10 @@ public class BaseCompilationTest {
         return result.toString();
     }
 
-    protected void copyResourceTo(String name, File targetFile) throws IOException {
+    protected static void copyResourceTo(String name, File targetFile) throws IOException {
         File directory = targetFile.getParentFile();
         FileUtils.forceMkdir(directory);
-        InputStream contents = getClass().getResourceAsStream(name);
+        InputStream contents = BaseCompilationTest.class.getResourceAsStream(name);
         FileOutputStream fos = new FileOutputStream(targetFile);
         IOUtils.copy(contents, fos);
         IOUtils.closeQuietly(fos);
@@ -210,14 +226,31 @@ public class BaseCompilationTest {
         copyResourceTo("/project_build.gradle", new File(testFolder, "build.gradle"), replacements);
         copyResourceTo("/app_build.gradle", new File(testFolder, "app/build.gradle"), replacements);
         copyResourceTo("/settings.gradle", new File(testFolder, "settings.gradle"), replacements);
-        File localProperties = new File("../local.properties");
-        if (localProperties.exists()) {
-            FileUtils.copyFile(localProperties, new File(testFolder, "local.properties"));
+        copyGradle(testFolder);
+    }
+
+    private void copyCommonBuildScript(File checkoutRoot) throws IOException {
+        Map<String, String> replacements = new HashMap<>();
+        replacements.put("CHECKOUT_ROOT", checkoutRoot.getAbsolutePath());
+        copyResourceTo("/commonBuildScript.gradle",
+                new File(testFolder.getParentFile(), "commonBuildScript.gradle"),
+                replacements);
+    }
+
+    private void createLocalProperties(File checkoutRoot) throws IOException {
+        File container = new File(checkoutRoot, "prebuilts/studio/sdk");
+        File sdkFile;
+        if (SystemUtils.IS_OS_MAC || SystemUtils.IS_OS_MAC_OSX) {
+            sdkFile = new File(container, "darwin");
+        } else {
+            sdkFile = new File(container, "linux");
         }
-        FileUtils.copyFile(new File("../propLoader.gradle"),
-                new File(testFolder, "propLoaderClone.gradle"));
-        FileUtils.copyFile(new File("../gradlew"), new File(testFolder, "gradlew"));
-        FileUtils.copyDirectory(new File("gradle"), new File(testFolder, "gradle"));
+        Properties properties = new Properties();
+        properties.setProperty("sdk.dir", sdkFile.getAbsolutePath());
+        try(FileOutputStream fos = FileUtils.openOutputStream(new File(testFolder, "local"
+                + ".properties"))) {
+            properties.store(fos, "");
+        }
     }
 
     protected void prepareModule(String moduleName, String packageName,
@@ -237,19 +270,18 @@ public class BaseCompilationTest {
 
     protected CompilationResult runGradle(String... params)
             throws IOException, InterruptedException {
-        setExecutable();
         File pathToExecutable = new File(testFolder, "gradlew");
         List<String> args = new ArrayList<String>();
         args.add(pathToExecutable.getAbsolutePath());
         args.add("-P" + PRINT_ENCODED_ERRORS_PROPERTY + "=true");
+        args.add("-P" + ENABLE_V2_PROPERTY + "=" + mEnableV2);
+        args.add("--no-daemon");
         if ("true".equals(System.getProperties().getProperty("useReleaseVersion", "false"))) {
             args.add("-PuseReleaseVersion=true");
         }
         if ("true".equals(System.getProperties().getProperty("addRemoteRepos", "false"))) {
             args.add("-PaddRemoteRepos=true");
         }
-        args.add("--project-cache-dir");
-        args.add(new File("../.caches/", name.getMethodName()).getAbsolutePath());
         Collections.addAll(args, params);
         ProcessBuilder builder = new ProcessBuilder(args);
         builder.environment().putAll(System.getenv());
@@ -265,9 +297,63 @@ public class BaseCompilationTest {
         return new CompilationResult(result, output, error);
     }
 
-    private void setExecutable() throws IOException {
-        File gw = new File(testFolder, "gradlew");
-        gw.setExecutable(true);
+    private void copyGradle(File outFolder) throws IOException {
+        File toolsDir = findToolsDir();
+        copyCommonBuildScript(toolsDir.getParentFile());
+        createLocalProperties(toolsDir.getParentFile());
+        File gradleDir = new File(toolsDir, "external/gradle");
+        File propsFile = new File(toolsDir, "gradle/wrapper/gradle-wrapper.properties");
+        Properties properties = new Properties();
+
+        try (FileInputStream propStream = FileUtils.openInputStream(propsFile)) {
+            properties.load(propStream);
+        }
+        String distributionUrl = properties.getProperty("distributionUrl");
+        String[] sections = distributionUrl.split("/");
+        String version = sections[sections.length - 1];
+        File distroFile = new File(gradleDir, version);
+        Preconditions.check(distroFile.exists(), "cannot find gradle distro");
+        properties.setProperty("distributionUrl", distroFile.getCanonicalFile().toURI().toString());
+        FileUtils.copyDirectory(new File(toolsDir, "gradle"), new File(outFolder, "gradle"),
+                new IOFileFilter() {
+                    @Override
+                    public boolean accept(File file) {
+                        return !file.getName().endsWith(".git");
+                    }
+
+                    @Override
+                    public boolean accept(File file, String s) {
+                        return !s.endsWith(".git");
+                    }
+                });
+        try (FileOutputStream propsOutStream = FileUtils.openOutputStream(
+                new File(outFolder, "gradle/wrapper/gradle-wrapper"
+                        + ".properties"))) {
+            properties.store(propsOutStream, "");
+        }
+        File gradlew = new File(outFolder, "gradlew");
+        FileUtils.copyFile(new File(toolsDir, "gradlew"), gradlew);
+        gradlew.setExecutable(true);
+    }
+
+    @NonNull
+    private File findToolsDir() throws IOException {
+        File toolsFolder = new File(".").getCanonicalFile();
+        while (toolsFolder.exists()) {
+            File dataBinding = new File(toolsFolder, "data-binding");
+            File base = new File(toolsFolder, "base");
+            if (dataBinding.exists() && dataBinding.isDirectory() &&
+                    base.exists() && base.isDirectory()) {
+                break;
+            } else {
+                if (toolsFolder.getParentFile() == null ||
+                        toolsFolder.getParentFile().equals(toolsFolder)) {
+                    throw new IllegalStateException("Cannot find tools folder");
+                }
+                toolsFolder = toolsFolder.getParentFile();
+            }
+        }
+        return toolsFolder;
     }
 
     /**
