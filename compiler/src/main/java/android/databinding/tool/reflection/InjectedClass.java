@@ -16,7 +16,11 @@
 
 package android.databinding.tool.reflection;
 
+import android.databinding.tool.ext.ExtKt;
 import android.databinding.tool.util.StringUtils;
+
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -223,6 +227,11 @@ public class InjectedClass extends ModelClass {
             methods[i + initialCount] = mMethods.get(i);
         }
         return methods;
+    }
+
+    @Override
+    public TypeName getTypeName() {
+        return ExtKt.toTypeName(mClassName);
     }
 
     @Override

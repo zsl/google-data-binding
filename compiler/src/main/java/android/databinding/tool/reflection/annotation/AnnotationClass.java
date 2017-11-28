@@ -22,6 +22,9 @@ import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.reflection.TypeUtil;
 import android.databinding.tool.util.L;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -385,12 +388,8 @@ class AnnotationClass extends ModelClass {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof AnnotationClass) {
-            return getTypeUtils().isSameType(mTypeMirror, ((AnnotationClass) obj).mTypeMirror);
-        } else {
-            return false;
-        }
+    public TypeName getTypeName() {
+        return ClassName.get(mTypeMirror);
     }
 
     @Override
