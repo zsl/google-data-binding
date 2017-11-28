@@ -15,6 +15,7 @@
  */
 package android.databinding.testapp;
 
+import android.arch.lifecycle.LifecycleOwner;
 import android.databinding.DataBindingUtil;
 import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.LiveDataBinding;
@@ -26,6 +27,7 @@ import android.databinding.testapp.vo.ObservableFieldBindingObject;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.test.InstrumentationRegistry;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.test.UiThreadTest;
@@ -175,17 +177,21 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         getActivity().getSupportFragmentManager().beginTransaction()
                 .add(fragment, "Some Fragment")
                 .commit();
-
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
                 getActivity().getSupportFragmentManager().executePendingTransactions();
-
+            }
+        });
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                binding.executePendingBindings();
                 // now they should be executed
                 assertEquals("true", binding.textView6.getText());
             }
         });
-
     }
 
     private void waitToExecuteBindings() throws Throwable {
