@@ -30,6 +30,7 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -359,6 +360,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      * @param lifecycleOwner The LifecycleOwner that should be used for observing changes of
      *                       LiveData in this binding.
      */
+    @MainThread
     public void setLifecycleOwner(@Nullable LifecycleOwner lifecycleOwner) {
         if (mLifecycleOwner == lifecycleOwner) {
             return;

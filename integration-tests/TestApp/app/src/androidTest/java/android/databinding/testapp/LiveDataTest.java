@@ -151,7 +151,7 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
     public void testLifecycleObserverWithField() throws Throwable {
         initBinder();
         final LiveDataBinding[] bindings = new LiveDataBinding[1];
-        final ObservableBoolean observableBoolean = new ObservableBoolean();
+        final ObservableBoolean observableBoolean = new ObservableBoolean(false);
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -162,17 +162,22 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
             }
         });
         final LiveDataBinding binding = bindings[0];
-        assertEquals("false", binding.textView6.getText());
+        assertEquals("false", binding.textView6.getText().toString());
 
-        Fragment fragment = new Fragment();
-        binding.setLifecycleOwner(fragment);
+        final Fragment fragment = new Fragment();
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                binding.setLifecycleOwner(fragment);
+            }
+        });
 
         observableBoolean.set(true);
 
         waitToExecuteBindings();
 
         // Shouldn't execute bindings
-        assertEquals("false", binding.textView6.getText());
+        assertEquals("false", binding.textView6.getText().toString());
 
         getActivity().getSupportFragmentManager().beginTransaction()
                 .add(fragment, "Some Fragment")
