@@ -93,15 +93,66 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.spinner.setSelection(1);
             }
         });
-        long timeout = SystemClock.uptimeMillis() + 500;
-        while (mBindingObject.selectedItemPosition.get() == 0 &&
-                SystemClock.uptimeMillis() < timeout) {
-            Thread.sleep(1);
-        }
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.selectedItemPosition.get() == 0;
+            }
+        });
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
                 assertEquals(1, mBinder.spinner.getSelectedItemPosition());
+                assertEquals(1, mBindingObject.selectedItemPosition.get());
+            }
+        });
+    }
+
+    public void testSpinnerSelection() throws Throwable {
+        makeVisible(mBinder.spinner2);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(0, mBindingObject.selectedItemPosition.get());
+                assertEquals(0, mBinder.spinner2.getSelectedItemPosition());
+                mBinder.spinner2.setSelection(1);
+            }
+        });
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.selectedItemPosition.get() == 0;
+            }
+        });
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(1, mBinder.spinner2.getSelectedItemPosition());
+                assertEquals(1, mBindingObject.selectedItemPosition.get());
+            }
+        });
+    }
+
+    public void testSpinnerSelectionNoAdapter() throws Throwable {
+        makeVisible(mBinder.spinner3);
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(0, mBindingObject.selectedItemPosition.get());
+                assertEquals(0, mBinder.spinner3.getSelectedItemPosition());
+                mBinder.spinner3.setSelection(1);
+            }
+        });
+        waitWhile(new TestCondition() {
+            @Override
+            public boolean testValue() {
+                return mBindingObject.selectedItemPosition.get() == 0;
+            }
+        });
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                assertEquals(1, mBinder.spinner3.getSelectedItemPosition());
                 assertEquals(1, mBindingObject.selectedItemPosition.get());
             }
         });
@@ -1219,6 +1270,9 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.mixView2.setVisibility(View.GONE);
                 mBinder.unaryNot.setVisibility(View.GONE);
                 mBinder.withLambda.setVisibility(View.GONE);
+                mBinder.spinner.setVisibility(View.GONE);
+                mBinder.spinner2.setVisibility(View.GONE);
+                mBinder.spinner3.setVisibility(View.GONE);
                 for (View view : views) {
                     view.setVisibility(View.VISIBLE);
                 }

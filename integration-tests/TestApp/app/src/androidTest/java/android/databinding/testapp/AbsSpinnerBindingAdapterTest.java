@@ -63,6 +63,34 @@ public class AbsSpinnerBindingAdapterTest
         }
     }
 
+    @UiThreadTest
+    public void testAdapterAndSelectedItemPosition() throws Throwable {
+        mBindingObject.setSelectedItemPosition(1);
+        // Execute the pending bindings to ensure that the selected item
+        // position is set prior to changing the adapter. This forces
+        // a previous bug in which setting the adapter after setting
+        // the selectedItemPosition caused the selected position to be
+        // reset.
+        mBinder.executePendingBindings();
+        mBindingObject.setContext(getActivity());
+        mBinder.executePendingBindings();
+        assertEquals(1, mBinder.view3.getSelectedItemPosition());
+        assertEquals(1, mBinder.view4.getSelectedItemPosition());
+        assertSame(mBindingObject.getAdapter(), mBinder.view3.getAdapter());
+        assertSame(mBindingObject.getAdapter(), mBinder.view4.getAdapter());
+    }
+
+    @UiThreadTest
+    public void testSelectedItemPosition() throws Throwable {
+        mBindingObject.setContext(getActivity());
+        mBinder.view5.setAdapter(mBindingObject.getAdapter());
+        mBinder.view6.setAdapter(mBindingObject.getAdapter());
+        mBindingObject.setSelectedItemPosition(1);
+        mBinder.executePendingBindings();
+        assertEquals(1, mBinder.view5.getSelectedItemPosition());
+        assertEquals(1, mBinder.view6.getSelectedItemPosition());
+    }
+
     private void validateEntries() {
         assertEquals(mBindingObject.getEntries().length, mView.getAdapter().getCount());
         CharSequence[] entries = mBindingObject.getEntries();
