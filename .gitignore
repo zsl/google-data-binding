@@ -1,4 +1,5 @@
 */build
+build/*
 **/.idea/*
 local.properties
 .gradle
@@ -17,3 +18,4 @@ integration-tests/*/gradlew
 integration-tests/*/gradle
 extensions/gradle
 extensions/gradlew
+*/out

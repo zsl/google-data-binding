@@ -43,13 +43,13 @@ public class DataBinder {
 
     Set<String> mWrittenClasses = new HashSet<String>();
 
-    public DataBinder(ResourceBundle resourceBundle) {
+    public DataBinder(ResourceBundle resourceBundle, boolean enableV2) {
         L.d("reading resource bundle into data binder");
         for (Map.Entry<String, List<ResourceBundle.LayoutFileBundle>> entry :
                 resourceBundle.getLayoutBundles().entrySet()) {
             for (ResourceBundle.LayoutFileBundle bundle : entry.getValue()) {
                 try {
-                    mLayoutBinders.add(new LayoutBinder(bundle));
+                    mLayoutBinders.add(new LayoutBinder(bundle, enableV2));
                 } catch (ScopedException ex) {
                     Scope.defer(ex);
                 }

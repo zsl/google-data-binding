@@ -56,30 +56,21 @@ class BindingMapperWriter(var pkg : String, var className: String, val layoutBin
                     layoutBinders.groupBy{it.layoutname }.forEach {
                         val firstVal = it.value[0]
                         tab("case ${firstVal.modulePackage}.R.layout.${firstVal.layoutname}:") {
-                            if (it.value.size == 1) {
-                                if (firstVal.isMerge) {
-                                    tab("return new ${firstVal.`package`}.${firstVal.implementationName}(bindingComponent, new android.view.View[]{view});")
-                                } else {
-                                    tab("return ${firstVal.`package`}.${firstVal.implementationName}.bind(view, bindingComponent);")
-                                }
-                            } else {
-                                // we should check the tag to decide which layout we need to inflate
-                                block("") {
-                                    tab("final Object tag = view.getTag();")
-                                    tab("if(tag == null) throw new java.lang.RuntimeException(\"view must have a tag\");")
-                                    it.value.forEach {
-                                        block("if (\"${it.tag}_0\".equals(tag))") {
-                                            if (it.isMerge) {
-                                                tab("return new ${it.`package`}.${it.implementationName}(bindingComponent, new android.view.View[]{view});")
-                                            } else {
-                                                tab("return new ${it.`package`}.${it.implementationName}(bindingComponent, view);")
-                                            }
+                            // we should check the tag to decide which layout we need to inflate
+                            block("") {
+                                tab("final Object tag = view.getTag();")
+                                tab("if(tag == null) throw new java.lang.RuntimeException(\"view must have a tag\");")
+                                it.value.forEach {
+                                    block("if (\"${it.tag}_0\".equals(tag))") {
+                                        if (it.isMerge) {
+                                            tab("return new ${it.`package`}.${it.implementationName}(bindingComponent, new android.view.View[]{view});")
+                                        } else {
+                                            tab("return new ${it.`package`}.${it.implementationName}(bindingComponent, view);")
                                         }
                                     }
-                                    tab("throw new java.lang.IllegalArgumentException(\"The tag for ${firstVal.layoutname} is invalid. Received: \" + tag);");
                                 }
+                                tab("throw new java.lang.IllegalArgumentException(\"The tag for ${firstVal.layoutname} is invalid. Received: \" + tag);");
                             }
-
                         }
                     }
                 }
