@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static android.databinding.tool.reflection.Callable.DYNAMIC;
@@ -273,8 +272,9 @@ public class MethodCallExpr extends Expr {
         if (mMethod == null) {
             return "Could not find the method " + mName + " to inverse for two-way binding";
         }
-        if (mName.equals("get") && getTarget().getResolvedType().isObservableField() &&
-                getArgs().isEmpty()) {
+        final ModelClass targetResolvedType = getTarget().getResolvedType();
+        if (mName.equals(targetResolvedType.getObservableGetterName())
+                && targetResolvedType.getObservableSetterName() != null && getArgs().isEmpty()) {
             return null;
         }
         String inverse = setterStore.getInverseMethod(mMethod);
@@ -289,11 +289,13 @@ public class MethodCallExpr extends Expr {
     @Override
     public Expr generateInverse(ExprModel model, Expr value, String bindingClassName) {
         getResolvedType(); // ensure mMethod has been resolved.
-        if (mName.equals("get") && getTarget().getResolvedType().isObservableField() &&
-                getArgs().isEmpty()) {
+        ModelClass targetResolvedType = getTarget().getResolvedType();
+        if (mName.equals(targetResolvedType.getObservableGetterName())
+                && getArgs().isEmpty()) {
             Expr castExpr = model.castExpr(getResolvedType().toJavaCode(), value);
             Expr target = getTarget().cloneToModel(model);
-            Expr inverse = model.methodCall(target, "set", Lists.newArrayList(castExpr));
+            String simpleSetterName = targetResolvedType.getObservableSetterName();
+            Expr inverse = model.methodCall(target, simpleSetterName, Lists.newArrayList(castExpr));
             inverse.setUnwrapObservableFields(false);
             return inverse;
         }

@@ -138,27 +138,19 @@ public class Binding implements LocationScopeProvider {
             }
         } else {
             ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
-            boolean warn = false;
-            if (mExpr.getResolvedType().isObservableField()) {
+            if (mExpr.getResolvedType().getObservableGetterName() != null) {
                 // If it is an ObservableField, try with the contents of it first.
                 Expr expr = mExpr.unwrapObservableField();
                 mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
                         viewType, expr.getResolvedType(), mExpr.getModel().getImports());
                 if (mSetterCall != null) {
                     mExpr = expr;
-                } else {
-                    // No setter for the contents of the ObservableField.
-                    // If we find one for the ObservableField, we should warn.
-                    warn = true;
                 }
             }
             if (mSetterCall == null) {
                 // Now try with the value object directly
                 mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
                         viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
-                if (warn && mSetterCall != null) {
-                    L.w(ErrorMessages.OBSERVABLE_FIELD_USE, mSetterCall.getDescription());
-                }
             }
         }
     }

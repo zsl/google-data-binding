@@ -15,6 +15,9 @@
  */
 package android.databinding;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+
 /**
  * Utility class for managing ObservableMap callbacks.
  */
@@ -40,7 +43,7 @@ public class MapChangeRegistry
      * @param sender The map that has changed.
      * @param key The key of the element that changed.
      */
-    public void notifyChange(ObservableMap sender, Object key) {
+    public void notifyChange(@NonNull ObservableMap sender, @Nullable Object key) {
         notifyCallbacks(sender, 0, key);
     }
 }

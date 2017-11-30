@@ -16,6 +16,8 @@
 
 package android.databinding;
 
+import android.support.annotation.NonNull;
+
 /**
  * A convenience class that implements {@link android.databinding.Observable} interface and provides
  * {@link #notifyPropertyChanged(int)} and {@link #notifyChange} methods.
@@ -27,7 +29,7 @@ public class BaseObservable implements Observable {
     }
 
     @Override
-    public void addOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+    public void addOnPropertyChangedCallback(@NonNull OnPropertyChangedCallback callback) {
         synchronized (this) {
             if (mCallbacks == null) {
                 mCallbacks = new PropertyChangeRegistry();
@@ -37,7 +39,7 @@ public class BaseObservable implements Observable {
     }
 
     @Override
-    public void removeOnPropertyChangedCallback(OnPropertyChangedCallback callback) {
+    public void removeOnPropertyChangedCallback(@NonNull OnPropertyChangedCallback callback) {
         synchronized (this) {
             if (mCallbacks == null) {
                 return;

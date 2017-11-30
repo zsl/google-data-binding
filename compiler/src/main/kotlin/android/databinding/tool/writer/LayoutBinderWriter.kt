@@ -728,7 +728,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 block("public void ${it.setterName}(${if (it.resolvedType.isPrimitive) "" else "@Nullable "}${it.resolvedType.toJavaCode()} ${it.readableName})") {
                     val used = it.isIsUsedInCallback || it.isUsed
                     if (used && it.isObservable) {
-                        nl("updateRegistration(${it.id}, ${it.readableName});");
+                        nl("${it.updateRegistrationCall}(${it.id}, ${it.readableName});");
                     }
                     nl("this.${it.fieldName} = ${it.readableName};")
                     if (used) {
@@ -778,7 +778,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
             block("private boolean ${it.onChangeName}(${it.resolvedType.toJavaCode()} ${it.readableName}, int fieldId)") {
                 block("if (fieldId == ${"".br()})") {
                     val flagSet : FlagSet
-                    if (it is FieldAccessExpr && it.resolvedType.isObservableField) {
+                    if (it is FieldAccessExpr && it.resolvedType.observableGetterName != null) {
                         flagSet = it.bindableDependents.map { expr -> expr.invalidateFlagSet }
                                 .foldRight(it.invalidateFlagSet) { l, r -> l.or(r) }
                     } else {
@@ -1059,7 +1059,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                             app("", assignment)
                         }
                         it.value.filter { it.isObservable }.forEach { expr: Expr ->
-                            tab("updateRegistration(${expr.id}, ${expr.executePendingLocalName});")
+                            tab("${expr.updateRegistrationCall}(${expr.id}, ${expr.executePendingLocalName});")
                         }
                     }
 

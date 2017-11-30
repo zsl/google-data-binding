@@ -99,8 +99,9 @@ public abstract class ModelMethod {
                 parametersMatch = false;
                 if (unwrapObservableFields) {
                     // try unwrapping an observable field argument, if possible
-                    while (arg.isObservableField()) {
-                        arg = arg.getMethod("get", Collections.EMPTY_LIST,
+                    String simpleGetterName;
+                    while ((simpleGetterName = arg.getObservableGetterName()) != null) {
+                        arg = arg.getMethod(simpleGetterName, Collections.EMPTY_LIST,
                                 false, false, false).getReturnType();
                         if (parameterType.isAssignableFrom(arg)
                                 || isImplicitConversion(arg, parameterType)) {

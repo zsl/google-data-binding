@@ -32,7 +32,6 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -207,7 +206,7 @@ public class BindingTarget implements LocationScopeProvider {
                 Scope.enter(binding);
                 attributes[i] = binding.getName();
                 final ModelClass type = binding.getExpr().getResolvedType();
-                if (type.isObservableField()) {
+                if (type.getObservableGetterName() != null) {
                     hasObservableFields = true;
                     types[i] = binding.getExpr().unwrapObservableField().getResolvedType();
                 } else {
@@ -239,8 +238,6 @@ public class BindingTarget implements LocationScopeProvider {
                     getMultiAttributeSetterCalls(attributes, getResolvedType(), types);
             List<MergedBinding> observableFieldCalls =
                     createMultiSetters(multiAttributeSetterCalls, false);
-            observableFieldCalls.forEach(call -> L.w(ErrorMessages.OBSERVABLE_FIELD_USE,
-                    call.getMultiAttributeSetter().getDescription()));
             merged.addAll(observableFieldCalls);
         }
 

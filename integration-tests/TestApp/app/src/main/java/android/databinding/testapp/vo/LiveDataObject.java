@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2017 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package android.databinding.testapp.vo;
 
-package android.databinding.testapp;
+import android.arch.lifecycle.MutableLiveData;
 
-import android.app.Activity;
-import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.view.WindowManager;
-
-public class TestActivity extends FragmentActivity {
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-    }
+public class LiveDataObject extends MutableLiveData<String> {
 }

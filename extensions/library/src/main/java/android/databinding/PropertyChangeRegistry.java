@@ -15,6 +15,8 @@
  */
 package android.databinding;
 
+import android.support.annotation.NonNull;
+
 /**
  * Utility class for managing Observable callbacks.
  */
@@ -40,7 +42,7 @@ public class PropertyChangeRegistry extends
      * @param propertyId The BR id of the property that has changed or BR._all if the entire
      *                   Observable has changed.
      */
-    public void notifyChange(Observable observable, int propertyId) {
+    public void notifyChange(@NonNull Observable observable, int propertyId) {
         notifyCallbacks(observable, propertyId, null);
     }
 }

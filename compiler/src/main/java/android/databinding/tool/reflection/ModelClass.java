@@ -203,10 +203,11 @@ public abstract class ModelClass {
      */
     public boolean isObservable() {
         ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
-        return modelAnalyzer.getObservableType().isAssignableFrom(this) ||
-                modelAnalyzer.getObservableListType().isAssignableFrom(this) ||
-                modelAnalyzer.getObservableMapType().isAssignableFrom(this);
-
+        return modelAnalyzer.getObservableType().isAssignableFrom(this)
+                || modelAnalyzer.getObservableListType().isAssignableFrom(this)
+                || modelAnalyzer.getObservableMapType().isAssignableFrom(this)
+                || (modelAnalyzer.getLiveDataType() != null
+                        && modelAnalyzer.getLiveDataType().isAssignableFrom(this));
     }
 
     /**
@@ -221,6 +222,50 @@ public abstract class ModelClass {
             }
         }
         return false;
+    }
+
+    /**
+     * @return whether or not this is a LiveData
+     */
+    public boolean isLiveData() {
+        ModelClass liveDataType = ModelAnalyzer.getInstance().getLiveDataType();
+        return liveDataType != null && liveDataType.isAssignableFrom(erasure());
+    }
+
+    /**
+     * @return whether or not this is a MutableLiveData
+     */
+    public boolean isMutableLiveData() {
+        ModelClass mutableLiveDataType = ModelAnalyzer.getInstance().getMutableLiveDataType();
+        return mutableLiveDataType != null && mutableLiveDataType.isAssignableFrom(erasure());
+    }
+
+    /**
+     * @return the name of the simple getter method when this is an ObservableField or LiveData or
+     * {@code null} for any other type
+     */
+    public String getObservableGetterName() {
+        if (isObservableField()) {
+            return "get";
+        } else if (isLiveData()) {
+            return "getValue";
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return the name of the simple setter method when this is an ObservableField or
+     * MutableLiveData or {@code null} for any other type.
+     */
+    public String getObservableSetterName() {
+        if (isObservableField()) {
+            return "set";
+        } else if (isMutableLiveData()) {
+            return "setValue";
+        } else {
+            return null;
+        }
     }
 
     /**

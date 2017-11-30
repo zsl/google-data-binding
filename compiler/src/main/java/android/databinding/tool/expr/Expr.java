@@ -185,6 +185,16 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         return getResolvedType().isObservable();
     }
 
+    public String getUpdateRegistrationCall() {
+        if (!isObservable()) {
+            L.e("The expression isn't observable!");
+        }
+        if (getResolvedType().isLiveData()) {
+            return "updateLiveDataRegistration";
+        }
+        return "updateRegistration";
+    }
+
     public void setUnwrapObservableFields(boolean unwrapObservableFields) {
         mUnwrapObservableFields = unwrapObservableFields;
     }
@@ -855,8 +865,9 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
 
     public Expr unwrapObservableField() {
         Expr expr = this;
-        while (expr.getResolvedType().isObservableField()) {
-            Expr unwrapped = mModel.methodCall(expr, "get", Collections.EMPTY_LIST);
+        String simpleGetterName;
+        while ((simpleGetterName = expr.getResolvedType().getObservableGetterName()) != null) {
+            Expr unwrapped = mModel.methodCall(expr, simpleGetterName, Collections.EMPTY_LIST);
             mModel.bindingExpr(unwrapped);
             unwrapped.setUnwrapObservableFields(false);
             expr = unwrapped;
@@ -884,10 +895,11 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         final Expr child = mChildren.get(childIndex);
         Expr unwrapped = null;
         Expr expr = child;
-        while (expr.getResolvedType().isObservableField()
+        String simpleGetterName;
+        while ((simpleGetterName = expr.getResolvedType().getObservableGetterName()) != null
                 && (type == null || (!type.isAssignableFrom(expr.getResolvedType())
                 && !ModelMethod.isImplicitConversion(expr.getResolvedType(), type)))) {
-            unwrapped = mModel.methodCall(expr, "get", Collections.EMPTY_LIST);
+            unwrapped = mModel.methodCall(expr, simpleGetterName, Collections.EMPTY_LIST);
             if (unwrapped == this) {
                 L.w(ErrorMessages.OBSERVABLE_FIELD_GET, this);
                 return; // This was already unwrapped!

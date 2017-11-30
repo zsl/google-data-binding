@@ -17,6 +17,12 @@
 package android.databinding;
 
 import android.annotation.TargetApi;
+import android.arch.lifecycle.Lifecycle;
+import android.arch.lifecycle.LifecycleObserver;
+import android.arch.lifecycle.LifecycleOwner;
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.OnLifecycleEvent;
 import android.content.res.ColorStateList;
 import android.databinding.CallbackRegistry.NotifierCallback;
 import android.graphics.drawable.Drawable;
@@ -24,6 +30,8 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.LongSparseArray;
 import android.util.SparseArray;
@@ -105,6 +113,16 @@ public abstract class ViewDataBinding extends BaseObservable {
         @Override
         public WeakListener create(ViewDataBinding viewDataBinding, int localFieldId) {
             return new WeakMapListener(viewDataBinding, localFieldId).getListener();
+        }
+    };
+
+    /**
+     * Method object extracted out to attach a listener to a bound LiveData object.
+     */
+    private static final CreateWeakListener CREATE_LIVE_DATA_LISTENER = new CreateWeakListener() {
+        @Override
+        public WeakListener create(ViewDataBinding viewDataBinding, int localFieldId) {
+            return new LiveDataListener(viewDataBinding, localFieldId).getListener();
         }
     };
 
@@ -234,6 +252,18 @@ public abstract class ViewDataBinding extends BaseObservable {
     private ViewDataBinding mContainingBinding;
 
     /**
+     * Track the LifecycleOwner set in {@link #setLifecycleOwner(LifecycleOwner)}. Set as
+     * Object so that the class can be compiled without requiring the LifecycleOwner dependency.
+     */
+    private LifecycleOwner mLifecycleOwner;
+
+    /**
+     * Listener when mLifecycleOwner is non-null to allow delaying rebind calls while the
+     * status is less than started.
+     */
+    private OnStartListener mOnStartListener;
+
+    /**
      * @hide
      */
     protected ViewDataBinding(DataBindingComponent bindingComponent, View root, int localFieldCount) {
@@ -318,7 +348,37 @@ public abstract class ViewDataBinding extends BaseObservable {
      * @return <code>true</code> if the variable is declared or used in the binding or
      * <code>false</code> otherwise.
      */
-    public abstract boolean setVariable(int variableId, Object value);
+    public abstract boolean setVariable(int variableId, @Nullable Object value);
+
+    /**
+     * Sets the {@link LifecycleOwner} that should be used for observing changes of
+     * LiveData in this binding. If a {@link LiveData} is in one of the binding expressions
+     * and no LifecycleOwner is set, the LiveData will not be observed and updates to it
+     * will not be propagated to the UI.
+     *
+     * @param lifecycleOwner The LifecycleOwner that should be used for observing changes of
+     *                       LiveData in this binding.
+     */
+    public void setLifecycleOwner(@Nullable LifecycleOwner lifecycleOwner) {
+        if (mLifecycleOwner == lifecycleOwner) {
+            return;
+        }
+        if (mLifecycleOwner != null) {
+            mLifecycleOwner.getLifecycle().removeObserver(mOnStartListener);
+        }
+        mLifecycleOwner = lifecycleOwner;
+        if (lifecycleOwner != null) {
+            if (mOnStartListener == null) {
+                mOnStartListener = new OnStartListener();
+            }
+            lifecycleOwner.getLifecycle().addObserver(mOnStartListener);
+        }
+        for (WeakListener<?> weakListener : mLocalFieldObservers) {
+            if (weakListener != null) {
+                weakListener.setLifecycleOwner(lifecycleOwner);
+            }
+        }
+    }
 
     /**
      * Add a listener to be called when reevaluating dirty fields. This also allows automatic
@@ -326,7 +386,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      *
      * @param listener The listener to add.
      */
-    public void addOnRebindCallback(OnRebindCallback listener) {
+    public void addOnRebindCallback(@NonNull OnRebindCallback listener) {
         if (mRebindCallbacks == null) {
             mRebindCallbacks = new CallbackRegistry<OnRebindCallback, ViewDataBinding, Void>(REBIND_NOTIFIER);
         }
@@ -338,7 +398,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      *
      * @param listener The listener to remove.
      */
-    public void removeOnRebindCallback(OnRebindCallback listener) {
+    public void removeOnRebindCallback(@NonNull OnRebindCallback listener) {
         if (mRebindCallbacks != null) {
             mRebindCallbacks.remove(listener);
         }
@@ -448,6 +508,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      *
      * @return the outermost View in the layout file associated with the Binding.
      */
+    @NonNull
     public View getRoot() {
         return mRoot;
     }
@@ -482,6 +543,12 @@ public abstract class ViewDataBinding extends BaseObservable {
                     return;
                 }
                 mPendingRebind = true;
+            }
+            if (mLifecycleOwner != null) {
+                Lifecycle.State state = mLifecycleOwner.getLifecycle().getCurrentState();
+                if (!state.isAtLeast(Lifecycle.State.STARTED)) {
+                    return; // wait until lifecycle owner is started
+                }
             }
             if (USE_CHOREOGRAPHER) {
                 mChoreographer.postFrameCallback(mFrameCallback);
@@ -544,6 +611,13 @@ public abstract class ViewDataBinding extends BaseObservable {
     /**
      * @hide
      */
+    protected boolean updateLiveDataRegistration(int localFieldId, LiveData<?> observable) {
+        return updateRegistration(localFieldId, observable, CREATE_LIVE_DATA_LISTENER);
+    }
+
+    /**
+     * @hide
+     */
     protected void ensureBindingComponentIsNotNull(Class<?> oneExample) {
         if (mBindingComponent == null) {
             String errorMessage = "Required DataBindingComponent is null in class " +
@@ -569,6 +643,9 @@ public abstract class ViewDataBinding extends BaseObservable {
         if (listener == null) {
             listener = listenerCreator.create(this, localFieldId);
             mLocalFieldObservers[localFieldId] = listener;
+            if (mLifecycleOwner != null) {
+                listener.setLifecycleOwner(mLifecycleOwner);
+            }
         }
         listener.setTarget(observable);
     }
@@ -1241,6 +1318,7 @@ public abstract class ViewDataBinding extends BaseObservable {
         WeakListener<T> getListener();
         void addListener(T target);
         void removeListener(T target);
+        void setLifecycleOwner(LifecycleOwner lifecycleOwner);
     }
 
     private static class WeakListener<T> extends WeakReference<ViewDataBinding> {
@@ -1253,6 +1331,10 @@ public abstract class ViewDataBinding extends BaseObservable {
             super(binder, sReferenceQueue);
             mLocalFieldId = localFieldId;
             mObservable = observable;
+        }
+
+        public void setLifecycleOwner(LifecycleOwner lifecycleOwner) {
+            mObservable.setLifecycleOwner(lifecycleOwner);
         }
 
         public void setTarget(T object) {
@@ -1310,6 +1392,10 @@ public abstract class ViewDataBinding extends BaseObservable {
         }
 
         @Override
+        public void setLifecycleOwner(LifecycleOwner lifecycleOwner) {
+        }
+
+        @Override
         public void onPropertyChanged(Observable sender, int propertyId) {
             ViewDataBinding binder = mListener.getBinder();
             if (binder == null) {
@@ -1329,6 +1415,10 @@ public abstract class ViewDataBinding extends BaseObservable {
 
         public WeakListListener(ViewDataBinding binder, int localFieldId) {
             mListener = new WeakListener<ObservableList>(binder, localFieldId, this);
+        }
+
+        @Override
+        public void setLifecycleOwner(LifecycleOwner lifecycleOwner) {
         }
 
         @Override
@@ -1390,6 +1480,10 @@ public abstract class ViewDataBinding extends BaseObservable {
         }
 
         @Override
+        public void setLifecycleOwner(LifecycleOwner lifecycleOwner) {
+        }
+
+        @Override
         public WeakListener<ObservableMap> getListener() {
             return mListener;
         }
@@ -1411,6 +1505,54 @@ public abstract class ViewDataBinding extends BaseObservable {
                 return;
             }
             binder.handleFieldChange(mListener.mLocalFieldId, sender, 0);
+        }
+    }
+
+    private static class LiveDataListener implements Observer,
+            ObservableReference<LiveData<?>> {
+        final WeakListener<LiveData<?>> mListener;
+        LifecycleOwner mLifecycleOwner;
+
+        public LiveDataListener(ViewDataBinding binder, int localFieldId) {
+            mListener = new WeakListener(binder, localFieldId, this);
+        }
+
+        @Override
+        public void setLifecycleOwner(LifecycleOwner lifecycleOwner) {
+            LifecycleOwner owner = (LifecycleOwner) lifecycleOwner;
+            LiveData<?> liveData = mListener.getTarget();
+            if (liveData != null) {
+                if (mLifecycleOwner != null) {
+                    liveData.removeObserver(this);
+                }
+                if (lifecycleOwner != null) {
+                    liveData.observe(owner, this);
+                }
+            }
+            mLifecycleOwner = owner;
+        }
+
+        @Override
+        public WeakListener<LiveData<?>> getListener() {
+            return mListener;
+        }
+
+        @Override
+        public void addListener(LiveData<?> target) {
+            if (mLifecycleOwner != null) {
+                target.observe(mLifecycleOwner, this);
+            }
+        }
+
+        @Override
+        public void removeListener(LiveData<?> target) {
+            target.removeObserver(this);
+        }
+
+        @Override
+        public void onChanged(@Nullable Object o) {
+            ViewDataBinding binder = mListener.getBinder();
+            binder.handleFieldChange(mListener.mLocalFieldId, mListener.getTarget(), 0);
         }
     }
 
@@ -1461,6 +1603,22 @@ public abstract class ViewDataBinding extends BaseObservable {
             if (propertyId == mPropertyId || propertyId == 0) {
                 onChange();
             }
+        }
+    }
+
+    /**
+     * This class is used internally to handle Lifecycle events in ViewDataBinding. A
+     * LifecycleObserver class MUST be public.
+     *
+     * @hide
+     */
+    public class OnStartListener implements LifecycleObserver {
+        private OnStartListener() {
+        }
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_START)
+        public void onStart() {
+            executePendingBindings();
         }
     }
 }
