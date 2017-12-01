@@ -26,9 +26,6 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
 
-import com.android.annotations.NonNull;
-import com.android.annotations.Nullable;
-
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -57,7 +54,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 
 public class SetterStore {
-    private static final int ASSIGNABLE_CONVERSION = 1;
     private static SetterStore sStore;
 
     private final IntermediateV3 mStore;
@@ -722,8 +718,10 @@ public class SetterStore {
                             L.d("setter %s takes type %s, compared to %s",
                                     adapters.get(key).method, adapterValueType.toJavaCode(),
                                     valueType.toJavaCode());
-                            if (isBetterParameter(valueType, adapterViewType, adapterValueType,
-                                    bestViewType, bestValueType, imports)) {
+                            boolean isBetterView = bestViewType == null ||
+                                    bestViewType.isAssignableFrom(adapterViewType);
+                            if (isBetterParameter(valueType, adapterValueType, bestValueType,
+                                    isBetterView, imports)) {
                                 bestViewType = adapterViewType;
                                 bestValueType = adapterValueType;
                                 MethodDescription adapter = adapters.get(key);
@@ -776,9 +774,11 @@ public class SetterStore {
                             L.d("getter %s returns type %s, compared to %s",
                                     adapters.get(key).method, adapterValueType.toJavaCode(),
                                     valueType);
+                            boolean isBetterView = bestMethod.viewType == null ||
+                                    bestMethod.viewType.isAssignableFrom(adapterViewType);
                             if (valueType == null ||
-                                    isBetterReturn(valueType, adapterViewType, adapterValueType,
-                                            bestMethod.viewType, bestMethod.returnType, imports)) {
+                                    isBetterParameter(adapterValueType, valueType,
+                                            bestMethod.returnType, isBetterView, imports)) {
                                 bestMethod.viewType = adapterViewType;
                                 bestMethod.returnType = adapterValueType;
                                 InverseDescription inverseDescription = adapters.get(key);
@@ -861,9 +861,8 @@ public class SetterStore {
             for (ModelMethod method : methods) {
                 ModelClass[] parameterTypes = method.getParameterTypes();
                 ModelClass param = parameterTypes[0];
-                ModelClass previousViewType = bestParameterType == null ? null : viewType;
-                if (method.isVoid() && isBetterParameter(argumentType, viewType, param,
-                        previousViewType, bestParameterType, imports)) {
+                if (method.isVoid() &&
+                        isBetterParameter(argumentType, param, bestParameterType, true, imports)) {
                     bestParameterType = param;
                     bestMethod = method;
                 }
@@ -891,14 +890,16 @@ public class SetterStore {
                 try {
                     ModelClass methodViewType = mClassAnalyzer.findClass(className, imports);
                     if (methodViewType.erasure().isAssignableFrom(viewType)) {
+                        boolean isBetterViewType = bestViewType == null ||
+                                bestViewType.isAssignableFrom(methodViewType);
                         final InverseDescription inverseDescription = inverseMethods.get(className);
                         final String name = inverseDescription.method.isEmpty() ?
                                 trimAttributeNamespace(attribute) : inverseDescription.method;
                         ModelMethod method = methodViewType.findInstanceGetter(name);
                         ModelClass returnType = method.getReturnType(null); // no parameters
                         if (valueType == null || bestReturnType == null ||
-                                isBetterReturn(valueType, methodViewType, returnType,
-                                        bestViewType, bestReturnType, imports)) {
+                                isBetterParameter(returnType, valueType, bestReturnType,
+                                        isBetterViewType, imports)) {
                             bestDescription = inverseDescription;
                             bestReturnType = returnType;
                             bestViewType = methodViewType;
@@ -958,156 +959,47 @@ public class SetterStore {
         return "set" + StringUtils.capitalize(trimAttributeNamespace(attribute));
     }
 
-    /**
-     * Checks to see if one parameter is a better fit for a setter (e.g. BindingAdapter) than
-     * another for an argument. It is assumed that both view types match the targeted view.
-     * <p>
-     * Note that this has different priorities than
-     * {@link #isBetterReturn(ModelClass, ModelClass, ModelClass, ModelClass, ModelClass, Map)}
-     *
-     * @param argument The argument type being passed to the setter.
-     * @param newViewType The type of the view in the BindingAdapter or setter method.
-     * @param newParameter The parameter type of the value in the BindingAdapter or setter method.
-     * @param oldViewType The type of the view in the previous matching BindingAdapter or setter
-     *                   method.
-     * @param oldParameter The parameter type of the value in the previous matching BindingAdapter
-     *                    or setter method.
-     * @param imports Import in the binding layout file.
-     * @return {@code true} when the new BindingAdapter or setter method is a better fit than the
-     * previous one or {@code false} if {@code argument} and {@code newParameter} aren't a match
-     * or are a worse match.
-     */
-    private boolean isBetterParameter(@NonNull ModelClass argument,
-            @NonNull ModelClass newViewType, @NonNull ModelClass newParameter,
-            @Nullable ModelClass oldViewType, @Nullable ModelClass oldParameter,
-            @Nullable Map<String, String> imports) {
-        if (oldParameter == null) {
-            // just validate that it can be converted
-            return calculateConversionPriority(argument, newParameter, imports) >= 0;
-        }
-
-        int newConversion = calculateConversionPriority(argument, newParameter, imports);
-        if (newConversion < 0) {
-            return false; // Doesn't convert
-        }
-
-        boolean isSameViewType = oldViewType.equals(newViewType);
-        boolean isBetterViewType = oldViewType.isAssignableFrom(newViewType);
-
-        int oldConversion = calculateConversionPriority(argument, oldParameter, imports);
-        if (oldConversion == ASSIGNABLE_CONVERSION && newConversion == ASSIGNABLE_CONVERSION) {
-            if (isSameViewType) {
-                // more specific getter is better
-                return oldParameter.isAssignableFrom(newParameter);
+    private boolean isBetterParameter(ModelClass argument, ModelClass parameter,
+            ModelClass oldParameter, boolean isBetterViewTypeMatch, Map<String, String> imports) {
+        // Right view type. Check the value
+        if (!isBetterViewTypeMatch && oldParameter.equals(argument)) {
+            return false;
+        } else if (argument.equals(parameter)) {
+            // Exact match
+            return true;
+        } else if (!isBetterViewTypeMatch &&
+                ModelMethod.isBoxingConversion(oldParameter, argument)) {
+            return false;
+        } else if (ModelMethod.isBoxingConversion(parameter, argument)) {
+            // Boxing/unboxing is second best
+            return true;
+        } else {
+            int oldConversionLevel = ModelMethod.getImplicitConversionLevel(oldParameter);
+            if (ModelMethod.isImplicitConversion(argument, parameter)) {
+                // Better implicit conversion
+                int conversionLevel = ModelMethod.getImplicitConversionLevel(parameter);
+                return oldConversionLevel < 0 || conversionLevel < oldConversionLevel;
+            } else if (oldConversionLevel >= 0) {
+                return false;
+            } else if (parameter.isAssignableFrom(argument)) {
+                // Right type, see if it is better than the current best match.
+                if (oldParameter == null) {
+                    return true;
+                } else {
+                    return oldParameter.isAssignableFrom(parameter);
+                }
             } else {
-                return isBetterViewType;
+                MethodDescription conversionMethod = getConversionMethod(argument, parameter,
+                        imports);
+                if (conversionMethod != null) {
+                    return true;
+                }
+                if (getConversionMethod(argument, oldParameter, imports) != null) {
+                    return false;
+                }
+                return argument.isObject() && !parameter.isPrimitive();
             }
         }
-
-        if (isSameViewType) {
-            return newConversion <= oldConversion;
-        }
-
-        if (newConversion == oldConversion) {
-            return isBetterViewType;
-        }
-
-        return newConversion <= oldConversion;
-    }
-
-    /**
-     * Checks to see if one return type is a better fit for a getter (e.g. InverseBindingAdapter)
-     * than another for a method call. It is assumed that both view types match the targeted view.
-     * <p>
-     * Note that this has different priorities than
-     * {@link #isBetterParameter(ModelClass, ModelClass, ModelClass, ModelClass, ModelClass, Map)}
-     *
-     * @param expected The type that is expected from the getter.
-     * @param newViewType The type of the view in the InverseBindingAdapter or getter method.
-     * @param newReturnType The return type of the value in the InverseBindingAdapter or getter
-     *                      method.
-     * @param oldViewType The type of the view in the previous matching InverseBindingAdapter or
-     *                    getter method.
-     * @param oldReturnType The return type of the value in the previous matching
-     *                     InverseBindingAdapter or getter method.
-     * @param imports Import in the binding layout file.
-     * @return {@code true} when the new InverseBindingAdapter or getter method is a better fit
-     * than the previous one or {@code false} if {@code expected} and {@code newReturnType} aren't
-     * a match or are a worse match.
-     */
-    private boolean isBetterReturn(@NonNull ModelClass expected,
-            @NonNull ModelClass newViewType, @NonNull ModelClass newReturnType,
-            @Nullable ModelClass oldViewType, @Nullable ModelClass oldReturnType,
-            @Nullable Map<String, String> imports) {
-        if (oldReturnType == null) {
-            // just validate that it can be converted
-            return calculateConversionPriority(newReturnType, expected, imports) >= 0;
-        }
-
-        int newConversion = calculateConversionPriority(newReturnType, expected, imports);
-        if (newConversion < 0) {
-            return false; // Doesn't convert
-        }
-
-        boolean isSameViewType = oldViewType.equals(newViewType);
-        boolean isBetterViewType = oldViewType.isAssignableFrom(newViewType);
-
-        int oldConversion = calculateConversionPriority(oldReturnType, expected, imports);
-        if (oldConversion == ASSIGNABLE_CONVERSION && newConversion == ASSIGNABLE_CONVERSION) {
-            if (isSameViewType) {
-                // more generic getter is better (fairly arbitrary, but consistent)
-                return newReturnType.isAssignableFrom(oldReturnType);
-            } else {
-                return isBetterViewType;
-            }
-        }
-
-        if (isSameViewType) {
-            return newConversion <= oldConversion;
-        }
-
-        if (newConversion == oldConversion) {
-            return isBetterViewType;
-        }
-
-        return newConversion <= oldConversion;
-    }
-
-    /**
-     * When calling a method, the closer an argument is to the declared parameter, the
-     * more likely it is to be matched. This method returns -1 when a {@code from} does not
-     * match {@code to}, 0 for an exact match, ASSIGNABLE_CONVERSION when {@code from} is a
-     * superclass or interface of {@code to}, and higher values for progressively more inexact
-     * matches.
-     *
-     * @param from The class or interface to attempt to convert from
-     * @param to The class or interface to attempt to convert to
-     * @param imports The imports used in this binding file
-     * @return {@code -1} for no match or greater than or equal to {@code 0} for a possible match,
-     * where {@code 0} is an exact match and greater numbers are progressively worse matches.
-     */
-    private int calculateConversionPriority(@NonNull ModelClass from, @NonNull ModelClass to,
-            @Nullable Map<String, String> imports) {
-        if (to.equals(from)) {
-            return 0; // exact match
-        }
-        if (to.isAssignableFrom(from)) {
-            return ASSIGNABLE_CONVERSION;
-        }
-        if (ModelMethod.isBoxingConversion(from, to)) {
-            return 2;
-        }
-        if (ModelMethod.isImplicitConversion(from, to)) {
-            // this should be 3 - 9
-            return 3 + ModelMethod.getImplicitConversionLevel(to);
-        }
-        if (getConversionMethod(from, to, imports) != null) {
-            return 10;
-        }
-        if (from.isObject() && !to.isPrimitive()) {
-            return 11;
-        }
-        return -1;
     }
 
     private MethodDescription getConversionMethod(ModelClass from, ModelClass to,
