@@ -109,16 +109,8 @@ public fun String.br(): String =
 fun String.readableName() = stripNonJava()
 
 fun String.toTypeName(imports: Map<String, String>) : TypeName {
-    return this.toTypeName(imports, true)
-}
-
-fun String.toTypeName() : TypeName {
-    return toTypeName(imports = null, useReplacements = false)
-}
-
-private fun String.toTypeName(imports: Map<String, String>?, useReplacements: Boolean) : TypeName {
     if (this.endsWith("[]")) {
-        val qType = this.substring(0, this.length - 2).trim().toTypeName(imports, useReplacements)
+        val qType = this.substring(0, this.length - 2).trim().toTypeName(imports)
         return ArrayTypeName.of(qType)
     }
     val genericEnd = this.lastIndexOf(">")
@@ -127,21 +119,19 @@ private fun String.toTypeName(imports: Map<String, String>?, useReplacements: Bo
         if (genericStart >= 0) {
             val typeParams = this.substring(genericStart + 1, genericEnd).trim()
             val typeParamsQualified = splitTemplateParameters(typeParams).map {
-                it.toTypeName(imports, useReplacements)
+                it.toTypeName(imports)
             }
-            val klass = this.substring(0, genericStart).trim().toTypeName(imports, useReplacements)
+            val klass = this.substring(0, genericStart).trim().toTypeName(imports)
             return ParameterizedTypeName.get(klass as ClassName,
                     *typeParamsQualified.toTypedArray())
         }
     }
-    if (useReplacements) {
-        // check for replacements
-        val replacement = REPLACEMENTS[this]
-        if (replacement != null) {
-            return replacement.toTypeName(imports, useReplacements)
-        }
+    // check for replacements
+    val replacement = REPLACEMENTS[this]
+    if (replacement != null) {
+        return replacement.toTypeName(imports)
     }
-    val import = imports?.get(this)
+    val import = imports[this]
     if (import != null) {
         return ClassName.bestGuess(import)
     }
