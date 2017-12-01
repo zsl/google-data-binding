@@ -40,6 +40,7 @@ public class PortraitConfigTest extends BaseDataBinderTest<MultiResLayoutBinding
         waitForUISync();
     }
 
+    /* Disabled due to flakiness, b/69446221
     public void testSharedViewIdAndVariableInheritance()
             throws InterruptedException, NoSuchMethodException, NoSuchFieldException {
         assertEquals("MultiResLayoutBindingImpl", mBinder.getClass().getSimpleName());
@@ -54,7 +55,7 @@ public class PortraitConfigTest extends BaseDataBinderTest<MultiResLayoutBinding
         assertPublicField(BasicBindingBinding.class, "includedLayoutShared");
         assertPublicField(ConditionalBindingBinding.class, "includedLayoutPort");
         assertPublicField(ConditionalBindingBinding.class, "includedLayoutLand");
-    }
+    }*/
 
     @UiThreadTest
     public void testSetVariable() throws Throwable {
