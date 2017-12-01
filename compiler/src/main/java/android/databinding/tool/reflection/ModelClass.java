@@ -16,11 +16,14 @@
 package android.databinding.tool.reflection;
 
 import android.databinding.Bindable;
+import android.databinding.tool.ext.ExtKt;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -678,5 +681,20 @@ public abstract class ModelClass {
             }
         }
         return fieldName;
+    }
+
+    public TypeName getTypeName() {
+        // implementation only so that PSI model doesn't break
+        return ExtKt.toTypeName(toJavaCode());
+    }
+
+    @Override
+    public boolean equals(Object that) {
+        if (that instanceof ModelClass) {
+            TypeName thisTypeName = getTypeName();
+            TypeName thatTypeName = ((ModelClass) that).getTypeName();
+            return thisTypeName.equals(thatTypeName);
+        }
+        return false;
     }
 }
