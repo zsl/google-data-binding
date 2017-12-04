@@ -51,7 +51,7 @@ android {
         exclude 'META-INF/services/javax.annotation.processing.Processor'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
-        exclude 'android/databinding/DataBinderMapper.class'
+        exclude 'android/databinding/DataBinderMapperImpl.class'
     }
 }
 
@@ -161,7 +161,7 @@ class ExcludeShimTransform extends Transform {
                 FileTree tree = project.fileTree(dir: it.getFile())
                 tree.include '**/*.class'
                 tree.exclude 'android/databinding/DataBindingComponent.*'
-                tree.exclude 'android/databinding/DataBinderMapper.*'
+                tree.exclude 'android/databinding/DataBinderMapperImpl.*'
                 tree.copy {
                     into outputDir
                 }

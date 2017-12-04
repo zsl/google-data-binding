@@ -21,14 +21,14 @@ public class DataBindingMapperTest extends AndroidTestCase {
     public void testNotDataBindingId() {
         View view = new View(getContext());
         view.setTag("layout/unexpected");
-        android.databinding.DataBinderMapper mapper = new android.databinding.DataBinderMapper();
+        android.databinding.DataBinderMapper mapper = new android.databinding.DataBinderMapperImpl();
         ViewDataBinding binding = mapper.getDataBinder(null, view, 1);
         assertNull(binding);
     }
     public void testInvalidView() {
         View view = new View(getContext());
         view.setTag("layout/unexpected");
-        android.databinding.DataBinderMapper mapper = new android.databinding.DataBinderMapper();
+        android.databinding.DataBinderMapper mapper = new android.databinding.DataBinderMapperImpl();
         Throwable error = null;
         try {
             mapper.getDataBinder(null, view, android.databinding.testapp.R.layout.multi_res_layout);

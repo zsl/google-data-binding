@@ -29,6 +29,7 @@ import android.databinding.tool.writer.BindingMapperWriter;
 import android.databinding.tool.writer.BindingMapperWriterV2;
 import android.databinding.tool.writer.DynamicUtilWriter;
 import android.databinding.tool.writer.JavaFileWriter;
+import android.databinding.tool.writer.MergedBindingMapperWriter;
 
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
@@ -179,34 +180,88 @@ public class CompilerChef {
         return injectedClass;
     }
 
-    public void writeDataBinderMapper(DataBindingCompilerArgs compilerArgs, BRWriter brWriter) {
-        final String pkg = "android.databinding";
-        final String mapperName = "DataBinderMapper";
+    public void writeDataBinderMapper(DataBindingCompilerArgs compilerArgs, BRWriter brWriter,
+            List<String> modulePackages) {
         if (compilerArgs.isEnableV2()) {
-            GenClassInfoLog infoLog;
-            try {
-                infoLog = ResourceBundle.loadClassInfoFromFolder(
-                        new File(compilerArgs.getClassLogDir()));
-            } catch (IOException e) {
-                Scope.defer(new ScopedException("Cannot read class info log"));
-                infoLog = new GenClassInfoLog();
+            final boolean generateMapper;
+            if (compilerArgs.isApp()) {
+                // generate mapper for apps only if it is not test or enabled for tests.
+                generateMapper = !compilerArgs.isTestVariant() || compilerArgs.isEnabledForTests();
+            } else {
+                // always generate mapper for libs
+                generateMapper = true;
             }
-            BindingMapperWriterV2 v2 = new BindingMapperWriterV2(pkg,
-                    mapperName, infoLog, compilerArgs);
-            TypeSpec spec = v2.write(brWriter);
-            StringBuilder sb = new StringBuilder();
-            try {
-                JavaFile.builder(pkg, spec)
-                        .build().writeTo(sb);
-                mFileWriter.writeToFile(pkg + "." + v2.getClassName(), sb.toString());
-            } catch (IOException e) {
-                Scope.defer(new ScopedException("cannot generate mapper class", e));
+            if (generateMapper) {
+                writeMapperForModule(compilerArgs, brWriter);
+            }
+
+            // merged mapper is the one generated for the whole app that includes the mappers
+            // generated for individual modules.
+            final boolean generateMergedMapper;
+            if (compilerArgs.isApp()) {
+                generateMergedMapper = !compilerArgs.isTestVariant();
+            } else {
+                generateMergedMapper = compilerArgs.isTestVariant();
+            }
+            if (generateMergedMapper) {
+                writeMergedMapper(compilerArgs, modulePackages);
             }
         } else {
+            final String pkg = "android.databinding";
+            final String mapperName = "DataBinderMapperImpl";
+
             ensureDataBinder();
             BindingMapperWriter dbr = new BindingMapperWriter(pkg, mapperName,
                     mDataBinder.getLayoutBinders(), compilerArgs);
-            mFileWriter.writeToFile(pkg + "." + dbr.getClassName(), dbr.write(brWriter));
+            mFileWriter.writeToFile(pkg + "." + dbr.getClassName(),
+                    dbr.write(brWriter));
+        }
+    }
+
+    /**
+     * Writes the mapper android.databinding.DataBinderMapperImpl which is a merged mapper
+     * that includes all mappers from dependencies.
+     */
+    private void writeMergedMapper(DataBindingCompilerArgs compilerArgs,
+            List<String> modulePackages) {
+        StringBuilder sb = new StringBuilder();
+        MergedBindingMapperWriter mergedBindingMapperWriter =
+                new MergedBindingMapperWriter(modulePackages, compilerArgs);
+        TypeSpec mergedMapperSpec = mergedBindingMapperWriter.write();
+        try {
+            JavaFile.builder(mergedBindingMapperWriter.getPkg(), mergedMapperSpec)
+                    .build().writeTo(sb);
+            mFileWriter.writeToFile(mergedBindingMapperWriter.getQualifiedName(),
+                    sb.toString());
+        } catch (IOException e) {
+            Scope.defer(new ScopedException("cannot generate merged mapper class", e));
+        }
+    }
+
+    /**
+     * Generates a mapper that knows only about the bindings in this module (excl dependencies).
+     */
+    private void writeMapperForModule(DataBindingCompilerArgs compilerArgs, BRWriter brWriter) {
+        GenClassInfoLog infoLog;
+        try {
+            infoLog = ResourceBundle.loadClassInfoFromFolder(
+                    new File(compilerArgs.getClassLogDir()));
+        } catch (IOException e) {
+            Scope.defer(new ScopedException("Cannot read class info log"));
+            infoLog = new GenClassInfoLog();
+        }
+        GenClassInfoLog infoLogInThisModule = infoLog
+                .createPackageInfoLog(compilerArgs.getModulePackage());
+        BindingMapperWriterV2 v2 = new BindingMapperWriterV2(
+                infoLogInThisModule,
+                compilerArgs);
+        TypeSpec spec = v2.write(brWriter);
+        StringBuilder sb = new StringBuilder();
+        try {
+            JavaFile.builder(v2.getPkg(), spec).build().writeTo(sb);
+            mFileWriter.writeToFile(v2.getQualifiedName(), sb.toString());
+        } catch (IOException e) {
+            Scope.defer(new ScopedException("cannot generate mapper class", e));
         }
     }
 

@@ -18,23 +18,12 @@ package android.databinding;
 
 import android.view.View;
 
-/**
- * This class will be stripped from the jar and then replaced by the annotation processor
- * as part of the code generation step. This class's existence is just to ensure that
- * compile works and no reflection is needed to access the generated class.
- * @hide
- */
-class DataBinderMapper {
-    public ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View view,
-            int layoutId) {
-        return null;
-    }
-    ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View[] view, int layoutId) {
-        return null;
-    }
-    public int getLayoutId(String tag) { return 0; }
-    public String convertBrIdToString(int id) {
-        return null;
-    }
-    public static int TARGET_MIN_SDK = 0;
+@SuppressWarnings("WeakerAccess")
+public abstract class DataBinderMapper {
+    public abstract ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View view,
+            int layoutId);
+    public abstract ViewDataBinding getDataBinder(DataBindingComponent bindingComponent,
+            View[] view, int layoutId);
+    public abstract int getLayoutId(String tag);
+    public abstract String convertBrIdToString(int id);
 }

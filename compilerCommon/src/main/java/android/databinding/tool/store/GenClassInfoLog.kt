@@ -48,6 +48,21 @@ data class GenClassInfoLog(
         }
     }
 
+    /**
+     * creates a sub info that has classes only in the given module package.
+     * note that it is not the package if the generated class, it is the package of the module
+     * where the class originated from.
+     */
+    fun createPackageInfoLog(pkg : String) : GenClassInfoLog {
+        val infoLog = GenClassInfoLog()
+        mappings.asSequence().filter {
+            it.value.modulePackage == pkg
+        }.forEach {
+            infoLog.addMapping(it.key, it.value)
+        }
+        return infoLog
+    }
+
     fun addAll(other: GenClassInfoLog) {
         other.mappings.forEach {
             addMapping(it.key, it.value)

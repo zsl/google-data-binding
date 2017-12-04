@@ -21,6 +21,7 @@ import android.databinding.tool.ext.L
 import android.databinding.tool.ext.N
 import android.databinding.tool.ext.S
 import android.databinding.tool.ext.T
+import android.databinding.tool.ext.stripNonJava
 import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.store.GenClassInfoLog
 import com.squareup.javapoet.AnnotationSpec
@@ -30,22 +31,22 @@ import com.squareup.javapoet.CodeBlock
 import com.squareup.javapoet.FieldSpec
 import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.ParameterSpec
+import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
+import java.util.Locale
 import javax.annotation.Generated
 import javax.lang.model.element.Modifier
 
-class BindingMapperWriterV2(private val pkg: String,
-                            private val appClassName: String,
-                            private val genClassInfoLog: GenClassInfoLog,
+class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
                             private val compilerArgs: DataBindingCompilerArgs) {
-    private val testClassName = "Test$appClassName"
-
     companion object {
         private val VIEW_DATA_BINDING = ClassName
                 .get("android.databinding", "ViewDataBinding")
         private val COMPONENT = ClassName
                 .get("android.databinding", "DataBindingComponent")
+        val DATA_BINDER_MAPPER: ClassName = ClassName
+                .get("android.databinding", "DataBinderMapper")
         private val VIEW = ClassName
                 .get("android.view", "View")
         private val OBJECT = ClassName
@@ -56,21 +57,33 @@ class BindingMapperWriterV2(private val pkg: String,
                 .get("java.lang", "IllegalArgumentException")
         private val STRING = ClassName
                 .get("java.lang", "String")
+        private val INTEGER = ClassName
+                .get("java.lang", "Integer")
+        private val LAYOUT_ID_LOOKUP_MAP_NAME = "INTERNAL_LAYOUT_ID_LOOKUP"
+        private val IMPL_CLASS_NAME = "DataBinderMapperImpl"
+        private val SPARSE_INT_ARRAY =
+                ClassName.get("android.util", "SparseIntArray")
+        private val SPARSE_ARRAY =
+                ClassName.get("android.util", "SparseArray")
     }
-
-    private val appTypeSpec = ClassName.bestGuess("$pkg.${this.appClassName}")
-    private val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
-    private val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
-    private val overrideField = FieldSpec.builder(appTypeSpec, "sTestOverride")
-            .addModifiers(Modifier.STATIC)
-            .build()
 
     private val rClassMap = mutableMapOf<String, ClassName>()
-    val className = if (generateAsTest) {
-        "Test$appClassName"
-    } else {
-        appClassName
+
+    val pkg : String
+    val className : String
+    init {
+        val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
+        if(generateAsTest) {
+            val testOverride = MergedBindingMapperWriter.TEST_OVERRIDE
+            pkg = testOverride.packageName()
+            className = testOverride.simpleName()
+        } else {
+            pkg = compilerArgs.modulePackage
+            className = IMPL_CLASS_NAME
+        }
     }
+
+    val qualifiedName = "$pkg.$className"
 
     private fun getRClass(pkg: String): ClassName {
         return rClassMap.getOrPut(pkg) {
@@ -78,71 +91,136 @@ class BindingMapperWriterV2(private val pkg: String,
         }
     }
 
-    fun write(brWriter: BRWriter): TypeSpec = TypeSpec.classBuilder(className).apply {
-        if (generateAsTest) {
-            superclass(appTypeSpec)
+    /**
+     * Layout ids might be non-final while generating the mapper for a library.
+     * For that case, we generate an internal lookup table that converts an R file into a local
+     * known field value.
+     */
+    private val localizedLayoutIdMap = mutableMapOf<String, LayoutId>()
+
+    data class LayoutId(val pkg: String, val id: Int, val layoutName: String,
+                        val fieldSpec: FieldSpec)
+
+    private fun getLocalizedLayoutId(pkg: String, layoutName: String): FieldSpec {
+        val layoutId = localizedLayoutIdMap.getOrPut(layoutName) {
+            val fieldName = "LAYOUT_${layoutName.stripNonJava().toUpperCase(Locale.US)}"
+            // must be > 0
+            val id = localizedLayoutIdMap.size + 1
+            val spec = FieldSpec.builder(TypeName.INT, fieldName,
+                    Modifier.FINAL, Modifier.STATIC, Modifier.PRIVATE)
+                    .initializer(L, id)
+                    .build()
+            LayoutId(
+                    pkg = pkg,
+                    layoutName = layoutName,
+                    id = id,
+                    fieldSpec = spec)
         }
+        return layoutId.fieldSpec
+    }
+
+    fun write(brWriter: BRWriter): TypeSpec = TypeSpec.classBuilder(className).apply {
+        superclass(DATA_BINDER_MAPPER)
+        addModifiers(Modifier.PUBLIC)
         if (ModelAnalyzer.getInstance().hasGeneratedAnnotation()) {
             addAnnotation(AnnotationSpec.builder(Generated::class.java).apply {
                 addMember("value", S, "Android Data Binding")
             }.build())
-        }
-        val minSdkField = FieldSpec.builder(TypeName.INT, "TARGET_MIN_SDK",
-                Modifier.FINAL, Modifier.STATIC).apply {
-            initializer(L, compilerArgs.minApi)
-        }.build()
-        addField(minSdkField)
-        if (generateTestOverride) {
-            addField(overrideField)
-            addStaticBlock(CodeBlock.builder()
-                    .beginControlFlow("try").apply {
-                addStatement("$N = ($T) $T.class.getClassLoader().loadClass($S).newInstance()",
-                        overrideField, appTypeSpec, appTypeSpec, """$pkg.$testClassName""")
-            }.nextControlFlow("catch($T ignored)", ClassName.get(Throwable::class.java))
-                    .apply {
-                        addStatement("$N = null", overrideField)
-                    }
-                    .endControlFlow()
-                    .build())
         }
         addMethod(generateGetViewDataBinder())
         addMethod(generateGetViewArrayDataBinder())
         addMethod(generateGetLayoutId())
         addMethod(generateConvertBrIdToString())
         addType(generateInnerBrLookup(brWriter))
+        // must write this at the end
+        createLocalizedLayoutIds(this)
     }.build()
+
+    private fun createLocalizedLayoutIds(builder: TypeSpec.Builder) {
+        /**
+         * generated code looks like:
+         * private static final SparseIntArray INTERNAL_LAYOUT_ID_LOOKUP =
+         *         new SparseIntArray(99);
+         *     static {
+         *         INTERNAL_LAYOUT_ID_LOOKUP.put(
+         *             foo.bar.R.layout.generic_view, LAYOUT_GENERICVIEW);
+         *         ... //for all layouts
+         *     }
+         */
+        builder.apply {
+            // create fields
+            localizedLayoutIdMap.forEach {
+                addField(it.value.fieldSpec)
+            }
+            // now create conversion hash map
+            // reverse map from ids to values
+            val lookupType = SPARSE_INT_ARRAY
+            val lookupField = FieldSpec.builder(
+                    lookupType,
+                    LAYOUT_ID_LOOKUP_MAP_NAME)
+                    .addModifiers(Modifier.PRIVATE, Modifier.FINAL, Modifier.STATIC)
+                    .initializer("new $T($L)", lookupType, localizedLayoutIdMap.size)
+                    .build()
+            addField(lookupField)
+            addStaticBlock(CodeBlock.builder().apply {
+                localizedLayoutIdMap.values.forEach {
+                    addStatement("$N.put($L.layout.$L, $N)", lookupField,
+                            getRClass(it.pkg), it.layoutName, it.fieldSpec)
+                }
+            }.build())
+        }
+    }
 
     private fun generateInnerBrLookup(brWriter: BRWriter) = TypeSpec
             .classBuilder("InnerBrLookup").apply {
+        /**
+         * generated code looks like:
+         * static final SparseArray<String> sKeys = new SparseArray<String>(214);
+         * static {
+         *     sKeys.put(foo.bar.BR._all, "_all");
+         *     ....//for all BRs
+         */
         addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-        val keysField = FieldSpec.builder(ArrayTypeName.of(STRING), "sKeys").apply {
+        val keysTypeName = ParameterizedTypeName.get(
+                SPARSE_ARRAY,
+                STRING
+        )
+        val keysField = FieldSpec.builder(keysTypeName, "sKeys").apply {
             addModifiers(Modifier.STATIC, Modifier.FINAL)
-            val placeholders = brWriter.indexedProps.joinToString(",") { S }
-            val args = listOf(ArrayTypeName.of(STRING), "_all") +
-                    brWriter.indexedProps.map { it.value }
-            initializer("new $T{$S, $placeholders}", *(args.toTypedArray()))
+            initializer("new $T($L)", keysTypeName, brWriter.properties.size + 1)
         }.build()
         addField(keysField)
+        addStaticBlock(CodeBlock.builder().apply {
+            addStatement("$N.put($L.BR.$L, $S)",
+                    keysField,
+                    compilerArgs.modulePackage,
+                    "_all",
+                    "_all")
+            brWriter.properties.forEach {
+                addStatement("$N.put($L.BR.$L, $S)",
+                        keysField,
+                        compilerArgs.modulePackage,
+                        it,
+                        it)
+            }
+        }.build())
     }.build()
 
     private fun generateConvertBrIdToString() = MethodSpec
             .methodBuilder("convertBrIdToString").apply {
+        addModifiers(Modifier.PUBLIC)
+        addAnnotation(Override::class.java)
         val idParam = ParameterSpec.builder(TypeName.INT, "id").build()
         addParameter(idParam)
-        returns(BindingMapperWriterV2.STRING)
-        beginControlFlow("if($N < 0 || $N >= InnerBrLookup.sKeys.length)",
-                idParam, idParam).apply {
-            if (generateTestOverride) {
-                beginControlFlow("if($N != null)", overrideField).apply {
-                    addStatement("return $N.convertBrIdToString($N)", overrideField, idParam)
-                }.endControlFlow()
-                addStatement("return null")
-            }
-        }.endControlFlow()
-        addStatement("return InnerBrLookup.sKeys[$N]", idParam)
+        returns(STRING)
+        val tmpResult = "tmpVal"
+        addStatement("$T $L = InnerBrLookup.sKeys.get($N)", STRING, tmpResult, idParam)
+        addStatement("return $L", tmpResult)
     }.build()
 
     private fun generateGetLayoutId() = MethodSpec.methodBuilder("getLayoutId").apply {
+        addModifiers(Modifier.PUBLIC)
+        addAnnotation(Override::class.java)
         val tagParam = ParameterSpec.builder(STRING, "tag").build()
         addParameter(tagParam)
         returns(TypeName.INT)
@@ -164,8 +242,8 @@ class BindingMapperWriterV2(private val pkg: String,
                         mapping.value.implementations
                                 .map { Pair(it, mapping) }
                     }
-                    .groupBy { pair ->
-                        (pair.first.tag + "_0").hashCode()
+                    .groupBy { (first) ->
+                        (first.tag + "_0").hashCode()
                     }
                     .forEach { code, pairs ->
                         beginControlFlow("case $L:", code).apply {
@@ -180,17 +258,13 @@ class BindingMapperWriterV2(private val pkg: String,
                         }.endControlFlow()
                     }
         }.endControlFlow()
-        if (generateTestOverride) {
-            beginControlFlow("if($N != null)", overrideField).apply {
-                addStatement("return $N.getLayoutId($N)", overrideField, tagParam)
-            }.endControlFlow()
-        }
         addStatement("return 0")
     }.build()
 
     private fun generateGetViewDataBinder(): MethodSpec {
         return MethodSpec.methodBuilder("getDataBinder").apply {
             addModifiers(Modifier.PUBLIC)
+            addAnnotation(Override::class.java)
             returns(VIEW_DATA_BINDING)
             val componentParam = ParameterSpec.builder(COMPONENT, "component").build()
             val viewParam = ParameterSpec.builder(VIEW, "view").build()
@@ -198,94 +272,111 @@ class BindingMapperWriterV2(private val pkg: String,
             addParameter(componentParam)
             addParameter(viewParam)
             addParameter(layoutIdParam)
+            val localizedLayoutId = "localizedLayoutId"
+            addStatement("$T $L = $L.get($N)",
+                    TypeName.INT,
+                    localizedLayoutId,
+                    LAYOUT_ID_LOOKUP_MAP_NAME,
+                    layoutIdParam)
             // output looks like:
+            // localize layout id from R.layout.XY to local private constant
             // switch(layoutId)
             //    case known_layout_id
             //             verify, generate impl and return
-            beginControlFlow("switch($N)", layoutIdParam).apply {
-                genClassInfoLog.mappings().forEach { layoutName, info ->
-                    val rClass = getRClass(info.modulePackage)
-                    beginControlFlow("case $T.layout.$L :", rClass, layoutName).apply {
-                        // we should check the tag to decide which layout we need to inflate
-                        // we do it here because it is ok to pass a non-data-binding layout
-                        addStatement("final $T tag = $N.getTag()", OBJECT, viewParam)
-                        beginControlFlow("if(tag == null)").apply {
-                            addStatement("throw new $T($S)", RUNTIME_EXCEPTION,
-                                    "view must have a tag")
-                        }.endControlFlow()
-                        info.implementations.forEach {
-                            beginControlFlow("if ($S.equals(tag))",
-                                    "${it.tag}_0").apply {
-                                val binderTypeName = ClassName.bestGuess(it.qualifiedName)
-                                if (it.merge) {
-                                    addStatement("return new $T($N, new $T[]{$N})",
-                                            binderTypeName, componentParam, VIEW, viewParam)
-                                } else {
-                                    addStatement("return new $T($N, $N)",
-                                            binderTypeName, componentParam, viewParam)
-                                }
-                            }.endControlFlow()
-                        }
-                        addStatement("throw new $T($S + tag)", ILLEGAL_ARG_EXCEPTION,
-                                "The tag for $layoutName is invalid. Received: ")
-                    }.endControlFlow()
-                }
-            }.endControlFlow()
-            if (generateTestOverride) {
-                beginControlFlow("if($N != null)", overrideField).apply {
-                    addStatement("return $N.getDataBinder($N, $N, $N)",
-                            overrideField, componentParam, viewParam, layoutIdParam)
+            beginControlFlow("if($L > 0)", localizedLayoutId).apply {
+                addStatement("final $T tag = $N.getTag()", OBJECT, viewParam)
+                beginControlFlow("if(tag == null)").apply {
+                    addStatement("throw new $T($S)", RUNTIME_EXCEPTION,
+                            "view must have a tag")
                 }.endControlFlow()
-            }
+                beginControlFlow("switch($N)", localizedLayoutId).apply {
+                    genClassInfoLog.mappings().forEach { layoutName, info ->
+                        val layoutIdField = getLocalizedLayoutId(info.modulePackage, layoutName)
+                        beginControlFlow("case  $N:", layoutIdField).apply {
+                            // we should check the tag to decide which layout we need to inflate
+                            // we do it here because it is ok to pass a non-data-binding layout
+                            info.implementations.forEach {
+                                beginControlFlow("if ($S.equals(tag))",
+                                        "${it.tag}_0").apply {
+                                    val binderTypeName = ClassName.bestGuess(it.qualifiedName)
+                                    if (it.merge) {
+                                        addStatement("return new $T($N, new $T[]{$N})",
+                                                binderTypeName, componentParam, VIEW, viewParam)
+                                    } else {
+                                        addStatement("return new $T($N, $N)",
+                                                binderTypeName, componentParam, viewParam)
+                                    }
+                                }.endControlFlow()
+                            }
+                            addStatement("throw new $T($S + tag)", ILLEGAL_ARG_EXCEPTION,
+                                    "The tag for $layoutName is invalid. Received: ")
+                        }.endControlFlow()
+                    }
+                }.endControlFlow()
+            }.endControlFlow()
             addStatement("return null")
         }.build()
     }
 
-    private fun generateGetViewArrayDataBinder() = MethodSpec.methodBuilder("getDataBinder").apply {
-        addModifiers(Modifier.PUBLIC)
-        returns(VIEW_DATA_BINDING)
-        val componentParam = ParameterSpec.builder(COMPONENT, "component").build()
-        val viewParam = ParameterSpec.builder(ArrayTypeName.of(VIEW), "views").build()
-        val layoutIdParam = ParameterSpec.builder(TypeName.INT, "layoutId").build()
-        addParameter(componentParam)
-        addParameter(viewParam)
-        addParameter(layoutIdParam)
-        // output looks like:
-        // switch(layoutId)
-        //    case known_layout_id
-        //             verify, generate impl and return
-        beginControlFlow("switch($N)", layoutIdParam).apply {
-            genClassInfoLog.mappings().forEach { layoutName, info ->
-                val mergeImpls = info.implementations.filter { it.merge }
-                if (mergeImpls.isNotEmpty()) {
-                    val rClass = getRClass(info.modulePackage)
-                    beginControlFlow("case $T.layout.$L:", rClass, layoutName).apply {
-                        // we should check the tag to decide which layout we need to inflate
-                        // we do it here because it is ok to pass non-data-binding view.
-                        addStatement("final $T tag = $N[0].getTag()", OBJECT, viewParam)
-                        beginControlFlow("if(tag == null)").apply {
-                            addStatement("throw new $T($S)", RUNTIME_EXCEPTION,
-                                    "view must have a tag")
-                        }.endControlFlow()
+    private fun generateGetViewArrayDataBinder() = MethodSpec.methodBuilder("getDataBinder")
+            .apply {
+                addModifiers(Modifier.PUBLIC)
+                addAnnotation(Override::class.java)
+                returns(VIEW_DATA_BINDING)
+                val componentParam = ParameterSpec.builder(COMPONENT, "component").build()
+                val viewParam = ParameterSpec.builder(ArrayTypeName.of(VIEW), "views").build()
+                val layoutIdParam = ParameterSpec.builder(TypeName.INT, "layoutId").build()
+                addParameter(componentParam)
+                addParameter(viewParam)
+                addParameter(layoutIdParam)
+                beginControlFlow("if($N == null || $N.length == 0)",
+                        viewParam, viewParam).apply {
+                    addStatement("return null")
+                }.endControlFlow()
 
-                        mergeImpls.forEach {
-                            beginControlFlow("if($S.equals(tag))",
-                                    "${it.tag}_0").apply {
-                                val binderTypeName = ClassName.bestGuess(it.qualifiedName)
-                                addStatement("return new $T($N, $N)",
-                                        binderTypeName, componentParam, viewParam)
-                            }.endControlFlow()
+                val localizedLayoutId = "localizedLayoutId"
+                addStatement("$T $L = $L.get($N)",
+                        TypeName.INT,
+                        localizedLayoutId,
+                        LAYOUT_ID_LOOKUP_MAP_NAME,
+                        layoutIdParam)
+                // output looks like:
+                // localize layout id from R.layout.XY to local private constant
+                // switch(layoutId)
+                //    case known_layout_id
+                //             verify, generate impl and return
+
+                beginControlFlow("if($L > 0)", localizedLayoutId).apply {
+                    addStatement("final $T tag = $N[0].getTag()", OBJECT, viewParam)
+                    beginControlFlow("if(tag == null)").apply {
+                        addStatement("throw new $T($S)", RUNTIME_EXCEPTION,
+                                "view must have a tag")
+                    }.endControlFlow()
+                    beginControlFlow("switch($N)", localizedLayoutId).apply {
+                        genClassInfoLog.mappings().forEach { layoutName, info ->
+                            val mergeImpls = info.implementations.filter { it.merge }
+                            if (mergeImpls.isNotEmpty()) {
+                                val layoutIdField = getLocalizedLayoutId(
+                                        info.modulePackage,
+                                        layoutName)
+                                beginControlFlow("case $N:", layoutIdField).apply {
+                                    mergeImpls.forEach {
+                                        beginControlFlow("if($S.equals(tag))",
+                                                "${it.tag}_0").apply {
+                                            val binderTypeName = ClassName.bestGuess(
+                                                    it.qualifiedName)
+                                            addStatement("return new $T($N, $N)",
+                                                    binderTypeName, componentParam, viewParam)
+                                        }.endControlFlow()
+                                    }
+                                    addStatement("throw new $T($S + tag)", ILLEGAL_ARG_EXCEPTION,
+                                            "The tag for $layoutName is invalid. Received: ")
+                                }.endControlFlow()
+                            }
                         }
                     }.endControlFlow()
-                }
-            }
-        }.endControlFlow()
-        if (generateTestOverride) {
-            beginControlFlow("if($N != null)", overrideField).apply {
-                addStatement("return $N.getDataBinder($N, $N, $N)",
-                        overrideField, componentParam, viewParam, layoutIdParam)
-            }.endControlFlow()
-        }
-        addStatement("return null")
-    }.build()
+                }.endControlFlow()
+
+                addStatement("return null")
+            }.build()
 }

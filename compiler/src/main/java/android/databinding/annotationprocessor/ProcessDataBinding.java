@@ -16,7 +16,6 @@
 
 package android.databinding.annotationprocessor;
 
-import android.databinding.BindingBuildInfo;
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.processing.Scope;
@@ -108,6 +107,8 @@ public class ProcessDataBinding extends AbstractProcessor {
         Callback dataBinderWriterCallback = new Callback() {
             CompilerChef mChef;
             BRWriter mBRWriter;
+            List<String> mModulePackages;
+            boolean mWrittenMapper = false;
 
             @Override
             public void onChefReady(CompilerChef chef) {
@@ -122,19 +123,24 @@ public class ProcessDataBinding extends AbstractProcessor {
             }
 
             private void considerWritingMapper() {
-                boolean justLibrary =
-                        mCompilerArgs.artifactType() == DataBindingCompilerArgs.Type.LIBRARY &&
-                        !mCompilerArgs.isTestVariant();
-                if (justLibrary || mChef == null || mBRWriter == null) {
+                if (mWrittenMapper || mChef == null || mBRWriter == null) {
                     return;
                 }
-                mChef.writeDataBinderMapper(mCompilerArgs, mBRWriter);
+                boolean justLibrary =
+                        mCompilerArgs.artifactType() == DataBindingCompilerArgs.Type.LIBRARY &&
+                                !mCompilerArgs.isTestVariant();
+                if (justLibrary && !mCompilerArgs.isEnableV2()) {
+                    return;
+                }
+                mWrittenMapper = true;
+                mChef.writeDataBinderMapper(mCompilerArgs, mBRWriter, mModulePackages);
             }
 
             @Override
-            public void onBrWriterReady(BRWriter brWriter) {
+            public void onBrWriterReady(BRWriter brWriter, List<String> brPackages) {
                 Preconditions.checkNull(mBRWriter, "Cannot set br writer twice");
                 mBRWriter = brWriter;
+                mModulePackages = brPackages;
                 considerWritingMapper();
             }
         };
@@ -213,6 +219,6 @@ public class ProcessDataBinding extends AbstractProcessor {
 
     interface Callback {
         void onChefReady(CompilerChef chef);
-        void onBrWriterReady(BRWriter brWriter);
+        void onBrWriterReady(BRWriter brWriter, List<String> brPackages);
     }
 }

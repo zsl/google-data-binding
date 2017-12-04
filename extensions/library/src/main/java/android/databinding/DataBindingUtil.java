@@ -29,7 +29,7 @@ import android.view.ViewParent;
  * Utility class to create {@link ViewDataBinding} from layouts.
  */
 public class DataBindingUtil {
-    private static DataBinderMapper sMapper = new DataBinderMapper();
+    private static DataBinderMapper sMapper = new DataBinderMapperImpl();
     private static DataBindingComponent sDefaultComponent = null;
 
     /**
