@@ -24,7 +24,7 @@ import android.databinding.tool.writer.JavaFileWriter;
 
 import com.google.common.collect.ImmutableList;
 
-import java.util.Collections;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.File;
@@ -52,11 +52,16 @@ public class DataBindingBuilder {
             "android.databinding.annotationprocessor.ProcessDataBinding";
 
     public static final String ARTIFACT_FILES_DIR_FROM_LIBS = "dependent-lib-artifacts";
+    public static final String ARTIFACT_BASE_CLASSES_DIR_FROM_LIBS = "dependent-lib-base-classes";
     public static final String INCREMENTAL_BIN_AAR_DIR = "bin-files";
+    public static final String INCREMENTAL_BINDING_CLASSES_LIST_DIR = "binding-class-list";
     public static final String DATA_BINDING_ROOT_FOLDER_IN_AAR = "data-binding";
+    public static final String DATA_BINDING_CLASS_LOG_ROOT_FOLDER_IN_AAR =
+            "data-binding-base-class-log";
 
     public static final List<String> RESOURCE_FILE_EXTENSIONS =
             ImmutableList.of("-br.bin", "-layoutinfo.bin", "-setter_store.bin");
+    public static final String BINDING_CLASS_LIST_SUFFIX = "-binding_classes.json";
 
     public String getCompilerVersion() {
         return getVersions().compiler;
@@ -181,7 +186,7 @@ public class DataBindingBuilder {
         return new GradleFileWriter(outFolder.getAbsolutePath());
     }
 
-    static class GradleFileWriter extends JavaFileWriter {
+    public static class GradleFileWriter extends JavaFileWriter {
 
         private final String outputBase;
 
@@ -191,8 +196,7 @@ public class DataBindingBuilder {
 
         @Override
         public void writeToFile(String canonicalName, String contents) {
-            String asPath = canonicalName.replace('.', '/');
-            File f = new File(outputBase + "/" + asPath + ".java");
+            File f = toFile(canonicalName);
             //noinspection ResultOfMethodCallIgnored
             f.getParentFile().mkdirs();
             FileOutputStream fos = null;
@@ -204,6 +208,16 @@ public class DataBindingBuilder {
             } finally {
                 IOUtils.closeQuietly(fos);
             }
+        }
+
+        private File toFile(String canonicalName) {
+            String asPath = canonicalName.replace('.', File.separatorChar);
+            return new File(outputBase + File.separatorChar + asPath + ".java");
+        }
+
+        @Override
+        public void deleteFile(String canonicalName) {
+            FileUtils.deleteQuietly(toFile(canonicalName));
         }
     }
 

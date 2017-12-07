@@ -24,7 +24,7 @@ public class MockLayoutBinder extends LayoutBinder {
     public MockLayoutBinder() {
         super(new ResourceBundle.LayoutFileBundle(new File("./blah.xml"), "blah.xml", "layout",
                 "com.test.submodule",
-                false));
+                false), false);
     }
 
     public IdentifierExpr addVariable(String name, String type, Location location) {

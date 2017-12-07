@@ -49,4 +49,9 @@ public class AnnotationJavaFileWriter extends JavaFileWriter {
             }
         }
     }
+
+    @Override
+    public void deleteFile(String canonicalName) {
+        throw new UnsupportedOperationException("cannot delete file in annotation processor");
+    }
 }

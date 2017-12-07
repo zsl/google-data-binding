@@ -30,6 +30,7 @@ import com.beust.jcommander.ParameterException;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -107,6 +108,11 @@ public class AndroidDataBinding {
         }
 
         @Override
+        public void deleteFile(String canonicalName) {
+            throw new UnsupportedOperationException("Cannot delete file");
+        }
+
+        @Override
         public void writeToFile(File exactPath, String contents) {
             ZipEntry entry = new ZipEntry(exactPath.getName());
             try {
@@ -134,9 +140,22 @@ public class AndroidDataBinding {
         @SuppressWarnings("Duplicates")
         @Override
         public void writeToFile(String canonicalName, String contents) {
-            String asPath = canonicalName.replace('.', '/');
-            File f = new File(base, asPath + ".java");
+            File f = toFile(canonicalName);
             writeToFile(f, contents);
+        }
+
+        @NotNull
+        private File toFile(String canonicalName) {
+            String asPath = canonicalName.replace('.', '/');
+            return new File(base, asPath + ".java");
+        }
+
+        @Override
+        public void deleteFile(String canonicalName) {
+            File file = toFile(canonicalName);
+            if (file.exists()) {
+                file.delete();
+            }
         }
     }
 }

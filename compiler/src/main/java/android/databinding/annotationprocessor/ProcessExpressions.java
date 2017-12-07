@@ -19,7 +19,10 @@ package android.databinding.annotationprocessor;
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.LayoutXmlProcessor;
+import android.databinding.tool.processing.Scope;
+import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.reflection.SdkUtil;
+import android.databinding.tool.store.GenClassInfoLog;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
@@ -39,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,26 +70,42 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             ResourceBundle resourceBundle;
             SdkUtil.initialize(args.getMinApi(), new File(args.getSdkDir()));
             resourceBundle = new ResourceBundle(args.getModulePackage());
-            List<IntermediateV2> intermediateList = loadDependencyIntermediates();
-            for (Intermediate intermediate : intermediateList) {
+            final List<IntermediateV2> intermediateList;
+            if (args.isEnableV2()) {
+                GenClassInfoLog infoLog;
                 try {
+                    infoLog = ResourceBundle.loadClassInfoFromFolder(
+                            new File(args.getClassLogDir()));
+                } catch (IOException e) {
+                    infoLog = new GenClassInfoLog();
+                    Scope.defer(new ScopedException("cannot load the info log from %s",
+                            args.getClassLogDir()));
+                }
+                resourceBundle.addDependencyLayouts(infoLog);
+                intermediateList = Collections.emptyList();
+            } else {
+                intermediateList = loadDependencyIntermediates();
+                for (Intermediate intermediate : intermediateList) {
                     try {
-                        intermediate.appendTo(resourceBundle);
-                    } catch (Throwable throwable) {
-                        L.e(throwable, "unable to prepare resource bundle");
+                        try {
+                            intermediate.appendTo(resourceBundle, false);
+                        } catch (Throwable throwable) {
+                            L.e(throwable, "unable to prepare resource bundle");
+                        }
+                    } catch (LoggedErrorException e) {
+                        // This will be logged later
                     }
-                } catch (LoggedErrorException e) {
-                    // This will be logged later
                 }
             }
-
             IntermediateV2 mine = createIntermediateFromLayouts(args.getXmlOutDir(),
                     intermediateList);
             if (mine != null) {
-                mine.updateOverridden(resourceBundle);
-                intermediateList.add(mine);
-                saveIntermediate(processingEnvironment, args, mine);
-                mine.appendTo(resourceBundle);
+                if (!args.isEnableV2()) {
+                    mine.updateOverridden(resourceBundle);
+                    intermediateList.add(mine);
+                    saveIntermediate(processingEnvironment, args, mine);
+                }
+                mine.appendTo(resourceBundle, true);
             }
             // generate them here so that bindable parser can read
             try {
@@ -189,7 +209,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     private void writeResourceBundle(ResourceBundle resourceBundle,
             DataBindingCompilerArgs compilerArgs) throws JAXBException {
-        final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle, getWriter());
+        final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle,
+                getWriter(), compilerArgs);
         compilerChef.sealModels();
         // write this only if we are compiling an app or a library test app.
         // even if data binding is enabled for tests, we should not re-generate this.
@@ -197,10 +218,13 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             compilerChef.writeComponent();
         }
         if (compilerChef.hasAnythingToGenerate()) {
-            compilerChef.writeViewBinderInterfaces(compilerArgs.isLibrary()
-                    && !compilerArgs.isTestVariant());
-            if (compilerArgs.isApp() != compilerArgs.isTestVariant() ||
-                    compilerArgs.isEnabledForTests()) {
+            if (!compilerArgs.isEnableV2()) {
+                compilerChef.writeViewBinderInterfaces(compilerArgs.isLibrary()
+                        && !compilerArgs.isTestVariant());
+            }
+            if (compilerArgs.isApp() != compilerArgs.isTestVariant()
+                    || (compilerArgs.isEnabledForTests() && !compilerArgs.isLibrary())
+                    || compilerArgs.isEnableV2()) {
                 compilerChef.writeViewBinders(compilerArgs.getMinApi());
             }
         }
@@ -209,7 +233,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             L.e("When compiling a library module, build info must include exportClassListTo path");
         }
         if (compilerArgs.isLibrary() && !compilerArgs.isTestVariant()) {
-            Set<String> classNames = compilerChef.getWrittenClassNames();
+            Set<String> classNames = compilerChef.getClassesToBeStripped();
             String out = Joiner.on(StringUtils.LINE_SEPARATOR).join(classNames);
             L.d("Writing list of classes to %s . \nList:%s",
                     compilerArgs.getExportClassListTo(), out);
@@ -227,7 +251,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
         Intermediate upgrade();
 
-        void appendTo(ResourceBundle resourceBundle) throws Throwable;
+        void appendTo(ResourceBundle resourceBundle, boolean fromSource) throws Throwable;
     }
 
     public static class IntermediateV1 implements Intermediate {
@@ -246,7 +270,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         }
 
         @Override
-        public void appendTo(ResourceBundle resourceBundle) throws JAXBException {
+        public void appendTo(ResourceBundle resourceBundle, boolean fromSource) throws
+                JAXBException {
             if (mUnmarshaller == null) {
                 JAXBContext context = JAXBContext
                         .newInstance(ResourceBundle.LayoutFileBundle.class);
@@ -257,7 +282,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
                 try {
                     final ResourceBundle.LayoutFileBundle bundle
                             = (ResourceBundle.LayoutFileBundle) mUnmarshaller.unmarshal(is);
-                    resourceBundle.addLayoutBundle(bundle);
+                    resourceBundle.addLayoutBundle(bundle, fromSource);
                     L.d("loaded layout info file %s", bundle);
                 } finally {
                     IOUtils.closeQuietly(is);
@@ -279,13 +304,13 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         // specify so that we can define updates ourselves.
         private static final long serialVersionUID = 2L;
         @Override
-        public void appendTo(ResourceBundle resourceBundle) throws JAXBException {
+        public void appendTo(ResourceBundle resourceBundle, boolean fromSource) throws JAXBException {
             for (Map.Entry<String, String> entry : mLayoutInfoMap.entrySet()) {
                 final InputStream is = IOUtils.toInputStream(entry.getValue());
                 try {
                     final ResourceBundle.LayoutFileBundle bundle = ResourceBundle.LayoutFileBundle
                             .fromXML(is);
-                    resourceBundle.addLayoutBundle(bundle);
+                    resourceBundle.addLayoutBundle(bundle, fromSource);
                     L.d("loaded layout info file %s", bundle);
                 } finally {
                     IOUtils.closeQuietly(is);

@@ -18,7 +18,7 @@ package android.databinding.tool.writer
 
 import android.databinding.tool.util.StringUtils
 
-class BRWriter(properties: Set<String>, val useFinal : Boolean) {
+class BRWriter(val properties: Set<String>, val useFinal : Boolean) {
     val indexedProps = properties.sorted().withIndex()
     fun write(pkg : String): String = "package $pkg;${StringUtils.LINE_SEPARATOR}$klass"
     val klass: String by lazy {

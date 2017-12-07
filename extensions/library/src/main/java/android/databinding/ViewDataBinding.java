@@ -30,6 +30,7 @@ import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.MainThread;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
@@ -80,9 +81,6 @@ public abstract class ViewDataBinding extends BaseObservable {
 
     // The length of BINDING_TAG_PREFIX prevents calling length repeatedly.
     private static final int BINDING_NUMBER_START = BINDING_TAG_PREFIX.length();
-
-    // ICS (v 14) fixes a leak when using setTag(int, Object)
-    private static final boolean USE_TAG_ID = DataBinderMapper.TARGET_MIN_SDK >= 14;
 
     private static final boolean USE_CHOREOGRAPHER = SDK_INT >= 16;
 
@@ -291,25 +289,15 @@ public abstract class ViewDataBinding extends BaseObservable {
      * @hide
      */
     protected void setRootTag(View view) {
-        if (USE_TAG_ID) {
-            view.setTag(R.id.dataBinding, this);
-        } else {
-            view.setTag(this);
-        }
+        view.setTag(R.id.dataBinding, this);
     }
 
     /**
      * @hide
      */
     protected void setRootTag(View[] views) {
-        if (USE_TAG_ID) {
-            for (View view : views) {
-                view.setTag(R.id.dataBinding, this);
-            }
-        } else {
-            for (View view : views) {
-                view.setTag(this);
-            }
+        for (View view : views) {
+            view.setTag(R.id.dataBinding, this);
         }
     }
 
@@ -359,6 +347,7 @@ public abstract class ViewDataBinding extends BaseObservable {
      * @param lifecycleOwner The LifecycleOwner that should be used for observing changes of
      *                       LiveData in this binding.
      */
+    @MainThread
     public void setLifecycleOwner(@Nullable LifecycleOwner lifecycleOwner) {
         if (mLifecycleOwner == lifecycleOwner) {
             return;
@@ -490,14 +479,7 @@ public abstract class ViewDataBinding extends BaseObservable {
 
     static ViewDataBinding getBinding(View v) {
         if (v != null) {
-            if (USE_TAG_ID) {
-                return (ViewDataBinding) v.getTag(R.id.dataBinding);
-            } else {
-                final Object tag = v.getTag();
-                if (tag instanceof ViewDataBinding) {
-                    return (ViewDataBinding) tag;
-                }
-            }
+            return (ViewDataBinding) v.getTag(R.id.dataBinding);
         }
         return null;
     }

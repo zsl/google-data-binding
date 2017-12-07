@@ -13,8 +13,12 @@
 
 package android.databinding.testapp;
 
+import static android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION;
+
+import android.content.Intent;
 import android.databinding.ViewDataBinding;
 import android.os.Looper;
+import android.support.test.InstrumentationRegistry;
 import android.test.ActivityInstrumentationTestCase2;
 import android.view.Choreographer;
 import android.view.LayoutInflater;
@@ -35,6 +39,10 @@ public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActiv
             final Class<U> activityClass) {
         super(activityClass);
         mBinderClass = binderClass;
+        Intent intent = new Intent(InstrumentationRegistry.getTargetContext(),
+                activityClass);
+        intent.addFlags(FLAG_ACTIVITY_NO_ANIMATION);
+        setActivityIntent(intent);
     }
 
     @Override

@@ -93,6 +93,14 @@ public class ExprModel {
 
     private ExprModelExt mExt = new ExprModelExt();
 
+    public final String modulePackage;
+    public final boolean enableV2;
+
+    public ExprModel(String modulePackage, boolean enableV2) {
+        this.modulePackage = modulePackage;
+        this.enableV2 = enableV2;
+    }
+
     /**
      * Adds the expression to the list of expressions and returns it.
      * If it already exists, returns existing one.
@@ -765,7 +773,7 @@ public class ExprModel {
         final String key = CallbackWrapper.uniqueKey(klass, method);
         CallbackWrapper wrapper = mCallbackWrappers.get(key);
         if (wrapper == null) {
-            wrapper = new CallbackWrapper(klass, method);
+            wrapper = new CallbackWrapper(klass, method, modulePackage, enableV2);
             mCallbackWrappers.put(key, wrapper);
         }
         return wrapper;

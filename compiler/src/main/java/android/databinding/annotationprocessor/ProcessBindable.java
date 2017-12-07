@@ -29,6 +29,7 @@ import android.databinding.tool.writer.JavaFileWriter;
 import com.google.common.collect.Sets;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -127,10 +128,12 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             // bazel has duplicate package names so we need to avoid overwriting BR files.
             writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
             written.add(pkg);
-            // Generate BR files for dependencies unless we are compiling a test variant of an app
-            // and it is not enabled for tests.
-            if (!(compilerArgs.isApp() && compilerArgs.isTestVariant()
-                    && !compilerArgs.isEnabledForTests())) {
+            List<String> brPackages = new ArrayList<>();
+            brPackages.add(pkg);
+            for (Intermediate intermediate : previousIntermediates) {
+                brPackages.add(intermediate.getPackage());
+            }
+            if (!compilerArgs.isTestVariant() || compilerArgs.isLibrary()) {
                 // Generate BR for all previous packages.
                 for (Intermediate intermediate : previousIntermediates) {
                     if (written.add(intermediate.getPackage())) {
@@ -139,7 +142,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                     }
                 }
             }
-            mCallback.onBrWriterReady(brWriter);
+            mCallback.onBrWriterReady(brWriter, brPackages);
         } catch (LoggedErrorException e) {
             // This will be logged later
         }

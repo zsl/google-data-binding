@@ -16,10 +16,12 @@ package android.databinding.tool.writer
 import android.databinding.tool.DataBindingCompilerArgs
 import android.databinding.tool.LayoutBinder
 
-class BindingMapperWriter(var pkg : String, var className: String, val layoutBinders : List<LayoutBinder>,
+class BindingMapperWriter(var pkg : String, var className: String,
+                          val layoutBinders : List<LayoutBinder>,
                           val compilerArgs: DataBindingCompilerArgs) {
     private val appClassName : String = className
     private val testClassName = "Test$className"
+    private val baseMapperClassName = "android.databinding.DataBinderMapper"
     val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
     val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
     init {
@@ -30,10 +32,13 @@ class BindingMapperWriter(var pkg : String, var className: String, val layoutBin
     fun write(brWriter : BRWriter) = kcode("") {
         nl("package $pkg;")
         nl("import ${compilerArgs.modulePackage}.BR;")
-        val extends = if (generateAsTest) "extends $appClassName" else ""
+        val extends = if (generateAsTest) {
+            "extends $appClassName"
+        } else {
+            "extends $baseMapperClassName"
+        }
         annotateWithGenerated()
         block("class $className $extends") {
-            nl("final static int TARGET_MIN_SDK = ${compilerArgs.minApi};")
             if (generateTestOverride) {
                 nl("static $appClassName mTestOverride;")
                 block("static") {
@@ -51,35 +56,27 @@ class BindingMapperWriter(var pkg : String, var className: String, val layoutBin
             block("public $className()") {
             }
             nl("")
+            nl("@Override")
             block("public android.databinding.ViewDataBinding getDataBinder(android.databinding.DataBindingComponent bindingComponent, android.view.View view, int layoutId)") {
                 block("switch(layoutId)") {
                     layoutBinders.groupBy{it.layoutname }.forEach {
                         val firstVal = it.value[0]
                         tab("case ${firstVal.modulePackage}.R.layout.${firstVal.layoutname}:") {
-                            if (it.value.size == 1) {
-                                if (firstVal.isMerge) {
-                                    tab("return new ${firstVal.`package`}.${firstVal.implementationName}(bindingComponent, new android.view.View[]{view});")
-                                } else {
-                                    tab("return ${firstVal.`package`}.${firstVal.implementationName}.bind(view, bindingComponent);")
-                                }
-                            } else {
-                                // we should check the tag to decide which layout we need to inflate
-                                block("") {
-                                    tab("final Object tag = view.getTag();")
-                                    tab("if(tag == null) throw new java.lang.RuntimeException(\"view must have a tag\");")
-                                    it.value.forEach {
-                                        block("if (\"${it.tag}_0\".equals(tag))") {
-                                            if (it.isMerge) {
-                                                tab("return new ${it.`package`}.${it.implementationName}(bindingComponent, new android.view.View[]{view});")
-                                            } else {
-                                                tab("return new ${it.`package`}.${it.implementationName}(bindingComponent, view);")
-                                            }
+                            // we should check the tag to decide which layout we need to inflate
+                            block("") {
+                                tab("final Object tag = view.getTag();")
+                                tab("if(tag == null) throw new java.lang.RuntimeException(\"view must have a tag\");")
+                                it.value.forEach {
+                                    block("if (\"${it.tag}_0\".equals(tag))") {
+                                        if (it.isMerge) {
+                                            tab("return new ${it.`package`}.${it.implementationName}(bindingComponent, new android.view.View[]{view});")
+                                        } else {
+                                            tab("return new ${it.`package`}.${it.implementationName}(bindingComponent, view);")
                                         }
                                     }
-                                    tab("throw new java.lang.IllegalArgumentException(\"The tag for ${firstVal.layoutname} is invalid. Received: \" + tag);");
                                 }
+                                tab("throw new java.lang.IllegalArgumentException(\"The tag for ${firstVal.layoutname} is invalid. Received: \" + tag);");
                             }
-
                         }
                     }
                 }
@@ -90,7 +87,9 @@ class BindingMapperWriter(var pkg : String, var className: String, val layoutBin
                 }
                 nl("return null;")
             }
-            block("android.databinding.ViewDataBinding getDataBinder(android.databinding.DataBindingComponent bindingComponent, android.view.View[] views, int layoutId)") {
+            nl("@Override")
+            block("public android.databinding.ViewDataBinding getDataBinder(android.databinding" +
+                    ".DataBindingComponent bindingComponent, android.view.View[] views, int layoutId)") {
                 block("switch(layoutId)") {
                     layoutBinders.filter{it.isMerge }.groupBy{it.layoutname }.forEach {
                         val firstVal = it.value[0]
@@ -117,8 +116,8 @@ class BindingMapperWriter(var pkg : String, var className: String, val layoutBin
                 }
                 nl("return null;")
             }
-
-            block("int getLayoutId(String tag)") {
+            nl("@Override")
+            block("public int getLayoutId(String tag)") {
                 block("if (tag == null)") {
                     nl("return 0;");
                 }
@@ -144,8 +143,8 @@ class BindingMapperWriter(var pkg : String, var className: String, val layoutBin
                 }
                 nl("return 0;")
             }
-
-            block("String convertBrIdToString(int id)") {
+            nl("@Override")
+            block("public String convertBrIdToString(int id)") {
                 block("if (id < 0 || id >= InnerBrLookup.sKeys.length)") {
                     if (generateTestOverride) {
                         block("if(mTestOverride != null)") {

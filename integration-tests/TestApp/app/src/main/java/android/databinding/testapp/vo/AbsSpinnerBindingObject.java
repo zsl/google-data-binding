@@ -15,9 +15,14 @@
  */
 package android.databinding.testapp.vo;
 
+import android.content.Context;
 import android.databinding.Bindable;
 import android.databinding.ObservableArrayList;
 import android.databinding.ObservableList;
+import android.databinding.testapp.BR;
+import android.databinding.testapp.R;
+import android.widget.ArrayAdapter;
+import android.widget.SpinnerAdapter;
 
 import java.util.List;
 
@@ -36,9 +41,18 @@ public class AbsSpinnerBindingObject extends BindingAdapterBindingObject {
 
     private ObservableList<String> mList = new ObservableArrayList<String>();
 
+    private SpinnerAdapter mAdapter;
+
+    private int mSelectedItemPosition;
+
     public AbsSpinnerBindingObject() {
         mList.add("Hello");
         mList.add("World");
+    }
+
+    public void setContext(Context context) {
+        mAdapter = new ArrayAdapter<>(context, R.layout.simple_text, R.id.textView, CHANGED_VALUES);
+        notifyPropertyChanged(BR.adapter);
     }
 
     public CharSequence[] getEntries() {
@@ -52,5 +66,20 @@ public class AbsSpinnerBindingObject extends BindingAdapterBindingObject {
 
     public List<String> getList() {
         return mList;
+    }
+
+    @Bindable
+    public int getSelectedItemPosition() {
+        return mSelectedItemPosition;
+    }
+
+    public void setSelectedItemPosition(int pos) {
+        mSelectedItemPosition = pos;
+        notifyPropertyChanged(BR.selectedItemPosition);
+    }
+
+    @Bindable
+    public SpinnerAdapter getAdapter() {
+        return mAdapter;
     }
 }

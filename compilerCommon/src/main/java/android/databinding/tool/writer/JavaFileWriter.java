@@ -24,6 +24,7 @@ import java.io.IOException;
 
 public abstract class JavaFileWriter {
     public abstract void writeToFile(String canonicalName, String contents);
+    public abstract void deleteFile(String canonicalName);
     public void writeToFile(File exactPath, String contents) {
         try {
             File parent = exactPath.getParentFile();

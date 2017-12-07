@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
-load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
+load("//tools/base/bazel:kotlin.bzl", "kotlin_library", "kotlin_test")
 load("//tools/base/bazel:maven.bzl", "maven_java_library", "maven_pom")
 load("//tools/base/bazel:utils.bzl", "merged_properties")
 load("//tools/base/bazel:gradle.bzl", "gradle_build")
@@ -44,6 +44,7 @@ iml_module(
     # do not sort: must match IML order
     srcs = [
         "compilerCommon/src/main/java",
+        "compilerCommon/src/main/kotlin",
         "compilerCommon/src/main/xml-gen",
         "compilerCommon/src/main/grammar-gen",
     ],
@@ -62,6 +63,9 @@ iml_module(
         "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
         "//tools/idea/.idea/libraries:commons-io-2.4",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:KotlinJavaRuntime",
+        "//tools/idea/.idea/libraries:javapoet-1.8.0",
+        "//tools/idea/.idea/libraries:gson",
     ],
 )
 
@@ -79,13 +83,14 @@ merged_properties(
     ],
 )
 
-maven_java_library(
+kotlin_library(
     name = "tools.compilerCommon",
-    srcs = glob([
-        "compilerCommon/src/main/java/**/*.java",
-        "compilerCommon/src/main/grammar-gen/**/*.java",
-        "compilerCommon/src/main/xml-gen/**/*.java",
-    ]),
+    srcs = [
+        "compilerCommon/src/main/grammar-gen",
+        "compilerCommon/src/main/java",
+        "compilerCommon/src/main/kotlin",
+        "compilerCommon/src/main/xml-gen",
+    ],
     pom = ":compilerCommon.pom",
     resource_strip_prefix = "tools/data-binding",
     resources = [":data_binding_version_info"],
@@ -93,10 +98,13 @@ maven_java_library(
     deps = [
         ":tools.baseLibrary",
         "//tools/base/annotations",
+        "//tools/base/third_party:com.google.code.gson_gson",
         "//tools/base/third_party:com.google.guava_guava",
         "//tools/base/third_party:com.googlecode.juniversalchardet_juniversalchardet",
+        "//tools/base/third_party:com.squareup_javapoet",
         "//tools/base/third_party:commons-io_commons-io",
         "//tools/base/third_party:org.antlr_antlr4",
+        "//tools/base/third_party:org.jetbrains.kotlin_kotlin-stdlib",
     ],
 )
 
@@ -107,9 +115,12 @@ maven_pom(
     source = "//tools/buildSrc/base:build_version",
 )
 
-java_test(
+kotlin_test(
     name = "tools.compilerCommon_tests",
-    srcs = glob(["compilerCommon/src/test/java/**"]),
+    srcs = [
+        "compilerCommon/src/test/java",
+        "compilerCommon/src/test/kotlin",
+    ],
     jvm_flags = ["-Dtest.suite.jar=tests.jar"],
     test_class = "com.android.testutils.JarTestSuite",
     runtime_deps = ["//tools/base/testutils:tools.testutils"],
@@ -147,6 +158,7 @@ iml_module(
         "//tools/idea/.idea/libraries:commons-lang",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/idea/.idea/libraries:javapoet-1.8.0",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
     ],
 )
@@ -166,6 +178,7 @@ kotlin_library(
         ":tools.compilerCommon",
         "//tools/base/annotations",
         "//tools/base/third_party:com.google.guava_guava",
+        "//tools/base/third_party:com.squareup_javapoet",
         "//tools/base/third_party:commons-io_commons-io",
         "//tools/base/third_party:org.antlr_antlr4",
         "//tools/base/third_party:org.jetbrains.kotlin_kotlin-stdlib",
@@ -227,12 +240,12 @@ gradle_build(
             "extensions/gradlew.bat",
         ],
     ),
-    gradle_version = "4.4-20171031235950+0000",
-    output_file = "data_binding_runtime_repo.zip",
+    gradle_version = "4.4-rc-3",
+    output_file = "data_binding_runtime.zip",
     output_file_source = "local_repo_zip/dataBindingRuntimeRepo.zip",
     repos = [
-        "//tools/base/bazel:offline_repo_repo.zip",
-        ":external_deps_repo.zip",
+        "//tools/base/build-system:gradle_plugin_repo.zip",
+        ":external_deps.zip",
     ],
     tasks = ["createArchive"],
     visibility = ["//visibility:public"],

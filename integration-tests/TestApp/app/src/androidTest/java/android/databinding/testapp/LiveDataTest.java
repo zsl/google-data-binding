@@ -15,6 +15,7 @@
  */
 package android.databinding.testapp;
 
+import android.arch.lifecycle.LifecycleOwner;
 import android.databinding.DataBindingUtil;
 import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.LiveDataBinding;
@@ -26,6 +27,7 @@ import android.databinding.testapp.vo.ObservableFieldBindingObject;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.test.InstrumentationRegistry;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.test.UiThreadTest;
@@ -149,7 +151,7 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
     public void testLifecycleObserverWithField() throws Throwable {
         initBinder();
         final LiveDataBinding[] bindings = new LiveDataBinding[1];
-        final ObservableBoolean observableBoolean = new ObservableBoolean();
+        final ObservableBoolean observableBoolean = new ObservableBoolean(false);
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -160,32 +162,41 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
             }
         });
         final LiveDataBinding binding = bindings[0];
-        assertEquals("false", binding.textView6.getText());
+        assertEquals("false", binding.textView6.getText().toString());
 
-        Fragment fragment = new Fragment();
-        binding.setLifecycleOwner(fragment);
+        final Fragment fragment = new Fragment();
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                binding.setLifecycleOwner(fragment);
+            }
+        });
 
         observableBoolean.set(true);
 
         waitToExecuteBindings();
 
         // Shouldn't execute bindings
-        assertEquals("false", binding.textView6.getText());
+        assertEquals("false", binding.textView6.getText().toString());
 
         getActivity().getSupportFragmentManager().beginTransaction()
                 .add(fragment, "Some Fragment")
                 .commit();
-
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
                 getActivity().getSupportFragmentManager().executePendingTransactions();
-
+            }
+        });
+        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                binding.executePendingBindings();
                 // now they should be executed
                 assertEquals("true", binding.textView6.getText());
             }
         });
-
     }
 
     private void waitToExecuteBindings() throws Throwable {

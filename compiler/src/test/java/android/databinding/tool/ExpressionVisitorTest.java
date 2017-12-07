@@ -43,7 +43,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class ExpressionVisitorTest {
-    ExpressionParser mParser = new ExpressionParser(new ExprModel());
+    ExpressionParser mParser = new ExpressionParser(new ExprModel("foo", true));
 
     @Before
     public void setUp() throws Exception {
@@ -68,7 +68,7 @@ public class ExpressionVisitorTest {
 
     @RunWith(Parameterized.class)
     public static class ComparisonExprTests {
-        ExpressionParser mParser = new ExpressionParser(new ExprModel());
+        ExpressionParser mParser = new ExpressionParser(new ExprModel("foo", true));
         private final String mOp;
 
         @Before
