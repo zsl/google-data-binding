@@ -102,3 +102,11 @@ then run your integration test.
 
 ### all gradle tests at once
  gw :base:build-system:integration-test:databinding:test :base:build-system:integration-test:application:cIT -D:base:build-system:integration-test:application:connectedIntegrationTest.single=DataBinding\*
+
+
+### generating online docs for runtime libs
+
+`cd extensions && gw  :generateDocs -Pandroid.injected.invoked.from.ide=true --info -Ponline=true -PincludeDoclava`
+
+// remove online parameter to get offline docs
+// we pass invoked from ide to enable default setup
