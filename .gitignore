@@ -19,3 +19,5 @@ integration-tests/*/gradle
 extensions/gradle
 extensions/gradlew
 */out
+tmp_lib
+tmp_jar

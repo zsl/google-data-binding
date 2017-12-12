@@ -22,11 +22,11 @@ import android.databinding.InverseBindingListener;
 import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
 import android.view.View;
-import android.widget.AbsListView;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
+@SuppressWarnings({"WeakerAccess", "unused", "unchecked", "rawtypes"})
 @BindingMethods({
         @BindingMethod(type = AdapterView.class, attribute = "android:onItemClick", method = "setOnItemClickListener"),
         @BindingMethod(type = AdapterView.class, attribute = "android:onItemLongClick", method = "setOnItemLongClickListener"),
@@ -54,6 +54,7 @@ public class AdapterViewBindingAdapter {
     @BindingAdapter({"android:selectedItemPosition", "android:adapter"})
     public static void setSelectedItemPosition(AdapterView view, int position, Adapter adapter) {
         if (adapter != view.getAdapter()) {
+            //noinspection unchecked
             view.setAdapter(adapter);
             view.setSelection(position);
         } else if (view.getSelectedItemPosition() != position) {

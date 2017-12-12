@@ -18,8 +18,8 @@ package android.databinding.adapters;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.widget.VideoView;
-import android.widget.ViewSwitcher;
 
+@SuppressWarnings("unused")
 @BindingMethods({
         @BindingMethod(type = VideoView.class, attribute = "android:onCompletion", method = "setOnCompletionListener"),
         @BindingMethod(type = VideoView.class, attribute = "android:onError", method = "setOnErrorListener"),

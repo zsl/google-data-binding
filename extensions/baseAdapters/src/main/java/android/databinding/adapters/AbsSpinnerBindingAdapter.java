@@ -22,6 +22,7 @@ import android.widget.SpinnerAdapter;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class AbsSpinnerBindingAdapter {
 
     @BindingAdapter({"android:entries"})
@@ -51,13 +52,15 @@ public class AbsSpinnerBindingAdapter {
     }
 
     @BindingAdapter({"android:entries"})
+    @SuppressWarnings("unchecked")
     public static <T> void setEntries(AbsSpinner view, List<T> entries) {
         if (entries != null) {
             SpinnerAdapter oldAdapter = view.getAdapter();
             if (oldAdapter instanceof ObservableListAdapter) {
+                //noinspection unchecked
                 ((ObservableListAdapter) oldAdapter).setList(entries);
             } else {
-                view.setAdapter(new ObservableListAdapter<T>(view.getContext(), entries,
+                view.setAdapter(new ObservableListAdapter<>(view.getContext(), entries,
                         android.R.layout.simple_spinner_item,
                         android.R.layout.simple_spinner_dropdown_item, 0));
             }

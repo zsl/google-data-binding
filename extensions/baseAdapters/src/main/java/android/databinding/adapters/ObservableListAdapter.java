@@ -26,6 +26,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
+@SuppressWarnings({"WeakerAccess", "unchecked", "rawtypes"})
 class ObservableListAdapter<T> extends BaseAdapter {
     private List<T> mList;
     private ObservableList.OnListChangedCallback mListChangedCallback;
@@ -51,6 +52,7 @@ class ObservableListAdapter<T> extends BaseAdapter {
             return;
         }
         if (mList instanceof ObservableList) {
+            //noinspection unchecked
             ((ObservableList) mList).removeOnListChangedCallback(mListChangedCallback);
         }
         mList = list;
@@ -87,6 +89,7 @@ class ObservableListAdapter<T> extends BaseAdapter {
                     }
                 };
             }
+            //noinspection unchecked
             ((ObservableList) mList).addOnListChangedCallback(mListChangedCallback);
         }
         notifyDataSetChanged();
