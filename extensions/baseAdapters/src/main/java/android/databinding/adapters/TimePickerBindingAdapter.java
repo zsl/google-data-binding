@@ -20,9 +20,14 @@ import android.databinding.InverseBindingAdapter;
 import android.databinding.InverseBindingListener;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.support.annotation.RestrictTo;
 import android.widget.TimePicker;
 import android.widget.TimePicker.OnTimeChangedListener;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TimePickerBindingAdapter {
 
     @SuppressWarnings("deprecation")

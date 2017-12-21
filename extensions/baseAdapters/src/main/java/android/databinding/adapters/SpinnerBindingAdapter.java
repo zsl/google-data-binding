@@ -17,7 +17,12 @@ package android.databinding.adapters;
 
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.support.annotation.RestrictTo;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = android.widget.Spinner.class, attribute = "android:popupBackground", method = "setPopupBackgroundDrawable"),
 })

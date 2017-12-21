@@ -17,8 +17,13 @@ package android.databinding.adapters;
 
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.Chronometer;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = Chronometer.class, attribute = "android:onChronometerTick", method = "setOnChronometerTickListener"),
 })

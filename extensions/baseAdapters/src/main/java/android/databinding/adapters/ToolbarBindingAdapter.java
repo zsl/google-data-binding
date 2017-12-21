@@ -17,8 +17,13 @@ package android.databinding.adapters;
 
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.Toolbar;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = Toolbar.class, attribute = "android:onMenuItemClick", method = "setOnMenuItemClickListener"),
         @BindingMethod(type = Toolbar.class, attribute = "android:onNavigationClick", method = "setNavigationOnClickListener"),

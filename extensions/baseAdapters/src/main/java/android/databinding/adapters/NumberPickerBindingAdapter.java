@@ -21,9 +21,14 @@ import android.databinding.BindingMethods;
 import android.databinding.InverseBindingListener;
 import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.NumberPicker;
 import android.widget.NumberPicker.OnValueChangeListener;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings("unused")
 @BindingMethods({
         @BindingMethod(type = NumberPicker.class, attribute = "android:format", method = "setFormatter"),

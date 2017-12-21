@@ -17,8 +17,13 @@ package android.databinding.adapters;
 
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.ZoomControls;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = ZoomControls.class, attribute = "android:onZoomIn", method = "setOnZoomInClickListener"),
         @BindingMethod(type = ZoomControls.class, attribute = "android:onZoomOut", method = "setOnZoomOutClickListener"),

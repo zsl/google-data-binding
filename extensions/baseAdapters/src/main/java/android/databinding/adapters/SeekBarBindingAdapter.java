@@ -19,9 +19,14 @@ import android.databinding.BindingAdapter;
 import android.databinding.InverseBindingListener;
 import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @InverseBindingMethods({
         @InverseBindingMethod(type = SeekBar.class, attribute = "android:progress"),
 })

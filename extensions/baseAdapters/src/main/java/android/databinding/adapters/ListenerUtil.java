@@ -23,6 +23,9 @@ import android.view.View;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
+/**
+ * Utility class that helps with tracking listeners for views from binding adapters.
+ */
 @SuppressWarnings({"WeakerAccess", "unchecked", "rawtypes"})
 public class ListenerUtil {
     private static final SparseArray<WeakHashMap<View, WeakReference<?>>> sListeners =
