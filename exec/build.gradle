@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 apply plugin: 'java'
 apply plugin: 'application'
 mainClassName = "android.databinding.AndroidDataBinding"
@@ -22,7 +21,7 @@ sourceCompatibility = 1.8
 dependencies {
     testCompile libs.junit
     compile libs.jcommander
-    compileOnly project(':dataBinding:compiler')
+    compile project(':dataBinding:compiler')
 }
 
 compileJava {
@@ -55,13 +54,14 @@ tasks.create(name: 'fatJar', type: Jar) {
     doFirst {
         file(workingDir).mkdirs()
     }
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
     def deps = new HashSet<ResolvedDependency>()
     project.configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
         deps.addAll(it.allModuleArtifacts)
     }
-    from { deps.findAll {true }.collect {
-        it.file.isDirectory() ? it.file : project.zipTree(it.file)
-    } } {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } } {
         exclude "META-INF/maven/**"
         exclude "META-INF/MANIFEST.MF"
         exclude "META-INF/LICENSE.txt"
@@ -75,38 +75,3 @@ tasks.create(name: 'fatJar', type: Jar) {
         println "created fat jar into ${destinationDir}"
     }
 }
-
-tasks.create(name: 'jarJarFile') {
-        dependsOn 'fatJar'
-        dependsOn project.jar
-        def inputLibrary = fatJar
-        def outputLibrary = jarJar
-        inputs.file(inputLibrary)
-        outputs.file(outputLibrary)
-
-        doLast {
-            def jarJarLibrary = new File(dataBindingConfig.externalPrebuiltsBase,
-                    'tools/common/m2/repository/com/googlecode/jarjar/jarjar/1.3/jarjar-1.3.jar').
-                    getCanonicalPath()
-            // in Ant
-            ant.taskdef(name: "jarjarIt",
-                    classname: 'com.tonicsystems.jarjar.JarJarTask',
-                    classpath: jarJarLibrary)
-            // start jarjar task
-            ant.jarjarIt(jarfile: outputLibrary) {
-                // input is our inputLibrary
-                zipfileset(src: inputLibrary)
-                // rule to repackage antlr to new package
-                rule pattern: 'org.antlr.**', result: 'com.android.repacked.antlr.@1'
-                rule pattern: 'com.tunnelvisionlabs.**', result: 'com.android.repacked.tunnelvision.@1'
-                rule pattern: 'org.abego.treelayout.**', result: 'com.android.repacked.treelayout.@1'
-                // rule to repackage commons
-                rule pattern: 'org.apache.**', result: 'com.android.repacked.apache.@1'
-                rule pattern: 'kotlin.**', result: 'com.android.repacked.kotlin.@1'
-                // rule for google
-                rule pattern: 'com.google.**', result: 'com.android.repacked.google.@1'
-                rule pattern: 'org.mozilla.**', result: 'com.google.repacked.org.mozilla.@1'
-                rule pattern: 'org.stringtemplate.**', result: 'com.google.repacked.org.stringtemplate.@1'
-            }
-        }
-    }

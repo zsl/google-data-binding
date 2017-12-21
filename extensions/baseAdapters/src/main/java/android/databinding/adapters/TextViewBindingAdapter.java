@@ -15,8 +15,6 @@
  */
 package android.databinding.adapters;
 
-import com.android.databinding.library.baseAdapters.R;
-
 import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
@@ -28,8 +26,6 @@ import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Spanned;
-import android.text.SpannableString;
-import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.text.method.DialerKeyListener;
 import android.text.method.DigitsKeyListener;
@@ -40,6 +36,9 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.widget.TextView;
 
+import com.android.databinding.library.baseAdapters.R;
+
+@SuppressWarnings({"WeakerAccess", "unused"})
 @BindingMethods({
         @BindingMethod(type = TextView.class, attribute = "android:autoLink", method = "setAutoLinkMask"),
         @BindingMethod(type = TextView.class, attribute = "android:drawablePadding", method = "setCompoundDrawablePadding"),
@@ -55,6 +54,7 @@ import android.widget.TextView;
 public class TextViewBindingAdapter {
 
     private static final String TAG = "TextViewBindingAdapters";
+    @SuppressWarnings("unused")
     public static final int INTEGER = 0x01;
     public static final int SIGNED = 0x03;
     public static final int DECIMAL = 0x05;
@@ -204,6 +204,7 @@ public class TextViewBindingAdapter {
     }
 
     @BindingAdapter({"android:inputMethod"})
+    @SuppressWarnings("ClassNewInstance")
     public static void setInputMethod(TextView view, CharSequence inputMethod) {
         try {
             Class<?> c = Class.forName(inputMethod.toString());

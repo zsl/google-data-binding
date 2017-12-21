@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
 import com.android.databinding.library.baseAdapters.R;
 
+@SuppressWarnings({"unused", "WeakerAccess"})
 @BindingMethods({
         @BindingMethod(type = View.class, attribute = "android:backgroundTint", method = "setBackgroundTintList"),
         @BindingMethod(type = View.class, attribute = "android:fadeScrollbars", method = "setScrollbarFadingEnabled"),
@@ -56,9 +57,9 @@ import com.android.databinding.library.baseAdapters.R;
         @BindingMethod(type = View.class, attribute = "android:onTouch", method = "setOnTouchListener"),
 })
 public class ViewBindingAdapter {
-    public static int FADING_EDGE_NONE = 0;
-    public static int FADING_EDGE_HORIZONTAL = 1;
-    public static int FADING_EDGE_VERTICAL = 2;
+    public static final int FADING_EDGE_NONE = 0;
+    public static final int FADING_EDGE_HORIZONTAL = 1;
+    public static final int FADING_EDGE_VERTICAL = 2;
 
     @BindingAdapter({"android:padding"})
     public static void setPadding(View view, float paddingFloat) {
@@ -158,48 +159,44 @@ public class ViewBindingAdapter {
             requireAll = false)
     public static void setOnAttachStateChangeListener(View view,
             final OnViewDetachedFromWindow detach, final OnViewAttachedToWindow attach) {
-        if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB_MR1) {
-            final OnAttachStateChangeListener newListener;
-            if (detach == null && attach == null) {
-                newListener = null;
-            } else {
-                newListener = new OnAttachStateChangeListener() {
-                    @Override
-                    public void onViewAttachedToWindow(View v) {
-                        if (attach != null) {
-                            attach.onViewAttachedToWindow(v);
-                        }
+        final OnAttachStateChangeListener newListener;
+        if (detach == null && attach == null) {
+            newListener = null;
+        } else {
+            newListener = new OnAttachStateChangeListener() {
+                @Override
+                public void onViewAttachedToWindow(View v) {
+                    if (attach != null) {
+                        attach.onViewAttachedToWindow(v);
                     }
+                }
 
-                    @Override
-                    public void onViewDetachedFromWindow(View v) {
-                        if (detach != null) {
-                            detach.onViewDetachedFromWindow(v);
-                        }
+                @Override
+                public void onViewDetachedFromWindow(View v) {
+                    if (detach != null) {
+                        detach.onViewDetachedFromWindow(v);
                     }
-                };
-            }
-            final OnAttachStateChangeListener oldListener = ListenerUtil.trackListener(view,
-                    newListener, R.id.onAttachStateChangeListener);
-            if (oldListener != null) {
-                view.removeOnAttachStateChangeListener(oldListener);
-            }
-            if (newListener != null) {
-                view.addOnAttachStateChangeListener(newListener);
-            }
+                }
+            };
+        }
+        final OnAttachStateChangeListener oldListener = ListenerUtil.trackListener(view,
+                newListener, R.id.onAttachStateChangeListener);
+        if (oldListener != null) {
+            view.removeOnAttachStateChangeListener(oldListener);
+        }
+        if (newListener != null) {
+            view.addOnAttachStateChangeListener(newListener);
         }
     }
 
     @BindingAdapter("android:onLayoutChange")
     public static void setOnLayoutChangeListener(View view, View.OnLayoutChangeListener oldValue,
             View.OnLayoutChangeListener newValue) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            if (oldValue != null) {
-                view.removeOnLayoutChangeListener(oldValue);
-            }
-            if (newValue != null) {
-                view.addOnLayoutChangeListener(newValue);
-            }
+        if (oldValue != null) {
+            view.removeOnLayoutChangeListener(oldValue);
+        }
+        if (newValue != null) {
+            view.addOnLayoutChangeListener(newValue);
         }
     }
 

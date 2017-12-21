@@ -23,9 +23,10 @@ import android.view.View;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
+@SuppressWarnings({"WeakerAccess", "unchecked", "rawtypes"})
 public class ListenerUtil {
-    private static SparseArray<WeakHashMap<View, WeakReference<?>>> sListeners =
-            new SparseArray<WeakHashMap<View, WeakReference<?>>>();
+    private static final SparseArray<WeakHashMap<View, WeakReference<?>>> sListeners =
+            new SparseArray<>();
 
     /**
      * This method tracks listeners for a View. Only one listener per listenerResourceId
@@ -62,7 +63,7 @@ public class ListenerUtil {
             synchronized (sListeners) {
                 WeakHashMap<View, WeakReference<?>> listeners = sListeners.get(listenerResourceId);
                 if (listeners == null) {
-                    listeners = new WeakHashMap<View, WeakReference<?>>();
+                    listeners = new WeakHashMap<>();
                     sListeners.put(listenerResourceId, listeners);
                 }
                 final WeakReference<T> oldValue;
@@ -90,8 +91,10 @@ public class ListenerUtil {
      * a previously-tracked listener.
      * @param <T> the listener type
      */
+    @SuppressWarnings("TypeParameterUnusedInFormals")
     public static <T> T getListener(View view, int listenerResourceId) {
         if (VERSION.SDK_INT >= VERSION_CODES.ICE_CREAM_SANDWICH) {
+            //noinspection unchecked
             return (T) view.getTag(listenerResourceId);
         } else {
             synchronized (sListeners) {
@@ -99,6 +102,7 @@ public class ListenerUtil {
                 if (listeners == null) {
                     return null;
                 }
+                //noinspection unchecked
                 final WeakReference<T> oldValue = (WeakReference<T>) listeners.get(view);
                 if (oldValue == null) {
                     return null;

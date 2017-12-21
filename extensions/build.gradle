@@ -1,3 +1,5 @@
+import com.android.build.gradle.LibraryExtension
+
 buildscript {
     def ENV = System.getenv()
 
@@ -81,10 +83,21 @@ buildscript {
     }
 }
 
+task createArchive(type: Zip) {
+    description "Creates a maven repository that includes just the libraries compiled in this" +
+            " project, without any history from prebuilts."
+    from dataBindingConfig.maven.out_repo
+    destinationDir dataBindingConfig.maven.zip_out
+    baseName = "dataBindingRuntimeRepo"
+}
+
 subprojects {
     def ENV = System.getenv()
     if (ENV['BUILD_DIR'] != null) {
         buildDir = new File(ENV['BUILD_DIR'], "$name-build")
+    }
+    if (project.path == ":doclava") {
+        return
     }
     apply plugin: 'maven'
     group = dataBindingConfig.group
@@ -107,16 +120,77 @@ subprojects {
             }
         }
     }
-}
-
-task createArchive(type: Zip) {
-    description "Creates a maven repository that includes just the libraries compiled in this" +
-            " project, without any history from prebuilts."
-    from dataBindingConfig.maven.out_repo
-    destinationDir dataBindingConfig.maven.zip_out
-    baseName = "dataBindingRuntimeRepo"
-}
-
-subprojects {
     createArchive.dependsOn tasks['uploadArchives']
+}
+
+// creates the javadoc task for all of data binding runtime libraries
+def getRootDocsTask(p) {
+    def rootDocs = rootProject.tasks.findByName("generateDocs")
+    if (rootDocs != null) {
+        return rootDocs
+    }
+    rootDocs = p.rootProject.tasks.create(name : "generateDocs",type: Javadoc, dependsOn: p.configurations.doclava) {
+        def docDir = "javadoc-offline"
+        if (project.hasProperty("online")) {
+            docDir = "javadoc-online"
+            options.addStringOption("dac_libraryroot", "android/databinding")
+            options.addStringOption("dac_dataname", "DATABINDING_DATA")
+            options.addStringOption("toroot", "/")
+            options.addStringOption("hdf", "dac")
+            options.addBooleanOption("devsite", true)
+        }
+        title = null
+        destinationDir = new File(buildDir, docDir)
+        // add baseLibrary sources, not pretty but easy solution.
+        source = files('../baseLibrary/src/main/java')
+        classpath = files("${rootDir}/../../../prebuilts/sdk/${dataBindingConfig.compileSdkVersion}/android.jar")
+        options.addStringOption "federate Android", "http://developer.android.com"
+        options.addStringOption "federationapi Android",
+                "${rootDir}/../../../prebuilts/sdk/api/${dataBindingConfig.compileSdkVersion}.txt"
+        options.encoding = "UTF-8"
+        options.doclet = "com.google.doclava.Doclava"
+        options.docletpath = p.configurations.getByName("doclava").resolve().toList()
+        options.addStringOption("templatedir", "${rootDir}/../../../external/doclava/res/assets/templates-sdk/")
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
+def enableDoclava(p) {
+    p.configurations {
+        doclava
+    }
+
+    p.dependencies {
+        doclava project(':doclava')
+    }
+
+    def docsTask  = getRootDocsTask(p)
+    p.afterEvaluate {
+        p.android.libraryVariants.all { variant ->
+            def name = variant.buildType.name
+
+            if (name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
+                return // Skip debug builds.
+            }
+            docsTask.classpath += p.files(variant.javaCompile.classpath) +
+                    p.files(variant.javaCompile.destinationDir)
+            docsTask.source += files(p.android.sourceSets.main.java.srcDirs)
+            docsTask.dependsOn variant.javaCompile
+        }
+    }
+
+}
+
+if (findProject(":doclava") != null) {
+    subprojects { p ->
+        if (p.path != ":doclava") {
+            project.plugins.whenPluginAdded { plugin ->
+                def isAndroidLibrary = "com.android.build.gradle.LibraryPlugin".equals(plugin.class.name)
+                if (isAndroidLibrary) {
+                    enableDoclava(p)
+                }
+            }
+        }
+    }
 }

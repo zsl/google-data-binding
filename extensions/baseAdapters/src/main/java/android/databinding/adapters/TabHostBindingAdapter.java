@@ -21,6 +21,7 @@ import android.databinding.InverseBindingListener;
 import android.widget.TabHost;
 import android.widget.TabHost.OnTabChangeListener;
 
+@SuppressWarnings("unused")
 public class TabHostBindingAdapter {
 
     @InverseBindingAdapter(attribute = "android:currentTab")
@@ -41,7 +42,9 @@ public class TabHostBindingAdapter {
     }
 
     @BindingAdapter("android:currentTab")
+    @SuppressWarnings("ReferenceEquality")
     public static void setCurrentTabTag(TabHost view, String tabTag) {
+        //noinspection StringEquality
         if (view.getCurrentTabTag() != tabTag) {
             view.setCurrentTabByTag(tabTag);
         }

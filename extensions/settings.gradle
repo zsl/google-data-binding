@@ -19,3 +19,8 @@
  */
 include ':library'
 include ':baseAdapters'
+if (hasProperty("includeDoclava")) {
+    File externalRoot = new File(rootDir, '../../../external')
+    include ':doclava'
+    project(':doclava').projectDir = new File(externalRoot, 'doclava')
+}
