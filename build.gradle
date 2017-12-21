@@ -59,8 +59,8 @@ prepareExtensionPrebuilds.args 'clean', 'preparePrebuilds', '--info', '--stacktr
 prepareExtensionPrebuilds.dependsOn subprojects.uploadArchives
 
 file('integration-tests').listFiles().findAll { it.isDirectory() }.each {
-    logger.info("Creating run test task for  ${it.getAbsolutePath()}.")
-    def testTask = project.tasks.create "runTestsOf${it.getName().capitalize()}", Exec
+    def strippedName = it.getName().replaceAll("[^A-Za-z0-9]", "-")
+    def testTask = project.tasks.create "runTestsOf${strippedName.capitalize()}", Exec
     testTask.workingDir it.getAbsolutePath()
     //on linux
     testTask.commandLine './gradlew'
