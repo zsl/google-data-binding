@@ -148,7 +148,7 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                         addModifiers(Modifier.PUBLIC)
                         val param = ParameterSpec.builder(typeName, variable.name).apply {
                             if (!typeName.isPrimitive) {
-                                addAnnotation(NON_NULL)
+                                addAnnotation(NULLABLE)
                             }
                         }.build()
                         returns(TypeName.VOID)
@@ -159,7 +159,7 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                     MethodSpec.methodBuilder(model.getterName(variable)).apply {
                         addModifiers(Modifier.PUBLIC)
                         returns(typeName)
-                        if (typeName.isPrimitive) {
+                        if (!typeName.isPrimitive) {
                             addAnnotation(NULLABLE)
                         }
                         addStatement("return $L", model.fieldName(variable))
