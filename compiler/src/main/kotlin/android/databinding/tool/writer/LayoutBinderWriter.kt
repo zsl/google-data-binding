@@ -1156,7 +1156,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 it.isMandatory && it.other.resolvedType.isNullable
             }.map { it.other }
             if (!expr.isEqualityCheck && nullables.isNotEmpty()) {
-                return "${nullables.map { "${it.executePendingLocalName} != null" }.joinToString(" && ")}"
+                return nullables.map { "${it.executePendingLocalName} != null" }.joinToString(" && ")
             } else {
                 return null
             }

@@ -24,6 +24,7 @@ import android.databinding.tool.writer.KCode;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Objects;
 
 public class TernaryExpr extends Expr {
 
@@ -64,18 +65,35 @@ public class TernaryExpr extends Expr {
 
     @Override
     public void injectSafeUnboxing(ModelAnalyzer modelAnalyzer, ExprModel model) {
-        if (getPred().getResolvedType().isNullable()) {
-            safeUnboxChild(model, getPred());
+        final Expr pred = getPred();
+        if (pred.getResolvedType().isNullable()) {
+            safeUnboxChild(model, pred);
         }
 
         if (!getResolvedType().isNullable()) {
             Expr ifTrue = getIfTrue();
             Expr ifFalse = getIfFalse();
+            ComparisonExpr compPredicate = null;
+            if (pred instanceof ComparisonExpr) {
+                compPredicate = (ComparisonExpr) pred;
+            }
             if (ifTrue.getResolvedType().isNullable()) {
-                safeUnboxChild(model, ifTrue);
+                // check if this the case for
+                // a != null ? a : b
+                boolean guaranteedNotNull = compPredicate != null
+                        && compPredicate.isNotNullCheckFor(ifTrue);
+                if (!guaranteedNotNull) {
+                    safeUnboxChild(model, ifTrue);
+                }
             }
             if (ifFalse.getResolvedType().isNullable()) {
-                safeUnboxChild(model, ifFalse);
+                // check if this the case for
+                // a == null ? b : a
+                boolean guaranteedNotNull = compPredicate != null
+                        && compPredicate.isNullCheckFor(ifFalse);
+                if (!guaranteedNotNull) {
+                    safeUnboxChild(model, ifFalse);
+                }
             }
         }
     }

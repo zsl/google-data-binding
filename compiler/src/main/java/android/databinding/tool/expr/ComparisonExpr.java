@@ -20,7 +20,10 @@ import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.writer.KCode;
 
+import com.android.annotations.NonNull;
+
 import java.util.List;
+import java.util.Objects;
 
 public class ComparisonExpr extends Expr {
     final String mOp;
@@ -101,5 +104,36 @@ public class ComparisonExpr extends Expr {
     @Override
     public String toString() {
         return getLeft().toString() + ' ' + mOp + ' ' + getRight();
+    }
+
+    /**
+     * Returns true if this expression is a null check for the given expression.
+     * e.g. if this expression is a == null then this method returns true if invoked w/ a.
+     */
+    public boolean isNullCheckFor(@NonNull Expr expr) {
+        return "==".equals(mOp) && isNullabilityCheckFor(expr);
+    }
+
+    /**
+     * Returns true if this expression is a NOT NULL check for the given expression.
+     * e.g. if this expression is a != null then this method returns true if invoked w/ a.
+     */
+    public boolean isNotNullCheckFor(@NonNull Expr expr) {
+        return "!=".equals(mOp) && isNullabilityCheckFor(expr);
+    }
+
+    private boolean isNullabilityCheckFor(@NonNull Expr expr) {
+        if (isNullLiteral(getLeft())) {
+            return Objects.equals(expr.getUniqueKey(), getRight().getUniqueKey());
+        } else if (isNullLiteral(getRight())) {
+            return Objects.equals(expr.getUniqueKey(), getLeft().getUniqueKey());
+        }
+        return false;
+    }
+
+    private static boolean isNullLiteral(Expr expr) {
+        final ModelClass type = expr.getResolvedType();
+        return (type.isObject() && (expr instanceof SymbolExpr) &&
+                "null".equals(((SymbolExpr) expr).getText()));
     }
 }
