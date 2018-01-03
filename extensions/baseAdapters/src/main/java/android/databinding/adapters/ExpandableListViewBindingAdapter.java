@@ -17,8 +17,13 @@ package android.databinding.adapters;
 
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.ExpandableListView;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = ExpandableListView.class, attribute = "android:onChildClick", method = "setOnChildClickListener"),
         @BindingMethod(type = ExpandableListView.class, attribute = "android:onGroupClick", method = "setOnGroupClickListener"),

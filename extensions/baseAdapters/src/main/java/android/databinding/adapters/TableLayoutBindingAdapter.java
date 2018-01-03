@@ -16,11 +16,16 @@
 package android.databinding.adapters;
 
 import android.databinding.BindingAdapter;
+import android.support.annotation.RestrictTo;
 import android.util.SparseBooleanArray;
 import android.widget.TableLayout;
 
 import java.util.regex.Pattern;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 public class TableLayoutBindingAdapter {
 
     private static Pattern sColumnPattern = Pattern.compile("\\s*,\\s*");

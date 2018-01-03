@@ -20,8 +20,13 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.databinding.Untaggable;
 import android.databinding.ViewStubProxy;
+import android.support.annotation.RestrictTo;
 import android.view.ViewStub.OnInflateListener;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @Untaggable({"android.view.ViewStub"})
 @BindingMethods({
         @BindingMethod(type = android.view.ViewStub.class, attribute = "android:layout", method = "setLayoutResource")

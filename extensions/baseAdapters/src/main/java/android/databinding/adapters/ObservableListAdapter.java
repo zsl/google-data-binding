@@ -18,6 +18,7 @@ package android.databinding.adapters;
 import android.content.Context;
 import android.databinding.ObservableList;
 import android.databinding.ObservableList.OnListChangedCallback;
+import android.support.annotation.RestrictTo;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,10 @@ import android.widget.TextView;
 
 import java.util.List;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings({"WeakerAccess", "unchecked", "rawtypes"})
 class ObservableListAdapter<T> extends BaseAdapter {
     private List<T> mList;

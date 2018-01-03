@@ -20,8 +20,13 @@ import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.support.annotation.RestrictTo;
 import android.widget.ImageView;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = android.widget.ImageView.class, attribute = "android:tint", method = "setImageTintList"),
         @BindingMethod(type = android.widget.ImageView.class, attribute = "android:tintMode", method = "setImageTintMode"),

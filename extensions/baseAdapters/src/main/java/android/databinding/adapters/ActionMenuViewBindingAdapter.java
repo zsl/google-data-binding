@@ -17,8 +17,13 @@ package android.databinding.adapters;
 
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.ActionMenuView;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = ActionMenuView.class, attribute = "android:onMenuItemClick", method = "setOnMenuItemClickListener"),
 })

@@ -16,12 +16,17 @@
 package android.databinding.adapters;
 
 import android.databinding.BindingAdapter;
+import android.support.annotation.RestrictTo;
 import android.widget.AbsSpinner;
 import android.widget.ArrayAdapter;
 import android.widget.SpinnerAdapter;
 
 import java.util.List;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings("unused")
 public class AbsSpinnerBindingAdapter {
 

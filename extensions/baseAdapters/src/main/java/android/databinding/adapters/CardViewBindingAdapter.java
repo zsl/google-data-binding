@@ -18,8 +18,13 @@ package android.databinding.adapters;
 import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.support.annotation.RestrictTo;
 import android.support.v7.widget.CardView;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = android.support.v7.widget.CardView.class, attribute = "cardCornerRadius", method = "setRadius"),
         @BindingMethod(type = android.support.v7.widget.CardView.class, attribute = "cardMaxElevation", method = "setMaxCardElevation"),
