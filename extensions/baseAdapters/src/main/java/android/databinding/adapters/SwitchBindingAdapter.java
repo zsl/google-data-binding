@@ -20,8 +20,13 @@ import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.os.Build;
+import android.support.annotation.RestrictTo;
 import android.widget.Switch;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = android.widget.Switch.class, attribute = "android:thumb", method = "setThumbDrawable"),
         @BindingMethod(type = android.widget.Switch.class, attribute = "android:track", method = "setTrackDrawable"),

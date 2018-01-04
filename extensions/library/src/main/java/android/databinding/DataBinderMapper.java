@@ -16,8 +16,12 @@
 
 package android.databinding;
 
+import android.support.annotation.RestrictTo;
 import android.view.View;
-
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings("WeakerAccess")
 public abstract class DataBinderMapper {
     public abstract ViewDataBinding getDataBinder(DataBindingComponent bindingComponent, View view,

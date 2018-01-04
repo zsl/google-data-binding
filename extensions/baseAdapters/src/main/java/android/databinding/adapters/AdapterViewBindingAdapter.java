@@ -21,11 +21,16 @@ import android.databinding.BindingMethods;
 import android.databinding.InverseBindingListener;
 import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
+import android.support.annotation.RestrictTo;
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings({"WeakerAccess", "unused", "unchecked", "rawtypes"})
 @BindingMethods({
         @BindingMethod(type = AdapterView.class, attribute = "android:onItemClick", method = "setOnItemClickListener"),

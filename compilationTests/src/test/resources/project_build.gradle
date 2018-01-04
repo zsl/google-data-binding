@@ -1,23 +1,5 @@
 buildscript {
-    ext.dataBindingRootFolder = new File(project.projectDir, "../../../..")
-    apply from: "${project.projectDir}/propLoaderClone.gradle"
-    ext.addRepos(repositories)
-    dependencies {
-        classpath "com.android.tools.build:gradle:${dataBindingConfig.androidPluginVersion}"
-    }
-}
-
-subprojects {
-    apply plugin: 'maven'
-    group = dataBindingConfig.group
-    version = dataBindingConfig.version
-}
-
-allprojects {
-    repositories {
-        jcenter()
-        maven {
-            url dataBindingConfig.mavenRepoDir
-        }
-    }
+    def runningInIde = project.hasProperty('android.injected.invoked.from.ide')
+    rootProject.ext.runningInIde = runningInIde
+    apply from: "../commonBuildScript.gradle"
 }

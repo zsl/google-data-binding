@@ -23,10 +23,15 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
+import android.support.annotation.RestrictTo;
 import android.view.View;
 import android.view.View.OnAttachStateChangeListener;
 import com.android.databinding.library.baseAdapters.R;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings({"unused", "WeakerAccess"})
 @BindingMethods({
         @BindingMethod(type = View.class, attribute = "android:backgroundTint", method = "setBackgroundTintList"),

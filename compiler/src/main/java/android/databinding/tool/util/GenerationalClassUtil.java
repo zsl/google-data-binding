@@ -16,6 +16,7 @@
 
 package android.databinding.tool.util;
 
+import android.databinding.annotationprocessor.ProcessExpressions;
 import android.databinding.tool.DataBindingBuilder;
 import android.databinding.tool.DataBindingCompilerArgs;
 
@@ -31,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -139,7 +141,7 @@ public class GenerationalClassUtil {
 
     private static Serializable fromInputStream(InputStream inputStream)
             throws IOException, ClassNotFoundException {
-        ObjectInputStream in = new ObjectInputStream(inputStream);
+        ObjectInputStream in = new IgnoreSerialIdObjectInputStream(inputStream);
         return (Serializable) in.readObject();
 
     }
@@ -186,6 +188,24 @@ public class GenerationalClassUtil {
 
         public String getExtension() {
             return mExtension;
+        }
+    }
+
+    private static class IgnoreSerialIdObjectInputStream extends ObjectInputStream {
+
+        public IgnoreSerialIdObjectInputStream(InputStream in) throws IOException {
+            super(in);
+        }
+
+        @Override
+        protected ObjectStreamClass readClassDescriptor()
+                throws IOException, ClassNotFoundException {
+            ObjectStreamClass original = super.readClassDescriptor();
+            // hack for https://issuetracker.google.com/issues/71057619
+            if (ProcessExpressions.IntermediateV1.class.getName().equals(original.getName())) {
+                return ObjectStreamClass.lookup(ProcessExpressions.IntermediateV1.class);
+            }
+            return original;
         }
     }
 }

@@ -21,9 +21,14 @@ import android.databinding.BindingMethods;
 import android.databinding.adapters.AdapterViewBindingAdapter.OnItemSelected;
 import android.databinding.adapters.AdapterViewBindingAdapter.OnItemSelectedComponentListener;
 import android.databinding.adapters.AdapterViewBindingAdapter.OnNothingSelected;
+import android.support.annotation.RestrictTo;
 import android.widget.AutoCompleteTextView;
 import android.widget.AutoCompleteTextView.Validator;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = AutoCompleteTextView.class, attribute = "android:completionThreshold", method = "setThreshold"),
         @BindingMethod(type = AutoCompleteTextView.class, attribute = "android:popupBackground", method = "setDropDownBackgroundDrawable"),

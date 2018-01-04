@@ -1,39 +1,29 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion dataBindingConfig.compileSdkVersion
-    buildToolsVersion dataBindingConfig.buildToolsVersion
-    dataBinding {
-        enabled = true
-    }
+    compileSdkVersion rootProject.latestCompileSdk
+    buildToolsVersion rootProject.buildToolsVersion
     defaultConfig {
+        applicationId "com.android.databinding.test.compilationTestApp"
         minSdkVersion 14
-        targetSdkVersion 24
+        targetSdkVersion rootProject.latestCompileSdk
         versionCode 1
         versionName "1.0"
-        jackOptions {
-            enabled dataBindingConfig.useJack
-        }
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    dataBinding {
+        enabled = true
+        enabledForTests = true
     }
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-    }
-
-    packagingOptions {
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_6
-        targetCompatibility JavaVersion.VERSION_1_6
     }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile "com.android.support:support-v4:+"
+    compile "com.android.support:support-v4:26.1.0"
     !@{DEPENDENCIES}
 }

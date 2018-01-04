@@ -21,12 +21,17 @@ import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
 import android.os.Build;
+import android.support.annotation.RestrictTo;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.OnHierarchyChangeListener;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = android.view.ViewGroup.class, attribute = "android:alwaysDrawnWithCache", method = "setAlwaysDrawnWithCacheEnabled"),
         @BindingMethod(type = android.view.ViewGroup.class, attribute = "android:animationCache", method = "setAnimationCacheEnabled"),

@@ -19,12 +19,29 @@ import android.databinding.BindingConversion;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.ColorDrawable;
 
+/**
+ * Build in converters to converts for color.
+ */
 public class Converters {
+    /**
+     * Converts {@code int} color into a {@link ColorDrawable}.
+     *
+     * @param color The integer representation of the color.
+     *
+     * @return ColorDrawable matching the color
+     */
     @BindingConversion
     public static ColorDrawable convertColorToDrawable(int color) {
         return new ColorDrawable(color);
     }
 
+    /**
+     * Converts {@code int} color into a {@link ColorStateList}.
+     *
+     * @param color The integer representation of the color.
+     *
+     * @return ColorStateList from the single color
+     */
     @BindingConversion
     public static ColorStateList convertColorToColorStateList(int color) {
         return ColorStateList.valueOf(color);

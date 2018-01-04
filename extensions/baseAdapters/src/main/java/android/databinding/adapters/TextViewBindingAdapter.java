@@ -22,6 +22,7 @@ import android.databinding.InverseBindingAdapter;
 import android.databinding.InverseBindingListener;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.annotation.RestrictTo;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -38,6 +39,10 @@ import android.widget.TextView;
 
 import com.android.databinding.library.baseAdapters.R;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @SuppressWarnings({"WeakerAccess", "unused"})
 @BindingMethods({
         @BindingMethod(type = TextView.class, attribute = "android:autoLink", method = "setAutoLinkMask"),

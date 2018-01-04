@@ -19,9 +19,14 @@ import android.databinding.BindingAdapter;
 import android.databinding.InverseBindingListener;
 import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @InverseBindingMethods({
         @InverseBindingMethod(type = RadioGroup.class, attribute = "android:checkedButton", method = "getCheckedRadioButtonId"),
 })

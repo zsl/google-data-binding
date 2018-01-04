@@ -19,10 +19,15 @@ import android.databinding.BindingAdapter;
 import android.databinding.InverseBindingListener;
 import android.databinding.InverseBindingMethod;
 import android.databinding.InverseBindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
 import com.android.databinding.library.baseAdapters.R;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @InverseBindingMethods({
         @InverseBindingMethod(type = DatePicker.class, attribute = "android:year"),
         @InverseBindingMethod(type = DatePicker.class, attribute = "android:month"),

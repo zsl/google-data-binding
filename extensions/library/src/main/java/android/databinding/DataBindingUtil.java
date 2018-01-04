@@ -88,7 +88,8 @@ public class DataBindingUtil {
      * @throws InflateException When a merge layout was used and attachToParent was false.
      * @see #setDefaultComponent(DataBindingComponent)
      */
-    @Nullable
+    // @Nullable don't annotate with Nullable. It is unlikely to be null and makes using it from
+    // kotlin really ugly. We cannot make it NonNull w/o breaking backward compatibility.
     public static <T extends ViewDataBinding> T inflate(@NonNull LayoutInflater inflater,
             int layoutId, @Nullable ViewGroup parent, boolean attachToParent) {
         return inflate(inflater, layoutId, parent, attachToParent, sDefaultComponent);
@@ -115,7 +116,8 @@ public class DataBindingUtil {
      * the layoutId wasn't for a binding layout.
      * @throws InflateException When a merge layout was used and attachToParent was false.
      */
-    @Nullable
+    // @Nullable don't annotate with Nullable. It is unlikely to be null and makes using it from
+    // kotlin really ugly. We cannot make it NonNull w/o breaking backward compatibility.
     public static <T extends ViewDataBinding> T inflate(
             @NonNull LayoutInflater inflater, int layoutId, @Nullable ViewGroup parent,
             boolean attachToParent, @Nullable DataBindingComponent bindingComponent) {
@@ -275,7 +277,8 @@ public class DataBindingUtil {
      * @return The binding associated with the inflated content view or {@code null} if the
      * layoutId is not a data binding layout.
      */
-    @Nullable
+    // @Nullable don't annotate with Nullable. It is unlikely to be null and makes using it from
+    // kotlin really ugly. We cannot make it NonNull w/o breaking backward compatibility.
     public static <T extends ViewDataBinding> T setContentView(@NonNull Activity activity,
             int layoutId) {
         return setContentView(activity, layoutId, sDefaultComponent);
@@ -293,7 +296,8 @@ public class DataBindingUtil {
      * @return The binding associated with the inflated content view or {@code null} if the
      * layoutId is not a data binding layout.
      */
-    @Nullable
+    // @Nullable don't annotate with Nullable. It is unlikely to be null and makes using it from
+    // kotlin really ugly. We cannot make it NonNull w/o breaking backward compatibility.
     public static <T extends ViewDataBinding> T setContentView(@NonNull Activity activity,
             int layoutId, @Nullable DataBindingComponent bindingComponent) {
         activity.setContentView(layoutId);

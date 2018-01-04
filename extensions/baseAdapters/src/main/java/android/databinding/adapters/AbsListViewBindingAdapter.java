@@ -18,9 +18,14 @@ package android.databinding.adapters;
 import android.databinding.BindingAdapter;
 import android.databinding.BindingMethod;
 import android.databinding.BindingMethods;
+import android.support.annotation.RestrictTo;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 
+/**
+ * @hide
+ */
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 @BindingMethods({
         @BindingMethod(type = AbsListView.class, attribute = "android:listSelector", method = "setSelector"),
         @BindingMethod(type = AbsListView.class, attribute = "android:scrollingCache", method = "setScrollingCacheEnabled"),
