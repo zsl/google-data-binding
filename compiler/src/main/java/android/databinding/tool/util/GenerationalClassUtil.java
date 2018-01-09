@@ -37,6 +37,7 @@ import java.io.ObjectStreamClass;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -56,6 +57,15 @@ public class GenerationalClassUtil {
 
     public static GenerationalClassUtil create(DataBindingCompilerArgs args) {
         return new GenerationalClassUtil(args);
+    }
+
+    public GenerationalClassUtil(File inputFolder, ExtensionFilter... extensions) {
+        if (inputFolder == null || !inputFolder.exists()) {
+            L.e("Invalid input folder " + inputFolder);
+        }
+        mEnabledExtensions = extensions;
+        mIncrementalOutDir = null;
+        mInputDirs = Collections.singletonList(inputFolder);
     }
 
     private GenerationalClassUtil(DataBindingCompilerArgs args) {

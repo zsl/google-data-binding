@@ -119,7 +119,7 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
         return layoutId.fieldSpec
     }
 
-    fun write(brWriter: BRWriter): TypeSpec = TypeSpec.classBuilder(className).apply {
+    fun write(brValueLookup: MutableMap<String, Int>): TypeSpec = TypeSpec.classBuilder(className).apply {
         superclass(DATA_BINDER_MAPPER)
         addModifiers(Modifier.PUBLIC)
         if (ModelAnalyzer.getInstance().hasGeneratedAnnotation()) {
@@ -131,7 +131,7 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
         addMethod(generateGetViewArrayDataBinder())
         addMethod(generateGetLayoutId())
         addMethod(generateConvertBrIdToString())
-        addType(generateInnerBrLookup(brWriter))
+        addType(generateInnerBrLookup(brValueLookup))
         // must write this at the end
         createLocalizedLayoutIds(this)
     }.build()
@@ -171,7 +171,7 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
         }
     }
 
-    private fun generateInnerBrLookup(brWriter: BRWriter) = TypeSpec
+    private fun generateInnerBrLookup(brValueLookup: MutableMap<String, Int>) = TypeSpec
             .classBuilder("InnerBrLookup").apply {
         /**
          * generated code looks like:
@@ -187,21 +187,15 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
         )
         val keysField = FieldSpec.builder(keysTypeName, "sKeys").apply {
             addModifiers(Modifier.STATIC, Modifier.FINAL)
-            initializer("new $T($L)", keysTypeName, brWriter.properties.size + 1)
+            initializer("new $T($L)", keysTypeName, brValueLookup.size + 1)
         }.build()
         addField(keysField)
         addStaticBlock(CodeBlock.builder().apply {
-            addStatement("$N.put($L.BR.$L, $S)",
-                    keysField,
-                    compilerArgs.modulePackage,
-                    "_all",
-                    "_all")
-            brWriter.properties.forEach {
-                addStatement("$N.put($L.BR.$L, $S)",
+            brValueLookup.forEach {
+                addStatement("$N.put($L, $S)",
                         keysField,
-                        compilerArgs.modulePackage,
-                        it,
-                        it)
+                        it.value,
+                        it.key)
             }
         }.build())
     }.build()

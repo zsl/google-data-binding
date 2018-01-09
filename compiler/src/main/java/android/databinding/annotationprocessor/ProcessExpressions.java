@@ -30,6 +30,7 @@ import android.databinding.tool.util.LoggedErrorException;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
 
+import com.android.annotations.Nullable;
 import com.google.common.base.Joiner;
 
 import org.apache.commons.io.Charsets;
@@ -70,8 +71,8 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             ResourceBundle resourceBundle;
             resourceBundle = new ResourceBundle(args.getModulePackage());
             final List<IntermediateV2> intermediateList;
+            GenClassInfoLog infoLog = null;
             if (args.isEnableV2()) {
-                GenClassInfoLog infoLog;
                 try {
                     infoLog = ResourceBundle.loadClassInfoFromFolder(
                             new File(args.getClassLogDir()));
@@ -108,7 +109,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             }
             // generate them here so that bindable parser can read
             try {
-                writeResourceBundle(resourceBundle, args);
+                writeResourceBundle(resourceBundle, args, infoLog);
             } catch (Throwable t) {
                 L.e(t, "cannot generate view binders");
             }
@@ -206,14 +207,17 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     }
 
-    private void writeResourceBundle(ResourceBundle resourceBundle,
-            DataBindingCompilerArgs compilerArgs) throws JAXBException {
+    private void writeResourceBundle(
+            ResourceBundle resourceBundle,
+            DataBindingCompilerArgs compilerArgs,
+            @Nullable GenClassInfoLog classInfoLog) {
         final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle,
                 getWriter(), compilerArgs);
         compilerChef.sealModels();
         // write this only if we are compiling an app or a library test app.
         // even if data binding is enabled for tests, we should not re-generate this.
-        if (compilerArgs.isLibrary() || !compilerArgs.isTestVariant()) {
+        if (compilerArgs.isLibrary()
+                || (!compilerArgs.isTestVariant() && !compilerArgs.isFeature())) {
             compilerChef.writeComponent();
         }
         if (compilerChef.hasAnythingToGenerate()) {
@@ -243,7 +247,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
                 L.e(e, "Cannot create list of written classes");
             }
         }
-        mCallback.onChefReady(compilerChef);
+        mCallback.onChefReady(compilerChef, classInfoLog);
     }
 
     public interface Intermediate extends Serializable {

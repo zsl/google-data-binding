@@ -21,18 +21,27 @@ import android.databinding.tool.store.GenClassInfoLog;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
 import android.databinding.tool.writer.BRWriter;
+import android.databinding.tool.reflection.ModelClass;
+import android.databinding.tool.store.FeatureInfoList;
+import android.databinding.tool.store.GenClassInfoLog;
+import android.databinding.tool.store.ResourceBundle;
+import android.databinding.tool.util.L;
+import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.BindingMapperWriter;
 import android.databinding.tool.writer.BindingMapperWriterV2;
 import android.databinding.tool.writer.JavaFileWriter;
 import android.databinding.tool.writer.MergedBindingMapperWriter;
+import com.android.annotations.NonNull;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -74,7 +83,9 @@ public class CompilerChef {
     private CompilerChef() {
     }
 
-    public static CompilerChef createChef(ResourceBundle bundle, JavaFileWriter fileWriter,
+    public static CompilerChef createChef(
+            ResourceBundle bundle,
+            JavaFileWriter fileWriter,
             DataBindingCompilerArgs compilerArgs) {
         CompilerChef chef = new CompilerChef();
 
@@ -86,6 +97,7 @@ public class CompilerChef {
         return chef;
     }
 
+    @SuppressWarnings("unused")
     public ResourceBundle getResourceBundle() {
         return mResourceBundle;
     }
@@ -158,7 +170,9 @@ public class CompilerChef {
         }
     }
 
-    public void writeDataBinderMapper(DataBindingCompilerArgs compilerArgs, BRWriter brWriter,
+    public void writeDataBinderMapper(
+            DataBindingCompilerArgs compilerArgs,
+            Map<String, Integer> brValueLookup,
             List<String> modulePackages) {
         if (compilerArgs.isEnableV2()) {
             final boolean generateMapper;
@@ -166,11 +180,11 @@ public class CompilerChef {
                 // generate mapper for apps only if it is not test or enabled for tests.
                 generateMapper = !compilerArgs.isTestVariant() || compilerArgs.isEnabledForTests();
             } else {
-                // always generate mapper for libs
+                // always generate mapper for libs or features
                 generateMapper = true;
             }
             if (generateMapper) {
-                writeMapperForModule(compilerArgs, brWriter);
+                writeMapperForModule(compilerArgs, brValueLookup);
             }
 
             // merged mapper is the one generated for the whole app that includes the mappers
@@ -178,8 +192,10 @@ public class CompilerChef {
             final boolean generateMergedMapper;
             if (compilerArgs.isApp()) {
                 generateMergedMapper = !compilerArgs.isTestVariant();
-            } else {
+            } else if (!compilerArgs.isFeature()) {
                 generateMergedMapper = compilerArgs.isTestVariant();
+            } else {
+                generateMergedMapper = false;
             }
             if (generateMergedMapper) {
                 writeMergedMapper(compilerArgs, modulePackages);
@@ -191,8 +207,9 @@ public class CompilerChef {
             ensureDataBinder();
             BindingMapperWriter dbr = new BindingMapperWriter(pkg, mapperName,
                     mDataBinder.getLayoutBinders(), compilerArgs);
-            mFileWriter.writeToFile(pkg + "." + dbr.getClassName(),
-                    dbr.write(brWriter));
+            mFileWriter.writeToFile(
+                    pkg + "." + dbr.getClassName(),
+                    dbr.write(brValueLookup));
         }
     }
 
@@ -200,11 +217,13 @@ public class CompilerChef {
      * Writes the mapper android.databinding.DataBinderMapperImpl which is a merged mapper
      * that includes all mappers from dependencies.
      */
-    private void writeMergedMapper(DataBindingCompilerArgs compilerArgs,
+    private void writeMergedMapper(
+            DataBindingCompilerArgs compilerArgs,
             List<String> modulePackages) {
+        Set<String> featurePackageIds = loadFeaturePackageIds(compilerArgs);
         StringBuilder sb = new StringBuilder();
         MergedBindingMapperWriter mergedBindingMapperWriter =
-                new MergedBindingMapperWriter(modulePackages, compilerArgs);
+                new MergedBindingMapperWriter(modulePackages, compilerArgs, featurePackageIds);
         TypeSpec mergedMapperSpec = mergedBindingMapperWriter.write();
         try {
             JavaFile.builder(mergedBindingMapperWriter.getPkg(), mergedMapperSpec)
@@ -216,10 +235,25 @@ public class CompilerChef {
         }
     }
 
+    @NonNull
+    private Set<String> loadFeaturePackageIds(DataBindingCompilerArgs compilerArgs) {
+        if (compilerArgs.getBaseFeatureInfoFolder() == null) {
+            return Collections.emptySet();
+        }
+        File input = new File(compilerArgs.getBaseFeatureInfoFolder(),
+                DataBindingBuilder.FEATURE_PACKAGE_LIST_FILE_NAME);
+        if (!input.exists()) {
+            return Collections.emptySet();
+        }
+        return FeatureInfoList.fromFile(input).getPackages();
+    }
+
     /**
      * Generates a mapper that knows only about the bindings in this module (excl dependencies).
      */
-    private void writeMapperForModule(DataBindingCompilerArgs compilerArgs, BRWriter brWriter) {
+    private void writeMapperForModule(
+            DataBindingCompilerArgs compilerArgs,
+            Map<String, Integer> brValueLookup) {
         GenClassInfoLog infoLog;
         try {
             infoLog = ResourceBundle.loadClassInfoFromFolder(
@@ -233,7 +267,7 @@ public class CompilerChef {
         BindingMapperWriterV2 v2 = new BindingMapperWriterV2(
                 infoLogInThisModule,
                 compilerArgs);
-        TypeSpec spec = v2.write(brWriter);
+        TypeSpec spec = v2.write(brValueLookup);
         StringBuilder sb = new StringBuilder();
         try {
             JavaFile.builder(v2.getPkg(), spec).build().writeTo(sb);

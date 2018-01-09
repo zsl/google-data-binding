@@ -17,6 +17,7 @@
 package android.databinding.tool;
 
 import com.android.annotations.Nullable;
+
 import com.google.common.collect.Sets;
 
 import android.databinding.tool.util.Preconditions;
@@ -64,11 +65,16 @@ public class DataBindingCompilerArgs {
 
     private static final String PARAM_CLASS_LOG_DIR = PREFIX + "classLogFile";
 
-    public static final Set<String> ALL_PARAMS = Sets.newHashSet( PARAM_BUILD_FOLDER,
+    private static final String PARAM_BASE_FEATURE_INFO = PREFIX + "baseFeatureInfo";
+
+    private static final String PARAM_FEATURE_INFO = PREFIX + "featureInfo";
+
+    public static final Set<String> ALL_PARAMS = Sets.newHashSet(PARAM_BUILD_FOLDER,
             PARAM_AAR_OUT_FOLDER, PARAM_SDK_DIR, PARAM_ARTIFACT_TYPE, PARAM_XML_OUT_DIR,
             PARAM_EXPORT_CLASS_LIST_TO, PARAM_MODULE_PKG, PARAM_MIN_API,
             PARAM_ENABLE_DEBUG_LOGS, PARAM_PRINT_ENCODED_ERROR_LOGS, PARAM_IS_TEST_VARIANT,
-            PARAM_ENABLE_FOR_TESTS, PARAM_ENABLE_V2, PARAM_CLASS_LOG_DIR);
+            PARAM_ENABLE_FOR_TESTS, PARAM_ENABLE_V2, PARAM_CLASS_LOG_DIR,
+            PARAM_BASE_FEATURE_INFO, PARAM_FEATURE_INFO);
 
     private String mBuildFolder;
     private String mAarOutFolder;
@@ -77,6 +83,11 @@ public class DataBindingCompilerArgs {
     private String mExportClassListTo;
     private String mModulePackage;
     private String mClassLogDir;
+    // set when compiling a base feature, includes the package ids of all features
+    private String mBaseFeatureInfoFolder;
+    // set when compiling a feature, includes the features id offset as well as the BR files it
+    // is responsible to generate
+    private String mFeatureInfo;
     private int mMinApi;
     private Type mArtifactType;
     private boolean mIsTestVariant;
@@ -85,7 +96,8 @@ public class DataBindingCompilerArgs {
     private boolean mEnabledForTests;
     private boolean mEnableV2;
 
-    private DataBindingCompilerArgs() {}
+    private DataBindingCompilerArgs() {
+    }
 
     public static DataBindingCompilerArgs readFromOptions(Map<String, String> options) {
         DataBindingCompilerArgs args = new DataBindingCompilerArgs();
@@ -97,6 +109,8 @@ public class DataBindingCompilerArgs {
         args.mModulePackage = options.get(PARAM_MODULE_PKG);
         args.mClassLogDir = options.get(PARAM_CLASS_LOG_DIR);
         args.mMinApi = Integer.parseInt(options.get(PARAM_MIN_API));
+        args.mBaseFeatureInfoFolder = options.get(PARAM_BASE_FEATURE_INFO);
+        args.mFeatureInfo = options.get(PARAM_FEATURE_INFO);
         // use string for artifact type, easier to read
         String artifactType = options.get(PARAM_ARTIFACT_TYPE);
         Type buildType = Type.valueOf(artifactType);
@@ -143,6 +157,14 @@ public class DataBindingCompilerArgs {
         return mClassLogDir;
     }
 
+    public String getBaseFeatureInfoFolder() {
+        return mBaseFeatureInfoFolder;
+    }
+
+    public String getFeatureInfoFolder() {
+        return mFeatureInfo;
+    }
+
     public boolean isTestVariant() {
         return mIsTestVariant;
     }
@@ -153,6 +175,10 @@ public class DataBindingCompilerArgs {
 
     public boolean isApp() {
         return mArtifactType == Type.APPLICATION;
+    }
+
+    public boolean isFeature() {
+        return mArtifactType == Type.FEATURE;
     }
 
     public boolean enableDebugLogs() {
@@ -184,6 +210,9 @@ public class DataBindingCompilerArgs {
         putIfNotNull(mExportClassListTo, args, PARAM_EXPORT_CLASS_LIST_TO, mExportClassListTo);
         putIfNotNull(mModulePackage, args, PARAM_MODULE_PKG, mModulePackage);
         putIfNotNull(mClassLogDir, args, PARAM_CLASS_LOG_DIR, mClassLogDir);
+        putIfNotNull(mBaseFeatureInfoFolder, args, PARAM_BASE_FEATURE_INFO,
+                mBaseFeatureInfoFolder);
+        putIfNotNull(mFeatureInfo, args, PARAM_FEATURE_INFO, mFeatureInfo);
         args.put(PARAM_MIN_API, String.valueOf(mMinApi));
         putIfNotNull(mArtifactType, args, PARAM_ARTIFACT_TYPE, mArtifactType.name());
         args.put(PARAM_ENABLE_DEBUG_LOGS, serialize(mEnableDebugLogs));
@@ -221,6 +250,8 @@ public class DataBindingCompilerArgs {
         private File mExportClassListTo;
         private File mClassLogDir;
         private String mModulePackage;
+        private File mBaseFeatureInfoFolder;
+        private File mFeatureInfoFolder;
         private Type mType;
         private Integer mMinApi;
         private boolean mEnableDebugLogs;
@@ -229,43 +260,64 @@ public class DataBindingCompilerArgs {
         private boolean mEnabledForTests;
         private boolean mEnableV2;
 
-        private Builder() {}
+        private Builder() {
+        }
+
         public Builder buildFolder(File buildFolder) {
             mBuildFolder = buildFolder;
             return this;
         }
+
         public Builder modulePackage(String modulePackage) {
             mModulePackage = modulePackage;
             return this;
         }
+
         public Builder bundleFolder(File bundleFolder) {
             mBundleFolder = bundleFolder;
             return this;
         }
+
         public Builder sdkDir(File sdkDir) {
             mSdkDir = sdkDir;
             return this;
         }
+
         public Builder xmlOutDir(File xmlOutDir) {
             mXmlOutDir = xmlOutDir;
             return this;
         }
+
+        public Builder baseFeatureInfoFolder(File baseFeatureInfoFolder) {
+            mBaseFeatureInfoFolder = baseFeatureInfoFolder;
+            return this;
+        }
+
+        public Builder featureInfoFolder(File featureInfoFolder) {
+            mFeatureInfoFolder = featureInfoFolder;
+            return this;
+        }
+
         public Builder classLogDir(File classLogDir) {
             mClassLogDir = classLogDir;
             return this;
         }
+
         public Builder exportClassListTo(@Nullable File exportClassListTo) {
             mExportClassListTo = exportClassListTo;
             return this;
         }
+
         public Builder enableDebugLogs(boolean enableDebugLogs) {
             mEnableDebugLogs = enableDebugLogs;
             return this;
         }
+
         public Builder type(Type type) {
             mType = type;
             return this;
         }
+
         public Builder printEncodedErrorLogs(boolean printEncodedErrorLogs) {
             mPrintEncodedErrorLogs = printEncodedErrorLogs;
             return this;
@@ -310,16 +362,27 @@ public class DataBindingCompilerArgs {
             Preconditions.checkNotNull(mClassLogDir, "Must provide class log directory");
             args.mClassLogDir = mClassLogDir.getAbsolutePath();
 
-            Preconditions.check(mType != Type.LIBRARY || mIsTestVariant || mBundleFolder != null,
+            Preconditions.check(mType != Type.LIBRARY || mIsTestVariant
+                            || mBundleFolder != null,
                     "Must specify bundle folder (aar out folder) for library projects");
             args.mAarOutFolder = mBundleFolder.getAbsolutePath();
 
             Preconditions.check(mType != Type.LIBRARY || mIsTestVariant
-                    || mExportClassListTo != null, "Must provide a folder to export generated "
-                    + "class list");
+                            || mExportClassListTo != null,
+                    "Must provide a folder to export generated class list");
 
             Preconditions.checkNotNull(mModulePackage, "Must provide a module package");
             args.mModulePackage = mModulePackage;
+
+            if (args.mArtifactType == Type.FEATURE) {
+                Preconditions.check(mFeatureInfoFolder != null, "must provide" +
+                        " a feature info folder while compiling a non-base feature module");
+            }
+
+            args.mBaseFeatureInfoFolder = mBaseFeatureInfoFolder == null ? null :
+                    mBaseFeatureInfoFolder.getAbsolutePath();
+            args.mFeatureInfo = mFeatureInfoFolder == null ? null :
+                    mFeatureInfoFolder.getAbsolutePath();
 
 
             Preconditions.checkNotNull(mMinApi, "Must provide the min api for the project");
@@ -338,6 +401,7 @@ public class DataBindingCompilerArgs {
 
     public enum Type {
         LIBRARY,
-        APPLICATION
+        APPLICATION,
+        FEATURE
     }
 }
