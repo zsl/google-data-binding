@@ -237,6 +237,54 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertEquals("change friend name", view.getText());
     }
 
+    @UiThreadTest
+    public void testObjectParameter() {
+        TextView view = mBinder.observableCast;
+        mBinder.executePendingBindings();
+        assertEquals("false", view.getText());
+
+        ObservableBoolean enabled = new ObservableBoolean(false);
+        mBinder.setEnabled(enabled);
+        mBinder.executePendingBindings();
+        assertEquals("false", view.getText());
+
+        enabled.set(true);
+        mBinder.executePendingBindings();
+        assertEquals("true", view.getText());
+    }
+
+    @UiThreadTest
+    public void testArgvParameter() {
+        TextView view = mBinder.observableCast2;
+        mBinder.executePendingBindings();
+        assertEquals("false", view.getText());
+
+        ObservableBoolean enabled = new ObservableBoolean(false);
+        mBinder.setEnabled(enabled);
+        mBinder.executePendingBindings();
+        assertEquals("false", view.getText());
+
+        enabled.set(true);
+        mBinder.executePendingBindings();
+        assertEquals("true", view.getText());
+    }
+
+    @UiThreadTest
+    public void testObservableArgvParameter() {
+        TextView view = mBinder.observableCast3;
+        mBinder.executePendingBindings();
+        assertEquals("false", view.getText());
+
+        ObservableBoolean enabled = new ObservableBoolean(false);
+        mBinder.setEnabled(enabled);
+        mBinder.executePendingBindings();
+        assertEquals("false", view.getText());
+
+        enabled.set(true);
+        mBinder.executePendingBindings();
+        assertEquals("true", view.getText());
+    }
+
     /**
      * TODO: This should disappear in Android Studio 2.4 after this capapbility has been removed.
      */

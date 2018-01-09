@@ -15,6 +15,9 @@
  */
 package android.databinding.testapp;
 
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+
 import android.databinding.ObservableBoolean;
 import android.databinding.ObservableField;
 
@@ -25,5 +28,23 @@ public class ObservableFieldMethods {
 
     public static ObservableField<ObservableField<String>> crazyNested(String val) {
         return new ObservableField(new ObservableField(val));
+    }
+
+    public static String useBoolean(Object value) {
+        if (value == null) {
+            return "null";
+        } else if (value instanceof Boolean) {
+            return value.toString();
+        } else {
+            return "Invalid";
+        }
+    }
+
+    public static String useBooleanArgs(Object... values) {
+        return useBoolean(values[0]);
+    }
+
+    public static String useObservableBooleanArgs(ObservableBoolean... values) {
+        return useBoolean(values[0].get());
     }
 }

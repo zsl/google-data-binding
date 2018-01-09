@@ -897,8 +897,7 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
         Expr expr = child;
         String simpleGetterName;
         while ((simpleGetterName = expr.getResolvedType().getObservableGetterName()) != null
-                && (type == null || (!type.isAssignableFrom(expr.getResolvedType())
-                && !ModelMethod.isImplicitConversion(expr.getResolvedType(), type)))) {
+                && shouldUnwrap(type, expr.getResolvedType())) {
             unwrapped = mModel.methodCall(expr, simpleGetterName, Collections.EMPTY_LIST);
             if (unwrapped == this) {
                 L.w(ErrorMessages.OBSERVABLE_FIELD_GET, this);
@@ -912,6 +911,11 @@ abstract public class Expr implements VersionProvider, LocationScopeProvider {
             unwrapped.getParents().add(this);
             mChildren.set(childIndex, unwrapped);
         }
+    }
+
+    private static boolean shouldUnwrap(ModelClass from, ModelClass to) {
+        return (to == null || to.isObject() || !to.isAssignableFrom(from))
+                && !ModelMethod.isImplicitConversion(from, to);
     }
 
     /**
