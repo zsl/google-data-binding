@@ -212,7 +212,10 @@ public abstract class ModelMethod {
     }
 
     public static boolean isImplicitConversion(ModelClass from, ModelClass to) {
-        if (from != null && to != null && from.isPrimitive() && to.isPrimitive()) {
+        if (from == null || to == null) {
+            return false;
+        }
+        if (from.isPrimitive() && to.isPrimitive()) {
             if (from.isBoolean() || to.isBoolean() || to.isChar()) {
                 return false;
             }
@@ -222,7 +225,7 @@ public abstract class ModelMethod {
         } else {
             ModelClass unboxedFrom = from.unbox();
             ModelClass unboxedTo = to.unbox();
-            if (unboxedFrom != from || unboxedTo != to) {
+            if (!from.equals(unboxedFrom) || !to.equals(unboxedTo)) {
                 return isImplicitConversion(unboxedFrom, unboxedTo);
             }
         }
