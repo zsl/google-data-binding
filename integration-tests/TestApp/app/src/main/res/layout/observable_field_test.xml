@@ -105,6 +105,24 @@
             android:layout_height="wrap_content"
             android:text="@{obj.mField.friend.name}"/>
 
+        <TextView
+            android:id="@+id/observableCast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{ObservableFieldMethods.useBoolean(ObservableFieldMethods.makeObservable(enabled))}"/>
+
+        <TextView
+            android:id="@+id/observableCast2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{ObservableFieldMethods.useBooleanArgs(ObservableFieldMethods.makeObservable(enabled))}"/>
+
+        <TextView
+            android:id="@+id/observableCast3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{ObservableFieldMethods.useObservableBooleanArgs(ObservableFieldMethods.makeObservable(enabled))}"/>
+
         <!-- This should be removed for Android Studio 2.4 -->
         <TextView
             android:id="@+id/useGet"
