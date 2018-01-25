@@ -16,34 +16,26 @@
 
 package android.databinding.compilationTest;
 
-import android.databinding.tool.CompilerChef;
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.ScopedErrorReport;
 import android.databinding.tool.processing.ScopedException;
-import android.databinding.tool.reflection.InjectedClass;
-import android.databinding.tool.reflection.ModelClass;
-import android.databinding.tool.reflection.ModelMethod;
-import android.databinding.tool.reflection.java.JavaAnalyzer;
 import android.databinding.tool.store.Location;
-
 import com.google.common.base.Joiner;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -374,24 +366,11 @@ public class SimpleCompilationTest extends BaseCompilationTest {
 
         File root = new File(testFolder, "app/build/intermediates/classes/debug/");
         URL[] urls = new URL[] {root.toURL()};
-        JavaAnalyzer.initForTests();
-        JavaAnalyzer analyzer = (JavaAnalyzer) JavaAnalyzer.getInstance();
-        ClassLoader classLoader = new URLClassLoader(urls, analyzer.getClassLoader());
+        ClassLoader classLoader = new URLClassLoader(urls,
+                SimpleCompilationTest.class.getClassLoader());
         Class dynamicUtilClass = classLoader.loadClass("android.databinding.DynamicUtil");
-
-        InjectedClass injectedClass = CompilerChef.pushDynamicUtilToAnalyzer();
-
-        // test methods
-        for (Method method : dynamicUtilClass.getMethods()) {
-            // look for the method in the injected class
-            ArrayList<ModelClass> args = new ArrayList<ModelClass>();
-            for (Class<?> param : method.getParameterTypes()) {
-                args.add(analyzer.findClass(param));
-            }
-            ModelMethod modelMethod = injectedClass.getMethod(
-                    method.getName(), args, Modifier.isStatic(method.getModifiers()), false, false);
-            assertNotNull("Method " + method + " not found", modelMethod);
-        }
+        // ensure it is generated.
+        MatcherAssert.assertThat(dynamicUtilClass, CoreMatchers.notNullValue());
     }
 
     @Test

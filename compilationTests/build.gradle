@@ -30,11 +30,3 @@ afterEvaluate {
 compileJava {
     options.compilerArgs += ["-proc:none"]
 }
-
-sourceSets {
-    test {
-        java {
-            srcDirs += "src/test/compiler-test"
-        }
-    }
-}

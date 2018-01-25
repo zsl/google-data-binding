@@ -64,7 +64,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         Preconditions.checkNotNull(modelAnalyzer, "Model analyzer should be"
                 + " initialized first");
-        SetterStore store = SetterStore.get(modelAnalyzer);
+        SetterStore store = SetterStore.get();
         clearIncrementalClasses(roundEnv, store);
 
         addBindingAdapters(roundEnv, processingEnvironment, store);

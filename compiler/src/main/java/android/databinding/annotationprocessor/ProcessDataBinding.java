@@ -17,6 +17,7 @@
 package android.databinding.annotationprocessor;
 
 import android.databinding.tool.CompilerChef;
+import android.databinding.tool.Context;
 import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
@@ -60,6 +61,16 @@ public class ProcessDataBinding extends AbstractProcessor {
     private DataBindingCompilerArgs mCompilerArgs;
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        try {
+            return doProcess(roundEnv);
+        } finally {
+            if (roundEnv.processingOver()) {
+                Context.fullClear(processingEnv);
+            }
+        }
+    }
+
+    private boolean doProcess(RoundEnvironment roundEnv) {
         if (mProcessingSteps == null) {
             readArguments();
             initProcessingSteps();
@@ -73,6 +84,7 @@ public class ProcessDataBinding extends AbstractProcessor {
             return false;
         }
         boolean done = true;
+        Context.init(processingEnv, mCompilerArgs);
         for (ProcessingStep step : mProcessingSteps) {
             try {
                 done = step.runStep(roundEnv, processingEnv, mCompilerArgs) && done;
@@ -86,7 +98,6 @@ public class ProcessDataBinding extends AbstractProcessor {
             }
         }
         if (roundEnv.processingOver()) {
-            L.flushMessages();
             Scope.assertNoError();
         }
         return done;
@@ -155,7 +166,7 @@ public class ProcessDataBinding extends AbstractProcessor {
      * use this instead of init method so that we won't become a problem when data binding happens
      * to be in annotation processor classpath by chance
      */
-    public synchronized void readArguments() {
+    private synchronized void readArguments() {
         try {
             mCompilerArgs = DataBindingCompilerArgs
                     .readFromOptions(processingEnv.getOptions());
@@ -168,8 +179,6 @@ public class ProcessDataBinding extends AbstractProcessor {
             throw new RuntimeException("Failed to parse data binding compiler options. Params:\n"
                     + allParam, t);
         }
-        GenerationalClassUtil.init(mCompilerArgs);
-        ModelAnalyzer.setProcessingEnvironment(processingEnv);
     }
 
     @Override

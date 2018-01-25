@@ -36,7 +36,6 @@ import java.util.List;
 import static android.databinding.tool.reflection.Callable.DYNAMIC;
 import static android.databinding.tool.reflection.Callable.STATIC;
 
-
 public class MethodCallExpr extends Expr {
     final String mName;
     Callable mGetter;
@@ -267,7 +266,7 @@ public class MethodCallExpr extends Expr {
 
     @Override
     public String getInvertibleError() {
-        final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+        final SetterStore setterStore = SetterStore.get();
         getResolvedType(); // ensure mMethod has been set
         if (mMethod == null) {
             return "Could not find the method " + mName + " to inverse for two-way binding";
@@ -299,7 +298,7 @@ public class MethodCallExpr extends Expr {
             inverse.setUnwrapObservableFields(false);
             return inverse;
         }
-        SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+        SetterStore setterStore = SetterStore.get();
         String methodName = setterStore.getInverseMethod(mMethod);
         List<Expr> theseArgs = getArgs();
         List<Expr> args = new ArrayList<>();

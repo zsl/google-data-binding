@@ -159,7 +159,7 @@ class AnnotationMethod extends ModelMethod {
     @Override
     public int getMinApi() {
         if (mApiLevel == -1) {
-            mApiLevel = SdkUtil.getMinApi(this);
+            mApiLevel = SdkUtil.get().getMinApi(this);
         }
         return mApiLevel;
     }
