@@ -15,6 +15,7 @@
  */
 package android.databinding.tool.reflection;
 
+import android.databinding.tool.Context;
 import android.databinding.tool.reflection.annotation.AnnotationAnalyzer;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
@@ -94,13 +95,8 @@ public abstract class ModelAnalyzer {
      */
     private Boolean mHasGeneratedAnnotation;
 
-    private static ModelAnalyzer sAnalyzer;
     private final Map<String, InjectedClass> mInjectedClasses =
             new HashMap<String, InjectedClass>();
-
-    protected void setInstance(ModelAnalyzer analyzer) {
-        sAnalyzer = analyzer;
-    }
 
     public ModelClass findCommonParentOf(ModelClass modelClass1, ModelClass modelClass2) {
         return findCommonParentOf(modelClass1, modelClass2, true);
@@ -136,16 +132,7 @@ public abstract class ModelAnalyzer {
     public abstract ModelClass loadPrimitive(String className);
 
     public static ModelAnalyzer getInstance() {
-        return sAnalyzer;
-    }
-
-    public static void setProcessingEnvironment(ProcessingEnvironment processingEnvironment) {
-        if (sAnalyzer != null) {
-            throw new IllegalStateException("processing env is already created, you cannot "
-                    + "change class loader after that");
-        }
-        L.d("setting processing env to %s", processingEnvironment);
-        sAnalyzer = new AnnotationAnalyzer(processingEnvironment);
+        return Context.getModelAnalyzer();
     }
 
     /**

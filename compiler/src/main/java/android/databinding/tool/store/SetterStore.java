@@ -16,6 +16,7 @@
 package android.databinding.tool.store;
 
 import android.databinding.InverseBindingListener;
+import android.databinding.tool.Context;
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
@@ -58,7 +59,6 @@ import javax.lang.model.util.Types;
 
 public class SetterStore {
     private static final int ASSIGNABLE_CONVERSION = 1;
-    private static SetterStore sStore;
 
     private final IntermediateV3 mStore;
     private final ModelAnalyzer mClassAnalyzer;
@@ -170,16 +170,19 @@ public class SetterStore {
         }
     }
 
-    public static SetterStore get(ModelAnalyzer modelAnalyzer) {
-        if (sStore == null) {
-            sStore = load(modelAnalyzer);
-        }
-        return sStore;
+    public static SetterStore get() {
+        return Context.getSetterStore();
     }
 
-    private static SetterStore load(ModelAnalyzer modelAnalyzer) {
+    public static SetterStore create(ModelAnalyzer modelAnalyzer,
+                                     GenerationalClassUtil generationalClassUtil) {
+        return load(modelAnalyzer, generationalClassUtil);
+    }
+
+    private static SetterStore load(ModelAnalyzer modelAnalyzer,
+                                    GenerationalClassUtil generationalClassUtil) {
         IntermediateV3 store = new IntermediateV3();
-        List<Intermediate> previousStores = GenerationalClassUtil
+        List<Intermediate> previousStores = GenerationalClassUtil.get()
                 .loadObjects(GenerationalClassUtil.ExtensionFilter.SETTER_STORE);
         for (Intermediate intermediate : previousStores) {
             merge(store, intermediate);
@@ -485,7 +488,7 @@ public class SetterStore {
 
     public void write(String projectPackage, ProcessingEnvironment processingEnvironment)
             throws IOException {
-        GenerationalClassUtil.writeIntermediateFile(projectPackage, projectPackage +
+        GenerationalClassUtil.get().writeIntermediateFile(projectPackage, projectPackage +
                         GenerationalClassUtil.ExtensionFilter.SETTER_STORE.getExtension(), mStore);
     }
 
@@ -1187,7 +1190,7 @@ public class SetterStore {
         if (adapter.isStatic) {
             sb.append(adapter.type);
         } else {
-            final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+            final SetterStore setterStore = SetterStore.get();
             final String binderCall =  setterStore.getBindingAdapterCall(adapter.type);
             sb.append(componentExpression).append('.').append(binderCall);
         }

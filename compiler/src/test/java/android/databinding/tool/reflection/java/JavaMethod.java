@@ -94,7 +94,7 @@ public class JavaMethod extends ModelMethod {
 
     @Override
     public int getMinApi() {
-        return SdkUtil.getMinApi(this);
+        return SdkUtil.get().getMinApi(this);
     }
 
     @Override

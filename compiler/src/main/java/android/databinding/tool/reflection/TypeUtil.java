@@ -16,6 +16,8 @@
 
 package android.databinding.tool.reflection;
 
+import android.databinding.tool.Context;
+
 public abstract class TypeUtil {
 
     public static final String BYTE = "B";
@@ -41,8 +43,6 @@ public abstract class TypeUtil {
     public static final String CLASS_PREFIX = "L";
 
     public static final String CLASS_SUFFIX = ";";
-
-    private static TypeUtil sInstance;
 
     abstract public String getDescription(ModelClass modelClass);
 
@@ -83,9 +83,6 @@ public abstract class TypeUtil {
     }
 
     public static TypeUtil getInstance() {
-        if (sInstance == null) {
-            sInstance = ModelAnalyzer.getInstance().createTypeUtil();
-        }
-        return sInstance;
+        return Context.getTypeUtil();
     }
 }

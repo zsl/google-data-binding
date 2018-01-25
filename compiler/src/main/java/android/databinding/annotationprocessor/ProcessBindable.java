@@ -88,7 +88,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                     // We'll get them later when we do the messages
                 }
             }
-            GenerationalClassUtil.writeIntermediateFile(mProperties.getPackage(),
+            GenerationalClassUtil.get().writeIntermediateFile(mProperties.getPackage(),
                     createIntermediateFileName(mProperties.getPackage()), mProperties);
             generateBRClasses(args, mProperties.getPackage());
         }
@@ -248,7 +248,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
 
     @SuppressWarnings("CodeBlock2Expr")
     private Collection<Intermediate> loadPreviousBRFiles(String... excludePackages) {
-        List<Intermediate> brFiles = GenerationalClassUtil
+        List<Intermediate> brFiles = GenerationalClassUtil.get()
                 .loadObjects(GenerationalClassUtil.ExtensionFilter.BR);
         Set<String> excludeMap = Sets.newHashSet(excludePackages);
         // dedupe

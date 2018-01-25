@@ -35,16 +35,11 @@ import javax.tools.Diagnostic;
  * Messager and then writes them all out when flushMessages() is called. Elements
  * are kept in a round-independent format so that the messages can be logged
  * independently from the annotation processing round in which they were created.
- * {@link #flushMessages()} should be called when all rounds are over so that
+ * {@link #flushMessages(ProcessingEnvironment)} should be called when all rounds are over so that
  * superfluous errors aren't generated.
  */
-class AnnotationLogger implements L.Client {
-    private final ProcessingEnvironment mProcessingEnvironment;
+public class AnnotationLogger implements L.Client {
     private final ArrayList<Message> mMessages = new ArrayList<>();
-
-    AnnotationLogger(ProcessingEnvironment processingEnvironment) {
-        mProcessingEnvironment = processingEnvironment;
-    }
 
     @Override
     public void printMessage(Diagnostic.Kind kind, String message, Element element) {
@@ -59,13 +54,12 @@ class AnnotationLogger implements L.Client {
         }
     }
 
-    @Override
-    public void flushMessages() {
-        Messager messager = mProcessingEnvironment.getMessager();
+    public void flushMessages(ProcessingEnvironment processingEnvironment) {
+        Messager messager = processingEnvironment.getMessager();
         synchronized (mMessages) {
             for (Message message : mMessages) {
                 if (message.element != null) {
-                    Element element = message.element.toElement(mProcessingEnvironment);
+                    Element element = message.element.toElement(processingEnvironment);
                     messager.printMessage(message.kind, message.message, element);
                 } else {
                     messager.printMessage(message.kind, message.message);

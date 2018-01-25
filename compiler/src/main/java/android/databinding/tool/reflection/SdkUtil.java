@@ -19,8 +19,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import android.databinding.tool.Context;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
+
+import com.android.annotations.VisibleForTesting;
 
 import java.io.File;
 import java.io.InputStream;
@@ -40,29 +43,37 @@ import javax.xml.xpath.XPathFactory;
  */
 public class SdkUtil {
 
-    static ApiChecker sApiChecker;
+    private ApiChecker mApiChecker;
 
-    static int sMinSdk;
+    private final int mMinSdk;
 
-    public static void initialize(int minSdk, File sdkPath) {
-        sMinSdk = minSdk;
-        sApiChecker = new ApiChecker(new File(sdkPath.getAbsolutePath()
-                + "/platform-tools/api/api-versions.xml"));
-        L.d("SdkUtil init, minSdk: %s", minSdk);
+    public SdkUtil(ApiChecker mApiChecker, int mMinSdk) {
+        this.mApiChecker = mApiChecker;
+        this.mMinSdk = mMinSdk;
     }
 
-    public static int getMinApi(ModelClass modelClass) {
-        return sApiChecker.getMinApi(modelClass.getJniDescription(), null);
+    public static SdkUtil create(File sdkPath, int minSdk) {
+        ApiChecker checker = new ApiChecker(new File(sdkPath.getAbsolutePath()
+                                                     + "/platform-tools/api/api-versions.xml"));
+        return new SdkUtil(checker, minSdk);
     }
 
-    public static int getMinApi(ModelMethod modelMethod) {
+    public static SdkUtil get() {
+        return Context.getSdkUtil();
+    }
+
+    public int getMinApi(ModelClass modelClass) {
+        return mApiChecker.getMinApi(modelClass.getJniDescription(), null);
+    }
+
+    public int getMinApi(ModelMethod modelMethod) {
         ModelClass declaringClass = modelMethod.getDeclaringClass();
-        Preconditions.checkNotNull(sApiChecker, "should've initialized api checker");
+        Preconditions.checkNotNull(mApiChecker, "should've initialized api checker");
         int minApi = Integer.MAX_VALUE;
         String methodDesc = modelMethod.getJniDescription();
         while (declaringClass != null) {
             String classDesc = declaringClass.getJniDescription();
-            int result = sApiChecker.getMinApi(classDesc, methodDesc);
+            int result = mApiChecker.getMinApi(classDesc, methodDesc);
             L.d("checking method api for %s, class:%s method:%s. result: %d", modelMethod.getName(),
                     classDesc, methodDesc, result);
             if (result > 0) {
@@ -76,7 +87,20 @@ public class SdkUtil {
         return minApi;
     }
 
-    static class ApiChecker {
+    public ApiChecker getApiChecker() {
+        return mApiChecker;
+    }
+
+    public int getMinSdk() {
+        return mMinSdk;
+    }
+
+    @VisibleForTesting
+    public void swapApiChecker(ApiChecker apiChecker) {
+        mApiChecker = apiChecker;
+    }
+
+    public static class ApiChecker {
 
         private Map<String, Integer> mFullLookup;
 

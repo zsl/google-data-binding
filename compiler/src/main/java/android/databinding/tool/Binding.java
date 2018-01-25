@@ -128,7 +128,7 @@ public class Binding implements LocationScopeProvider {
                 ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
                 ModelClass viewStubProxy = modelAnalyzer.
                         findClass("android.databinding.ViewStubProxy", null);
-                mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
+                mSetterCall = SetterStore.get().getSetterCall(mName,
                         viewStubProxy, mExpr.getResolvedType(), mExpr.getModel().getImports());
             } else if (isViewStubAttribute(mName)) {
                 mSetterCall = new ViewStubDirectCall(mName, viewType, mExpr.getResolvedType(),
@@ -141,7 +141,7 @@ public class Binding implements LocationScopeProvider {
             if (mExpr.getResolvedType().getObservableGetterName() != null) {
                 // If it is an ObservableField, try with the contents of it first.
                 Expr expr = mExpr.unwrapObservableField();
-                mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
+                mSetterCall = SetterStore.get().getSetterCall(mName,
                         viewType, expr.getResolvedType(), mExpr.getModel().getImports());
                 if (mSetterCall != null) {
                     mExpr = expr;
@@ -149,7 +149,7 @@ public class Binding implements LocationScopeProvider {
             }
             if (mSetterCall == null) {
                 // Now try with the value object directly
-                mSetterCall = SetterStore.get(modelAnalyzer).getSetterCall(mName,
+                mSetterCall = SetterStore.get().getSetterCall(mName,
                         viewType, mExpr.getResolvedType(), mExpr.getModel().getImports());
             }
         }
@@ -164,12 +164,12 @@ public class Binding implements LocationScopeProvider {
         SetterCall setterCall;
         ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         ModelClass objectParameter = modelAnalyzer.findClass(Object.class);
-        SetterStore setterStore = SetterStore.get(modelAnalyzer);
+        SetterStore setterStore = SetterStore.get();
         if (viewType != null && viewType.extendsViewStub()) {
             if (isListenerAttribute(name)) {
                 ModelClass viewStubProxy = modelAnalyzer.
                         findClass("android.databinding.ViewStubProxy", null);
-                setterCall = SetterStore.get(modelAnalyzer).getSetterCall(name,
+                setterCall = SetterStore.get().getSetterCall(name,
                         viewStubProxy, objectParameter, model.getImports());
             } else if (isViewStubAttribute(name)) {
                 setterCall = null; // view stub attrs are not callbacks
@@ -317,7 +317,7 @@ public class Binding implements LocationScopeProvider {
 
         public ViewStubDirectCall(String name, ModelClass viewType, ModelClass resolvedType,
                 Map<String, String> imports) {
-            mWrappedCall = SetterStore.get(ModelAnalyzer.getInstance()).getSetterCall(name,
+            mWrappedCall = SetterStore.get().getSetterCall(name,
                     viewType, resolvedType, imports);
             if (mWrappedCall == null) {
                 L.e("Cannot find the setter for attribute '%s' on %s with parameter type %s.",

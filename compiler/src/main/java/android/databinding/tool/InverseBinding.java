@@ -105,7 +105,7 @@ public class InverseBinding implements LocationScopeProvider {
             Scope.enter(mTarget);
             Scope.enter(this);
             ModelClass viewType = mTarget.getResolvedType();
-            final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+            final SetterStore setterStore = SetterStore.get();
             final ModelClass resolvedType = expr == null ? null : expr.getResolvedType();
             mGetterCall = setterStore.getGetterCall(mName, viewType, resolvedType,
                     expr.getModel().getImports());
