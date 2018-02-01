@@ -15,7 +15,6 @@
  */
 package android.databinding.tool.writer;
 
-import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.store.SetterStore;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class ComponentWriter {
         final StringBuilder builder = new StringBuilder();
         builder.append("package android.databinding;\n\n");
         builder.append("public interface DataBindingComponent {\n");
-        final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+        final SetterStore setterStore = SetterStore.get();
         Map<String, List<String>> bindingAdapters = setterStore.getComponentBindingAdapters();
         for (final String simpleName : bindingAdapters.keySet()) {
             final List<String> classes = bindingAdapters.get(simpleName);

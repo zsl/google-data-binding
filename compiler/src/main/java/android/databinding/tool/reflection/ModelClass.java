@@ -451,7 +451,7 @@ public abstract class ModelClass {
      * return 1.
      */
     public int getMinApi() {
-        return SdkUtil.getMinApi(this);
+        return SdkUtil.get().getMinApi(this);
     }
 
     /**

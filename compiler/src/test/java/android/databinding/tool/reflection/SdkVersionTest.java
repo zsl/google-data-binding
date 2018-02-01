@@ -21,7 +21,6 @@ import android.databinding.tool.reflection.java.JavaAnalyzer;
 import static org.junit.Assert.assertEquals;
 
 public class SdkVersionTest {
-
     @Before
     public void setUp() throws Exception {
         JavaAnalyzer.initForTests();
@@ -29,24 +28,17 @@ public class SdkVersionTest {
 
     @Test
     public void testApiVersionsFromResources() {
-        SdkUtil.ApiChecker apiChecker = SdkUtil.sApiChecker;
-        int minSdk = SdkUtil.sMinSdk;
-        try {
-            SdkUtil.sApiChecker = new SdkUtil.ApiChecker(null);
-            ModelClass view = ModelAnalyzer.getInstance().findClass("android.widget.TextView", null);
-            ModelMethod isSuggestionsEnabled = view.getMethods("isSuggestionsEnabled", 0)[0];
-            assertEquals(14, SdkUtil.getMinApi(isSuggestionsEnabled));
-        } finally {
-            SdkUtil.sMinSdk = minSdk;
-            SdkUtil.sApiChecker = apiChecker;
-        }
+        SdkUtil.get().swapApiChecker(new SdkUtil.ApiChecker(null));
+        ModelClass view = ModelAnalyzer.getInstance().findClass("android.widget.TextView", null);
+        ModelMethod isSuggestionsEnabled = view.getMethods("isSuggestionsEnabled", 0)[0];
+        assertEquals(14, SdkUtil.get().getMinApi(isSuggestionsEnabled));
     }
 
     @Test
     public void testNewApiMethod() {
         ModelClass view = ModelAnalyzer.getInstance().findClass("android.view.View", null);
         ModelMethod setElevation = view.getMethods("setElevation", 1)[0];
-        assertEquals(21, SdkUtil.getMinApi(setElevation));
+        assertEquals(21, SdkUtil.get().getMinApi(setElevation));
     }
 
     @Test
@@ -54,7 +46,7 @@ public class SdkVersionTest {
         ModelClass view = ModelAnalyzer.getInstance()
                 .findClass("android.databinding.tool.reflection.SdkVersionTest", null);
         ModelMethod setElevation = view.getMethods("testCustomCode", 0)[0];
-        assertEquals(1, SdkUtil.getMinApi(setElevation));
+        assertEquals(1, SdkUtil.get().getMinApi(setElevation));
     }
 
     @Test
@@ -62,6 +54,6 @@ public class SdkVersionTest {
         ModelClass view = ModelAnalyzer.getInstance()
                 .findClass("android.widget.FrameLayout", null);
         ModelMethod setForeground = view.getMethods("setForegroundGravity", 1)[0];
-        assertEquals(1, SdkUtil.getMinApi(setForeground));
+        assertEquals(1, SdkUtil.get().getMinApi(setForeground));
     }
 }

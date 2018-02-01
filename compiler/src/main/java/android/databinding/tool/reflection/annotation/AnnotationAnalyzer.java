@@ -52,8 +52,6 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
 
     public AnnotationAnalyzer(ProcessingEnvironment processingEnvironment) {
         mProcessingEnv = processingEnvironment;
-        setInstance(this);
-        L.setClient(new AnnotationLogger(processingEnvironment));
     }
 
     public static AnnotationAnalyzer get() {

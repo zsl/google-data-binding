@@ -55,7 +55,7 @@ public class BindingTarget implements LocationScopeProvider {
     }
 
     public void addBinding(String name, Expr expr) {
-        if (SetterStore.get(ModelAnalyzer.getInstance()).isTwoWayEventAttribute(name)) {
+        if (SetterStore.get().isTwoWayEventAttribute(name)) {
             L.e(ErrorMessages.TWO_WAY_EVENT_ATTRIBUTE, name);
         }
         mBindings.add(new Binding(this, name, expr));
@@ -122,7 +122,7 @@ public class BindingTarget implements LocationScopeProvider {
     }
 
     public boolean supportsTag() {
-        return !SetterStore.get(ModelAnalyzer.getInstance())
+        return !SetterStore.get()
                 .isUntaggable(mBundle.getFullClassName());
     }
 
@@ -194,7 +194,7 @@ public class BindingTarget implements LocationScopeProvider {
      */
     public void resolveMultiSetters() {
         L.d("resolving multi setters for %s", getId());
-        final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+        final SetterStore setterStore = SetterStore.get();
         String[] attributes = new String[mBindings.size()];
         ModelClass[] types = new ModelClass[mBindings.size()];
         boolean hasObservableFields = false;

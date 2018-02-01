@@ -16,7 +16,6 @@
 
 package android.databinding.tool.expr;
 
-import android.databinding.Bindable;
 import android.databinding.tool.Binding;
 import android.databinding.tool.BindingTarget;
 import android.databinding.tool.InverseBinding;
@@ -27,7 +26,6 @@ import android.databinding.tool.reflection.Callable;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
-import android.databinding.tool.reflection.ModelField;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.store.SetterStore.BindingGetterCall;
 import android.databinding.tool.util.BrNameUtil;
@@ -35,14 +33,11 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
 import android.databinding.tool.writer.KCode;
-
 import com.google.common.collect.Lists;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class FieldAccessExpr extends MethodBaseExpr {
     // notification name for the field. Important when we map this to a method w/ different name
@@ -343,7 +338,7 @@ public class FieldAccessExpr extends MethodBaseExpr {
         // There was no binding expression to bind to. This should be a two-way binding.
         // This is a synthesized two-way binding because we must capture the events from
         // the View and change the value when the target View's attribute changes.
-        final SetterStore setterStore = SetterStore.get(ModelAnalyzer.getInstance());
+        final SetterStore setterStore = SetterStore.get();
         final ModelClass targetClass = expr.getResolvedType();
         BindingGetterCall getter = setterStore.getGetterCall(mName, targetClass, null, null);
         if (getter == null) {
