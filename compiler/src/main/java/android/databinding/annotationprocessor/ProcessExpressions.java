@@ -68,7 +68,6 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             throws JAXBException {
         try {
             ResourceBundle resourceBundle;
-            SdkUtil.initialize(args.getMinApi(), new File(args.getSdkDir()));
             resourceBundle = new ResourceBundle(args.getModulePackage());
             final List<IntermediateV2> intermediateList;
             if (args.isEnableV2()) {
@@ -120,7 +119,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     }
 
     private List<IntermediateV2> loadDependencyIntermediates() {
-        final List<Intermediate> original = GenerationalClassUtil.loadObjects(
+        final List<Intermediate> original = GenerationalClassUtil.get().loadObjects(
                 GenerationalClassUtil.ExtensionFilter.LAYOUT);
         final List<IntermediateV2> upgraded = new ArrayList<IntermediateV2>(original.size());
         for (Intermediate intermediate : original) {
@@ -136,7 +135,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     private void saveIntermediate(ProcessingEnvironment processingEnvironment,
             DataBindingCompilerArgs args, IntermediateV2 intermediate) {
-        GenerationalClassUtil.writeIntermediateFile(args.getModulePackage(),
+        GenerationalClassUtil.get().writeIntermediateFile(args.getModulePackage(),
                 args.getModulePackage() +
                         GenerationalClassUtil.ExtensionFilter.LAYOUT.getExtension(),
                 intermediate);

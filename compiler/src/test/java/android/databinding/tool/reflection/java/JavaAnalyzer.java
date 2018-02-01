@@ -13,6 +13,7 @@
 
 package android.databinding.tool.reflection.java;
 
+import android.databinding.tool.Context;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.SdkUtil;
@@ -58,7 +59,6 @@ public class JavaAnalyzer extends ModelAnalyzer {
     private final ClassLoader mClassLoader;
 
     public JavaAnalyzer(ClassLoader classLoader) {
-        setInstance(this);
         mClassLoader = classLoader;
     }
 
@@ -226,6 +226,7 @@ public class JavaAnalyzer extends ModelAnalyzer {
                 int version = Integer.parseInt(sdk.getName().substring(prefix.length()));
                 if (version > maxVersion) {
                     androidJar = new File(sdk, "android.jar");
+                    maxVersion = version;
                 }
             } catch (NumberFormatException ex) {
                 L.d("cannot parse number from " +  sdk.getName());
@@ -239,11 +240,11 @@ public class JavaAnalyzer extends ModelAnalyzer {
         try {
             ClassLoader classLoader = new URLClassLoader(new URL[]{androidJar.toURI().toURL()},
                     ModelAnalyzer.class.getClassLoader());
-            new JavaAnalyzer(classLoader);
+            JavaAnalyzer javaAnalyzer = new JavaAnalyzer(classLoader);
+            Context.initForTests(javaAnalyzer,
+                    SdkUtil.create(new File(androidHome), 8));
         } catch (MalformedURLException e) {
             throw new RuntimeException("cannot create class loader", e);
         }
-
-        SdkUtil.initialize(8, new File(androidHome));
     }
 }

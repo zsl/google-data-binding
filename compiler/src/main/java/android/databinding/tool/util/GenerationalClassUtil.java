@@ -17,6 +17,7 @@
 package android.databinding.tool.util;
 
 import android.databinding.annotationprocessor.ProcessExpressions;
+import android.databinding.tool.Context;
 import android.databinding.tool.DataBindingBuilder;
 import android.databinding.tool.DataBindingCompilerArgs;
 
@@ -43,53 +44,61 @@ import java.util.List;
  * and their extraction later on.
  */
 public class GenerationalClassUtil {
-    private static List[] sCache = null;
+    private List[] mCache = null;
 
     @Nullable
-    private static List<File> sInputDirs = new ArrayList<>();
+    private List<File> mInputDirs;
 
     @Nullable
-    private static File sIncrementalOutDir;
+    private File mIncrementalOutDir;
 
-    private static ExtensionFilter[] sEnabledExtensions;
+    private ExtensionFilter[] mEnabledExtensions;
 
-    public static void init(DataBindingCompilerArgs args) {
+    public static GenerationalClassUtil create(DataBindingCompilerArgs args) {
+        return new GenerationalClassUtil(args);
+    }
+
+    private GenerationalClassUtil(DataBindingCompilerArgs args) {
         if (args.isEnableV2()) {
-            sEnabledExtensions = new ExtensionFilter[]{ExtensionFilter.BR,
+            mEnabledExtensions = new ExtensionFilter[]{ExtensionFilter.BR,
             ExtensionFilter.SETTER_STORE};
         } else {
-            sEnabledExtensions = new ExtensionFilter[]{ExtensionFilter.BR, ExtensionFilter.LAYOUT,
+            mEnabledExtensions = new ExtensionFilter[]{ExtensionFilter.BR, ExtensionFilter.LAYOUT,
                     ExtensionFilter.SETTER_STORE};
         }
         if (StringUtils.isNotBlank(args.getAarOutFolder())) {
-            sIncrementalOutDir = new File(args.getAarOutFolder(),
+            mIncrementalOutDir = new File(args.getAarOutFolder(),
                     DataBindingBuilder.INCREMENTAL_BIN_AAR_DIR);
         } else {
-            sIncrementalOutDir = null;
+            mIncrementalOutDir = null;
         }
-        sInputDirs = new ArrayList<>();
+        mInputDirs = new ArrayList<>();
         if (StringUtils.isNotBlank(args.getBuildFolder())) {
-            sInputDirs.add(new File(args.getBuildFolder(),
+            mInputDirs.add(new File(args.getBuildFolder(),
                     DataBindingBuilder.ARTIFACT_FILES_DIR_FROM_LIBS));
         }
     }
 
-    public static <T extends Serializable> List<T> loadObjects(ExtensionFilter filter) {
-        if (sCache == null) {
+    public static GenerationalClassUtil get() {
+        return Context.getGenerationalClassUtil();
+    }
+
+    public <T extends Serializable> List<T> loadObjects(ExtensionFilter filter) {
+        if (mCache == null) {
             buildCache();
         }
-        List result = sCache[filter.ordinal()];
+        List result = mCache[filter.ordinal()];
         Preconditions.checkNotNull(result, "Invalid filter " + filter);
         //noinspection unchecked
         return result;
     }
 
-    private static void buildCache() {
+    private void buildCache() {
         L.d("building generational class cache");
 
-        sCache = new List[ExtensionFilter.values().length];
-        for (ExtensionFilter filter : sEnabledExtensions) {
-            sCache[filter.ordinal()] = new ArrayList();
+        mCache = new List[ExtensionFilter.values().length];
+        for (ExtensionFilter filter : mEnabledExtensions) {
+            mCache[filter.ordinal()] = new ArrayList();
         }
         loadFromBuildInfo();
     }
@@ -105,17 +114,17 @@ public class GenerationalClassUtil {
      * This is a backward compatibility measure and should eventually be phased out after we move
      * to an aar based information retrieval model.
      */
-    private static void loadFromBuildInfo() {
-        sInputDirs.forEach(GenerationalClassUtil::loadFromDirectory);
+    private void loadFromBuildInfo() {
+        mInputDirs.forEach(this::loadFromDirectory);
     }
 
-    private static void loadFromDirectory(File directory) {
+    private void loadFromDirectory(File directory) {
         if (directory == null || !directory.canRead() || !directory.isDirectory()) {
             return;
         }
         for (File file : FileUtils.listFiles(directory, TrueFileFilter.INSTANCE,
                 TrueFileFilter.INSTANCE)) {
-            for (ExtensionFilter filter : sEnabledExtensions) {
+            for (ExtensionFilter filter : mEnabledExtensions) {
                 if (filter.accept(file.getName())) {
                     InputStream inputStream = null;
                     try {
@@ -123,7 +132,7 @@ public class GenerationalClassUtil {
                         Serializable item = fromInputStream(inputStream);
                         if (item != null) {
                             //noinspection unchecked
-                            sCache[filter.ordinal()].add(item);
+                            mCache[filter.ordinal()].add(item);
                             L.d("loaded item %s from file", item);
                         }
                     } catch (IOException e) {
@@ -139,24 +148,24 @@ public class GenerationalClassUtil {
         }
     }
 
-    private static Serializable fromInputStream(InputStream inputStream)
+    private Serializable fromInputStream(InputStream inputStream)
             throws IOException, ClassNotFoundException {
         ObjectInputStream in = new IgnoreSerialIdObjectInputStream(inputStream);
         return (Serializable) in.readObject();
 
     }
 
-    public static void writeIntermediateFile(String packageName, String fileName,
+    public void writeIntermediateFile(String packageName, String fileName,
             Serializable object) {
         ObjectOutputStream oos = null;
         OutputStream ios = null;
         try {
             try {
-                Preconditions.checkNotNull(sIncrementalOutDir, "incremental out directory should be"
+                Preconditions.checkNotNull(mIncrementalOutDir, "incremental out directory should be"
                         + " set to aar output directory.");
                 //noinspection ResultOfMethodCallIgnored
-                sIncrementalOutDir.mkdirs();
-                File out = new File(sIncrementalOutDir, packageName + "-" + fileName);
+                mIncrementalOutDir.mkdirs();
+                File out = new File(mIncrementalOutDir, packageName + "-" + fileName);
                 ios = new FileOutputStream(out);
                 oos = new ObjectOutputStream(ios);
                 oos.writeObject(object);
