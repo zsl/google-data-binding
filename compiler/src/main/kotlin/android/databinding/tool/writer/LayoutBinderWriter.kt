@@ -374,6 +374,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 nl(declareHasPendingBindings())
                 nl(declareSetVariable())
                 nl(variableSettersAndGetters())
+                nl(declareSetLifecycleOwnerOverride())
                 nl(onFieldChange())
                 try {
                     Scope.enter(Scope.GLOBAL)
@@ -753,6 +754,19 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     block("public ${it.resolvedType.toJavaCode()} ${it.getterName}()") {
                         nl("return ${it.fieldName};")
                     }
+                }
+            }
+        }
+    }
+
+    fun declareSetLifecycleOwnerOverride() = kcode("") {
+        val includes = includedBinders.filter { it.isUsed }
+        if (includes.isNotEmpty()) {
+            nl("@Override")
+            block("public void setLifecycleOwner(@Nullable android.arch.lifecycle.LifecycleOwner lifecycleOwner)") {
+                nl("super.setLifecycleOwner(lifecycleOwner);")
+                includes.forEach { binder ->
+                    nl("${binder.fieldName}.setLifecycleOwner(lifecycleOwner);");
                 }
             }
         }
