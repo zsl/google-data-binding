@@ -11,8 +11,7 @@
   ~ limitations under the License.
   -->
 
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
 
@@ -29,10 +28,6 @@
         <variable
             name="liveDataContainer"
             type="android.databinding.testapp.vo.LiveDataContainer" />
-
-        <variable
-            name="bValue"
-            type="android.databinding.ObservableBoolean" />
     </data>
 
     <LinearLayout
@@ -69,23 +64,5 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@{liveData}" />
-
-        <TextView
-            android:id="@+id/textView6"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@{`` + bValue}" />
-
-        <TextView
-            android:id="@+id/textView7"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@{liveDataContainer.getValue(liveDataContainer.contained.liveData)}" />
-
-        <include layout="@layout/live_data_included"
-            android:id="@+id/included"
-            app:liveData="@{liveData}"
-            app:liveDataObject="@{liveDataObject}"
-            app:liveDataContainer="@{liveDataContainer}"/>
     </LinearLayout>
 </layout>
