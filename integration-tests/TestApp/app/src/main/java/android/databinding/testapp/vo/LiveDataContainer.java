@@ -18,5 +18,12 @@ package android.databinding.testapp.vo;
 import android.arch.lifecycle.MutableLiveData;
 
 public class LiveDataContainer {
+    private int value = 0;
     public final MutableLiveData<String> liveData = new MutableLiveData<>();
+    public final MutableLiveData<LiveDataContainer> contained = new MutableLiveData<>();
+
+    public String getValue(String data) {
+        value++;
+        return String.valueOf(value);
+    }
 }
