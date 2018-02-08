@@ -19,32 +19,53 @@ package android.databinding;
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.LayoutBinder;
 import android.databinding.tool.MockLayoutBinder;
-import android.databinding.tool.expr.*;
+import android.databinding.tool.expr.BitShiftExpr;
+import android.databinding.tool.expr.BracketExpr;
+import android.databinding.tool.expr.CastExpr;
+import android.databinding.tool.expr.ComparisonExpr;
+import android.databinding.tool.expr.Expr;
+import android.databinding.tool.expr.ExprModel;
+import android.databinding.tool.expr.MathExpr;
+import android.databinding.tool.expr.MethodCallExpr;
+import android.databinding.tool.expr.TernaryExpr;
+import android.databinding.tool.expr.UnaryExpr;
 import android.databinding.tool.reflection.InjectedClass;
 import android.databinding.tool.reflection.InjectedMethod;
 import android.databinding.tool.reflection.ModelAnalyzer;
+import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.java.JavaAnalyzer;
+import org.junit.Before;
+import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import org.junit.Before;
-import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import java.util.Map;
 
 public class SafeUnboxingTest {
     ExprModel mExprModel;
     LayoutBinder mLayoutBinder;
-    IdentifierExpr mDynamicUtil;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         JavaAnalyzer.initForTests();
         mLayoutBinder = new MockLayoutBinder();
         mExprModel = mLayoutBinder.getModel();
-        mDynamicUtil = mExprModel.dynamicUtil();
-        CompilerChef.pushDynamicUtilToAnalyzer();
+        createFakeViewDataBinding();
+    }
+
+    private void createFakeViewDataBinding() {
+        InjectedClass injectedClass = new InjectedClass("android.databinding.ViewDataBinding",
+                "java.lang.Object");
+        for (Map.Entry<Class, Class> entry : ModelClass.BOX_MAPPING.entrySet()) {
+            injectedClass.addMethod(new InjectedMethod(injectedClass, true,
+                    ExprModel.SAFE_UNBOX_METHOD_NAME, null, entry.getKey().getCanonicalName(),
+                    entry.getValue().getCanonicalName()));
+        }
+
+        ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
+        analyzer.injectClass(injectedClass);
     }
 
     @Test
@@ -482,7 +503,6 @@ public class SafeUnboxingTest {
         assertThat(methodCallExpr.getResolvedType().getCanonicalName(), is(replacementReturn));
         assertThat(methodCallExpr.getArgs().get(0), is(original));
         assertThat(methodCallExpr.getArgs().size(), is(1));
-        assertThat(methodCallExpr.getTarget(), is(mDynamicUtil));
     }
 
     private <T extends Expr> T parse(String input) {
