@@ -262,6 +262,13 @@ public abstract class ViewDataBinding extends BaseObservable {
     private OnStartListener mOnStartListener;
 
     /**
+     * When LiveData first registers for a change, it notifies immediately that there was a
+     * change. This flag identifies that we've just started observing LiveData and we should ignore
+     * the change notification.
+     */
+    private boolean mInLiveDataRegisterObserver;
+
+    /**
      * @hide
      */
     protected ViewDataBinding(DataBindingComponent bindingComponent, View root, int localFieldCount) {
@@ -496,6 +503,12 @@ public abstract class ViewDataBinding extends BaseObservable {
     }
 
     private void handleFieldChange(int mLocalFieldId, Object object, int fieldId) {
+        if (mInLiveDataRegisterObserver) {
+            // We're in LiveData registration, which always results in a field change
+            // that we can ignore. The value will be read immediately after anyway, so
+            // there is no need to be dirty.
+            return;
+        }
         boolean result = onFieldChange(mLocalFieldId, object, fieldId);
         if (result) {
             requestRebind();
@@ -594,7 +607,12 @@ public abstract class ViewDataBinding extends BaseObservable {
      * @hide
      */
     protected boolean updateLiveDataRegistration(int localFieldId, LiveData<?> observable) {
-        return updateRegistration(localFieldId, observable, CREATE_LIVE_DATA_LISTENER);
+        mInLiveDataRegisterObserver = true;
+        try {
+            return updateRegistration(localFieldId, observable, CREATE_LIVE_DATA_LISTENER);
+        } finally {
+            mInLiveDataRegisterObserver = false;
+        }
     }
 
     /**

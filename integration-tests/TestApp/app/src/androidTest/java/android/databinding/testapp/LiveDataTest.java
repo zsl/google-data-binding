@@ -56,6 +56,12 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         assertEquals("", fragment.binding.textView1.getText().toString());
         assertEquals("", fragment.binding.textView2.getText().toString());
         assertEquals("", fragment.binding.textView5.getText().toString());
+        assertEquals("1", fragment.binding.textView7.getText().toString());
+        fragment.binding.executePendingBindings();
+        assertEquals("1", fragment.binding.textView7.getText().toString());
+        assertEquals("", fragment.binding.included.textView1.getText().toString());
+        assertEquals("", fragment.binding.included.textView2.getText().toString());
+        assertEquals("", fragment.binding.included.textView5.getText().toString());
 
         // Now change the values while the lifecycle owner is active
         fragment.liveDataObject.setValue("Hello");
@@ -66,6 +72,14 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         assertEquals("Hello", fragment.binding.textView1.getText().toString());
         assertEquals("World", fragment.binding.textView2.getText().toString());
         assertEquals("Hello", fragment.binding.textView5.getText().toString());
+        assertEquals("1", fragment.binding.textView7.getText().toString());
+
+        fragment.contained.liveData.setValue("Foo");
+        fragment.binding.executePendingBindings();
+        assertEquals("2", fragment.binding.textView7.getText().toString());
+        assertEquals("Hello", fragment.binding.included.textView1.getText().toString());
+        assertEquals("World", fragment.binding.included.textView2.getText().toString());
+        assertEquals("Hello", fragment.binding.included.textView5.getText().toString());
 
         // Now change the values while the lifecycle owner is inactive
         getActivity().getSupportFragmentManager().beginTransaction()
@@ -80,6 +94,9 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         assertEquals("Hello", fragment.binding.textView1.getText().toString());
         assertEquals("World", fragment.binding.textView2.getText().toString());
         assertEquals("Hello", fragment.binding.textView5.getText().toString());
+        assertEquals("Hello", fragment.binding.included.textView1.getText().toString());
+        assertEquals("World", fragment.binding.included.textView2.getText().toString());
+        assertEquals("Hello", fragment.binding.included.textView5.getText().toString());
 
         // Even when it is back in the view hierarchy, it shouldn't trigger a change to
         // the value
@@ -88,6 +105,9 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         assertEquals("Hello", fragment.binding.textView1.getText().toString());
         assertEquals("World", fragment.binding.textView2.getText().toString());
         assertEquals("Hello", fragment.binding.textView5.getText().toString());
+        assertEquals("Hello", fragment.binding.included.textView1.getText().toString());
+        assertEquals("World", fragment.binding.included.textView2.getText().toString());
+        assertEquals("Hello", fragment.binding.included.textView5.getText().toString());
 
         // Now let's go back to it being active:
         getBinder().container.removeView(fragment.binding.getRoot());
@@ -98,6 +118,9 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         assertEquals("Another", fragment.binding.textView1.getText().toString());
         assertEquals("Value", fragment.binding.textView2.getText().toString());
         assertEquals("Another", fragment.binding.textView5.getText().toString());
+        assertEquals("Another", fragment.binding.included.textView1.getText().toString());
+        assertEquals("Value", fragment.binding.included.textView2.getText().toString());
+        assertEquals("Another", fragment.binding.included.textView5.getText().toString());
     }
 
     @UiThreadTest
@@ -222,17 +245,19 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
     public static final class MyFragment extends Fragment {
         public final LiveDataObject liveDataObject = new LiveDataObject();
         public final LiveDataContainer liveDataContainer = new LiveDataContainer();
+        public final LiveDataContainer contained = new LiveDataContainer();
         public LiveDataBinding binding;
 
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                 @Nullable Bundle savedInstanceState) {
+            liveDataContainer.contained.setValue(contained);
             binding = LiveDataBinding.inflate(inflater, container, false);
+            binding.setLifecycleOwner(this);
             binding.setLiveData(liveDataObject);
             binding.setLiveDataObject(liveDataObject);
             binding.setLiveDataContainer(liveDataContainer);
-            binding.setLifecycleOwner(this);
             return binding.getRoot();
         }
     }
