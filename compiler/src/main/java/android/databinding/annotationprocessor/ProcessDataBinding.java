@@ -127,10 +127,6 @@ public class ProcessDataBinding extends AbstractProcessor {
                 chef.addBRVariables(processBindable);
                 mChef = chef;
                 considerWritingMapper();
-                if (mCompilerArgs.isApp() != mCompilerArgs.isTestVariant() ||
-                        mCompilerArgs.isEnabledForTests()) {
-                    mChef.writeDynamicUtil();
-                }
             }
 
             private void considerWritingMapper() {

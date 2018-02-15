@@ -77,7 +77,7 @@ public class BaseCompilationTest {
     public TemporaryBuildFolder tmpBuildFolder =
             new TemporaryBuildFolder(new File("./build", "build-test"), false);
 
-    private final boolean mEnableV2;
+    protected final boolean mEnableV2;
 
     File testFolder;
 

@@ -43,7 +43,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class ExprModel {
-    static final String DYNAMIC_UTIL = "android.databinding.DynamicUtil";
     public static final String SAFE_UNBOX_METHOD_NAME = "safeUnbox";
 
     Map<String, Expr> mExprMap = new HashMap<String, Expr>();
@@ -210,12 +209,6 @@ public class ExprModel {
         return register(new ViewFieldExpr(bindingTarget));
     }
 
-    public IdentifierExpr dynamicUtil() {
-        IdentifierExpr dynamicUtil = staticIdentifier(DYNAMIC_UTIL);
-        dynamicUtil.setUserDefinedType(DYNAMIC_UTIL);
-        return dynamicUtil;
-    }
-
     public IdentifierExpr viewDataBinding() {
         IdentifierExpr viewDataBinding = staticIdentifier(ModelAnalyzer.VIEW_DATA_BINDING);
         viewDataBinding.setUserDefinedType(ModelAnalyzer.VIEW_DATA_BINDING);
@@ -224,9 +217,9 @@ public class ExprModel {
 
     public MethodCallExpr safeUnbox(Expr expr) {
         ModelClass resolvedType = expr.getResolvedType();
-        Preconditions.check(resolvedType.unbox() != resolvedType, ErrorMessages.CANNOT_UNBOX_TYPE,
-                resolvedType);
-        MethodCallExpr methodCallExpr = methodCall(dynamicUtil(), SAFE_UNBOX_METHOD_NAME,
+        Preconditions.check(resolvedType.unbox() != resolvedType,
+                ErrorMessages.CANNOT_UNBOX_TYPE, resolvedType);
+        MethodCallExpr methodCallExpr = methodCall(viewDataBinding(), SAFE_UNBOX_METHOD_NAME,
                 Collections.singletonList(expr));
         methodCallExpr.setAllowProtected();
         for (Location location : expr.getLocations()) {
@@ -239,14 +232,14 @@ public class ExprModel {
      * These are global methods in the expressions.
      * <p>
      * To keep this list under control, we validate the method name instead of just resolving to
-     * DynamicUtil or parent.
+     * parent.
      */
     public Expr globalMethodCall(String methodName, List<Expr> args) {
         Preconditions.check(SAFE_UNBOX_METHOD_NAME.equals(methodName),
                 ErrorMessages.CANNOT_FIND_METHOD_ON_OWNER, methodName, "ViewDataBinding");
         Preconditions.check(args.size() == 1,
                 ErrorMessages.ARGUMENT_COUNT_MISMATCH, 1, args.size());
-        MethodCallExpr expr = methodCall(dynamicUtil(), SAFE_UNBOX_METHOD_NAME, args);
+        MethodCallExpr expr = methodCall(viewDataBinding(), SAFE_UNBOX_METHOD_NAME, args);
         expr.setAllowProtected();
         return expr;
     }
