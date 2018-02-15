@@ -350,29 +350,6 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 "and cannot be assigned.", ex.getBareMessage());
     }
 
-    @SuppressWarnings("deprecated")
-    @Test
-    public void testDynamicUtilMembers() throws Throwable {
-        prepareProject();
-        CompilationResult result = runGradle("assembleDebug");
-        assertEquals(result.error, 0, result.resultCode);
-        assertTrue("there should not be any errors " + result.error,
-                StringUtils.isEmpty(result.error));
-        assertTrue("Test sanity, should compile fine",
-                result.resultContainsText("BUILD SUCCESSFUL"));
-        File classFile = new File(testFolder,
-                "app/build/intermediates/classes/debug/android/databinding/DynamicUtil.class");
-        assertTrue(classFile.exists());
-
-        File root = new File(testFolder, "app/build/intermediates/classes/debug/");
-        URL[] urls = new URL[] {root.toURL()};
-        ClassLoader classLoader = new URLClassLoader(urls,
-                SimpleCompilationTest.class.getClassLoader());
-        Class dynamicUtilClass = classLoader.loadClass("android.databinding.DynamicUtil");
-        // ensure it is generated.
-        MatcherAssert.assertThat(dynamicUtilClass, CoreMatchers.notNullValue());
-    }
-
     @Test
     public void testDependantDoesNotExist() throws Throwable {
         prepareProject();

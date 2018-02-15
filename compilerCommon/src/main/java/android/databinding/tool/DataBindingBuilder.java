@@ -133,7 +133,6 @@ public class DataBindingBuilder {
         for (String pkg : getBRFilePackages(dataBindingCompilerBuildFolder)) {
             excludes.add(pkg.replace('.', '/') + "/BR.*");
         }
-        excludes.add("android/databinding/DynamicUtil.class");
         if (generatedClassListFile != null) {
             List<String> generatedClasses = readGeneratedClasses(generatedClassListFile);
             for (String klass : generatedClasses) {

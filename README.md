@@ -62,7 +62,7 @@ Now you can open extensions in Android Studio.
 ## Running Android Gradle Plugin Data Binding Tests
 Some of data binding tests are only in AGP. To run them:
 
-`gw :base:build-system:integration-test:application:te -D:base:build-system:integration-test:application:test.single=DataBinding\*`
+`gw :base:build-system:integration-test:databinding:te`
 
 ### Running Integration Tests
 These are run by gradle build.

@@ -13,24 +13,18 @@
 
 package android.databinding.tool;
 
-import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.reflection.InjectedClass;
-import android.databinding.tool.reflection.InjectedMethod;
 import android.databinding.tool.reflection.ModelAnalyzer;
-import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.GenClassInfoLog;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
-import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.BindingMapperWriter;
 import android.databinding.tool.writer.BindingMapperWriterV2;
-import android.databinding.tool.writer.DynamicUtilWriter;
 import android.databinding.tool.writer.JavaFileWriter;
 import android.databinding.tool.writer.MergedBindingMapperWriter;
-
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 
@@ -39,7 +33,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -90,7 +83,6 @@ public class CompilerChef {
         chef.mResourceBundle.validateMultiResLayouts();
         chef.mEnableV2 = compilerArgs.isEnableV2();
         chef.pushClassesToAnalyzer();
-        chef.pushDynamicUtilToAnalyzer();
         return chef;
     }
 
@@ -164,20 +156,6 @@ public class CompilerChef {
                 }
             }
         }
-    }
-
-    public static InjectedClass pushDynamicUtilToAnalyzer() {
-        InjectedClass injectedClass = new InjectedClass("android.databinding.DynamicUtil",
-                "java.lang.Object");
-        for (Map.Entry<Class, Class> entry : ModelClass.BOX_MAPPING.entrySet()) {
-            injectedClass.addMethod(new InjectedMethod(injectedClass, true,
-                    ExprModel.SAFE_UNBOX_METHOD_NAME, null, entry.getKey().getCanonicalName(),
-                    entry.getValue().getCanonicalName()));
-        }
-
-        ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
-        analyzer.injectClass(injectedClass);
-        return injectedClass;
     }
 
     public void writeDataBinderMapper(DataBindingCompilerArgs compilerArgs, BRWriter brWriter,
@@ -263,23 +241,6 @@ public class CompilerChef {
         } catch (IOException e) {
             Scope.defer(new ScopedException("cannot generate mapper class", e));
         }
-    }
-
-    public void writeDynamicUtil() {
-        DynamicUtilWriter dynamicUtil = new DynamicUtilWriter();
-        // TODO: Replace this with targetSDK check from plugin
-        ModelClass versionCodes = ModelAnalyzer.getInstance().findClass(
-                "android.os.Build.VERSION_CODES", null);
-        Preconditions.checkNotNull(versionCodes, "Could not find compile SDK");
-        int compileVersion = 1;
-        for (int i = VERSION_CODES.length - 1; i >= 0; i--) {
-            if (versionCodes.findGetterOrField(VERSION_CODES[i], true) != null) {
-                compileVersion = i + 1;
-                break;
-            }
-        }
-        mFileWriter.writeToFile("android.databinding.DynamicUtil",
-                dynamicUtil.write(compileVersion).generate());
     }
 
     /**
