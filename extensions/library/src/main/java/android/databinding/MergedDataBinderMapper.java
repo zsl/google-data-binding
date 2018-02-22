@@ -25,11 +25,23 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * A data binding mapper that merges other mappers.
  */
+@SuppressWarnings("unused")
 public class MergedDataBinderMapper extends DataBinderMapper {
     private List<DataBinderMapper> mMappers = new CopyOnWriteArrayList<>();
+    /**
+     * List of features that have binding mappers. We try to load those classes lazily when we
+     * cannot find a binding.
+     */
+    private List<String> mFeatureBindingMappers = new CopyOnWriteArrayList<>();
 
+    @SuppressWarnings("WeakerAccess")
     protected void addMapper(DataBinderMapper mapper) {
         mMappers.add(mapper);
+    }
+
+    @SuppressWarnings({"WeakerAccess", "unused"})
+    protected void addMapper(String featureMapper) {
+        mFeatureBindingMappers.add(featureMapper + ".DataBinderMapperImpl");
     }
 
     @Override
@@ -40,6 +52,9 @@ public class MergedDataBinderMapper extends DataBinderMapper {
             if (result != null) {
                 return result;
             }
+        }
+        if (loadFeatures()) {
+            return getDataBinder(bindingComponent, view, layoutId);
         }
         return null;
     }
@@ -53,6 +68,9 @@ public class MergedDataBinderMapper extends DataBinderMapper {
                 return result;
             }
         }
+        if (loadFeatures()) {
+            return getDataBinder(bindingComponent, view, layoutId);
+        }
         return null;
     }
 
@@ -63,6 +81,9 @@ public class MergedDataBinderMapper extends DataBinderMapper {
             if (result != 0) {
                 return result;
             }
+        }
+        if (loadFeatures()) {
+            return getLayoutId(tag);
         }
         return 0;
     }
@@ -75,6 +96,32 @@ public class MergedDataBinderMapper extends DataBinderMapper {
                 return result;
             }
         }
+        if (loadFeatures()) {
+            return convertBrIdToString(id);
+        }
         return null;
+    }
+
+    /**
+     * @return true if we load a new mapper
+     */
+    private boolean loadFeatures() {
+        boolean found = false;
+        for (String mapper : mFeatureBindingMappers) {
+            try {
+                Class<?> aClass = Class.forName(mapper);
+                if (DataBinderMapper.class.isAssignableFrom(aClass)) {
+                    DataBinderMapper featureMapper = (DataBinderMapper) aClass.newInstance();
+                    addMapper(featureMapper);
+                    mFeatureBindingMappers.remove(mapper);
+                    found = true;
+                }
+
+            } catch (ClassNotFoundException ignored) {
+            } catch (IllegalAccessException ignored) {
+            } catch (InstantiationException ignored) {
+            }
+        }
+        return found;
     }
 }

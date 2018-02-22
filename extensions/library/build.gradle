@@ -53,6 +53,9 @@ android {
         exclude 'META-INF/NOTICE.txt'
         exclude 'android/databinding/DataBinderMapperImpl.class'
     }
+    buildTypes.all {
+        consumerProguardFiles 'proguard-consumer-rules.pro'
+    }
 }
 
 configurations {

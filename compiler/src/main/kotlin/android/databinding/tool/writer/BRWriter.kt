@@ -16,21 +16,41 @@
 
 package android.databinding.tool.writer
 
-import android.databinding.tool.util.StringUtils
+import android.databinding.annotationprocessor.BindableBag
+import android.databinding.tool.ext.L
+import android.databinding.tool.ext.S
+import android.databinding.tool.reflection.ModelAnalyzer
+import com.squareup.javapoet.AnnotationSpec
+import com.squareup.javapoet.FieldSpec
+import com.squareup.javapoet.JavaFile
+import com.squareup.javapoet.TypeName
+import com.squareup.javapoet.TypeSpec
+import javax.annotation.Generated
+import javax.lang.model.element.Modifier
 
-class BRWriter(val properties: Set<String>, val useFinal : Boolean) {
-    val indexedProps = properties.sorted().withIndex()
-    fun write(pkg : String): String = "package $pkg;${StringUtils.LINE_SEPARATOR}$klass"
-    val klass: String by lazy {
-        kcode("") {
-            val prefix = if (useFinal) "final " else "";
-            annotateWithGenerated()
-            block("public class BR") {
-                tab("public static ${prefix}int _all = 0;")
-                indexedProps.forEach {
-                    tab ("public static ${prefix}int ${it.value} = ${it.index + 1};")
-                }
+class BRWriter(private val useFinal : Boolean) {
+    fun write(values : BindableBag.BRWithValues): String {
+        val spec = TypeSpec.classBuilder("BR").apply {
+            addModifiers(Modifier.PUBLIC)
+            if (ModelAnalyzer.getInstance().hasGeneratedAnnotation()) {
+                addAnnotation(AnnotationSpec.builder(Generated::class.java)
+                        .addMember("value", S,"Android Data Binding").build())
             }
-        }.generate()
+            values.props.forEach {
+                addField(
+                        FieldSpec.builder(TypeName.INT, it.first, Modifier.PUBLIC,
+                                Modifier.STATIC).apply {
+                            if (useFinal) {
+                                addModifiers(Modifier.FINAL)
+                            }
+                            initializer(L, it.second)
+                        }.build()
+                )
+            }
+        }.build()
+        val sb = StringBuilder()
+        JavaFile.builder(values.pkg, spec).build()
+                .writeTo(sb)
+        return  sb.toString()
     }
 }

@@ -28,7 +28,8 @@ import com.squareup.javapoet.TypeSpec
 import javax.lang.model.element.Modifier
 
 class MergedBindingMapperWriter(private val packages: List<String>,
-                                compilerArgs: DataBindingCompilerArgs) {
+                                compilerArgs: DataBindingCompilerArgs,
+                                private val featurePackages : Set<String>) {
     private val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
     private val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
     private val overrideField = FieldSpec.builder(BindingMapperWriterV2.DATA_BINDER_MAPPER,
@@ -57,6 +58,9 @@ class MergedBindingMapperWriter(private val packages: List<String>,
             packages.forEach { pkg ->
                 val mapper = ClassName.get(pkg, APP_CLASS_NAME)
                 addStatement("addMapper(new $T())", mapper)
+            }
+            featurePackages.forEach {
+                addStatement("addMapper($S)", it)
             }
             if (generateTestOverride) {
                 beginControlFlow("if($N != null)", overrideField).apply {
