@@ -21,18 +21,13 @@ import android.databinding.tool.Context;
 import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
-import android.databinding.tool.reflection.ModelAnalyzer;
-import android.databinding.tool.util.GenerationalClassUtil;
+import android.databinding.tool.store.GenClassInfoLog;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.AnnotationJavaFileWriter;
-import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.JavaFileWriter;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -41,6 +36,11 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.xml.bind.JAXBException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes({
         "android.databinding.BindingAdapter",
@@ -117,12 +117,14 @@ public class ProcessDataBinding extends AbstractProcessor {
         );
         Callback dataBinderWriterCallback = new Callback() {
             CompilerChef mChef;
-            BRWriter mBRWriter;
             List<String> mModulePackages;
+            Map<String, Integer> mBRVariableLookup;
             boolean mWrittenMapper = false;
 
             @Override
-            public void onChefReady(CompilerChef chef) {
+            public void onChefReady(
+                    @NonNull CompilerChef chef,
+                    @Nullable GenClassInfoLog classInfoLog) {
                 Preconditions.checkNull(mChef, "Cannot set compiler chef twice");
                 chef.addBRVariables(processBindable);
                 mChef = chef;
@@ -130,23 +132,22 @@ public class ProcessDataBinding extends AbstractProcessor {
             }
 
             private void considerWritingMapper() {
-                if (mWrittenMapper || mChef == null || mBRWriter == null) {
+                if (mWrittenMapper || mChef == null || mBRVariableLookup == null) {
                     return;
                 }
-                boolean justLibrary =
-                        mCompilerArgs.artifactType() == DataBindingCompilerArgs.Type.LIBRARY &&
-                                !mCompilerArgs.isTestVariant();
+                boolean justLibrary = mCompilerArgs.isLibrary()
+                        && !mCompilerArgs.isTestVariant();
                 if (justLibrary && !mCompilerArgs.isEnableV2()) {
                     return;
                 }
                 mWrittenMapper = true;
-                mChef.writeDataBinderMapper(mCompilerArgs, mBRWriter, mModulePackages);
+                mChef.writeDataBinderMapper(mCompilerArgs, mBRVariableLookup, mModulePackages);
             }
 
             @Override
-            public void onBrWriterReady(BRWriter brWriter, List<String> brPackages) {
-                Preconditions.checkNull(mBRWriter, "Cannot set br writer twice");
-                mBRWriter = brWriter;
+            public void onBrWriterReady(Map<String, Integer> brLookup, List<String> brPackages) {
+                Preconditions.checkNull(mBRVariableLookup, "Cannot set br writer twice");
+                mBRVariableLookup = brLookup;
                 mModulePackages = brPackages;
                 considerWritingMapper();
             }
@@ -188,7 +189,7 @@ public class ProcessDataBinding extends AbstractProcessor {
     public abstract static class ProcessingStep {
         private boolean mDone;
         private JavaFileWriter mJavaFileWriter;
-        protected Callback mCallback;
+        Callback mCallback;
 
         protected JavaFileWriter getWriter() {
             return mJavaFileWriter;
@@ -223,7 +224,7 @@ public class ProcessDataBinding extends AbstractProcessor {
     }
 
     interface Callback {
-        void onChefReady(CompilerChef chef);
-        void onBrWriterReady(BRWriter brWriter, List<String> brPackages);
+        void onChefReady(CompilerChef chef, GenClassInfoLog classInfoLog);
+        void onBrWriterReady(Map<String, Integer> brWriter, List<String> brPackages);
     }
 }

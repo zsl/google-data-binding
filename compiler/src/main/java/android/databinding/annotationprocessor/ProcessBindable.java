@@ -28,15 +28,6 @@ import android.databinding.tool.writer.JavaFileWriter;
 
 import com.google.common.collect.Sets;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -47,6 +38,17 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Types;
+
+import java.io.File;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 
 // binding app info and library info are necessary to trigger this.
 public class ProcessBindable extends ProcessDataBinding.ProcessingStep implements BindableHolder {
@@ -69,12 +71,14 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                     Element enclosingElement = element.getEnclosingElement();
                     ElementKind kind = enclosingElement.getKind();
                     if (kind != ElementKind.CLASS && kind != ElementKind.INTERFACE) {
-                        L.e("Bindable must be on a member field or method. The enclosing type is %s",
+                        L.e("Bindable must be on a member field or method. The enclosing type is "
+                                        + "%s",
                                 enclosingElement.getKind());
                     }
                     TypeElement enclosing = (TypeElement) enclosingElement;
                     if (!typeUtils.isAssignable(enclosing.asType(), observableType.asType())) {
-                        L.e("Bindable must be on a member in an Observable class. %s is not Observable",
+                        L.e("Bindable must be on a member in an Observable class. %s is not "
+                                        + "Observable",
                                 enclosingElement.getSimpleName());
                     }
                     String name = getPropertyName(element);
@@ -90,7 +94,8 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             }
             GenerationalClassUtil.get().writeIntermediateFile(mProperties.getPackage(),
                     createIntermediateFileName(mProperties.getPackage()), mProperties);
-            generateBRClasses(args, mProperties.getPackage());
+            generateBRClasses(processingEnv, args, mProperties.getPackage());
+            return true;
         }
         return false;
     }
@@ -107,46 +112,39 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
 
     @Override
     public void onProcessingOver(RoundEnvironment roundEnvironment,
-            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args) {
+            ProcessingEnvironment processingEnvironment,
+            DataBindingCompilerArgs args) {
     }
 
     private String createIntermediateFileName(String appPkg) {
         return appPkg + GenerationalClassUtil.ExtensionFilter.BR.getExtension();
     }
 
-    private void generateBRClasses(DataBindingCompilerArgs compilerArgs, String pkg) {
+    private void generateBRClasses(
+            ProcessingEnvironment processingEnv,
+            DataBindingCompilerArgs compilerArgs,
+            String pkg) {
         try {
-            Set<String> written = new HashSet<>();
             DataBindingCompilerArgs.Type artifactType = compilerArgs.artifactType();
             L.d("************* Generating BR file %s. use final: %s", pkg, artifactType.name());
             HashSet<String> properties = new HashSet<>();
             mProperties.captureProperties(properties);
-            Collection<Intermediate> previousIntermediates = loadPreviousBRFiles(pkg + ".BR");
-            for (Intermediate intermediate : previousIntermediates) {
-                intermediate.captureProperties(properties);
-            }
+            BindableBag bindableBag = new BindableBag(
+                    compilerArgs,
+                    getProperties(mProperties),
+                    processingEnv);
             final JavaFileWriter writer = getWriter();
-            boolean useFinal = artifactType == DataBindingCompilerArgs.Type.APPLICATION
+            boolean useFinal = compilerArgs.isApp()
+                    || compilerArgs.isFeature()
                     || compilerArgs.isTestVariant();
-            BRWriter brWriter = new BRWriter(properties, useFinal);
-            // bazel has duplicate package names so we need to avoid overwriting BR files.
-            writer.writeToFile(pkg + ".BR", brWriter.write(pkg));
-            written.add(pkg);
-            List<String> brPackages = new ArrayList<>();
-            brPackages.add(pkg);
-            for (Intermediate intermediate : previousIntermediates) {
-                brPackages.add(intermediate.getPackage());
-            }
-            if (!compilerArgs.isTestVariant() || compilerArgs.isLibrary()) {
-                // Generate BR for all previous packages.
-                for (Intermediate intermediate : previousIntermediates) {
-                    if (written.add(intermediate.getPackage())) {
-                        writer.writeToFile(intermediate.getPackage() + ".BR",
-                                brWriter.write(intermediate.getPackage()));
-                    }
-                }
-            }
-            mCallback.onBrWriterReady(brWriter, brPackages);
+            BRWriter brWriter = new BRWriter(useFinal);
+            bindableBag.getToBeGenerated().forEach(brWithValues -> {
+                String out = brWriter.write(brWithValues);
+                writer.writeToFile(brWithValues.getPkg() + ".BR", out);
+            });
+            mCallback.onBrWriterReady(
+                    bindableBag.getVariableIdLookup(),
+                    bindableBag.getWrittenPackages());
         } catch (LoggedErrorException e) {
             // This will be logged later
         }
@@ -246,22 +244,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                 element.getReturnType().getKind() == TypeKind.BOOLEAN;
     }
 
-    @SuppressWarnings("CodeBlock2Expr")
-    private Collection<Intermediate> loadPreviousBRFiles(String... excludePackages) {
-        List<Intermediate> brFiles = GenerationalClassUtil.get()
-                .loadObjects(GenerationalClassUtil.ExtensionFilter.BR);
-        Set<String> excludeMap = Sets.newHashSet(excludePackages);
-        // dedupe
-        Map<String, Intermediate> items = new HashMap<>();
-        brFiles.stream()
-                .filter(intermediate -> !excludeMap.contains(intermediate.getPackage()))
-                .forEach(intermediate -> {
-                    items.put(intermediate.getPackage(), intermediate);
-                });
-        return items.values();
-    }
-
-    private interface Intermediate extends Serializable {
+    interface Intermediate extends Serializable {
 
         void captureProperties(Set<String> properties);
 
@@ -272,7 +255,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
         String getPackage();
     }
 
-    private static class IntermediateV1 implements Serializable, Intermediate {
+    static class IntermediateV1 implements Serializable, Intermediate {
         private static final long serialVersionUID = 2L;
 
         private String mPackage;
@@ -308,5 +291,11 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
         public String getPackage() {
             return mPackage;
         }
+    }
+
+    static Set<String> getProperties(Intermediate intermediate) {
+        Set<String> out = new HashSet<>();
+        intermediate.captureProperties(out);
+        return out;
     }
 }

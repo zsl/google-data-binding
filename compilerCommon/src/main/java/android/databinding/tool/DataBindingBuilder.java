@@ -58,10 +58,14 @@ public class DataBindingBuilder {
     public static final String DATA_BINDING_ROOT_FOLDER_IN_AAR = "data-binding";
     public static final String DATA_BINDING_CLASS_LOG_ROOT_FOLDER_IN_AAR =
             "data-binding-base-class-log";
-
+    public static final String BR_FILE_EXT = "-br.bin";
+    public static final String LAYOUT_INFO_FILE_EXT = "-layoutinfo.bin";
+    public static final String SETTER_STORE_FILE_EXT = "-setter_store.bin";
     public static final List<String> RESOURCE_FILE_EXTENSIONS =
-            ImmutableList.of("-br.bin", "-layoutinfo.bin", "-setter_store.bin");
+            ImmutableList.of(BR_FILE_EXT, LAYOUT_INFO_FILE_EXT, SETTER_STORE_FILE_EXT);
     public static final String BINDING_CLASS_LIST_SUFFIX = "-binding_classes.json";
+    public static final String FEATURE_PACKAGE_LIST_FILE_NAME = "all_features.json";
+    public static final String FEATURE_BR_OFFSET_FILE_NAME = "feature_data.json";
 
     public String getCompilerVersion() {
         return getVersions().compiler;

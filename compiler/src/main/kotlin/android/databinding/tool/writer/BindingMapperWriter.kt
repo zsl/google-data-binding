@@ -15,6 +15,7 @@ package android.databinding.tool.writer
 
 import android.databinding.tool.DataBindingCompilerArgs
 import android.databinding.tool.LayoutBinder
+import android.databinding.tool.ext.N
 
 class BindingMapperWriter(var pkg : String, var className: String,
                           val layoutBinders : List<LayoutBinder>,
@@ -29,9 +30,10 @@ class BindingMapperWriter(var pkg : String, var className: String,
             className = "Test${className}"
         }
     }
-    fun write(brWriter : BRWriter) = kcode("") {
+    fun write(brValueLookup: MutableMap<String, Int>) = kcode("") {
         nl("package $pkg;")
         nl("import ${compilerArgs.modulePackage}.BR;")
+        nl("import android.util.SparseArray;")
         val extends = if (generateAsTest) {
             "extends $appClassName"
         } else {
@@ -145,24 +147,23 @@ class BindingMapperWriter(var pkg : String, var className: String,
             }
             nl("@Override")
             block("public String convertBrIdToString(int id)") {
-                block("if (id < 0 || id >= InnerBrLookup.sKeys.length)") {
-                    if (generateTestOverride) {
-                        block("if(mTestOverride != null)") {
-                            nl("return mTestOverride.convertBrIdToString(id);")
-                        }
+                nl("final String value = InnerBrLookup.sKeys.get(id);")
+                if (generateTestOverride) {
+                    block("if(value == null && mTestOverride != null)") {
+                        nl("return mTestOverride.convertBrIdToString(id);")
                     }
-                    nl("return null;")
                 }
-                nl("return InnerBrLookup.sKeys[id];")
+                nl("return value;")
             }
 
             block("private static class InnerBrLookup") {
-                nl("static String[] sKeys = new String[]{") {
-                    tab("\"_all\"")
-                    brWriter.indexedProps.forEach {
-                        tab(",\"${it.value}\"")
+                nl("static final SparseArray<String> sKeys = new SparseArray();")
+                block("static") {
+                    tab("sKeys.put(0, \"_all\");")
+                    brValueLookup.forEach {
+                        tab("sKeys.put(${it.value}, \"${it.key}\");")
                     }
-                }.app("};")
+                }
             }
         }
     }.generate()

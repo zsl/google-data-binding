@@ -1,4 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("//tools/base/bazel:bazel.bzl", "fileset")
 load("//tools/base/bazel:kotlin.bzl", "kotlin_library", "kotlin_test")
 load("//tools/base/bazel:maven.bzl", "maven_java_library", "maven_pom")
 load("//tools/base/bazel:utils.bzl", "merged_properties")
@@ -29,6 +30,8 @@ maven_java_library(
         "-target 6",
     ],
     pom = ":baseLibrary.pom",
+    resource_strip_prefix = "tools/data-binding/baseLibrary",
+    resources = ["baseLibrary/NOTICE"],
     visibility = ["//visibility:public"],
 )
 
@@ -61,7 +64,7 @@ iml_module(
         "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
-        "//tools/idea/.idea/libraries:commons-io-2.4",
+        "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:javapoet-1.8.0",
@@ -83,6 +86,17 @@ merged_properties(
     ],
 )
 
+fileset(
+    name = "tools.compilerCommon.resources",
+    srcs = [
+        "compilerCommon/NOTICE",
+        ":data_binding_version_info",
+    ],
+    mappings = {
+        "compilerCommon/": "",
+    },
+)
+
 kotlin_library(
     name = "tools.compilerCommon",
     srcs = [
@@ -93,7 +107,7 @@ kotlin_library(
     ],
     pom = ":compilerCommon.pom",
     resource_strip_prefix = "tools/data-binding",
-    resources = [":data_binding_version_info"],
+    resources = [":tools.compilerCommon.resources"],
     visibility = ["//visibility:public"],
     deps = [
         ":tools.baseLibrary",
@@ -153,7 +167,7 @@ iml_module(
         "//tools/base/annotations:studio.android-annotations[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
-        "//tools/idea/.idea/libraries:commons-io-2.4",
+        "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
         "//tools/idea/.idea/libraries:commons-lang",
         "//tools/idea/.idea/libraries:Guava",
