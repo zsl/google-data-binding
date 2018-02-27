@@ -20,6 +20,7 @@ import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import java.io.File
+import java.io.InputStream
 
 /**
  * includes the mapping from key to the generated binding class and its variables.
@@ -43,6 +44,13 @@ data class GenClassInfoLog(
                 return GenClassInfoLog()
             }
             return file.reader(Charsets.UTF_16).use {
+                GSON.fromJson(it, GenClassInfoLog::class.java)
+            }
+        }
+
+        @JvmStatic
+        fun fromInputStream(inputStream : InputStream): GenClassInfoLog {
+            return inputStream.reader(Charsets.UTF_16).use {
                 GSON.fromJson(it, GenClassInfoLog::class.java)
             }
         }

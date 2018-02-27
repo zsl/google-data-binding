@@ -25,30 +25,37 @@ import java.io.File;
  * Command line arguments that can be passed into this executable
  */
 public class ProcessXmlOptions {
-    @Parameter(names = "-package", required = true, description = "The package name of the application."
-            + " This should be the same package that R file uses.")
+    @Parameter(names = "-package", required = true, description =
+            "The package name of the application."
+                    + " This should be the same package that R file uses.")
     private String appId;
-    @Parameter(names = "-minSdk",required = true, description = "Min sdk for the app.")
+    @Parameter(names = "-minSdk", required = true, description = "Min sdk for the app.")
     private int minSdk;
-    @Parameter(names = "-library", required = false, description = "True if this is a library project.")
+    @Parameter(names = "-library", required = false, description = "True if this is a library "
+            + "project.")
     private boolean library = false;
     @Parameter(names = "-resInput", required = true, converter = FileConverter.class,
-    description = "The folder which contains merged resources. It is the folder that contains the"
-            + " layout folder, drawable folder etc etc.")
+            description =
+                    "The folder which contains merged resources. It is the folder that contains the"
+                            + " layout folder, drawable folder etc etc.")
     private File resInput;
     @Parameter(names = "-resOutput", required = true, converter = FileConverter.class,
             description = "The output folder which will contain processes resources. This should "
                     + "be the input for aapt.")
     private File resOutput;
     @Parameter(names = "-layoutInfoOutput", required = true, converter = FileConverter.class,
-    description = "The folder into which data binding should export the xml files that keep the"
-            + " data binding related information for the layout files.")
+            description =
+                    "The folder into which data binding should export the xml files that keep the"
+                            + " data binding related information for the layout files.")
     private File layoutInfoOutput;
 
     @Parameter(names = "-zipLayoutInfo", required = false,
-    description = "Whether the generated layout-info files should be zipped into 1 or not. If set "
-            + "to true (default), DataBinding will generate 1 layouts.zip file in the given"
-            + " layout-info out folder.")
+            description =
+                    "Whether the generated layout-info files should be zipped into 1 or not. If "
+                            + "set "
+                            + "to true (default), DataBinding will generate 1 layouts.zip file in"
+                            + " the given"
+                            + " layout-info out folder.")
     private boolean zipLayoutInfo = false;
 
     public String getAppId() {

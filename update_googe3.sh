@@ -13,6 +13,7 @@ fi
 echo "copying version $VERSION to $REMOTE_ROOT under version $REMOTE_VERSION"
 TMP_JAR_DIR='tmp_jar'
 TMP_LIB_DIR='tmp_lib'
+TMP_ADAPTERS_DIR='tmp_adapters'
 CUR_DIR=$PWD;
 REPO_DIR="$CUR_DIR/../../out/repo"
 
@@ -38,6 +39,9 @@ copy_aar() {
   cp "$REPO_DIR/com/android/databinding/$ARTIFACT_NAME/$VERSION/$ARTIFACT_NAME-$VERSION-sources.jar" "$TARGET/$NEW_NAME-src.jar"
 }
 
+remove_restrict_to() {
+  sed -i '' '/RestrictTo/d' $1
+}
 
 # copy jars
 create_target_dir $TMP_JAR_DIR
@@ -61,5 +65,12 @@ mv classes.jar "databinding-library.jar"
 scp -r databinding-library.jar AndroidManifest.xml res proguard.txt $VM:$REMOTE_ROOT/google3/third_party/java/android/android_sdk_linux/extras/android/compatibility/databinding/library/$REMOTE_VERSION/.
 cd $CUR_DIR
 
-# copy baseAdapters source
-scp -r extensions/baseAdapters/src $VM:$REMOTE_ROOT/google3/third_party/java/android/android_sdk_linux/extras/android/compatibility/databinding/adapters/$REMOTE_VERSION/.
+# copy baseAdapters source. RestrictTo annotations becomes a problem in Google3 so just strip them.
+create_target_dir $TMP_ADAPTERS_DIR
+cp -r extensions/baseAdapters/src $TMP_ADAPTERS_DIR;
+
+for file in `find $TMP_ADAPTERS_DIR -name "*.java"`
+do
+    remove_restrict_to "$file"
+done
+scp -r $TMP_ADAPTERS_DIR/src $VM:$REMOTE_ROOT/google3/third_party/java/android/android_sdk_linux/extras/android/compatibility/databinding/adapters/$REMOTE_VERSION/.
