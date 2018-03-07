@@ -65,6 +65,9 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
                 ClassName.get("android.util", "SparseIntArray")
         private val SPARSE_ARRAY =
                 ClassName.get("android.util", "SparseArray")
+
+        @JvmStatic
+        fun createMapperQName(modulePackage : String) = modulePackage + "." + IMPL_CLASS_NAME
     }
 
     private val rClassMap = mutableMapOf<String, ClassName>()

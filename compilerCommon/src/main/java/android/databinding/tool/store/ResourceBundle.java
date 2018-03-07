@@ -102,7 +102,6 @@ public class ResourceBundle implements Serializable {
         bundles.add(bundle);
     }
 
-
     public void addDependencyLayouts(GenClassInfoLog genClassInfoLog) {
         genClassInfoLog.mappings().forEach(
                 (key, value) -> mDependencyBinders.put(key, value.getQName()));

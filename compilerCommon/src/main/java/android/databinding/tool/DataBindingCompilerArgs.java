@@ -223,6 +223,17 @@ public class DataBindingCompilerArgs {
         return args;
     }
 
+    /**
+     * Creates a copy of the arguments but sets th version to v1 and package to the given package.
+     * This is used when we need to run a compatibility compilation for v1 dependencies.
+     */
+    public DataBindingCompilerArgs copyAsV1(String modulePackage) {
+        Map<String, String> asMap = toMap();
+        asMap.put(PARAM_ENABLE_V2, serialize(false));
+        asMap.put(PARAM_MODULE_PKG, modulePackage);
+        return readFromOptions(asMap);
+    }
+
     private static void putIfNotNull(Object data, Map<String, String> map, String key,
             String value) {
         if (data != null) {

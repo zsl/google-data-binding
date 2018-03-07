@@ -32,6 +32,8 @@ import android.databinding.tool.writer.BindingMapperWriterV2;
 import android.databinding.tool.writer.JavaFileWriter;
 import android.databinding.tool.writer.MergedBindingMapperWriter;
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
+
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 
@@ -43,6 +45,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.TypeElement;
 
 /**
  * Chef class for compiler.
@@ -79,8 +86,15 @@ public class CompilerChef {
     private ResourceBundle mResourceBundle;
     private DataBinder mDataBinder;
     private boolean mEnableV2;
+    // the compiler chef we create for V1 dependencies
+    @Nullable
+    private CompilerChef mV1CompatChef;
 
     private CompilerChef() {
+    }
+
+    public void setV1CompatChef(CompilerChef v1CompatChef) {
+        mV1CompatChef = v1CompatChef;
     }
 
     public static CompilerChef createChef(
@@ -171,6 +185,7 @@ public class CompilerChef {
     }
 
     public void writeDataBinderMapper(
+            ProcessingEnvironment processingEnv,
             DataBindingCompilerArgs compilerArgs,
             Map<String, Integer> brValueLookup,
             List<String> modulePackages) {
@@ -186,6 +201,9 @@ public class CompilerChef {
             if (generateMapper) {
                 writeMapperForModule(compilerArgs, brValueLookup);
             }
+            if (mV1CompatChef != null) {
+                writeMapperForV1Compat(compilerArgs, brValueLookup);
+            }
 
             // merged mapper is the one generated for the whole app that includes the mappers
             // generated for individual modules.
@@ -198,7 +216,7 @@ public class CompilerChef {
                 generateMergedMapper = false;
             }
             if (generateMergedMapper) {
-                writeMergedMapper(compilerArgs, modulePackages);
+                writeMergedMapper(processingEnv, compilerArgs, modulePackages);
             }
         } else {
             final String pkg = "android.databinding";
@@ -213,17 +231,52 @@ public class CompilerChef {
         }
     }
 
+    private void writeMapperForV1Compat(
+            DataBindingCompilerArgs compilerArgs,
+            Map<String, Integer> brValueLookup) {
+        BindingMapperWriter dbr = new BindingMapperWriter(
+                BindingMapperWriter.V1_COMPAT_MAPPER_PKG,
+                BindingMapperWriter.V1_COMPAT_MAPPER_NAME,
+                mV1CompatChef.getLayoutBinders(),
+                compilerArgs);
+        mFileWriter.writeToFile(
+                BindingMapperWriter.V1_COMPAT_MAPPER_PKG + "." + dbr.getClassName(),
+                dbr.write(brValueLookup));
+    }
+
+    public List<LayoutBinder> getLayoutBinders() {
+        return mDataBinder.getLayoutBinders();
+    }
+
     /**
      * Writes the mapper android.databinding.DataBinderMapperImpl which is a merged mapper
      * that includes all mappers from dependencies.
      */
     private void writeMergedMapper(
+            ProcessingEnvironment processingEnv,
             DataBindingCompilerArgs compilerArgs,
             List<String> modulePackages) {
+        // figure out which mappers exists as they may not exist for v1 libs.
+        List<String> availableDependencyModules = modulePackages.stream()
+                .filter(modulePackage -> {
+                    if (modulePackage.equals(compilerArgs.getModulePackage())) {
+                        // mine will be generated
+                        return true;
+                    }
+                    String mapper = BindingMapperWriterV2.createMapperQName(modulePackage);
+                    TypeElement impl = processingEnv
+                            .getElementUtils()
+                            .getTypeElement(mapper);
+                    return impl != null;
+                }).collect(Collectors.toList());
         Set<String> featurePackageIds = loadFeaturePackageIds(compilerArgs);
         StringBuilder sb = new StringBuilder();
         MergedBindingMapperWriter mergedBindingMapperWriter =
-                new MergedBindingMapperWriter(modulePackages, compilerArgs, featurePackageIds);
+                new MergedBindingMapperWriter(
+                        availableDependencyModules,
+                        compilerArgs,
+                        featurePackageIds,
+                        mV1CompatChef != null);
         TypeSpec mergedMapperSpec = mergedBindingMapperWriter.write();
         try {
             JavaFile.builder(mergedBindingMapperWriter.getPkg(), mergedMapperSpec)

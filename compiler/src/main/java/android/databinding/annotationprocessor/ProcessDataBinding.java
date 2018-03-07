@@ -73,7 +73,7 @@ public class ProcessDataBinding extends AbstractProcessor {
     private boolean doProcess(RoundEnvironment roundEnv) {
         if (mProcessingSteps == null) {
             readArguments();
-            initProcessingSteps();
+            initProcessingSteps(processingEnv);
         }
         if (mCompilerArgs == null) {
             return false;
@@ -108,7 +108,7 @@ public class ProcessDataBinding extends AbstractProcessor {
         return SourceVersion.latest();
     }
 
-    private void initProcessingSteps() {
+    private void initProcessingSteps(ProcessingEnvironment processingEnv) {
         final ProcessBindable processBindable = new ProcessBindable();
         mProcessingSteps = Arrays.asList(
                 new ProcessMethodAdapters(),
@@ -141,7 +141,8 @@ public class ProcessDataBinding extends AbstractProcessor {
                     return;
                 }
                 mWrittenMapper = true;
-                mChef.writeDataBinderMapper(mCompilerArgs, mBRVariableLookup, mModulePackages);
+                mChef.writeDataBinderMapper(processingEnv, mCompilerArgs, mBRVariableLookup,
+                        mModulePackages);
             }
 
             @Override
