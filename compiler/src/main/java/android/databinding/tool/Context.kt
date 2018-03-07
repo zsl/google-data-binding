@@ -16,6 +16,7 @@
 
 package android.databinding.tool
 
+import android.databinding.tool.ext.cleanLazyProps
 import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.reflection.SdkUtil
 import android.databinding.tool.reflection.TypeUtil
@@ -83,5 +84,6 @@ object Context {
         typeUtil = null
         sdkUtil = null
         L.setClient(null)
+        cleanLazyProps()
     }
 }

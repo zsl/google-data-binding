@@ -14,18 +14,38 @@
 package android.databinding.tool.ext
 
 import android.databinding.tool.expr.VersionProvider
-import android.databinding.tool.store.ResourceBundle
 import com.squareup.javapoet.ArrayTypeName
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.ParameterizedTypeName
 import com.squareup.javapoet.TypeName
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 fun String.stripNonJava() = this.split("[^a-zA-Z0-9]".toRegex()).map { it.trim() }.joinToCamelCaseAsVar()
 
+/**
+ * We keep track of these to be cleaned manually at the end of processing cycle.
+ * This is really bad but these codes are from a day where javac would be re-created (hence safely
+ * static). Now we need to clean them because javac is not re-created anymore between
+ * compilations.
+ *
+ * Eventually, we should move to a better model similar to the UserProperty stuff in IJ
+ * source.
+ */
+private val mappingHashes = CopyOnWriteArrayList<MutableMap<*, *>>()
+
+fun cleanLazyProps() {
+    mappingHashes.forEach {
+        it.clear()
+    }
+}
+
 private class LazyExt<K, T>(private val initializer: (k: K) -> T) : ReadOnlyProperty<K, T> {
     private val mapping = hashMapOf<K, T>()
+    init {
+        mappingHashes.add(mapping)
+    }
     override fun getValue(thisRef: K, property: kotlin.reflect.KProperty<*>): T {
         val t = mapping[thisRef]
         if (t != null) {
@@ -39,7 +59,9 @@ private class LazyExt<K, T>(private val initializer: (k: K) -> T) : ReadOnlyProp
 
 private class VersionedLazyExt<K, T>(private val initializer: (k: K) -> T) : ReadOnlyProperty<K, T> {
     private val mapping = hashMapOf<K, VersionedResult<T>>()
-
+    init {
+        mappingHashes.add(mapping)
+    }
     override fun getValue(thisRef: K, property: KProperty<*>): T {
         val t = mapping[thisRef]
         val version = if (thisRef is VersionProvider) thisRef.version else 1
