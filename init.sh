@@ -6,18 +6,19 @@ if [ ! -e 'integration-tests' ] || [ ! -e 'extensions' ]; then
 fi
 tools_dir="$current_dir/..";
 copy_gradle() {
+  extra_dots=$1
     echo "copying $PWD"
   rm -rf gradle
   rm -rf gradlew
   cp -R "$tools_dir/gradle" .
-  sed -i -e 's/distributionUrl\=/distributionUrl=..\/..\/..\//g' gradle/wrapper/gradle-wrapper.properties
+  sed -i -e "s#distributionUrl\=#distributionUrl=$extra_dots/#g" gradle/wrapper/gradle-wrapper.properties
   cp "$tools_dir/gradlew" .
 }
 OIFS="$IFS"
 IFS=$'\n'
 
 cd extensions;
-copy_gradle 
+copy_gradle "../.."
 echo "start in $current_dir"
 cd $current_dir;
 for line in `find integration-tests -name 'settings.gradle'`
@@ -26,7 +27,7 @@ do
   cd $current_dir;
   dir_name=`(dirname ${line})`
   cd "$dir_name"
-  copy_gradle
+  copy_gradle "../../.."
 done
 
 linux_sdk="$current_dir/../../prebuilts/studio/sdk/linux"
