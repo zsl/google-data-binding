@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  * value to the bound data value. The inverse method must take the same number of parameters
  * and only the final parameter type may differ. The final parameter of this method must match
  * the return value of its inverse and the return value of this method must match the final
- * parameter of the its inverse.
+ * parameter of its inverse.
  * <p><pre>
  * <code>&commat;InverseMethod("convertIntToString")
  * public static int convertStringToInt(String value) {
