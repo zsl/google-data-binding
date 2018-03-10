@@ -41,6 +41,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -123,9 +126,29 @@ public class ResourceBundle implements Serializable {
      */
     public static GenClassInfoLog loadClassInfoFromFolder(File folder) throws IOException {
         GenClassInfoLog merged = new GenClassInfoLog();
+        // blaze might pass a zip instead of a folder
+        if (folder.isFile() && folder.getName().endsWith(".zip")) {
+            // unzip it into a tmp folder and use it.
+            ZipFile zipFile = new ZipFile(folder);
+            zipFile.stream().forEach((Consumer<ZipEntry>) zipEntry -> {
+                if (zipEntry.getName().endsWith(DataBindingBuilder.BINDING_CLASS_LIST_SUFFIX)) {
+                    try {
+                        merged.addAll(GenClassInfoLog.fromInputStream(zipFile.getInputStream
+                                (zipEntry)));
+                    } catch (IOException e) {
+                        L.e(
+                                e,
+                                "failed to read gen class info log from entry %s",
+                                zipEntry.getName());
+                    }
+                }
+            });
+        }
+        SuffixFileFilter fileFilter = new SuffixFileFilter(
+                DataBindingBuilder.BINDING_CLASS_LIST_SUFFIX,
+                IOCase.SYSTEM);
         Collection<File> files = FileUtils.listFiles(folder,
-                new SuffixFileFilter(DataBindingBuilder.BINDING_CLASS_LIST_SUFFIX,
-                        IOCase.SYSTEM),
+                fileFilter,
                 TrueFileFilter.INSTANCE);
         for (File file : files) {
             merged.addAll(GenClassInfoLog.fromFile(file));

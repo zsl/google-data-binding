@@ -21,3 +21,4 @@ extensions/gradlew
 */out
 tmp_lib
 tmp_jar
+tmp_adapters
