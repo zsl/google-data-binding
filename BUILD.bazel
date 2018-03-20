@@ -254,7 +254,7 @@ gradle_build(
             "extensions/gradlew.bat",
         ],
     ),
-    gradle_version = "4.5",
+    gradle_version = "4.6",
     output_file = "data_binding_runtime.zip",
     output_file_source = "local_repo_zip/dataBindingRuntimeRepo.zip",
     repos = [
