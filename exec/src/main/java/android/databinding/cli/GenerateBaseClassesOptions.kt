@@ -86,4 +86,13 @@ class GenerateBaseClassesOptions {
                 "whether the source output should be exported as 1 zip file instead of a folder."
     )
     var zipSourceOutput: Boolean = true
+
+    /**
+     * True if Data Binding should generate code that uses androidX.
+     */
+    @Parameter(
+            names = ["-useAndoirdX"], required = false, description = "Specifies " +
+            "whether data binding should use androidX packages or not"
+    )
+    var useAndoirdX: Boolean = true
 }

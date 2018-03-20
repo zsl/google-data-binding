@@ -16,7 +16,7 @@
 
 package android.databinding.compilationTest.badJava;
 
-import android.databinding.InverseMethod;
+import androidx.databinding.InverseMethod;
 
 public class InverseMethod_WrongReturnType {
     @InverseMethod("wrongReturnType")

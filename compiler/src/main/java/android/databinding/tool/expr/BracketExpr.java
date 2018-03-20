@@ -19,6 +19,7 @@ package android.databinding.tool.expr;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.solver.ExecutionPath;
+import android.databinding.tool.util.L;
 import android.databinding.tool.writer.KCode;
 
 import com.google.common.collect.Lists;
@@ -50,9 +51,11 @@ public class BracketExpr extends Expr {
         } else if (targetType.isMap()) {
             mAccessor = BracketAccessor.MAP;
         } else {
-            throw new IllegalArgumentException("Cannot determine variable type used in [] " +
+            IllegalArgumentException exception = new IllegalArgumentException(
+                    "Cannot determine variable type used in [] " +
                     "expression. Cast the value to List, Map, " +
                     "or array. Type detected: " + targetType.toJavaCode());
+            L.e(exception, "Failed to resolve Bracked Expr %s, target: %s", this, targetType);
         }
         return targetType.getComponentType();
     }
@@ -169,9 +172,6 @@ public class BracketExpr extends Expr {
         arg = argCastsInteger()
                 ? model.castExpr("int", model.castExpr("Integer", arg))
                 : arg;
-        StaticIdentifierExpr viewDataBinding =
-                model.staticIdentifier(ModelAnalyzer.VIEW_DATA_BINDING);
-        viewDataBinding.setUserDefinedType(ModelAnalyzer.VIEW_DATA_BINDING);
         ModelClass targetType = getTarget().getResolvedType();
         if ((targetType.isList() || targetType.isMap()) &&
                 value.getResolvedType().isPrimitive()) {
@@ -179,7 +179,7 @@ public class BracketExpr extends Expr {
             value = model.castExpr(boxed.toJavaCode(), value);
         }
         List<Expr> args = Lists.newArrayList(getTarget().cloneToModel(model), arg, value);
-        MethodCallExpr setter = model.methodCall(viewDataBinding, "setTo", args);
+        MethodCallExpr setter = model.methodCall(model.viewDataBinding(), "setTo", args);
         setter.setAllowProtected();
         return setter;
     }

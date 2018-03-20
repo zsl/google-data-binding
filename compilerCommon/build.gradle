@@ -43,6 +43,7 @@ sourceSets {
 // The libs object comes from buildSrc/base/version.gradle
 dependencies {
     compile project(':dataBinding:baseLibrary')
+    compile project(':dataBinding:baseLibrarySupport')
     compile libs.antlr4
     compile libs.apache_commons_io
     compile libs.juniversalchardet
@@ -51,6 +52,7 @@ dependencies {
     compile libs.kotlin_stdlib
     compile libs.gson
     compile 'com.android.tools:annotations:24.5.0'
+    compile libs.jetifier_core
     testCompile libs.junit
 }
 

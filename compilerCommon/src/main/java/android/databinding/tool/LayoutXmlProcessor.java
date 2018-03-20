@@ -16,7 +16,6 @@ package android.databinding.tool;
 import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
 
-import android.databinding.BindingBuildInfo;
 import android.databinding.tool.store.LayoutFileParser;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.Preconditions;
@@ -308,8 +307,10 @@ public class LayoutXmlProcessor {
     /**
      * Just writes the file w/ build ID w/o any properties.
      */
-    public void writeEmptyInfoClass() {
-        final Class annotation = BindingBuildInfo.class;
+    public void writeEmptyInfoClass(boolean useAndroidX) {
+        final Class annotation = useAndroidX
+                ? androidx.databinding.BindingBuildInfo.class
+                : android.databinding.BindingBuildInfo.class;
         String classString = "package " + RESOURCE_BUNDLE_PACKAGE + ";\n\n" +
                 "import " + annotation.getCanonicalName() + ";\n\n" +
                 "@" + annotation.getSimpleName() + "(buildId=\"" + mBuildId + "\")\n" +

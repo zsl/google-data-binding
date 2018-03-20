@@ -17,7 +17,7 @@
 package android.databinding.compilationTest.badJava;
 
 import android.databinding.BaseObservable;
-import android.databinding.Bindable;
+import androidx.databinding.Bindable;
 
 public class MyObservable extends BaseObservable {
     @Bindable("otherField")

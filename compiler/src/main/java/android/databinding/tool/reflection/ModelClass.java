@@ -15,17 +15,17 @@
  */
 package android.databinding.tool.reflection;
 
-import android.databinding.Bindable;
+import android.databinding.tool.BindableCompat;
 import android.databinding.tool.ext.ExtKt;
 import android.databinding.tool.reflection.Callable.Type;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
-import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,10 +78,8 @@ public abstract class ModelClass {
      */
     public boolean isList() {
         for (ModelClass listType : ModelAnalyzer.getInstance().getListTypes()) {
-            if (listType != null) {
-                if (listType.isAssignableFrom(this)) {
-                    return true;
-                }
+            if (listType.isAssignableFrom(this)) {
+                return true;
             }
         }
         return false;
@@ -504,7 +502,8 @@ public abstract class ModelClass {
                     if (method.isStatic()) {
                         flags |= STATIC;
                     }
-                    final Bindable bindable;
+                    @Nullable
+                    final BindableCompat bindable;
                     if (method.isBindable()) {
                         flags |= CAN_BE_INVALIDATED;
                         bindable = method.getBindableAnnotation();
@@ -685,7 +684,9 @@ public abstract class ModelClass {
 
     public TypeName getTypeName() {
         // implementation only so that PSI model doesn't break
-        return ExtKt.toTypeName(toJavaCode());
+        return ExtKt.toTypeName(
+                toJavaCode(),
+                false);
     }
 
     @Override

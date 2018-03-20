@@ -15,14 +15,15 @@ package android.databinding.tool.writer
 
 import android.databinding.tool.DataBindingCompilerArgs
 import android.databinding.tool.LayoutBinder
-import android.databinding.tool.ext.N
+import android.databinding.tool.LibTypes
 
 class BindingMapperWriter(var pkg : String, var className: String,
                           val layoutBinders : List<LayoutBinder>,
-                          val compilerArgs: DataBindingCompilerArgs) {
+                          val compilerArgs: DataBindingCompilerArgs,
+                          val libTypes: LibTypes) {
     private val appClassName : String = className
     private val testClassName = "Test$className"
-    private val baseMapperClassName = "android.databinding.DataBinderMapper"
+    private val baseMapperClassName = libTypes.dataBinderMapper
     val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
     val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
     init {
@@ -59,7 +60,7 @@ class BindingMapperWriter(var pkg : String, var className: String,
             }
             nl("")
             nl("@Override")
-            block("public android.databinding.ViewDataBinding getDataBinder(android.databinding.DataBindingComponent bindingComponent, android.view.View view, int layoutId)") {
+            block("public ${libTypes.viewDataBinding} getDataBinder(${libTypes.dataBindingComponent} bindingComponent, android.view.View view, int layoutId)") {
                 block("switch(layoutId)") {
                     layoutBinders.groupBy{it.layoutname }.forEach {
                         val firstVal = it.value[0]
@@ -90,8 +91,7 @@ class BindingMapperWriter(var pkg : String, var className: String,
                 nl("return null;")
             }
             nl("@Override")
-            block("public android.databinding.ViewDataBinding getDataBinder(android.databinding" +
-                    ".DataBindingComponent bindingComponent, android.view.View[] views, int layoutId)") {
+            block("public ${libTypes.viewDataBinding} getDataBinder(${libTypes.dataBindingComponent} bindingComponent, android.view.View[] views, int layoutId)") {
                 block("switch(layoutId)") {
                     layoutBinders.filter{it.isMerge }.groupBy{it.layoutname }.forEach {
                         val firstVal = it.value[0]

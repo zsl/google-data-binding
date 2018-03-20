@@ -45,8 +45,8 @@ buildscript {
 
     databindingProperties.version = TOOLS_VERSION
     databindingProperties.androidPluginVersion = TOOLS_VERSION
-    databindingProperties.compileSdkVersion = Integer.parseInt(databindingProperties.compileSdkVersionStr)
-
+    databindingProperties.compileSdkVersion = databindingProperties.compileSdkVersionStr.trim()
+    databindingProperties.group = "androidx.databinding"
     databindingProperties.maven = [:]
     if (autoConfigured) {
         // bazel build
@@ -59,13 +59,14 @@ buildscript {
         databindingProperties.maven.prebuilts_repo = file(PREBUILTS_REPO).getAbsolutePath()
     }
     ext.dataBindingConfig = databindingProperties
-    def supportLibVersion = "26.1.0"
+    def supportLibVersion = "1.0.0-alpha1"
+    def lifecycleVersion = "2.0.0-alpha1"
     ext.libs = [:]
-    ext.libs.android_support_core_utils = "com.android.support:support-core-utils:$supportLibVersion"
-    ext.libs.android_support_cardview_v7 = "com.android.support:cardview-v7:$supportLibVersion"
-    ext.libs.android_support_appcompat_v7 = "com.android.support:appcompat-v7:$supportLibVersion"
-    ext.libs.android_arch_lifecycle_extensions = "android.arch.lifecycle:extensions:1.0.0"
-    ext.libs.android_arch_lifecycle_runtime = "android.arch.lifecycle:runtime:1.0.3"
+    ext.libs.android_support_collection = "androidx.collection:collection:$supportLibVersion"
+    ext.libs.android_support_cardview_v7 = "androidx.cardview:cardview:$supportLibVersion"
+    ext.libs.android_support_appcompat_v7 = "androidx.appcompat:appcompat:$supportLibVersion"
+    ext.libs.android_arch_lifecycle_extensions = "androidx.lifecycle:lifecycle-extensions:$lifecycleVersion"
+    ext.libs.android_arch_lifecycle_runtime = "androidx.lifecycle:lifecycle-runtime:$lifecycleVersion"
 
     dependencies {
         classpath "com.android.tools.build:gradle:$TOOLS_VERSION"
@@ -121,6 +122,16 @@ subprojects {
         }
     }
     createArchive.dependsOn tasks['uploadArchives']
+    configurations.all {
+        resolutionStrategy {
+            failOnVersionConflict()
+
+            preferProjectModules()
+            force 'androidx.lifecycle:lifecycle-viewmodel:2.0.0-alpha1'
+            force 'androidx.lifecycle:lifecycle-livedata-core:2.0.0-alpha1'
+            force 'androidx.fragment:fragment:1.0.0-alpha1'
+        }
+    }
 }
 
 // creates the javadoc task for all of data binding runtime libraries
@@ -194,3 +205,4 @@ if (findProject(":doclava") != null) {
         }
     }
 }
+

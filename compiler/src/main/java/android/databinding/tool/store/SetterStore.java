@@ -15,9 +15,7 @@
  */
 package android.databinding.tool.store;
 
-import android.databinding.InverseBindingListener;
 import android.databinding.tool.Context;
-import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
@@ -52,7 +50,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.ExecutableType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
@@ -785,8 +782,10 @@ public class SetterStore {
                                 bestMethod.viewType = adapterViewType;
                                 bestMethod.returnType = adapterValueType;
                                 InverseDescription inverseDescription = adapters.get(key);
-                                ModelClass listenerType = ModelAnalyzer.getInstance().findClass(
-                                        InverseBindingListener.class);
+                                ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
+                                ModelClass listenerType = modelAnalyzer.findClass(
+                                        modelAnalyzer.libTypes.getInverseBindingListener(),
+                                        Collections.emptyMap());
                                 BindingSetterCall eventCall = getSetterCall(
                                         inverseDescription.event, viewType, listenerType, imports);
                                 if (eventCall == null) {
@@ -916,8 +915,9 @@ public class SetterStore {
 
         BindingGetterCall call = null;
         if (bestDescription != null) {
-            final ModelClass listenerType = ModelAnalyzer.getInstance().findClass(
-                    InverseBindingListener.class);
+            ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
+            final ModelClass listenerType = modelAnalyzer.findClass(
+                    modelAnalyzer.libTypes.getInverseBindingListener(), Collections.emptyMap());
             SetterCall eventSetter = getSetterCall(bestDescription.event, viewType,
                     listenerType, imports);
             if (eventSetter == null) {

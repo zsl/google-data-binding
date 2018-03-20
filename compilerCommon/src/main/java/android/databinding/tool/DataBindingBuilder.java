@@ -24,6 +24,7 @@ import android.databinding.tool.writer.JavaFileWriter;
 
 import com.google.common.collect.ImmutableList;
 
+import java.util.Arrays;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -47,7 +48,9 @@ import java.util.Properties;
 @SuppressWarnings("unused")
 public class DataBindingBuilder {
     Versions mVersions;
-    private static final String EXCLUDE_PATTERN = "android/databinding/layouts/*.*";
+    private static final List<String> EXCLUDE_PATTERNS =
+            Arrays.asList("android/databinding/layouts/*.*",
+                    "androidx/databinding/layouts/*.*");
     public static final String PROCESSOR_NAME =
             "android.databinding.annotationprocessor.ProcessDataBinding";
 
@@ -132,7 +135,7 @@ public class DataBindingBuilder {
         List<String> excludes = new ArrayList<>();
         String infoClassAsFile = layoutXmlProcessor.getInfoClassFullName().replace('.', '/');
         excludes.add(infoClassAsFile + ".class");
-        excludes.add(EXCLUDE_PATTERN);
+        excludes.addAll(EXCLUDE_PATTERNS);
         excludes.add(layoutXmlProcessor.getPackage().replace('.', '/') + "/BR.*");
         for (String pkg : getBRFilePackages(dataBindingCompilerBuildFolder)) {
             excludes.add(pkg.replace('.', '/') + "/BR.*");

@@ -110,7 +110,8 @@ object AndroidDataBinding {
                 artifactFolder = classInfoOutFolder,
                 packageName = options.packageName,
                 logFolder = Files.createTempDirectory("db-incremental-log").toFile(),
-                incremental = false
+                incremental = false,
+                useAndroidX = options.useAndoirdX
         )
         val sourceFileWriter = if (options.zipSourceOutput) {
             ZipFileWriter(options.sourceFileOut)

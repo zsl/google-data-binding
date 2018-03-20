@@ -40,6 +40,7 @@ class BaseDataBinder(val input : LayoutInfoInput) {
     }
     @Suppress("unused")// used by android gradle plugin
     fun generateAll(writer : JavaFileWriter) {
+        val libTypes = LibTypes(useAndroidX = input.args.useAndroidX)
         input.invalidatedClasses.forEach {
             writer.deleteFile(it)
         }
@@ -48,7 +49,7 @@ class BaseDataBinder(val input : LayoutInfoInput) {
         resourceBundle.layoutFileBundlesInSource.groupBy { it.mFileName }.forEach {
             // generate only if this belongs to us, otherwise, it is already generated in
             // the dependency
-            val binderWriter = BaseLayoutBinderWriter(BaseLayoutModel(it.value))
+            val binderWriter = BaseLayoutBinderWriter(BaseLayoutModel(it.value), libTypes)
             val spec = binderWriter.write()
             val sb = StringBuilder()
             val pkg = it.value[0].bindingClassPackage

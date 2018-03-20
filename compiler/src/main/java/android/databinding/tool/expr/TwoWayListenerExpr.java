@@ -15,13 +15,13 @@
  */
 package android.databinding.tool.expr;
 
-import android.databinding.InverseBindingListener;
 import android.databinding.tool.InverseBinding;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.writer.KCode;
 import android.databinding.tool.writer.LayoutBinderWriterKt;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,7 +36,8 @@ public class TwoWayListenerExpr extends Expr {
 
     @Override
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
-        return modelAnalyzer.findClass(InverseBindingListener.class);
+        return modelAnalyzer.findClass(modelAnalyzer.libTypes.getInverseBindingListener(),
+                Collections.emptyMap());
     }
 
     @Override

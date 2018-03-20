@@ -15,14 +15,16 @@
  */
 package android.databinding.tool.reflection;
 
-import android.databinding.Bindable;
+import android.databinding.tool.BindableCompat;
 
 public abstract class ModelField {
 
     /**
      * @return Whether this field has been annotated with Bindable.
      */
-    public abstract boolean isBindable();
+    public final boolean isBindable() {
+        return getBindableAnnotation() != null;
+    }
 
     /**
      * @return The field name.
@@ -52,7 +54,7 @@ public abstract class ModelField {
     /**
      * @return the Bindable annotation on the field or null if there isn't one.
      */
-    public Bindable getBindableAnnotation() {
+    public BindableCompat getBindableAnnotation() {
         return null;
     }
 }

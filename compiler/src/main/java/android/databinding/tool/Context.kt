@@ -40,12 +40,30 @@ object Context {
     @JvmStatic
     fun init(processingEnvironment: ProcessingEnvironment,
              args : DataBindingCompilerArgs) {
+        L.setClient(logger)
+        val hasAndroidXBinding = discoverAndroidX(processingEnvironment)
+        libTypes = LibTypes(hasAndroidXBinding)
         generationalClassUtil = GenerationalClassUtil.create(args)
-        modelAnalyzer = AnnotationAnalyzer(processingEnvironment)
+        modelAnalyzer = AnnotationAnalyzer(processingEnvironment, libTypes)
         typeUtil = modelAnalyzer!!.createTypeUtil()
         setterStore = SetterStore.create(modelAnalyzer, generationalClassUtil)
         sdkUtil = SdkUtil.create(File(args.sdkDir), args.minApi)
-        L.setClient(logger)
+
+    }
+
+    private fun discoverAndroidX(processingEnvironment: ProcessingEnvironment): Boolean {
+        val hasSupportBinding = processingEnvironment
+                .elementUtils
+                .getTypeElement("android.databinding.Observable") != null
+        val hasAndroidXBinding = processingEnvironment
+                .elementUtils
+                .getTypeElement("androidx.databinding.Observable") != null
+        if (hasAndroidXBinding && hasSupportBinding) {
+            L.e("AndroidX Error: Both old and new data binding packages are available in dependencies. Make sure" +
+                    " you've setup jettifier  for any data binding dependencies and also set android.useAndroidx in" +
+                    " your gradle.properties file.")
+        }
+        return hasAndroidXBinding
     }
 
     @JvmStatic
@@ -76,6 +94,10 @@ object Context {
         private set
 
     @JvmStatic
+    var libTypes : LibTypes? = null
+        private set
+
+    @JvmStatic
     fun fullClear(processingEnvironment: ProcessingEnvironment) {
         logger.flushMessages(processingEnvironment)
         modelAnalyzer = null
@@ -83,6 +105,7 @@ object Context {
         generationalClassUtil = null
         typeUtil = null
         sdkUtil = null
+        libTypes = null
         L.setClient(null)
         cleanLazyProps()
     }

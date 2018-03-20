@@ -19,7 +19,7 @@
 >
     <data>
         <variable name="myVariable" type="String"/>
-        <variable name="myEventListener" type="android.databinding.InverseBindingListener"/>
+        <variable name="myEventListener" type="androidx.databinding.InverseBindingListener"/>
     </data>
     <LinearLayout
             android:orientation="vertical"

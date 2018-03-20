@@ -18,6 +18,7 @@ import android.databinding.tool.BindingTarget
 import android.databinding.tool.CallbackWrapper
 import android.databinding.tool.InverseBinding
 import android.databinding.tool.LayoutBinder
+import android.databinding.tool.LibTypes
 import android.databinding.tool.expr.Expr
 import android.databinding.tool.expr.ExprModel
 import android.databinding.tool.expr.FieldAccessExpr
@@ -39,10 +40,7 @@ import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.reflection.ModelClass
 import android.databinding.tool.util.L
 import android.databinding.tool.util.Preconditions
-import java.util.ArrayList
-import java.util.Arrays
-import java.util.BitSet
-import java.util.HashMap
+import java.util.*
 
 enum class Scope {
     GLOBAL,
@@ -129,10 +127,11 @@ val BindingTarget.readableName by lazyProp { target: BindingTarget ->
 }
 
 fun BindingTarget.superConversion(variable : String) : String {
-    if (resolvedType != null && resolvedType.extendsViewStub()) {
-        return "new android.databinding.ViewStubProxy((android.view.ViewStub) $variable)"
+    return if (resolvedType != null && resolvedType.extendsViewStub()) {
+        val libTypes = ModelAnalyzer.getInstance().libTypes
+        "new ${libTypes.viewStubProxy}((android.view.ViewStub) $variable)"
     } else {
-        return "($interfaceClass) $variable"
+        "($interfaceClass) $variable"
     }
 }
 
@@ -159,7 +158,8 @@ val BindingTarget.androidId by lazyProp { target: BindingTarget ->
 
 val BindingTarget.interfaceClass by lazyProp { target: BindingTarget ->
     if (target.resolvedType != null && target.resolvedType.extendsViewStub()) {
-        "android.databinding.ViewStubProxy"
+        val libTypes = ModelAnalyzer.getInstance().libTypes
+        libTypes.viewStubProxy
     } else {
         target.interfaceType
     }
@@ -312,7 +312,7 @@ fun indexFromTag(tag : String) : kotlin.Int {
     return Integer.parseInt(tag.substring(startIndex))
 }
 
-class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
+class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes) {
     val hasBaseBinder = layoutBinder.enableV2() || layoutBinder.hasVariations()
     val model = layoutBinder.model
     val indices = HashMap<BindingTarget, kotlin.Int>()
@@ -347,13 +347,13 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         return kcode("package ${layoutBinder.`package`};") {
             nl("import ${layoutBinder.modulePackage}.R;")
             nl("import ${layoutBinder.modulePackage}.BR;")
-            nl("import android.support.annotation.NonNull;")
-            nl("import android.support.annotation.Nullable;")
+            nl("import ${libTypes.nonNull};")
+            nl("import ${libTypes.nullable};")
             nl("import android.view.View;")
             val classDeclaration = if (hasBaseBinder) {
                 "$className extends $baseClassName"
             } else {
-                "$className extends android.databinding.ViewDataBinding"
+                "$className extends ${libTypes.viewDataBinding}"
             }
             nl("@SuppressWarnings(\"unchecked\")")
             annotateWithGenerated()
@@ -434,7 +434,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
 
     fun declareIncludeViews() = kcode("") {
         nl("@Nullable")
-        nl("private static final android.databinding.ViewDataBinding.IncludedLayouts sIncludes;")
+        nl("private static final ${libTypes.viewDataBinding}.IncludedLayouts sIncludes;")
         nl("@Nullable")
         nl("private static final android.util.SparseIntArray sViewsWithIds;")
         nl("static {") {
@@ -443,7 +443,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 tab("sIncludes = null;")
             } else {
                 val numBindings = layoutBinder.bindingTargets.filter { it.isUsed }.count()
-                tab("sIncludes = new android.databinding.ViewDataBinding.IncludedLayouts($numBindings);")
+                tab("sIncludes = new ${libTypes.viewDataBinding}.IncludedLayouts($numBindings);")
                 val includeMap = HashMap<BindingTarget, ArrayList<BindingTarget>>()
                 layoutBinder.bindingTargets.filter { it.isUsed && it.isBinder }.forEach {
                     val includeTag = it.tag
@@ -517,11 +517,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
         val rootTagsSupported = minSdk >= 14
         if (hasBaseBinder) {
             nl("")
-            nl("public $className(@Nullable android.databinding.DataBindingComponent bindingComponent, @NonNull $parameterType root) {") {
+            nl("public $className(@Nullable ${libTypes.dataBindingComponent} bindingComponent, @NonNull $parameterType root) {") {
                 tab("this(bindingComponent, root, mapBindings(bindingComponent, root, $bindingCount, sIncludes, sViewsWithIds));")
             }
             nl("}")
-            nl("private $className(android.databinding.DataBindingComponent bindingComponent, $parameterType root, Object[] bindings) {") {
+            nl("private $className(${libTypes.dataBindingComponent} bindingComponent, $parameterType root, Object[] bindings) {") {
                 tab("super(bindingComponent, $superParam, ${model.observables.size}") {
                     layoutBinder.sortedTargets.filter { it.id != null }.forEach {
                         tab(", ${fieldConversion(it)}")
@@ -530,7 +530,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
             }
         } else {
-            nl("public $baseClassName(@NonNull android.databinding.DataBindingComponent bindingComponent, @NonNull $parameterType root) {") {
+            nl("public $baseClassName(@NonNull ${libTypes.dataBindingComponent} bindingComponent, @NonNull $parameterType root) {") {
                 tab("super(bindingComponent, $superParam, ${model.observables.size});")
                 tab("final Object[] bindings = mapBindings(bindingComponent, root, $bindingCount, sIncludes, sViewsWithIds);")
             }
@@ -890,10 +890,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 val invClass: String
                 val param: String
                 if (inverseBinding.isOnBinder) {
-                    invClass = "android.databinding.ViewDataBinding.PropertyChangedInverseListener"
+                    invClass = libTypes.propertyChangedInverseListener
                     param = "BR.${inverseBinding.eventAttribute}"
                 } else {
-                    invClass = "android.databinding.InverseBindingListener"
+                    invClass = libTypes.inverseBindingListener
                     param = ""
                 }
                 block("private $invClass ${inverseBinding.fieldName} = new $invClass($param)") {
@@ -1235,27 +1235,27 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     fun declareFactories() = kcode("") {
         nl("@NonNull")
         block("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable android.view.ViewGroup root, boolean attachToRoot)") {
-            nl("return inflate(inflater, root, attachToRoot, android.databinding.DataBindingUtil.getDefaultComponent());")
+            nl("return inflate(inflater, root, attachToRoot, ${libTypes.dataBindingUtil}.getDefaultComponent());")
         }
         nl("@NonNull")
-        block("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable android.view.ViewGroup root, boolean attachToRoot, @Nullable android.databinding.DataBindingComponent bindingComponent)") {
-            nl("return android.databinding.DataBindingUtil.<$baseClassName>inflate(inflater, ${layoutBinder.modulePackage}.R.layout.${layoutBinder.layoutname}, root, attachToRoot, bindingComponent);")
+        block("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable android.view.ViewGroup root, boolean attachToRoot, @Nullable ${libTypes.dataBindingComponent} bindingComponent)") {
+            nl("return ${libTypes.dataBindingUtil}.<$baseClassName>inflate(inflater, ${layoutBinder.modulePackage}.R.layout.${layoutBinder.layoutname}, root, attachToRoot, bindingComponent);")
         }
         if (!layoutBinder.isMerge) {
             nl("@NonNull")
             block("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater)") {
-                nl("return inflate(inflater, android.databinding.DataBindingUtil.getDefaultComponent());")
+                nl("return inflate(inflater, ${libTypes.dataBindingUtil}.getDefaultComponent());")
             }
             nl("@NonNull")
-            block("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable android.databinding.DataBindingComponent bindingComponent)") {
+            block("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable ${libTypes.dataBindingComponent} bindingComponent)") {
                 nl("return bind(inflater.inflate(${layoutBinder.modulePackage}.R.layout.${layoutBinder.layoutname}, null, false), bindingComponent);")
             }
             nl("@NonNull")
             block("public static $baseClassName bind(@NonNull android.view.View view)") {
-                nl("return bind(view, android.databinding.DataBindingUtil.getDefaultComponent());")
+                nl("return bind(view, ${libTypes.dataBindingUtil}.getDefaultComponent());")
             }
             nl("@NonNull")
-            block("public static $baseClassName bind(@NonNull android.view.View view, @Nullable android.databinding.DataBindingComponent bindingComponent)") {
+            block("public static $baseClassName bind(@NonNull android.view.View view, @Nullable ${libTypes.dataBindingComponent} bindingComponent)") {
                 block("if (!\"${layoutBinder.tag}_0\".equals(view.getTag()))") {
                     nl("throw new RuntimeException(\"view tag isn't correct on view:\" + view.getTag());")
                 }
@@ -1273,11 +1273,11 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
     public fun writeBaseClass(forLibrary: Boolean, variations: List<LayoutBinder>) : String =
             kcode("package ${layoutBinder.`package`};") {
                 Scope.reset()
-                nl("import android.databinding.Bindable;")
-                nl("import android.databinding.DataBindingUtil;")
-                nl("import android.databinding.ViewDataBinding;")
-                nl("import android.support.annotation.NonNull;")
-                nl("import android.support.annotation.Nullable;")
+                nl("import ${libTypes.bindable};")
+                nl("import ${libTypes.dataBindingUtil};")
+                nl("import ${libTypes.viewDataBinding};")
+                nl("import ${libTypes.nonNull};")
+                nl("import ${libTypes.nullable};")
                 annotateWithGenerated()
                 nl("public abstract class $baseClassName extends ViewDataBinding {")
                 layoutBinder.sortedTargets.filter{it.id != null}.forEach {
@@ -1296,7 +1296,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     }
                 }
 
-                tab("protected $baseClassName(@Nullable android.databinding.DataBindingComponent bindingComponent, @Nullable android.view.View root_, int localFieldCount") {
+                tab("protected $baseClassName(@Nullable ${libTypes.dataBindingComponent} bindingComponent, @Nullable android.view.View root_, int localFieldCount") {
                     layoutBinder.sortedTargets.filter{it.id != null}.forEach {
                         tab(", ${it.interfaceClass} ${it.constructorParamName}")
                     }
@@ -1327,12 +1327,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
                 tab("@NonNull")
                 tab("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable android.view.ViewGroup root, boolean attachToRoot) {") {
-                    tab("return inflate(inflater, root, attachToRoot, android.databinding.DataBindingUtil.getDefaultComponent());")
+                    tab("return inflate(inflater, root, attachToRoot, ${libTypes.dataBindingUtil}.getDefaultComponent());")
                 }
                 tab("}")
                 tab("@NonNull")
                 tab("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater) {") {
-                    tab("return inflate(inflater, android.databinding.DataBindingUtil.getDefaultComponent());")
+                    tab("return inflate(inflater, ${libTypes.dataBindingUtil}.getDefaultComponent());")
                 }
                 tab("}")
                 tab("@NonNull")
@@ -1340,12 +1340,12 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                     if (forLibrary) {
                         tab("return null;")
                     } else {
-                        tab("return bind(view, android.databinding.DataBindingUtil.getDefaultComponent());")
+                        tab("return bind(view, ${libTypes.dataBindingUtil}.getDefaultComponent());")
                     }
                 }
                 tab("}")
                 tab("@NonNull")
-                tab("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable android.view.ViewGroup root, boolean attachToRoot, @Nullable android.databinding.DataBindingComponent bindingComponent) {") {
+                tab("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable android.view.ViewGroup root, boolean attachToRoot, @Nullable ${libTypes.dataBindingComponent} bindingComponent) {") {
                     if (forLibrary) {
                         tab("return null;")
                     } else {
@@ -1354,7 +1354,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
                 tab("}")
                 tab("@NonNull")
-                tab("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable android.databinding.DataBindingComponent bindingComponent) {") {
+                tab("public static $baseClassName inflate(@NonNull android.view.LayoutInflater inflater, @Nullable ${libTypes.dataBindingComponent} bindingComponent) {") {
                     if (forLibrary) {
                         tab("return null;")
                     } else {
@@ -1363,7 +1363,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder) {
                 }
                 tab("}")
                 tab("@NonNull")
-                tab("public static $baseClassName bind(@NonNull android.view.View view, @Nullable android.databinding.DataBindingComponent bindingComponent) {") {
+                tab("public static $baseClassName bind(@NonNull android.view.View view, @Nullable ${libTypes.dataBindingComponent} bindingComponent) {") {
                     if (forLibrary) {
                         tab("return null;")
                     } else {

@@ -295,22 +295,27 @@ def getFullSdkPath() {
     return rootProject.file("../prebuilts/studio/sdk/${getOsSdkFolderName()}")
 }
 
-if (!dataBindingConfig.isIndependent) {
-    def buildRuntimeLibrary = tasks.create(name : "buildDataBindingRuntimeArtifacts", type : Exec) {
-        def libBuild = file("${dataBindingRootFolder}/extensions")
+def createExtensionsBuildTask(folder, taskName) {
+    def buildRuntimeLibrary = tasks.create(name : taskName, type : Exec) {
+        def libBuild = file("${dataBindingRootFolder}/$folder")
         workingDir libBuild.getAbsolutePath()
         if (System.getProperty("os.name").toLowerCase().startsWith("windows")) {
             commandLine "$rootDir\\gradlew.bat"
         } else {
             commandLine "$rootDir/gradlew"
         }
-        args '-q', '-p', libBuild.getAbsolutePath(), 'uploadArchives'
+        args '-q', '-p', libBuild.getAbsolutePath(), 'uploadArchives', '--stacktrace'
         environment VERSION: rootProject.buildVersion
         environment MAVEN_REPO: rootProject.ext.localRepo
         environment PREBUILTS_REPO: rootProject.file('../prebuilts/tools/common/m2/repository')
         environment OUT_REPO: rootProject.ext.localRepo
         environment ANDROID_HOME: getFullSdkPath()
     }
+    return buildRuntimeLibrary
+}
+
+if (!dataBindingConfig.isIndependent) {
     apply from: '../buildSrc/base/runtimeArtifact.gradle'
-    registerRuntimeArtifactTask(buildRuntimeLibrary)
+    registerRuntimeArtifactTask(createExtensionsBuildTask("extensions", "buildDataBindingRuntimeArtifacts"))
+    registerRuntimeArtifactTask(createExtensionsBuildTask("extensions-support", "buildDataBindingRuntimeArtifactsForSupport"))
 }

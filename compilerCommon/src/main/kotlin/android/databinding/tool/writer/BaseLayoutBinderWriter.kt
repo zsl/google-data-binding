@@ -16,9 +16,11 @@
 
 package android.databinding.tool.writer
 
+import android.databinding.tool.LibTypes
 import android.databinding.tool.ext.L
 import android.databinding.tool.ext.N
 import android.databinding.tool.ext.T
+import android.databinding.tool.ext.toClassName
 import android.databinding.tool.ext.toTypeName
 import android.databinding.tool.store.GenClassInfoLog
 import com.squareup.javapoet.ClassName
@@ -29,26 +31,23 @@ import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
 import javax.lang.model.element.Modifier
 
-class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
+class BaseLayoutBinderWriter(val model: BaseLayoutModel, val libTypes: LibTypes) {
     companion object {
-        private val VIEW_DATA_BINDING =
-                ClassName.get("android.databinding", "ViewDataBinding")
-        private val DATA_BINDING_COMPONENT = ClassName.get(
-                "android.databinding", "DataBindingComponent")
         private val ANDROID_VIEW = ClassName.get("android.view", "View")
         private val ANDROID_LAYOUT_INFLATOR = ClassName.get("android.view", "LayoutInflater")
         private val ANDROID_VIEW_GROUP = ClassName.get("android.view", "ViewGroup")
-        private val DATA_BINDING_UTIL = ClassName.get("android.databinding", "DataBindingUtil")
-        private val NULLABLE = ClassName.get("android.support.annotation", "Nullable")
-        private val NON_NULL = ClassName.get("android.support.annotation", "NonNull")
-        private val BINDABLE = ClassName.get("android.databinding","Bindable")
     }
 
     private val binderTypeName = ClassName.get(model.bindingClassPackage, model.bindingClassName)
-
+    private val viewDataBinding = libTypes.viewDataBinding.toClassName()
+    private val nonNull = libTypes.nonNull.toClassName()
+    private val nullable = libTypes.nullable.toClassName()
+    private val dataBindingComponent = libTypes.dataBindingComponent.toClassName()
+    private val dataBindingUtil = libTypes.dataBindingUtil.toClassName()
+    private val bindable = libTypes.bindable.toClassName()
     fun write(): TypeSpec {
         return TypeSpec.classBuilder(model.bindingClassName).apply {
-            superclass(VIEW_DATA_BINDING)
+            superclass(viewDataBinding)
             addModifiers(Modifier.ABSTRACT, Modifier.PUBLIC)
             addFields(createBindingTargetFields())
             addFields(createVariableFields())
@@ -60,16 +59,16 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
 
     private fun createStaticInflaters(): List<MethodSpec> {
         val inflaterParam = ParameterSpec.builder(ANDROID_LAYOUT_INFLATOR, "inflater").apply {
-            addAnnotation(NON_NULL)
+            addAnnotation(nonNull)
         }.build()
         val viewGroupParam = ParameterSpec.builder(ANDROID_VIEW_GROUP, "root").apply {
-            addAnnotation(NULLABLE)
+            addAnnotation(nullable)
         }.build()
         val viewParam = ParameterSpec.builder(ANDROID_VIEW, "view").apply {
-            addAnnotation(NON_NULL)
+            addAnnotation(nonNull)
         }.build()
-        val componentParam = ParameterSpec.builder(DATA_BINDING_COMPONENT, "component").apply {
-            addAnnotation(NULLABLE)
+        val componentParam = ParameterSpec.builder(dataBindingComponent, "component").apply {
+            addAnnotation(nullable)
         }.build()
         val rLayoutFile = "${model.modulePackage}.R.layout.${model.baseFileName}"
         val attachToRootParam = ParameterSpec.builder(TypeName.BOOLEAN, "attachToRoot").
@@ -81,10 +80,10 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                     addParameter(viewGroupParam)
                     addParameter(attachToRootParam)
                     returns(binderTypeName)
-                    addAnnotation(NON_NULL)
+                    addAnnotation(nonNull)
                     addStatement("return inflate($N, $N, $N, $T.getDefaultComponent())",
                             inflaterParam, viewGroupParam, attachToRootParam,
-                            DATA_BINDING_UTIL)
+                            dataBindingUtil)
                 }.build(),
                 MethodSpec.methodBuilder("inflate").apply {
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -93,9 +92,9 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                     addParameter(attachToRootParam)
                     addParameter(componentParam)
                     returns(binderTypeName)
-                    addAnnotation(NON_NULL)
+                    addAnnotation(nonNull)
                     addStatement("return $T.<$T>inflate($N, $L, $N, $N, $N)",
-                            DATA_BINDING_UTIL, binderTypeName,
+                            dataBindingUtil, binderTypeName,
                             inflaterParam, rLayoutFile, viewGroupParam, attachToRootParam,
                             componentParam)
                 }.build(),
@@ -104,9 +103,9 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     addParameter(inflaterParam)
                     returns(binderTypeName)
-                    addAnnotation(NULLABLE)
+                    addAnnotation(nullable)
                     addStatement("return inflate($N, $T.getDefaultComponent())",
-                            inflaterParam, DATA_BINDING_UTIL)
+                            inflaterParam, dataBindingUtil)
                 }.build(),
 
                 MethodSpec.methodBuilder("inflate").apply {
@@ -114,9 +113,9 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                     addParameter(inflaterParam)
                     addParameter(componentParam)
                     returns(binderTypeName)
-                    addAnnotation(NON_NULL)
+                    addAnnotation(nonNull)
                     addStatement("return $T.<$T>inflate($N, $L, null, false, $N)",
-                            DATA_BINDING_UTIL, binderTypeName, inflaterParam,
+                            dataBindingUtil, binderTypeName, inflaterParam,
                             rLayoutFile, componentParam)
                 }.build(),
 
@@ -124,16 +123,16 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     addParameter(viewParam)
                     returns(binderTypeName)
-                    addAnnotation(NON_NULL)
+                    addAnnotation(nonNull)
                     addStatement("return bind($N, $T.getDefaultComponent())",
-                            viewParam, DATA_BINDING_UTIL)
+                            viewParam, dataBindingUtil)
                 }.build(),
                 MethodSpec.methodBuilder("bind").apply {
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     addParameter(viewParam)
                     addParameter(componentParam)
                     returns(binderTypeName)
-                    addAnnotation(NON_NULL)
+                    addAnnotation(nonNull)
                     addStatement("return ($T)bind($N, $N, $L)",
                             binderTypeName, componentParam, viewParam, rLayoutFile)
                 }.build()
@@ -142,13 +141,13 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
 
     private fun createGettersAndSetters(): List<MethodSpec> {
         return model.variables.flatMap { variable ->
-            val typeName = variable.type.toTypeName(model.importsByAlias)
+            val typeName = variable.type.toTypeName(libTypes, model.importsByAlias)
             listOf(
                     MethodSpec.methodBuilder(model.setterName(variable)).apply {
                         addModifiers(Modifier.PUBLIC)
                         val param = ParameterSpec.builder(typeName, variable.name).apply {
                             if (!typeName.isPrimitive) {
-                                addAnnotation(NULLABLE)
+                                addAnnotation(nullable)
                             }
                         }.build()
                         returns(TypeName.VOID)
@@ -160,7 +159,7 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                         addModifiers(Modifier.PUBLIC)
                         returns(typeName)
                         if (!typeName.isPrimitive) {
-                            addAnnotation(NULLABLE)
+                            addAnnotation(nullable)
                         }
                         addStatement("return $L", model.fieldName(variable))
                     }.build())
@@ -171,7 +170,7 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
         return MethodSpec.constructorBuilder().apply {
             addModifiers(Modifier.PROTECTED)
             val componentParam = ParameterSpec
-                    .builder(DATA_BINDING_COMPONENT, "_bindingComponent")
+                    .builder(dataBindingComponent, "_bindingComponent")
                     .build()
             val viewParam = ParameterSpec
                     .builder(ANDROID_VIEW, "_root")
@@ -186,7 +185,7 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
             model.sortedTargets.filter { it.id != null }
                     .forEach {
                         val fieldType = (it.interfaceType ?: it.fullClassName)
-                                .toTypeName(model.importsByAlias)
+                                .toTypeName(libTypes, model.importsByAlias)
                         val targetParam = ParameterSpec.builder(fieldType, model.fieldName(it))
                                 .build()
                         addParameter(targetParam)
@@ -208,16 +207,17 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                 qName = binderTypeName.toString(),
                 modulePackage = model.modulePackage,
                 variables = model.variables.associate {
-                    Pair(it.name, it.type.toTypeName(model.importsByAlias).toString())
+                    Pair(it.name, it.type.toTypeName(libTypes, model.importsByAlias).toString())
                 },
                 implementations = model.generateImplInfo())
     }
 
     private fun createVariableFields(): List<FieldSpec> {
         return model.variables.map {
-            FieldSpec.builder(it.type.toTypeName(model.importsByAlias), model.fieldName(it),
+            FieldSpec.builder(it.type.toTypeName(libTypes, model.importsByAlias),
+                    model.fieldName(it),
                     Modifier.PROTECTED)
-                    .addAnnotation(BINDABLE) // mark them bindable to trigger BR gen
+                    .addAnnotation(bindable) // mark them bindable to trigger BR gen
                     .build()
         }
     }
@@ -227,7 +227,7 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                 .filter { it.id != null }
                 .map {
                     val fieldType = (it.interfaceType ?: it.fullClassName)
-                            .toTypeName(model.importsByAlias)
+                            .toTypeName(libTypes, model.importsByAlias)
                     FieldSpec.builder(fieldType,
                             model.fieldName(it), Modifier.FINAL).apply {
                         if (it.id != null) {
@@ -236,9 +236,9 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel) {
                             addModifiers(Modifier.PRIVATE)
                         }
                         if (model.inEveryLayout(it)) {
-                            addAnnotation(NON_NULL)
+                            addAnnotation(nonNull)
                         } else {
-                            addAnnotation(NULLABLE)
+                            addAnnotation(nullable)
                         }
                     }.build()
                 }

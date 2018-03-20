@@ -17,6 +17,7 @@
 package android.databinding.tool.writer
 
 import android.databinding.tool.DataBindingCompilerArgs
+import android.databinding.tool.LibTypes
 import android.databinding.tool.ext.L
 import android.databinding.tool.ext.N
 import android.databinding.tool.ext.S
@@ -39,14 +40,9 @@ import javax.annotation.Generated
 import javax.lang.model.element.Modifier
 
 class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
-                            private val compilerArgs: DataBindingCompilerArgs) {
+                            compilerArgs: DataBindingCompilerArgs,
+                            libTypes: LibTypes) {
     companion object {
-        private val VIEW_DATA_BINDING = ClassName
-                .get("android.databinding", "ViewDataBinding")
-        private val COMPONENT = ClassName
-                .get("android.databinding", "DataBindingComponent")
-        val DATA_BINDER_MAPPER: ClassName = ClassName
-                .get("android.databinding", "DataBinderMapper")
         private val VIEW = ClassName
                 .get("android.view", "View")
         private val OBJECT = ClassName
@@ -57,8 +53,6 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
                 .get("java.lang", "IllegalArgumentException")
         private val STRING = ClassName
                 .get("java.lang", "String")
-        private val INTEGER = ClassName
-                .get("java.lang", "Integer")
         private val LAYOUT_ID_LOOKUP_MAP_NAME = "INTERNAL_LAYOUT_ID_LOOKUP"
         private val IMPL_CLASS_NAME = "DataBinderMapperImpl"
         private val SPARSE_INT_ARRAY =
@@ -72,12 +66,19 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
 
     private val rClassMap = mutableMapOf<String, ClassName>()
 
+    private val viewDataBinding = ClassName.bestGuess(libTypes.viewDataBinding)
+    private val bindingComponent = ClassName.bestGuess(libTypes.dataBindingComponent)
+    private val dataBinderMapper: ClassName = ClassName.bestGuess(libTypes.dataBinderMapper)
+    private val testOverride: ClassName = ClassName.get(
+            libTypes.bindingPackage,
+            MergedBindingMapperWriter.TEST_CLASS_NAME)
+
+
     val pkg : String
     val className : String
     init {
         val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
         if(generateAsTest) {
-            val testOverride = MergedBindingMapperWriter.TEST_OVERRIDE
             pkg = testOverride.packageName()
             className = testOverride.simpleName()
         } else {
@@ -123,7 +124,7 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
     }
 
     fun write(brValueLookup: MutableMap<String, Int>): TypeSpec = TypeSpec.classBuilder(className).apply {
-        superclass(DATA_BINDER_MAPPER)
+        superclass(dataBinderMapper)
         addModifiers(Modifier.PUBLIC)
         if (ModelAnalyzer.getInstance().hasGeneratedAnnotation()) {
             addAnnotation(AnnotationSpec.builder(Generated::class.java).apply {
@@ -262,8 +263,8 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
         return MethodSpec.methodBuilder("getDataBinder").apply {
             addModifiers(Modifier.PUBLIC)
             addAnnotation(Override::class.java)
-            returns(VIEW_DATA_BINDING)
-            val componentParam = ParameterSpec.builder(COMPONENT, "component").build()
+            returns(viewDataBinding)
+            val componentParam = ParameterSpec.builder(bindingComponent, "component").build()
             val viewParam = ParameterSpec.builder(VIEW, "view").build()
             val layoutIdParam = ParameterSpec.builder(TypeName.INT, "layoutId").build()
             addParameter(componentParam)
@@ -319,8 +320,8 @@ class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
             .apply {
                 addModifiers(Modifier.PUBLIC)
                 addAnnotation(Override::class.java)
-                returns(VIEW_DATA_BINDING)
-                val componentParam = ParameterSpec.builder(COMPONENT, "component").build()
+                returns(viewDataBinding)
+                val componentParam = ParameterSpec.builder(bindingComponent, "component").build()
                 val viewParam = ParameterSpec.builder(ArrayTypeName.of(VIEW), "views").build()
                 val layoutIdParam = ParameterSpec.builder(TypeName.INT, "layoutId").build()
                 addParameter(componentParam)

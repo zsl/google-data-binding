@@ -14,6 +14,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="db-baseLibrary" exported="" />
+    <orderEntry type="module" module-name="db-baseLibrarySupport" exported="" />
     <orderEntry type="module" module-name="android-annotations"/>
     <orderEntry type="module" module-name="db-compilerCommon" />
     <orderEntry type="library" name="antlr4-runtime-4.5.3" level="project" />

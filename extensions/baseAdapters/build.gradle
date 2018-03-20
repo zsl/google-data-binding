@@ -49,7 +49,6 @@ dependencies {
     // we don't care about version of these because they are not listed as dependencies in the
     // final maven artifact.
     implementation project(":library")
-    compileOnly rootProject.ext.libs.android_support_core_utils
     compileOnly rootProject.ext.libs.android_support_cardview_v7
     compileOnly rootProject.ext.libs.android_support_appcompat_v7
 }

@@ -349,7 +349,8 @@ class LayoutInfoInputTest {
                         incremental = incremental,
                         logFolder = baseBinderLogFolder,
                         artifactFolder = artifactFolder,
-                        packageName = "foo.bar.baz")
+                        packageName = "foo.bar.baz",
+                        useAndroidX = true)
         )
     }
 }

@@ -17,6 +17,7 @@
 package android.databinding.tool.writer
 
 import android.databinding.tool.DataBindingCompilerArgs
+import android.databinding.tool.LibTypes
 import android.databinding.tool.ext.N
 import android.databinding.tool.ext.S
 import android.databinding.tool.ext.T
@@ -30,30 +31,34 @@ import javax.lang.model.element.Modifier
 class MergedBindingMapperWriter(private val packages: List<String>,
                                 compilerArgs: DataBindingCompilerArgs,
                                 private val featurePackages : Set<String>,
-                                private val hasV1CompatMapper: Boolean) {
+                                private val hasV1CompatMapper: Boolean,
+                                libTypes: LibTypes) {
     private val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
     private val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
-    private val overrideField = FieldSpec.builder(BindingMapperWriterV2.DATA_BINDER_MAPPER,
+    private val overrideField = FieldSpec.builder(ClassName.bestGuess(libTypes.dataBinderMapper),
             "sTestOverride")
             .addModifiers(Modifier.STATIC)
             .build()
 
     companion object {
         const val APP_CLASS_NAME = "DataBinderMapperImpl"
-        private const val TEST_CLASS_NAME = "Test$APP_CLASS_NAME"
-        val MERGED_MAPPER_BASE: ClassName = ClassName.get(
-                "android.databinding",
-                "MergedDataBinderMapper")
-        internal val TEST_OVERRIDE: ClassName = ClassName.get(
-                "android.databinding",
-                TEST_CLASS_NAME)
+        internal const val TEST_CLASS_NAME = "Test$APP_CLASS_NAME"
     }
 
-    val pkg = "android.databinding"
+    val pkg = libTypes.bindingPackage
     val qualifiedName = "$pkg.$APP_CLASS_NAME"
+    private val dataBinderMapper: ClassName = ClassName.bestGuess(libTypes.dataBinderMapper)
+
+    private val mergedMapperBase: ClassName = ClassName.get(
+            libTypes.bindingPackage,
+            "MergedDataBinderMapper")
+
+    private val testOverride: ClassName = ClassName.get(
+            libTypes.bindingPackage,
+            TEST_CLASS_NAME)
 
     fun write() = TypeSpec.classBuilder(APP_CLASS_NAME).apply {
-        superclass(MERGED_MAPPER_BASE)
+        superclass(mergedMapperBase)
         addModifiers(Modifier.PUBLIC)
         addMethod(MethodSpec.constructorBuilder().apply {
             packages.forEach { pkg ->
@@ -80,9 +85,9 @@ class MergedBindingMapperWriter(private val packages: List<String>,
             addStaticBlock(CodeBlock.builder()
                     .beginControlFlow("try").apply {
                 addStatement("$N = ($T) $T.class.getClassLoader().loadClass($S).newInstance()",
-                        overrideField, BindingMapperWriterV2.DATA_BINDER_MAPPER,
-                        BindingMapperWriterV2.DATA_BINDER_MAPPER,
-                        TEST_OVERRIDE)
+                        overrideField, dataBinderMapper,
+                        dataBinderMapper,
+                        testOverride)
             }.nextControlFlow("catch($T ignored)", ClassName.get(Throwable::class.java))
                     .apply {
                         addStatement("$N = null", overrideField)
