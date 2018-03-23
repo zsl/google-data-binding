@@ -16,16 +16,25 @@
 package android.databinding.testapp;
 
 import android.databinding.ObservableArrayMap;
-import android.databinding.testapp.databinding.BasicBindingBinding;
-
 import android.databinding.ObservableMap;
 import android.databinding.ObservableMap.OnMapChangedCallback;
+import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.support.test.runner.AndroidJUnit4;
 import android.support.v4.util.ArrayMap;
 import android.support.v4.util.SimpleArrayMap;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBinding> {
 
     private ObservableArrayMap<String, String> mObservable;
@@ -45,11 +54,12 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         mNotifications.clear();
         mObservable = new ObservableArrayMap<>();
     }
 
+    @Test
     public void testAddListener() {
         mObservable.put("Hello", "World");
         assertTrue(mNotifications.isEmpty());
@@ -58,6 +68,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertFalse(mNotifications.isEmpty());
     }
 
+    @Test
     public void testRemoveListener() {
         // test there is no exception when the listener isn't there
         mObservable.removeOnMapChangedCallback(mListener);
@@ -73,6 +84,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         mObservable.removeOnMapChangedCallback(mListener);
     }
 
+    @Test
     public void testClear() {
         mObservable.put("Hello", "World");
         mObservable.put("World", "Hello");
@@ -88,6 +100,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(1, mNotifications.size());
     }
 
+    @Test
     public void testPut() {
         mObservable.addOnMapChangedCallback(mListener);
         mObservable.put("Hello", "World");
@@ -106,6 +119,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals("Hello", mObservable.get("World"));
     }
 
+    @Test
     public void testPutAll() {
         Map<String, String> toAdd = new ArrayMap<>();
         toAdd.put("Hello", "World");
@@ -122,6 +136,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertTrue(mNotifications.contains("Goodbye"));
     }
 
+    @Test
     public void testPutAllSimpleArrayMap() {
         SimpleArrayMap<String, String> toAdd = new ArrayMap<>();
         toAdd.put("Hello", "World");
@@ -138,6 +153,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertTrue(mNotifications.contains("Goodbye"));
     }
 
+    @Test
     public void testRemove() {
         mObservable.put("Hello", "World");
         mObservable.put("Goodbye", "Cruel World");
@@ -151,6 +167,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(1, mNotifications.size());
     }
 
+    @Test
     public void testRemoveAll() {
         ArrayList<String> toRemove = new ArrayList<>();
         toRemove.add("Hello");
@@ -172,6 +189,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(2, mNotifications.size());
     }
 
+    @Test
     public void testRetainAll() {
         ArrayList<String> toRetain = new ArrayList<>();
         toRetain.add("Hello");
@@ -191,6 +209,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(1, mNotifications.size());
     }
 
+    @Test
     public void testRemoveAt() {
         mObservable.put("Hello", "World");
         mObservable.put("Goodbye", "Cruel World");
@@ -203,6 +222,7 @@ public class ObservableArrayMapTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(key, mNotifications.get(0));
     }
 
+    @Test
     public void testSetValueAt() {
         mObservable.put("Hello", "World");
         mObservable.addOnMapChangedCallback(mListener);

@@ -16,15 +16,6 @@
 
 package android.databinding.testapp;
 
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
 import android.annotation.TargetApi;
 import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.CallbacksBinding;
@@ -35,15 +26,24 @@ import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 import android.widget.ArrayAdapter;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.util.Arrays.asList;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class CallbackTest {
@@ -144,10 +144,10 @@ public class CallbackTest {
                 mBinding.view3.performClick();
                 mBinding.view4.performClick();
 
-                MatcherAssert.assertThat(mBinding.view1.performLongClick(), CoreMatchers.is(false));
-                MatcherAssert.assertThat(mBinding.view2.performLongClick(), CoreMatchers.is(false));
-                MatcherAssert.assertThat(mBinding.view3.performLongClick(), CoreMatchers.is(false));
-                MatcherAssert.assertThat(mBinding.view4.performLongClick(), CoreMatchers.is(false));
+                assertThat(mBinding.view1.performLongClick(), is(false));
+                assertThat(mBinding.view2.performLongClick(), is(false));
+                assertThat(mBinding.view3.performLongClick(), is(false));
+                assertThat(mBinding.view4.performLongClick(), is(false));
 
             }
         });
@@ -161,7 +161,7 @@ public class CallbackTest {
             @Override
             public void run() {
                 when(mObj.onLongClick()).thenReturn(true);
-                MatcherAssert.assertThat(mBinding.view1.performLongClick(), CoreMatchers.is(true));
+                assertThat(mBinding.view1.performLongClick(), is(true));
                 verify(mObj, times(1)).onLongClick();
                 verify(mObj, never()).onLongClick(any(View.class));
                 verify(mObj, never()).onLongClickWithParam(any(NotBindableVo.class));
@@ -177,7 +177,7 @@ public class CallbackTest {
             @Override
             public void run() {
                 when(mObj.onLongClick(mBinding.view2)).thenReturn(true);
-                MatcherAssert.assertThat(mBinding.view2.performLongClick(), CoreMatchers.is(true));
+                assertThat(mBinding.view2.performLongClick(), is(true));
                 verify(mObj, never()).onLongClick();
                 verify(mObj, times(1)).onLongClick(mBinding.view2);
                 verify(mObj, never()).onLongClickWithParam(any(NotBindableVo.class));
@@ -193,7 +193,7 @@ public class CallbackTest {
             @Override
             public void run() {
                 when(mObj.onLongClickWithParam(mOther)).thenReturn(true);
-                MatcherAssert.assertThat(mBinding.view3.performLongClick(), CoreMatchers.is(true));
+                assertThat(mBinding.view3.performLongClick(), is(true));
                 verify(mObj, never()).onLongClick();
                 verify(mObj, never()).onLongClick(any(View.class));
                 verify(mObj, times(1)).onLongClickWithParam(mOther);
@@ -209,7 +209,7 @@ public class CallbackTest {
             @Override
             public void run() {
                 when(mObj.onLongClickWithParam(mBinding.view4, mOther)).thenReturn(true);
-                MatcherAssert.assertThat(mBinding.view4.performLongClick(), CoreMatchers.is(true));
+                assertThat(mBinding.view4.performLongClick(), is(true));
                 verify(mObj, never()).onLongClick();
                 verify(mObj, never()).onLongClick(any(View.class));
                 verify(mObj, never()).onLongClickWithParam(any(NotBindableVo.class));
@@ -228,7 +228,7 @@ public class CallbackTest {
             public void run() {
                 // this is going to trigger scroll
                 mBinding.listView.setAdapter(new ArrayAdapter<>(mBinding.listView.getContext(),
-                        android.R.layout.simple_list_item_1, Arrays.asList("a", "b")));
+                        android.R.layout.simple_list_item_1, asList("a", "b")));
             }
         });
         mBindingRule.runOnUiThread(new Runnable() {
@@ -275,7 +275,7 @@ public class CallbackTest {
 
     @Test
     public void testArrayAccess() throws Throwable {
-        final CallbackBindingObject[] objects = new CallbackBindingObject[] {
+        final CallbackBindingObject[] objects = new CallbackBindingObject[]{
                 mock(CallbackBindingObject.class),
                 mock(CallbackBindingObject.class),
                 mock(CallbackBindingObject.class),
@@ -351,11 +351,11 @@ public class CallbackTest {
                 mBinding.view11.setFocusable(false);
                 when(mObj.onFocusable()).thenReturn(true, false);
                 when(mObj.onNotFocusable()).thenReturn(false, true);
-                MatcherAssert.assertThat(mBinding.view11.performLongClick(), CoreMatchers.is(false));
-                MatcherAssert.assertThat(mBinding.view11.performLongClick(), CoreMatchers.is(true));
+                assertThat(mBinding.view11.performLongClick(), is(false));
+                assertThat(mBinding.view11.performLongClick(), is(true));
                 mBinding.view11.setFocusable(true);
-                MatcherAssert.assertThat(mBinding.view11.performLongClick(), CoreMatchers.is(true));
-                MatcherAssert.assertThat(mBinding.view11.performLongClick(), CoreMatchers.is(false));
+                assertThat(mBinding.view11.performLongClick(), is(true));
+                assertThat(mBinding.view11.performLongClick(), is(false));
             }
         });
     }
@@ -392,9 +392,9 @@ public class CallbackTest {
             @Override
             public void run() {
                 view.performClick();
-                MatcherAssert.assertThat(counter.get(), CoreMatchers.is(start + 1));
-                MatcherAssert.assertThat(view.performLongClick(), CoreMatchers.is(true));
-                MatcherAssert.assertThat(counter.get(), CoreMatchers.is(start + 2));
+                assertThat(counter.get(), is(start + 1));
+                assertThat(view.performLongClick(), is(true));
+                assertThat(counter.get(), is(start + 2));
             }
         });
     }

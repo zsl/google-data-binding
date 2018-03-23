@@ -15,12 +15,18 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.PropertyChangeRegistry;
-import android.databinding.testapp.databinding.BasicBindingBinding;
-
 import android.databinding.Observable;
 import android.databinding.Observable.OnPropertyChangedCallback;
+import android.databinding.PropertyChangeRegistry;
+import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class PropertyChangeRegistryTest extends BaseDataBinderTest<BasicBindingBinding> {
 
     private int notificationCount = 0;
@@ -29,6 +35,7 @@ public class PropertyChangeRegistryTest extends BaseDataBinderTest<BasicBindingB
         super(BasicBindingBinding.class);
     }
 
+    @Test
     public void testNotifyChanged() {
         PropertyChangeRegistry propertyChangeRegistry = new PropertyChangeRegistry();
 

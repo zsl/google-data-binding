@@ -17,13 +17,18 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.FindFieldTestBinding;
 import android.databinding.testapp.vo.FindFieldBindingObject;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class FindFieldTest extends BaseDataBinderTest<FindFieldTestBinding> {
     public FindFieldTest() {
         super(FindFieldTestBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void test() {
         initBinder();
@@ -34,6 +39,7 @@ public class FindFieldTest extends BaseDataBinderTest<FindFieldTestBinding> {
         assertEquals(obj.mPublicField, mBinder.textView1.getText().toString());
     }
 
+    @Test
     @UiThreadTest
     public void testFieldOnGeneric() {
         initBinder();

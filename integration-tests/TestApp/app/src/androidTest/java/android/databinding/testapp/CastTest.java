@@ -16,11 +16,18 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.CastTestBinding;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.support.v4.util.ArrayMap;
-import android.test.UiThreadTest;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class CastTest extends BaseDataBinderTest<CastTestBinding> {
     ArrayList<String> mValues = new ArrayList<>();
     ArrayMap<String, String> mMap = new ArrayMap<>();
@@ -29,8 +36,9 @@ public class CastTest extends BaseDataBinderTest<CastTestBinding> {
         super(CastTestBinding.class);
     }
 
+    @Test
     @UiThreadTest
-    public void testCast() throws Throwable {
+    public void testCast() {
         initBinder();
         mValues.clear();
         mValues.add("hello");

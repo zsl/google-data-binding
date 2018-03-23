@@ -17,10 +17,13 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.SpinnerAdapterTestBinding;
 import android.databinding.testapp.vo.SpinnerBindingObject;
-
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.widget.Spinner;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class SpinnerBindingAdapterTest
         extends BindingAdapterTestBase<SpinnerAdapterTestBinding, SpinnerBindingObject> {
@@ -33,12 +36,13 @@ public class SpinnerBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
-    public void testSpinner() throws Throwable {
+    @Test
+    public void testSpinner() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             assertEquals(mBindingObject.getPopupBackground(),
                     ((ColorDrawable) mView.getPopupBackground()).getColor());

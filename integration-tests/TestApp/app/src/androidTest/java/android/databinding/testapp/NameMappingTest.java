@@ -18,17 +18,24 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.NameMappingTestBinding;
 import android.databinding.testapp.vo.BasicObject;
-import android.test.UiThreadTest;
-import android.databinding.testapp.BR;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class NameMappingTest extends BaseDataBinderTest<NameMappingTestBinding> {
 
     public NameMappingTest() {
         super(NameMappingTestBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testChanges() {
         initBinder();
@@ -47,7 +54,7 @@ public class NameMappingTest extends BaseDataBinderTest<NameMappingTestBinding> 
         };
         mBinder.setObj(object);
         mBinder.executePendingBindings();
-        for (int i = 0; i < 5; i ++) {
+        for (int i = 0; i < 5; i++) {
             boolean f1New = (i & 1) != 0;
             boolean f2New = (i & 1 << 1) != 0;
             if (f1New != f1.get()) {

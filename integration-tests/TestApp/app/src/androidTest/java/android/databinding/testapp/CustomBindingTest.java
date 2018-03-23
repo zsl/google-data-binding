@@ -15,18 +15,24 @@
  */
 package android.databinding.testapp;
 
-import android.os.Build;
-import android.test.UiThreadTest;
-import android.widget.ListView;
-
 import android.databinding.testapp.databinding.CustomBinding;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class CustomBindingTest extends BaseDataBinderTest<CustomBinding> {
 
     public CustomBindingTest() {
         super(CustomBinding.class);
     }
 
+    @SuppressWarnings("ConstantConditions")
+    @Test
     @UiThreadTest
     public void testCustomBindings() {
         initBinder();

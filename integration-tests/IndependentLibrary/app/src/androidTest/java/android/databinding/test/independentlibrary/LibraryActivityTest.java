@@ -16,19 +16,27 @@
 
 package android.databinding.test.independentlibrary;
 
-import android.test.ActivityInstrumentationTestCase2;
-import android.view.View;
+import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.AndroidJUnit4;
 import android.widget.TextView;
 
-public class LibraryActivityTest extends ActivityInstrumentationTestCase2<LibraryActivity> {
-    public LibraryActivityTest() {
-        super(LibraryActivity.class);
-    }
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static junit.framework.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
+public class LibraryActivityTest {
+    @Rule
+    public ActivityTestRule<LibraryActivity> rule = new ActivityTestRule<>(
+            LibraryActivity.class
+    );
+
+    @Test
     public void testTextViewContents() throws Throwable {
-        final LibraryActivity activity = getActivity();
-        assertNotNull("test sanity", activity);
-        runTestOnUiThread(new Runnable() {
+        final LibraryActivity activity = rule.getActivity();
+        rule.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 TextView textView = (TextView) activity.findViewById(R.id.fooTextView);

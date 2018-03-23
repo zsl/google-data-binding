@@ -16,16 +16,24 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.NoVariablesBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class NoVariablesTest extends BaseDataBinderTest<NoVariablesBinding> {
 
     public NoVariablesTest() {
         super(NoVariablesBinding.class);
     }
 
+    @Test
     @UiThreadTest
-    public void testAssign() throws Throwable {
+    public void testAssign() {
         initBinder();
         mBinder.executePendingBindings();
         String expectedValue = getActivity().getResources().getString(R.string.app_name);

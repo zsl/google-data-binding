@@ -17,9 +17,12 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.LinearLayoutAdapterTestBinding;
 import android.databinding.testapp.vo.LinearLayoutBindingObject;
-
 import android.os.Build;
 import android.widget.LinearLayout;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class LinearLayoutBindingAdapterTest
         extends BindingAdapterTestBase<LinearLayoutAdapterTestBinding, LinearLayoutBindingObject> {
@@ -32,12 +35,13 @@ public class LinearLayoutBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
-    public void testMeasureWithLargestChild() throws Throwable {
+    @Test
+    public void testMeasureWithLargestChild() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             assertEquals(mBindingObject.isMeasureWithLargestChild(),
                     mView.isMeasureWithLargestChildEnabled());

@@ -14,18 +14,25 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.NoIdTestBinding;
-
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+@RunWith(AndroidJUnit4.class)
 public class NoIdTest extends BaseDataBinderTest<NoIdTestBinding> {
     public NoIdTest() {
         super(NoIdTestBinding.class);
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder(new Runnable() {
             @Override
@@ -37,6 +44,7 @@ public class NoIdTest extends BaseDataBinderTest<NoIdTestBinding> {
         });
     }
 
+    @Test
     @UiThreadTest
     public void testOnRoot() {
         LinearLayout linearLayout = (LinearLayout) mBinder.getRoot();
@@ -46,6 +54,7 @@ public class NoIdTest extends BaseDataBinderTest<NoIdTestBinding> {
         assertEquals(LinearLayout.HORIZONTAL, linearLayout.getOrientation());
     }
 
+    @Test
     @UiThreadTest
     public void testNormal() {
         LinearLayout linearLayout = (LinearLayout) mBinder.getRoot();
@@ -57,6 +66,7 @@ public class NoIdTest extends BaseDataBinderTest<NoIdTestBinding> {
         assertEquals("world", view.getText().toString());
     }
 
+    @Test
     @UiThreadTest
     public void testNoTag() {
         LinearLayout linearLayout = (LinearLayout) mBinder.getRoot();
@@ -64,6 +74,7 @@ public class NoIdTest extends BaseDataBinderTest<NoIdTestBinding> {
         assertNull(view.getTag());
     }
 
+    @Test
     @UiThreadTest
     public void testResourceTag() {
         LinearLayout linearLayout = (LinearLayout) mBinder.getRoot();
@@ -72,6 +83,7 @@ public class NoIdTest extends BaseDataBinderTest<NoIdTestBinding> {
         assertEquals(expectedValue, view.getTag());
     }
 
+    @Test
     @UiThreadTest
     public void testAndroidResourceTag() {
         LinearLayout linearLayout = (LinearLayout) mBinder.getRoot();
@@ -80,6 +92,7 @@ public class NoIdTest extends BaseDataBinderTest<NoIdTestBinding> {
         assertEquals(expectedValue, view.getTag());
     }
 
+    @Test
     @UiThreadTest
     public void testIdOnly() {
         assertEquals("hello", mBinder.textView.getText().toString());

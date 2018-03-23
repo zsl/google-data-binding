@@ -16,21 +16,29 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ExpressionTestBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
     public ExpressionTest() {
         super(ExpressionTestBinding.class);
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder();
     }
 
+    @Test
     @UiThreadTest
-    public void testOr() throws Throwable {
+    public void testOr() {
         // var1 == 0 || var2 == 0 ? "hello" : "world"
         mBinder.setVar1(0);
         mBinder.setVar2(0);
@@ -48,8 +56,9 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals("world", mBinder.textView0.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testAnd() throws Throwable {
+    public void testAnd() {
         // var1 == 0 && var2 == 0 ? "hello" : "world"
         mBinder.setVar1(0);
         mBinder.setVar2(0);
@@ -67,8 +76,9 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals("world", mBinder.textView1.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testBinary() throws Throwable {
+    public void testBinary() {
         mBinder.setVar1(0);
         mBinder.setVar2(0);
         mBinder.executePendingBindings();
@@ -87,8 +97,9 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals("0", mBinder.textView4.getText().toString()); // var1 ^ var2
     }
 
+    @Test
     @UiThreadTest
-    public void testComparison() throws Throwable {
+    public void testComparison() {
         mBinder.setVar1(0);
         mBinder.setVar2(0);
         mBinder.executePendingBindings();
@@ -115,8 +126,9 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals("false", mBinder.textView9.getText().toString());  // ==
     }
 
+    @Test
     @UiThreadTest
-    public void testShift() throws Throwable {
+    public void testShift() {
         mBinder.setVar1(-2);
         mBinder.setVar2(1);
         mBinder.executePendingBindings();
@@ -127,8 +139,9 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals(String.valueOf(var1 >>> var2), mBinder.textView12.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testUnary() throws Throwable {
+    public void testUnary() {
         mBinder.setVar1(2);
         mBinder.setVar2(1);
         mBinder.executePendingBindings();
@@ -137,16 +150,19 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals("1", mBinder.textView13.getText().toString()); // 2 + -1
         assertEquals(String.valueOf(var1 + ~var2), mBinder.textView14.getText().toString()); // 2 + ~1
     }
+
+    @Test
     @UiThreadTest
-    public void testInstanceOf() throws Throwable {
+    public void testInstanceOf() {
         mBinder.executePendingBindings();
         assertEquals("true", mBinder.textView15.getText().toString());
         assertEquals("true", mBinder.textView16.getText().toString());
         assertEquals("false", mBinder.textView17.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testTernaryChain()  throws Throwable {
+    public void testTernaryChain() {
         mBinder.setBool1(true);
         mBinder.setBool2(false);
         mBinder.executePendingBindings();
@@ -160,8 +176,9 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals("1", mBinder.textView22.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testBoundTag() throws Throwable {
+    public void testBoundTag() {
         mBinder.setBool1(false);
         mBinder.executePendingBindings();
         assertEquals("bar", mBinder.textView19.getTag());
@@ -170,8 +187,9 @@ public class ExpressionTest extends BaseDataBinderTest<ExpressionTestBinding> {
         assertEquals("foo", mBinder.textView19.getTag());
     }
 
+    @Test
     @UiThreadTest
-    public void testConstantExpression() throws Throwable {
+    public void testConstantExpression() {
         mBinder.setVar1(1000);
         mBinder.setVar2(2000);
         mBinder.executePendingBindings();

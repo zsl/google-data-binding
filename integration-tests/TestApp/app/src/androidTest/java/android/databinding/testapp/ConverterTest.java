@@ -16,17 +16,24 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ConvertersBinding;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import android.test.UiThreadTest;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class ConverterTest extends BaseDataBinderTest<ConvertersBinding> {
     public ConverterTest() {
         super(ConvertersBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testGenericConverter() {
         initBinder();

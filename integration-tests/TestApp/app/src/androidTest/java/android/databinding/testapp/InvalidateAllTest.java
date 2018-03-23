@@ -4,16 +4,25 @@ import android.databinding.OnRebindCallback;
 import android.databinding.ViewDataBinding;
 import android.databinding.testapp.databinding.InvalidateAllLayoutBinding;
 import android.databinding.testapp.vo.NotBindableVo;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class InvalidateAllTest extends BaseDataBinderTest<InvalidateAllLayoutBinding> {
 
     public InvalidateAllTest() {
         super(InvalidateAllLayoutBinding.class);
     }
 
+    @Test
     public void testRefreshViaInvalidateAll() throws InterruptedException {
         final Semaphore semaphore = new Semaphore(1);
         semaphore.acquire();

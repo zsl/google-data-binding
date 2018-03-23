@@ -18,7 +18,9 @@ package android.databinding.testapp;
 import android.databinding.testapp.databinding.CompoundButtonAdapterTestBinding;
 import android.databinding.testapp.vo.CompoundButtonBindingObject;
 
-import android.widget.CompoundButton;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class CompoundButtonBindingAdapterTest extends
         BindingAdapterTestBase<CompoundButtonAdapterTestBinding, CompoundButtonBindingObject> {
@@ -29,11 +31,12 @@ public class CompoundButtonBindingAdapterTest extends
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
     }
 
-    public void testCompoundButton() throws Throwable {
+    @Test
+    public void testCompoundButton() {
         assertEquals(mBindingObject.getButtonTint(), mBinder.view.getButtonTintList().getDefaultColor());
 
         changeValues();

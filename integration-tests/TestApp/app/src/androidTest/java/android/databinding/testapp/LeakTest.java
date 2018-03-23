@@ -14,24 +14,35 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.LeakTestBinding;
-import android.test.ActivityInstrumentationTestCase2;
-import android.util.Log;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.AndroidJUnit4;
 import android.widget.FrameLayout;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 
-public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
-    WeakReference<LeakTestBinding> mWeakReference = new WeakReference<LeakTestBinding>(null);
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-    public LeakTest() {
-        super(TestActivity.class);
+@RunWith(AndroidJUnit4.class)
+public class LeakTest {
+    @Rule
+    public final ActivityTestRule<TestActivity> rule = new ActivityTestRule<>(TestActivity.class);
+    private WeakReference<LeakTestBinding> mWeakReference = new WeakReference<>(null);
+
+    private TestActivity getActivity() {
+        return rule.getActivity();
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-
+    @Before
+    public void setUp() throws Exception {
         try {
             getActivity().runOnUiThread(new Runnable() {
                 @Override
@@ -40,7 +51,7 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
                         LeakTestBinding binding = LeakTestBinding.inflate(
                                 getActivity().getLayoutInflater());
                         getActivity().setContentView(binding.getRoot());
-                        mWeakReference = new WeakReference<LeakTestBinding>(binding);
+                        mWeakReference = new WeakReference<>(binding);
                         binding.setName("hello world");
                         binding.executePendingBindings();
                     } catch (Exception e) {
@@ -49,15 +60,16 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
                     }
                 }
             });
-            getInstrumentation().waitForIdleSync();
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
         } catch (Throwable t) {
             throw new Exception(t);
         }
     }
 
+    @Test
     public void testBindingLeak() throws Throwable {
         assertNotNull(mWeakReference.get());
-        runTestOnUiThread(new Runnable() {
+        rule.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 getActivity().setContentView(new FrameLayout(getActivity()));
@@ -68,9 +80,9 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
         // .get() may accidentally trigger a strong reference during collection.
         ArrayList<WeakReference<byte[]>> leak = new ArrayList<>();
         do {
-            WeakReference<byte[]> arr = new WeakReference<byte[]>(new byte[100]);
+            WeakReference<byte[]> arr = new WeakReference<>(new byte[100]);
             leak.add(arr);
-        } while (leak.get((int)(Math.random() * leak.size())).get() != null);
+        } while (leak.get((int) (Math.random() * leak.size())).get() != null);
 
         assertNull(mWeakReference.get());
     }
@@ -78,11 +90,12 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
     // Test to ensure that when the View is detached that it doesn't rebind
     // the dirty Views. The rebind should happen only after the root view is
     // reattached.
+    @Test
     public void testNoChangeWhenDetached() throws Throwable {
         final LeakTestBinding binding = mWeakReference.get();
         final AnimationWatcher watcher = new AnimationWatcher();
 
-        runTestOnUiThread(new Runnable() {
+        rule.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 getActivity().setContentView(new FrameLayout(getActivity()));
@@ -93,7 +106,7 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
 
         watcher.waitForAnimationThread();
 
-        runTestOnUiThread(new Runnable() {
+        rule.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 assertEquals("hello world", binding.textView.getText().toString());
@@ -104,7 +117,7 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
 
         watcher.waitForAnimationThread();
 
-        runTestOnUiThread(new Runnable() {
+        rule.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 assertEquals("goodbye world", binding.textView.getText().toString());
@@ -115,7 +128,7 @@ public class LeakTest extends ActivityInstrumentationTestCase2<TestActivity> {
     private static class AnimationWatcher implements Runnable {
         private boolean mWaiting = true;
 
-        public void waitForAnimationThread() throws InterruptedException {
+        void waitForAnimationThread() throws InterruptedException {
             synchronized (this) {
                 while (mWaiting) {
                     this.wait();

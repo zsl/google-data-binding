@@ -18,19 +18,27 @@ package android.databinding.testapp;
 
 import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.ObservableAdapterBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * TODO: Remove this test after support for ObservableFields in BindingAdapters has been removed.
  * This should probably be in Android Studio 2.4
  */
+@RunWith(AndroidJUnit4.class)
 public class ObservableAdapterTest extends BaseDataBinderTest<ObservableAdapterBinding> {
     public ObservableAdapterTest() {
         super(ObservableAdapterBinding.class);
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder(new Runnable() {
             @Override
@@ -40,6 +48,7 @@ public class ObservableAdapterTest extends BaseDataBinderTest<ObservableAdapterB
         });
     }
 
+    @Test
     @UiThreadTest
     public void testSingleAdapter() {
         assertFalse(mBinder.view1.isEnabled());
@@ -49,6 +58,7 @@ public class ObservableAdapterTest extends BaseDataBinderTest<ObservableAdapterB
         assertTrue(mBinder.view1.isEnabled());
     }
 
+    @Test
     @UiThreadTest
     public void testMultiAdapter() {
         assertFalse(mBinder.view2.isEnabled());

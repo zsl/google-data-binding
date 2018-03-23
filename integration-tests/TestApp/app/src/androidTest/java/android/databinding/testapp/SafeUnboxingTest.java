@@ -14,28 +14,30 @@ package android.databinding.testapp;
 
 
 import android.databinding.testapp.databinding.SafeUnboxingBinding;
+import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
-import android.test.UiThreadTest;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 
+@RunWith(AndroidJUnit4.class)
 public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
     public SafeUnboxingTest() {
         super(SafeUnboxingBinding.class);
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder();
     }
 
+    @Test
     @UiThreadTest
     public void testBitShift() {
         mBinder.executePendingBindings();
@@ -45,6 +47,7 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         assertThat(mBinder.bitShift.intField, is(3 << 3));
     }
 
+    @Test
     @UiThreadTest
     public void testArrayAccess() {
         mBinder.executePendingBindings();
@@ -54,7 +57,7 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         mBinder.executePendingBindings();
         assertThat(mBinder.arrayAccess.intField, is(0));
 
-        mBinder.setAnArray(new int[]{2,3,4,5});
+        mBinder.setAnArray(new int[]{2, 3, 4, 5});
         mBinder.executePendingBindings();
         assertThat(mBinder.arrayAccess.intField, is(5));
 
@@ -67,6 +70,7 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         assertThat(mBinder.arrayAccess.intField, is(2));
     }
 
+    @Test
     @UiThreadTest
     public void testIntEq() {
         mBinder.executePendingBindings();
@@ -76,6 +80,7 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         assertThat(mBinder.ternary.intField, is(3));
     }
 
+    @Test
     @UiThreadTest
     public void testBooleanTernary() {
         mBinder.executePendingBindings();
@@ -85,6 +90,7 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         assertThat(mBinder.ternary2.intField, is(2));
     }
 
+    @Test
     @UiThreadTest
     public void testSetter1() {
         mBinder.executePendingBindings();
@@ -96,6 +102,7 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         assertThat(mBinder.setter1.integerField, is(3));
     }
 
+    @Test
     @UiThreadTest
     public void testAdapter() {
         mBinder.executePendingBindings();
@@ -105,6 +112,7 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         assertThat(mBinder.checkBox.isChecked(), is(true));
     }
 
+    @Test
     @UiThreadTest
     public void testNullableEquality() {
         mBinder.setAnInt(null);
@@ -113,6 +121,7 @@ public class SafeUnboxingTest extends BaseDataBinderTest<SafeUnboxingBinding> {
         assertEquals(Boolean.FALSE, mBinder.nullableInequality.booleanField);
     }
 
+    @Test
     @UiThreadTest
     public void testNullableEquality2() {
         mBinder.setAnInt(3);

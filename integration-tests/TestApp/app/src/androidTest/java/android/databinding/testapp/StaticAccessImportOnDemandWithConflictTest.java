@@ -13,21 +13,27 @@
 package android.databinding.testapp;
 
 
-import android.databinding.testapp.databinding.StaticAccessImportOnDemandBinding;
 import android.databinding.testapp.databinding.StaticAccessImportOnDemandWithConflictBinding;
 import android.databinding.testapp.vo.StaticTestsVo;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.widget.TextView;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.UUID;
 
-public class StaticAccessImportOnDemandWithConflictTest extends
-        BaseDataBinderTest<StaticAccessImportOnDemandWithConflictBinding> {
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
+public class StaticAccessImportOnDemandWithConflictTest extends BaseDataBinderTest<StaticAccessImportOnDemandWithConflictBinding> {
 
     public StaticAccessImportOnDemandWithConflictTest() {
         super(StaticAccessImportOnDemandWithConflictBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testAccessStatics() {
         initBinder();
@@ -48,6 +54,7 @@ public class StaticAccessImportOnDemandWithConflictTest extends
         assertText(StaticTestsVo.ourStaticObservable.get(), mBinder.obsStaticOverVo);
     }
 
+    @Test
     @UiThreadTest
     public void testAccessStaticsVoInstance() {
         initBinder();

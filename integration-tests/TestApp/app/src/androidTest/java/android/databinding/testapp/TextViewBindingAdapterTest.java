@@ -15,14 +15,13 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.testapp.databinding.TextViewAdapterTestBinding;
-import android.databinding.testapp.vo.TextViewBindingObject;
-
 import android.annotation.TargetApi;
 import android.databinding.adapters.TextViewBindingAdapter;
+import android.databinding.testapp.databinding.TextViewAdapterTestBinding;
+import android.databinding.testapp.vo.TextViewBindingObject;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -34,6 +33,12 @@ import android.text.method.TextKeyListener;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 public class TextViewBindingAdapterTest
         extends BindingAdapterTestBase<TextViewAdapterTestBinding, TextViewBindingObject> {
 
@@ -42,7 +47,8 @@ public class TextViewBindingAdapterTest
                 R.layout.text_view_adapter_test);
     }
 
-    public void testNumeric() throws Throwable {
+    @Test
+    public void testNumeric() {
         TextView view = mBinder.numericText;
         assertTrue(view.getKeyListener() instanceof DigitsKeyListener);
         DigitsKeyListener listener = (DigitsKeyListener) view.getKeyListener();
@@ -66,7 +72,8 @@ public class TextViewBindingAdapterTest
         return expectedType;
     }
 
-    public void testDrawables() throws Throwable {
+    @Test
+    public void testDrawables() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             TextView view = mBinder.textDrawableNormal;
             assertEquals(mBindingObject.getDrawableLeft(),
@@ -91,7 +98,8 @@ public class TextViewBindingAdapterTest
         }
     }
 
-    public void testDrawableStartEnd() throws Throwable {
+    @Test
+    public void testDrawableStartEnd() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             TextView view = mBinder.textDrawableStartEnd;
             assertEquals(mBindingObject.getDrawableStart(),
@@ -108,12 +116,13 @@ public class TextViewBindingAdapterTest
         }
     }
 
-    public void testSimpleProperties() throws Throwable {
+    @Test
+    public void testSimpleProperties() {
         TextView view = mBinder.textView;
 
         assertEquals(mBindingObject.getAutoLink(), view.getAutoLinkMask());
         assertEquals(mBindingObject.getDrawablePadding(), view.getCompoundDrawablePadding());
-        assertEquals(mBindingObject.getTextSize(), view.getTextSize());
+        assertEquals(mBindingObject.getTextSize(), view.getTextSize(), 0f);
         assertEquals(mBindingObject.getTextColorHint(), view.getHintTextColors().getDefaultColor());
         assertEquals(mBindingObject.getTextColorLink(), view.getLinkTextColors().getDefaultColor());
         assertEquals(mBindingObject.isAutoText(), isAutoTextEnabled(view));
@@ -122,13 +131,13 @@ public class TextViewBindingAdapterTest
         assertEquals(mBindingObject.getImeActionId(), view.getImeActionId());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             assertEquals(mBindingObject.getTextColorHighlight(), view.getHighlightColor());
-            assertEquals(mBindingObject.getLineSpacingExtra(), view.getLineSpacingExtra());
+            assertEquals(mBindingObject.getLineSpacingExtra(), view.getLineSpacingExtra(), 0f);
             assertEquals(mBindingObject.getLineSpacingMultiplier(),
-                    view.getLineSpacingMultiplier());
+                    view.getLineSpacingMultiplier(), 0f);
             assertEquals(mBindingObject.getShadowColor(), view.getShadowColor());
-            assertEquals(mBindingObject.getShadowDx(), view.getShadowDx());
-            assertEquals(mBindingObject.getShadowDy(), view.getShadowDy());
-            assertEquals(mBindingObject.getShadowRadius(), view.getShadowRadius());
+            assertEquals(mBindingObject.getShadowDx(), view.getShadowDx(), 0f);
+            assertEquals(mBindingObject.getShadowDy(), view.getShadowDy(), 0f);
+            assertEquals(mBindingObject.getShadowRadius(), view.getShadowRadius(), 0f);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 assertEquals(mBindingObject.getMaxLength(), getMaxLength(view));
             }
@@ -138,7 +147,7 @@ public class TextViewBindingAdapterTest
 
         assertEquals(mBindingObject.getAutoLink(), view.getAutoLinkMask());
         assertEquals(mBindingObject.getDrawablePadding(), view.getCompoundDrawablePadding());
-        assertEquals(mBindingObject.getTextSize(), view.getTextSize());
+        assertEquals(mBindingObject.getTextSize(), view.getTextSize(), 0f);
         assertEquals(mBindingObject.getTextColorHint(), view.getHintTextColors().getDefaultColor());
         assertEquals(mBindingObject.getTextColorLink(), view.getLinkTextColors().getDefaultColor());
         assertEquals(mBindingObject.isAutoText(), isAutoTextEnabled(view));
@@ -147,13 +156,13 @@ public class TextViewBindingAdapterTest
         assertEquals(mBindingObject.getImeActionId(), view.getImeActionId());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             assertEquals(mBindingObject.getTextColorHighlight(), view.getHighlightColor());
-            assertEquals(mBindingObject.getLineSpacingExtra(), view.getLineSpacingExtra());
+            assertEquals(mBindingObject.getLineSpacingExtra(), view.getLineSpacingExtra(), 0f);
             assertEquals(mBindingObject.getLineSpacingMultiplier(),
-                    view.getLineSpacingMultiplier());
+                    view.getLineSpacingMultiplier(), 0f);
             assertEquals(mBindingObject.getShadowColor(), view.getShadowColor());
-            assertEquals(mBindingObject.getShadowDx(), view.getShadowDx());
-            assertEquals(mBindingObject.getShadowDy(), view.getShadowDy());
-            assertEquals(mBindingObject.getShadowRadius(), view.getShadowRadius());
+            assertEquals(mBindingObject.getShadowDx(), view.getShadowDx(), 0f);
+            assertEquals(mBindingObject.getShadowDy(), view.getShadowDy(), 0f);
+            assertEquals(mBindingObject.getShadowRadius(), view.getShadowRadius(), 0f);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 assertEquals(mBindingObject.getMaxLength(), getMaxLength(view));
             }
@@ -221,7 +230,8 @@ public class TextViewBindingAdapterTest
         return -1;
     }
 
-    public void testAllCaps() throws Throwable {
+    @Test
+    public void testAllCaps() {
         TextView view = mBinder.textAllCaps;
 
         assertEquals(mBindingObject.isTextAllCaps(), view.getTransformationMethod() != null);
@@ -239,7 +249,8 @@ public class TextViewBindingAdapterTest
         }
     }
 
-    public void testBufferType() throws Throwable {
+    @Test
+    public void testBufferType() {
         TextView view = mBinder.textBufferType;
 
         assertEquals(mBindingObject.getBufferType(), getBufferType(view));
@@ -258,14 +269,16 @@ public class TextViewBindingAdapterTest
         return TextView.BufferType.NORMAL;
     }
 
-    public void testInputType() throws Throwable {
+    @Test
+    public void testInputType() {
         TextView view = mBinder.textInputType;
         assertEquals(mBindingObject.getInputType(), view.getInputType());
         changeValues();
         assertEquals(mBindingObject.getInputType(), view.getInputType());
     }
 
-    public void testDigits() throws Throwable {
+    @Test
+    public void testDigits() {
         TextView view = mBinder.textDigits;
         assertEquals(mBindingObject.getDigits(), getDigits(view));
         changeValues();
@@ -284,7 +297,8 @@ public class TextViewBindingAdapterTest
                 .toString();
     }
 
-    public void testPhoneNumber() throws Throwable {
+    @Test
+    public void testPhoneNumber() {
         TextView textView = mBinder.textPhoneNumber;
         assertEquals(mBindingObject.isPhoneNumber(), isPhoneNumber(textView));
         changeValues();
@@ -296,29 +310,33 @@ public class TextViewBindingAdapterTest
         return (keyListener instanceof DialerKeyListener);
     }
 
-    public void testInputMethod() throws Throwable {
+    @Test
+    public void testInputMethod() {
         TextView textView = mBinder.textInputMethod;
         assertTrue(TextViewBindingObject.KeyListener1.class.isInstance(textView.getKeyListener()));
         changeValues();
         assertTrue(TextViewBindingObject.KeyListener2.class.isInstance(textView.getKeyListener()));
     }
 
+    @Test
     @UiThreadTest
-    public void testTextWithTheme() throws Throwable {
+    public void testTextWithTheme() {
         TextView textView = mBinder.textWithTheme;
         assertNotNull(textView.getTextColors());
     }
 
+    @Test
     @UiThreadTest
-    public void testTextWithColor() throws Throwable {
+    public void testTextWithColor() {
         TextView textView = mBinder.textWithColor;
         int expectedColor = mBinder.getRoot().getResources().getColor(
                 android.R.color.holo_blue_bright);
         assertEquals(expectedColor, textView.getCurrentTextColor());
     }
 
+    @Test
     @UiThreadTest
-    public void testTwoWayText() throws Throwable {
+    public void testTwoWayText() {
         EditText view = mBinder.twoWayText;
         mBindingObject.setText("Hello");
         mBinder.executePendingBindings();

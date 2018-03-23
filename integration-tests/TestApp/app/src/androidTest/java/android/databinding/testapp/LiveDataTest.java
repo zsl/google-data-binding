@@ -15,37 +15,41 @@
  */
 package android.databinding.testapp;
 
-import android.arch.lifecycle.LifecycleOwner;
-import android.databinding.DataBindingUtil;
 import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.LiveDataBinding;
-import android.databinding.testapp.databinding.ObservableFieldTestBinding;
 import android.databinding.testapp.databinding.PlainViewGroupBinding;
 import android.databinding.testapp.vo.LiveDataContainer;
 import android.databinding.testapp.vo.LiveDataObject;
-import android.databinding.testapp.vo.ObservableFieldBindingObject;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.test.UiThreadTest;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+@RunWith(AndroidJUnit4.class)
 public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
 
     public LiveDataTest() {
         super(PlainViewGroupBinding.class);
     }
 
+    @Test
     @UiThreadTest
-    public void testLiveData() throws Throwable {
+    public void testLiveData() {
         initBinder();
         MyFragment fragment = new MyFragment();
         getActivity().getSupportFragmentManager().beginTransaction()
@@ -123,8 +127,9 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         assertEquals("Another", fragment.binding.included.textView5.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testNoLifecycleOwner() throws Throwable {
+    public void testNoLifecycleOwner() {
         initBinder();
         final LiveDataObject liveDataObject = new LiveDataObject();
         final LiveDataContainer liveDataContainer = new LiveDataContainer();
@@ -146,8 +151,9 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         assertEquals("", binding.textView2.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testMutableLiveData() throws Throwable {
+    public void testMutableLiveData() {
         initBinder();
         MyFragment fragment = new MyFragment();
         getActivity().getSupportFragmentManager().beginTransaction()
@@ -171,6 +177,7 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
      * When non-LiveData objects are used with a LifecycleOwner, they should not update when
      * the LifecycleOwner isn't started, but immediately update when the LifecycleOwner has started.
      */
+    @Test
     public void testLifecycleObserverWithField() throws Throwable {
         initBinder();
         final LiveDataBinding[] bindings = new LiveDataBinding[1];
@@ -251,7 +258,7 @@ public class LiveDataTest extends BaseDataBinderTest<PlainViewGroupBinding> {
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
-                @Nullable Bundle savedInstanceState) {
+                                 @Nullable Bundle savedInstanceState) {
             liveDataContainer.contained.setValue(contained);
             binding = LiveDataBinding.inflate(inflater, container, false);
             binding.setLifecycleOwner(this);

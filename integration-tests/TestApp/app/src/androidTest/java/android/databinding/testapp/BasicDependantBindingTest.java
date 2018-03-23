@@ -15,12 +15,18 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.BasicDependantBindingBinding;
 import android.databinding.testapp.vo.NotBindableVo;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import android.test.UiThreadTest;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class BasicDependantBindingTest extends BaseDataBinderTest<BasicDependantBindingBinding> {
 
     public BasicDependantBindingTest() {
@@ -28,7 +34,7 @@ public class BasicDependantBindingTest extends BaseDataBinderTest<BasicDependant
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder();
     }
@@ -41,6 +47,7 @@ public class BasicDependantBindingTest extends BaseDataBinderTest<BasicDependant
         return result;
     }
 
+    @Test
     @UiThreadTest
     public void testAllPermutations() {
         List<NotBindableVo> obj1s = permutations("a");
@@ -76,7 +83,7 @@ public class BasicDependantBindingTest extends BaseDataBinderTest<BasicDependant
     }
 
     private void assertValues(String textView1, String textView2,
-            String mergedView1, String mergedView2, String rawMerge) {
+                              String mergedView1, String mergedView2, String rawMerge) {
         assertEquals(textView1, mBinder.textView1.getText().toString());
         assertEquals(textView2, mBinder.textView2.getText().toString());
         assertEquals(mergedView1, mBinder.mergedTextView1.getText().toString());

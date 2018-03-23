@@ -14,7 +14,6 @@
 package android.databinding.testapp.multiconfig;
 
 import android.databinding.ViewDataBinding;
-import android.databinding.testapp.BaseDataBinderTest;
 import android.databinding.testapp.BR;
 import android.databinding.testapp.LandscapeActivity;
 import android.databinding.testapp.TestActivityTestBase;
@@ -22,11 +21,19 @@ import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.databinding.testapp.databinding.ConditionalBindingBinding;
 import android.databinding.testapp.databinding.MultiResLayoutBinding;
 import android.databinding.testapp.vo.NotBindableVo;
-
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class LandscapeConfigTest
         extends TestActivityTestBase<MultiResLayoutBinding, LandscapeActivity> {
 
@@ -35,14 +42,14 @@ public class LandscapeConfigTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder();
         waitForUISync();
     }
 
-    public void testSharedViewIdAndVariableInheritance()
-            throws InterruptedException, NoSuchMethodException, NoSuchFieldException {
+    @Test
+    public void testSharedViewIdAndVariableInheritance() throws NoSuchFieldException {
         assertEquals("MultiResLayoutBindingLandImpl", mBinder.getClass().getSimpleName());
         assertPublicField(TextView.class, "objectInLandTextView");
         assertPublicField(TextView.class, "objectInDefaultTextView");
@@ -58,8 +65,9 @@ public class LandscapeConfigTest
         assertPublicField(ConditionalBindingBinding.class, "includedLayoutLand");
     }
 
+    @Test
     @UiThreadTest
-    public void testSetVariable() throws Throwable {
+    public void testSetVariable() {
         assertTrue(mBinder.setVariable(BR.objectInBoth, null));
         assertTrue(mBinder.setVariable(BR.objectInDefault, null));
         assertTrue(mBinder.setVariable(BR.objectInLand, null));

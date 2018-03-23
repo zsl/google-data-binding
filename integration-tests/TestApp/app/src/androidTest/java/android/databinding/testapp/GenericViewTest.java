@@ -16,16 +16,24 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.GenericViewBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertNotNull;
+
+@RunWith(AndroidJUnit4.class)
 public class GenericViewTest extends BaseDataBinderTest<GenericViewBinding> {
 
     public GenericViewTest() {
         super(GenericViewBinding.class);
     }
 
+    @Test
     @UiThreadTest
-    public void testCast() throws Throwable {
+    public void testCast() {
         initBinder();
         // There used to be a compile error when the View was generic
         assertNotNull(getBinder().view);

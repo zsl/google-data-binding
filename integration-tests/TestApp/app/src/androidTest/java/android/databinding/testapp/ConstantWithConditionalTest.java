@@ -16,16 +16,25 @@ package android.databinding.testapp;
 import android.databinding.testapp.databinding.ConstantBindingWithConditionalBinding;
 import android.databinding.testapp.vo.BasicObject;
 import android.databinding.testapp.vo.ConstantBindingTestObject;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
-public class ConstantWithConditionalTest extends BaseDataBinderTest<ConstantBindingWithConditionalBinding>{
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public class ConstantWithConditionalTest extends BaseDataBinderTest<ConstantBindingWithConditionalBinding> {
 
     public ConstantWithConditionalTest() {
         super(ConstantBindingWithConditionalBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testValues() {
         initBinder();

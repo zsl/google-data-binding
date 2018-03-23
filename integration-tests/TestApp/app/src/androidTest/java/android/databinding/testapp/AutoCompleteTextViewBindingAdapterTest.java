@@ -17,10 +17,14 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.AutoCompleteTextViewAdapterTestBinding;
 import android.databinding.testapp.vo.AutoCompleteTextViewBindingObject;
-
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.widget.AutoCompleteTextView;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+
 
 public class AutoCompleteTextViewBindingAdapterTest extends
         BindingAdapterTestBase<AutoCompleteTextViewAdapterTestBinding,
@@ -34,11 +38,12 @@ public class AutoCompleteTextViewBindingAdapterTest extends
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
+    @Test
     public void testCompletionThreshold() throws Throwable {
         assertEquals(mBindingObject.getCompletionThreshold(), mView.getThreshold());
 
@@ -47,6 +52,7 @@ public class AutoCompleteTextViewBindingAdapterTest extends
         assertEquals(mBindingObject.getCompletionThreshold(), mView.getThreshold());
     }
 
+    @Test
     public void testPopupBackground() throws Throwable {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             assertEquals(mBindingObject.getPopupBackground(),

@@ -19,17 +19,17 @@ package android.databinding.testapp;
 import android.annotation.TargetApi;
 import android.databinding.ObservableField;
 import android.databinding.ObservableInt;
-import android.databinding.testapp.BR;
 import android.databinding.testapp.databinding.BindableObservablesBinding;
-import android.databinding.testapp.databinding.CallbacksBinding;
 import android.databinding.testapp.vo.ViewModel;
 import android.os.Build;
 import android.support.test.runner.AndroidJUnit4;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.CoreMatchers.*;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(AndroidJUnit4.class)
 public class BindableObservablesTest {

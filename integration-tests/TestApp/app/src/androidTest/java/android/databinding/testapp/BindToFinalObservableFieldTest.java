@@ -15,16 +15,23 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.BindToFinalObservableBinding;
 import android.databinding.testapp.vo.PublicFinalWithObservableTestVo;
-
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.widget.TextView;
 
-public class BindToFinalObservableFieldTest extends BaseDataBinderTest<BindToFinalObservableBinding>{
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
+public class BindToFinalObservableFieldTest extends BaseDataBinderTest<BindToFinalObservableBinding> {
 
     public BindToFinalObservableFieldTest() {
         super(BindToFinalObservableBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testSimple() {
         initBinder();

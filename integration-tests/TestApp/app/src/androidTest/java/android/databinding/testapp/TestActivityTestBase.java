@@ -13,15 +13,16 @@
 
 package android.databinding.testapp;
 
-import static android.content.Intent.FLAG_ACTIVITY_NO_ANIMATION;
-
 import android.content.Intent;
 import android.databinding.ViewDataBinding;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
-import android.test.ActivityInstrumentationTestCase2;
+import android.support.test.rule.ActivityTestRule;
 import android.view.Choreographer;
 import android.view.LayoutInflater;
+
+import org.junit.Before;
+import org.junit.Rule;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -30,28 +31,43 @@ import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActivity>
-        extends ActivityInstrumentationTestCase2<U> {
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+
+public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActivity> {
     protected Class<T> mBinderClass;
     protected T mBinder;
+    @Rule
+    public ActivityTestRule<U> activityTestRule;
 
     public TestActivityTestBase(final Class<T> binderClass,
-            final Class<U> activityClass) {
-        super(activityClass);
+                                final Class<U> activityClass) {
+        activityTestRule = new ActivityTestRule<U>(activityClass) {
+            @Override
+            protected Intent getActivityIntent() {
+                Intent intent = new Intent(InstrumentationRegistry.getTargetContext(),
+                        activityClass);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                return super.getActivityIntent();
+            }
+        };
         mBinderClass = binderClass;
-        Intent intent = new Intent(InstrumentationRegistry.getTargetContext(),
-                activityClass);
-        intent.addFlags(FLAG_ACTIVITY_NO_ANIMATION);
-        setActivityIntent(intent);
     }
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
+    @Before
+    public void setUp() throws Exception {
+        // we keep this to ease the migration from the old frameork tests.
     }
 
     public boolean isMainThread() {
         return Looper.myLooper() == Looper.getMainLooper();
+    }
+
+    protected U getActivity() {
+        return activityTestRule.getActivity();
     }
 
     protected T getBinder() {
@@ -60,18 +76,6 @@ public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActiv
 
     protected T initBinder() {
         return initBinder(null);
-    }
-
-    @Override
-    public void runTestOnUiThread(Runnable r) throws Throwable {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            r.run();
-        } else {
-            // ensure activity is created
-            getActivity();
-            super.runTestOnUiThread(r);
-        }
-
     }
 
     protected T initBinder(final Runnable init) {
@@ -113,6 +117,18 @@ public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActiv
     protected void reCreateBinder(Runnable init) {
         mBinder = null;
         initBinder(init);
+    }
+
+    protected void runTestOnUiThread(Runnable runnable) {
+        if (isMainThread()) {
+            runnable.run();
+            return;
+        }
+        try {
+            InstrumentationRegistry.getInstrumentation().runOnMainSync(runnable);
+        } catch (Throwable t) {
+            throw new RuntimeException(t);
+        }
     }
 
     protected void assertMethod(Class<?> klass, String methodName) throws NoSuchMethodException {

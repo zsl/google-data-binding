@@ -14,16 +14,24 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.NotBindAttributeBinding;
-import android.test.UiThreadTest;
-import android.view.View;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+@RunWith(AndroidJUnit4.class)
 public class NoBindAttributeTest extends BaseDataBinderTest<NotBindAttributeBinding> {
     public NoBindAttributeTest() {
         super(NotBindAttributeBinding.class);
     }
 
+    @Test
     @UiThreadTest
-    public void testNoBind() throws Throwable {
+    public void testNoBind() {
         initBinder();
         assertNotNull(getBinder().view);
         assertEquals("", getBinder().view.getText().toString());

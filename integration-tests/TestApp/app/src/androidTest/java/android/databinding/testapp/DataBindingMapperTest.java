@@ -14,13 +14,18 @@
 package android.databinding.testapp;
 
 import android.databinding.DataBindingUtil;
-import android.test.AndroidTestCase;
-import android.databinding.testapp.BR;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 
+import static org.junit.Assert.assertEquals;
 
-public class DataBindingMapperTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class DataBindingMapperTest {
+    @Test
     public void testBrIds() throws IllegalAccessException {
         for (Field field : BR.class.getDeclaredFields()) {
             assertEquals(field.getName(),

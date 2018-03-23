@@ -16,16 +16,25 @@ package android.databinding.testapp;
 import android.databinding.testapp.databinding.PlainViewGroupBinding;
 import android.databinding.testapp.databinding.TwoWayBinding;
 import android.databinding.testapp.vo.TwoWayBindingObject;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
+@RunWith(AndroidJUnit4.class)
 public class ReferenceRegistrationTest extends BaseDataBinderTest<PlainViewGroupBinding> {
     public ReferenceRegistrationTest() {
         super(PlainViewGroupBinding.class);
     }
 
     // Make sure that rebind() works after unbind() from detaching...
-    public void testRebinding() throws Throwable {
+    @Test
+    public void testRebinding() {
         initBinder();
         final TwoWayBindingObject obj = new TwoWayBindingObject(getActivity());
         final TwoWayBinding[] bindings = new TwoWayBinding[1];

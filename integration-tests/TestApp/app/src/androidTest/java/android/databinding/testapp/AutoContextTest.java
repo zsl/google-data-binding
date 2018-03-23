@@ -16,16 +16,24 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.AutoContextBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertNotSame;
+
+@RunWith(AndroidJUnit4.class)
 public class AutoContextTest extends BaseDataBinderTest<AutoContextBinding> {
 
     public AutoContextTest() {
         super(AutoContextBinding.class);
     }
 
+    @Test
     @UiThreadTest
-    public void testContext() throws Throwable {
+    public void testContext() {
         AutoContextBinding binding = initBinder();
         binding.executePendingBindings();
         assertNotSame("", binding.textView1.getText().toString());

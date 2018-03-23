@@ -18,10 +18,15 @@ package android.databinding.testapp;
 import android.content.ContentResolver;
 import android.databinding.testapp.databinding.ImageViewAdapterTestBinding;
 import android.databinding.testapp.vo.ImageViewBindingObject;
-
 import android.net.Uri;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
 import android.widget.ImageView;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class ImageViewBindingAdapterTest
         extends BindingAdapterTestBase<ImageViewAdapterTestBinding, ImageViewBindingObject> {
@@ -34,12 +39,13 @@ public class ImageViewBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
-    public void testImageView() throws Throwable {
+    @Test
+    public void testImageView() {
         assertEquals(mBindingObject.getSrc(), mView.getDrawable());
         assertEquals(mBindingObject.getTint(), mView.getImageTintList().getDefaultColor());
         assertEquals(mBindingObject.getTintMode(), mView.getImageTintMode());
@@ -51,8 +57,9 @@ public class ImageViewBindingAdapterTest
         assertEquals(mBindingObject.getTintMode(), mView.getImageTintMode());
     }
 
+    @Test
     @UiThreadTest
-    public void testImageSource() throws Throwable {
+    public void testImageSource() {
         assertNull(mBinder.view2.getDrawable());
         assertNull(mBinder.view3.getDrawable());
 
@@ -67,8 +74,9 @@ public class ImageViewBindingAdapterTest
         assertNotNull(mBinder.view3.getDrawable());
     }
 
+    @Test
     @UiThreadTest
-    public void testConditionalSource() throws Throwable {
+    public void testConditionalSource() {
         mBinder.setObj(null);
         mBinder.executePendingBindings();
         assertNotNull(mBinder.view4.getDrawable());
