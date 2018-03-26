@@ -29,7 +29,8 @@ import javax.lang.model.element.Modifier
 
 class MergedBindingMapperWriter(private val packages: List<String>,
                                 compilerArgs: DataBindingCompilerArgs,
-                                private val featurePackages : Set<String>) {
+                                private val featurePackages : Set<String>,
+                                private val hasV1CompatMapper: Boolean) {
     private val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
     private val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
     private val overrideField = FieldSpec.builder(BindingMapperWriterV2.DATA_BINDER_MAPPER,
@@ -38,8 +39,8 @@ class MergedBindingMapperWriter(private val packages: List<String>,
             .build()
 
     companion object {
-        private val APP_CLASS_NAME = "DataBinderMapperImpl"
-        private val TEST_CLASS_NAME = "Test$APP_CLASS_NAME"
+        const val APP_CLASS_NAME = "DataBinderMapperImpl"
+        private const val TEST_CLASS_NAME = "Test$APP_CLASS_NAME"
         val MERGED_MAPPER_BASE: ClassName = ClassName.get(
                 "android.databinding",
                 "MergedDataBinderMapper")
@@ -58,6 +59,12 @@ class MergedBindingMapperWriter(private val packages: List<String>,
             packages.forEach { pkg ->
                 val mapper = ClassName.get(pkg, APP_CLASS_NAME)
                 addStatement("addMapper(new $T())", mapper)
+            }
+            if (hasV1CompatMapper) {
+                val compatMapper = ClassName.get(
+                    BindingMapperWriter.V1_COMPAT_MAPPER_PKG,
+                    BindingMapperWriter.V1_COMPAT_MAPPER_NAME)
+                addStatement("addMapper(new $T())", compatMapper)
             }
             featurePackages.forEach {
                 addStatement("addMapper($S)", it)

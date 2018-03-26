@@ -167,4 +167,10 @@ class BindingMapperWriter(var pkg : String, var className: String,
             }
         }
     }.generate()
+
+    companion object {
+        const val V1_COMPAT_MAPPER_NAME = "V1CompatDataBinderMapperImpl"
+        const val V1_COMPAT_MAPPER_PKG = "android.databinding"
+        const val V1_COMPAT_QNAME = V1_COMPAT_MAPPER_PKG + "." + V1_COMPAT_MAPPER_NAME
+    }
 }

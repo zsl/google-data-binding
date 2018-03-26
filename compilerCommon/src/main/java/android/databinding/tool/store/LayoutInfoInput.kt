@@ -60,7 +60,12 @@ class LayoutInfoInput(val args: Args) {
     }
 
     val deps by lazy(LazyThreadSafetyMode.NONE) {
-        ResourceBundle.loadClassInfoFromFolder(args.dependencyClassesFolder)
+        val v2 = ResourceBundle.loadClassInfoFromFolder(args.dependencyClassesFolder)
+        args.v1ArtifactsFolder?.let {
+            val v1 = V1CompatLayoutInfoLoader().load(it)
+            v2.addAll(v1)
+        }
+        v2
     }
 
     val updatedDeps by lazy(LazyThreadSafetyMode.NONE) {
@@ -154,5 +159,6 @@ class LayoutInfoInput(val args: Args) {
                     val artifactFolder: File,
                     val logFolder: File,
                     val packageName : String,
-                    val incremental: Boolean) : Serializable
+                    val incremental: Boolean,
+                    val v1ArtifactsFolder : File? = null) : Serializable
 }

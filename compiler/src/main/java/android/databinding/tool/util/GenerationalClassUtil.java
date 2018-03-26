@@ -69,13 +69,7 @@ public class GenerationalClassUtil {
     }
 
     private GenerationalClassUtil(DataBindingCompilerArgs args) {
-        if (args.isEnableV2()) {
-            mEnabledExtensions = new ExtensionFilter[]{ExtensionFilter.BR,
-            ExtensionFilter.SETTER_STORE};
-        } else {
-            mEnabledExtensions = new ExtensionFilter[]{ExtensionFilter.BR, ExtensionFilter.LAYOUT,
-                    ExtensionFilter.SETTER_STORE};
-        }
+        mEnabledExtensions = ExtensionFilter.values();
         if (StringUtils.isNotBlank(args.getAarOutFolder())) {
             mIncrementalOutDir = new File(args.getAarOutFolder(),
                     DataBindingBuilder.INCREMENTAL_BIN_AAR_DIR);
