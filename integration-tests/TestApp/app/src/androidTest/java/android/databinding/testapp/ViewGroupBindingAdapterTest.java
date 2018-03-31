@@ -17,9 +17,12 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ViewGroupAdapterTestBinding;
 import android.databinding.testapp.vo.ViewGroupBindingObject;
-
 import android.os.Build;
 import android.view.ViewGroup;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class ViewGroupBindingAdapterTest
         extends BindingAdapterTestBase<ViewGroupAdapterTestBinding, ViewGroupBindingObject> {
@@ -32,11 +35,12 @@ public class ViewGroupBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
+    @Test
     public void testDrawnWithCache() throws Throwable {
         assertEquals(mBindingObject.isAlwaysDrawnWithCache(),
                 mView.isAlwaysDrawnWithCacheEnabled());
@@ -47,6 +51,7 @@ public class ViewGroupBindingAdapterTest
                 mView.isAlwaysDrawnWithCacheEnabled());
     }
 
+    @Test
     public void testAnimationCache() throws Throwable {
         assertEquals(mBindingObject.isAnimationCache(), mView.isAnimationCacheEnabled());
 
@@ -55,6 +60,7 @@ public class ViewGroupBindingAdapterTest
         assertEquals(mBindingObject.isAnimationCache(), mView.isAnimationCacheEnabled());
     }
 
+    @Test
     public void testSplitMotionEvents() throws Throwable {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             assertEquals(mBindingObject.isSplitMotionEvents(),
@@ -67,6 +73,7 @@ public class ViewGroupBindingAdapterTest
         }
     }
 
+    @Test
     public void testAnimateLayoutChanges() throws Throwable {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             assertEquals(mBindingObject.isAnimateLayoutChanges(),

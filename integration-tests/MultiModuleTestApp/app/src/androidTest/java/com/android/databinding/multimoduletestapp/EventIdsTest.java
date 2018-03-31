@@ -16,18 +16,23 @@
 
 package android.databinding.multimoduletestapp;
 
-import android.databinding.testlibrary1.ObservableInLibrary;
-
 import android.databinding.Observable;
 import android.databinding.Observable.OnPropertyChangedCallback;
-import android.test.AndroidTestCase;
+import android.databinding.multimoduletestapp.BR;
+import android.databinding.testlibrary1.ObservableInLibrary;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import android.databinding.multimoduletestapp.BR;
+import static org.junit.Assert.assertEquals;
 
-public class EventIdsTest extends AndroidTestCase {
+@RunWith(AndroidJUnit4.class)
+public class EventIdsTest {
+    @Test
     public void testLibraryObservable() {
         ObservableInLibrary observableInLibrary = new ObservableInLibrary();
         EventCounter ec = new EventCounter();
@@ -52,6 +57,7 @@ public class EventIdsTest extends AndroidTestCase {
         ec.assertProperty(BR.sharedField, 1);
     }
 
+    @Test
     public void testAppObservable() {
         ObservableInMainApp observableInMainApp = new ObservableInMainApp();
         EventCounter ec = new EventCounter();
@@ -76,6 +82,7 @@ public class EventIdsTest extends AndroidTestCase {
         ec.assertProperty(BR.sharedField, 1);
     }
 
+    @Test
     public void testExtendingObservable() {
         ObservableExtendingLib observable = new ObservableExtendingLib();
         EventCounter ec = new EventCounter();

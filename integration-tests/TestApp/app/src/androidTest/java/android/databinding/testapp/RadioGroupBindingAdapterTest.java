@@ -17,8 +17,11 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.RadioGroupAdapterTestBinding;
 import android.databinding.testapp.vo.RadioGroupBindingObject;
-
 import android.widget.RadioGroup;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class RadioGroupBindingAdapterTest
         extends BindingAdapterTestBase<RadioGroupAdapterTestBinding, RadioGroupBindingObject> {
@@ -31,12 +34,13 @@ public class RadioGroupBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
-    public void testRadioGroup() throws Throwable {
+    @Test
+    public void testRadioGroup() {
         assertEquals(mBindingObject.getCheckedButton(), mView.getCheckedRadioButtonId());
 
         changeValues();

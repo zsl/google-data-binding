@@ -15,24 +15,32 @@ package android.databinding.testapp;
 
 import android.databinding.DataBinderTrojan;
 import android.databinding.testapp.databinding.NewApiLayoutBinding;
-
 import android.os.Build;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.util.ArrayList;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+
+@RunWith(AndroidJUnit4.class)
 public class NewApiTest extends BaseDataBinderTest<NewApiLayoutBinding> {
     public NewApiTest() {
         super(NewApiLayoutBinding.class);
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
     }
 
+    @Test
     @UiThreadTest
     public void testSetElevation() {
         initBinder();
@@ -41,9 +49,10 @@ public class NewApiTest extends BaseDataBinderTest<NewApiLayoutBinding> {
         mBinder.setChildren(new ArrayList<View>());
         mBinder.executePendingBindings();
         assertEquals("foo", mBinder.textView.getText().toString());
-        assertEquals(3f, mBinder.textView.getElevation());
+        assertEquals(3f, mBinder.textView.getElevation(), 0f);
     }
 
+    @Test
     @UiThreadTest
     public void testSetElevationOlderAPI() {
         initBinder();
@@ -55,12 +64,13 @@ public class NewApiTest extends BaseDataBinderTest<NewApiLayoutBinding> {
             mBinder.setName("foo2");
             mBinder.executePendingBindings();
             assertEquals("foo2", textView.getText().toString());
-            assertEquals(originalElevation, textView.getElevation());
+            assertEquals(originalElevation, textView.getElevation(), 0f);
         } finally {
             DataBinderTrojan.setBuildSdkInt(Build.VERSION.SDK_INT);
         }
     }
 
+    @Test
     @UiThreadTest
     public void testGeneric() {
         initBinder();
@@ -71,6 +81,7 @@ public class NewApiTest extends BaseDataBinderTest<NewApiLayoutBinding> {
         assertSame(mBinder.textView, views.get(0));
     }
 
+    @Test
     @UiThreadTest
     public void testGenericOlderApi() {
         initBinder();

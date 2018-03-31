@@ -14,13 +14,21 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.UseDefaultBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class DefaultBindingTest extends BaseDataBinderTest<UseDefaultBinding> {
     public DefaultBindingTest() {
         super(UseDefaultBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testDefaultValue() {
         UseDefaultBinding binding = UseDefaultBinding.inflate(getActivity().getLayoutInflater());

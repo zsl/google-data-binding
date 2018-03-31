@@ -13,34 +13,37 @@
 
 package android.databinding.testapp;
 
-import android.databinding.testapp.BR;
+import android.databinding.testapp.adapter.MultiArgTestAdapter;
 import android.databinding.testapp.databinding.MultiArgAdapterEvaluationTestBinding;
-import android.databinding.testapp.databinding.MultiArgAdapterTestBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import static android.databinding.testapp.adapter.MultiArgTestAdapter.MultiBindingClass1;
-import static android.databinding.testapp.adapter.MultiArgTestAdapter.MultiBindingClass2;
-import static android.databinding.testapp.adapter.MultiArgTestAdapter.join;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class MultiArgAdapterEvaluationTest extends BaseDataBinderTest<MultiArgAdapterEvaluationTestBinding> {
 
     public MultiArgAdapterEvaluationTest() {
         super(MultiArgAdapterEvaluationTestBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testMultiArgIsCalled() {
         initBinder();
-        MultiBindingClass1 obj1 = new MultiBindingClass1();
-        MultiBindingClass2 obj2 = new MultiBindingClass2();
+        MultiArgTestAdapter.MultiBindingClass1 obj1 = new MultiArgTestAdapter.MultiBindingClass1();
+        MultiArgTestAdapter.MultiBindingClass2 obj2 = new MultiArgTestAdapter.MultiBindingClass2();
         obj1.setValue("a", false);
         obj2.setValue("b", false);
         mBinder.setObj1(obj1);
         mBinder.setObj2(obj2);
         mBinder.executePendingBindings();
 
-        assertEquals(mBinder.merged.getText().toString(), join(obj1.getValue(), obj2.getValue()));
-        assertEquals(mBinder.view2.getText().toString(), join(obj2.getValue()));
+        assertEquals(mBinder.merged.getText().toString(), MultiArgTestAdapter.join(obj1.getValue(), obj2.getValue()));
+        assertEquals(mBinder.view2.getText().toString(), MultiArgTestAdapter.join(obj2.getValue()));
         assertEquals(mBinder.view2text.getText().toString(), obj2.getValue());
 
         String prev2 = mBinder.view2.getText().toString();
@@ -54,7 +57,7 @@ public class MultiArgAdapterEvaluationTest extends BaseDataBinderTest<MultiArgAd
         // now invalidate obj1 only, obj2 should be evaluated as well
         obj1.setValue("o2", true);
         mBinder.executePendingBindings();
-        assertEquals(join(obj1, obj2), mBinder.merged.getText().toString());
+        assertEquals(MultiArgTestAdapter.join(obj1, obj2), mBinder.merged.getText().toString());
         assertEquals("obj2 should not be re-evaluated", prev2, mBinder.view2.getText().toString());
         assertEquals("obj2 should not be re-evaluated", prev2,
                 mBinder.view2text.getText().toString());

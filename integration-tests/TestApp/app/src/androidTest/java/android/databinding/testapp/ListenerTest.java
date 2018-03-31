@@ -17,9 +17,18 @@ import android.databinding.ViewStubProxy;
 import android.databinding.testapp.databinding.ListenersBinding;
 import android.databinding.testapp.vo.ListenerBindingObject;
 import android.databinding.testapp.vo.ListenerBindingObject.Inner;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ListenerTest extends BaseDataBinderTest<ListenersBinding> {
     private ListenerBindingObject mBindingObject;
 
@@ -28,7 +37,7 @@ public class ListenerTest extends BaseDataBinderTest<ListenersBinding> {
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         mBindingObject = new ListenerBindingObject(getActivity());
         super.setUp();
         initBinder(new Runnable() {
@@ -40,24 +49,27 @@ public class ListenerTest extends BaseDataBinderTest<ListenersBinding> {
         ListenerBindingObject.lastClick = 0;
     }
 
+    @Test
     @UiThreadTest
-    public void testInstanceClick() throws Throwable {
+    public void testInstanceClick() {
         View view = mBinder.click1;
         assertEquals(0, ListenerBindingObject.lastClick);
         view.callOnClick();
         assertEquals(1, ListenerBindingObject.lastClick);
     }
 
+    @Test
     @UiThreadTest
-    public void testStaticClick() throws Throwable {
+    public void testStaticClick() {
         View view = mBinder.click2;
         assertEquals(0, ListenerBindingObject.lastClick);
         view.callOnClick();
         assertEquals(2, ListenerBindingObject.lastClick);
     }
 
+    @Test
     @UiThreadTest
-    public void testInstanceClickTwoArgs() throws Throwable {
+    public void testInstanceClickTwoArgs() {
         View view = mBinder.click3;
         assertEquals(0, ListenerBindingObject.lastClick);
         view.callOnClick();
@@ -76,8 +88,9 @@ public class ListenerTest extends BaseDataBinderTest<ListenersBinding> {
         assertEquals(1, ListenerBindingObject.lastClick);
     }
 
+    @Test
     @UiThreadTest
-    public void testStaticClickTwoArgs() throws Throwable {
+    public void testStaticClickTwoArgs() {
         View view = mBinder.click4;
         assertEquals(0, ListenerBindingObject.lastClick);
         view.callOnClick();
@@ -92,8 +105,9 @@ public class ListenerTest extends BaseDataBinderTest<ListenersBinding> {
         assertEquals(4, ListenerBindingObject.lastClick);
     }
 
+    @Test
     @UiThreadTest
-    public void testClickExpression() throws Throwable {
+    public void testClickExpression() {
         View view = mBinder.click5;
         assertEquals(0, ListenerBindingObject.lastClick);
         view.callOnClick();
@@ -105,8 +119,9 @@ public class ListenerTest extends BaseDataBinderTest<ListenersBinding> {
         assertEquals(1, ListenerBindingObject.lastClick);
     }
 
+    @Test
     @UiThreadTest
-    public void testInflateListener() throws Throwable {
+    public void testInflateListener() {
         ViewStubProxy viewStubProxy = mBinder.viewStub;
         assertFalse(viewStubProxy.isInflated());
         assertFalse(mBindingObject.inflateCalled);
@@ -115,8 +130,9 @@ public class ListenerTest extends BaseDataBinderTest<ListenersBinding> {
         assertTrue(viewStubProxy.isInflated());
     }
 
+    @Test
     @UiThreadTest
-    public void testBaseObservableClick() throws Throwable {
+    public void testBaseObservableClick() {
         View view = mBinder.click6;
         Inner inner = new Inner();
         mBinder.setObj2(inner);

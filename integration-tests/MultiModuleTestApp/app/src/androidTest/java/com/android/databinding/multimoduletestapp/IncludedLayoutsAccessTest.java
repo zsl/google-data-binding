@@ -20,7 +20,6 @@ import android.databinding.testlibrary1.ObservableInLibrary;
 
 import android.app.Application;
 import android.databinding.Observable;
-import android.test.ApplicationTestCase;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -29,14 +28,11 @@ import java.util.Map;
 import android.databinding.multimoduletestapp.databinding.HasIncludeFromLibBinding;
 import android.databinding.testlibrary1.databinding.IncludedInAppLayoutBinding;
 import android.databinding.test.independentlibrary.databinding.IncludedInAppFromLibraryBinding;
+
 /**
  * There is nothing to assert here. If this test compiles, it passes
  */
-public class IncludedLayoutsAccessTest extends ApplicationTestCase<Application> {
-
-    public IncludedLayoutsAccessTest() {
-        super(Application.class);
-    }
+public class IncludedLayoutsAccessTest {
 
     public void neverRun() {
         HasIncludeFromLibBinding binding = null;

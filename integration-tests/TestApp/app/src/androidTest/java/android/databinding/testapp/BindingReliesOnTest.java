@@ -16,10 +16,16 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ReliesOnBinding;
-import android.databinding.testapp.BR;
 import android.databinding.testapp.vo.BasicObject;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
 
 
@@ -27,10 +33,11 @@ public class BindingReliesOnTest extends BaseDataBinderTest<ReliesOnBinding> {
         super(ReliesOnBinding.class);
     }
 
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         initBinder(null);
     }
 
+    @Test
     @UiThreadTest
     public void testReliesOn() {
         BasicObject obj = new BasicObject();

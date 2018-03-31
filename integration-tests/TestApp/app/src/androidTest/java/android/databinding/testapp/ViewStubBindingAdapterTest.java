@@ -17,8 +17,11 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ViewStubAdapterTestBinding;
 import android.databinding.testapp.vo.ViewStubBindingObject;
-
 import android.view.ViewStub;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class ViewStubBindingAdapterTest
         extends BindingAdapterTestBase<ViewStubAdapterTestBinding, ViewStubBindingObject> {
@@ -31,12 +34,13 @@ public class ViewStubBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view.getViewStub();
     }
 
-    public void testLayout() throws Throwable {
+    @Test
+    public void testLayout() {
         assertEquals(mBindingObject.getLayout(), mView.getLayoutResource());
 
         changeValues();

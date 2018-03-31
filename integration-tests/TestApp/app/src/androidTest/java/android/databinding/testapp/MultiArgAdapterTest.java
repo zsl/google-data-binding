@@ -13,27 +13,31 @@
 
 package android.databinding.testapp;
 
-import android.databinding.testapp.BR;
+import android.databinding.testapp.adapter.MultiArgTestAdapter;
 import android.databinding.testapp.databinding.MultiArgAdapterTestBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import static android.databinding.testapp.adapter.MultiArgTestAdapter.MultiBindingClass1;
-import static android.databinding.testapp.adapter.MultiArgTestAdapter.MultiBindingClass2;
-import static android.databinding.testapp.adapter.MultiArgTestAdapter.join;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class MultiArgAdapterTest extends BaseDataBinderTest<MultiArgAdapterTestBinding> {
 
     public MultiArgAdapterTest() {
         super(MultiArgAdapterTestBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testMultiArgIsCalled() {
         initBinder();
-        MultiBindingClass1 obj1 = new MultiBindingClass1();
-        MultiBindingClass2 obj2 = new MultiBindingClass2();
-        MultiBindingClass1 obj3 = new MultiBindingClass1();
-        MultiBindingClass2 obj4 = new MultiBindingClass2();
+        MultiArgTestAdapter.MultiBindingClass1 obj1 = new MultiArgTestAdapter.MultiBindingClass1();
+        MultiArgTestAdapter.MultiBindingClass2 obj2 = new MultiArgTestAdapter.MultiBindingClass2();
+        MultiArgTestAdapter.MultiBindingClass1 obj3 = new MultiArgTestAdapter.MultiBindingClass1();
+        MultiArgTestAdapter.MultiBindingClass2 obj4 = new MultiArgTestAdapter.MultiBindingClass2();
         obj1.setValue("a", false);
         obj2.setValue("b", false);
         obj3.setValue("c", false);
@@ -44,10 +48,10 @@ public class MultiArgAdapterTest extends BaseDataBinderTest<MultiArgAdapterTestB
         mBinder.setObj4(obj4);
         mBinder.executePendingBindings();
 
-        assertEquals(mBinder.merged.getText().toString(), join(obj1, obj2));
-        assertEquals(mBinder.view2.getText().toString(), join(obj2));
-        assertEquals(mBinder.view3.getText().toString(), join(obj3));
-        assertEquals(mBinder.view4.getText().toString(), join(obj4));
+        assertEquals(mBinder.merged.getText().toString(), MultiArgTestAdapter.join(obj1, obj2));
+        assertEquals(mBinder.view2.getText().toString(), MultiArgTestAdapter.join(obj2));
+        assertEquals(mBinder.view3.getText().toString(), MultiArgTestAdapter.join(obj3));
+        assertEquals(mBinder.view4.getText().toString(), MultiArgTestAdapter.join(obj4));
         String prev2 = mBinder.view2.getText().toString();
         String prevValue = mBinder.merged.getText().toString();
         obj1.setValue("o", false);
@@ -63,20 +67,21 @@ public class MultiArgAdapterTest extends BaseDataBinderTest<MultiArgAdapterTestB
         obj3.setValue("q", false);
         obj4.setValue("r", false);
         mBinder.executePendingBindings();
-        assertEquals(join(obj1, obj2), mBinder.merged.getText().toString());
+        assertEquals(MultiArgTestAdapter.join(obj1, obj2), mBinder.merged.getText().toString());
         assertEquals("obj2 should not be re-evaluated", prev2, mBinder.view2.getText().toString());
         // make sure 3 and 4 are not invalidated
         assertEquals("obj3 should not be re-evaluated", prev3, mBinder.view3.getText().toString());
         assertEquals("obj4 should not be re-evaluated", prev4, mBinder.view4.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testSetWithOldValues() throws Throwable {
+    public void testSetWithOldValues() {
         initBinder();
-        MultiBindingClass1 obj1 = new MultiBindingClass1();
-        MultiBindingClass2 obj2 = new MultiBindingClass2();
-        MultiBindingClass1 obj3 = new MultiBindingClass1();
-        MultiBindingClass2 obj4 = new MultiBindingClass2();
+        MultiArgTestAdapter.MultiBindingClass1 obj1 = new MultiArgTestAdapter.MultiBindingClass1();
+        MultiArgTestAdapter.MultiBindingClass2 obj2 = new MultiArgTestAdapter.MultiBindingClass2();
+        MultiArgTestAdapter.MultiBindingClass1 obj3 = new MultiArgTestAdapter.MultiBindingClass1();
+        MultiArgTestAdapter.MultiBindingClass2 obj4 = new MultiArgTestAdapter.MultiBindingClass2();
         obj1.setValue("a", false);
         obj2.setValue("b", false);
         obj3.setValue("c", false);

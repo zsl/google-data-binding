@@ -1,20 +1,26 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.MultiThreadLayoutBinding;
-import android.test.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import java.util.concurrent.CountDownLatch;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static java.lang.Thread.sleep;
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class MultiThreadTest extends BaseDataBinderTest<MultiThreadLayoutBinding> {
     public MultiThreadTest() {
         super(MultiThreadLayoutBinding.class);
     }
 
-    public void testSetOnBackgroundThread() throws Throwable {
+    @Test
+    public void testSetOnBackgroundThread() throws InterruptedException {
         initBinder();
         mBinder.setText("a");
         assertEquals("a", mBinder.getText());
-        Thread.sleep(500);
+        sleep(500);
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -22,7 +28,7 @@ public class MultiThreadTest extends BaseDataBinderTest<MultiThreadLayoutBinding
             }
         });
         mBinder.setText("b");
-        Thread.sleep(500);
+        sleep(500);
         assertEquals("b", mBinder.getText());
         runTestOnUiThread(new Runnable() {
             @Override

@@ -18,26 +18,31 @@ package android.databinding.testapp;
 import android.databinding.testapp.databinding.GenericAdapterBinding;
 import android.databinding.testapp.vo.BasicObject;
 import android.databinding.testapp.vo.GenericContainer;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import java.util.Arrays;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class GenericAdapterTest extends BaseDataBinderTest<GenericAdapterBinding> {
 
     public GenericAdapterTest() {
         super(GenericAdapterBinding.class);
     }
 
-    @UiThreadTest
     @Test
-    public void testGenericArgs() throws Throwable {
+    @UiThreadTest
+    public void testGenericArgs() {
         initBinder();
 
-        String[] arr = { "Hello", "World" };
-        List<String> list = Arrays.asList(arr);
+        String[] arr = {"Hello", "World"};
+        List<String> list = asList(arr);
         BasicObject obj = new BasicObject();
         GenericContainer<BasicObject> container = new GenericContainer<>(obj);
         obj.setField1("Yes, it worked");

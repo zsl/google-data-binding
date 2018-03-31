@@ -40,7 +40,7 @@ public class BindingAdapterTestBase<T extends ViewDataBinding, V extends Binding
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder(new Runnable() {
             @Override
@@ -61,7 +61,7 @@ public class BindingAdapterTestBase<T extends ViewDataBinding, V extends Binding
         });
     }
 
-    protected void changeValues() throws Throwable {
+    protected void changeValues() {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {

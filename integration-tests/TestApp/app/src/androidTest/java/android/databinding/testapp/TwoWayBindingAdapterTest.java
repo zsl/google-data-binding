@@ -19,11 +19,11 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.databinding.testapp.databinding.TwoWayBinding;
 import android.databinding.testapp.vo.TwoWayBindingObject;
-import android.os.Debug;
 import android.os.SystemClock;
-import android.test.UiThreadTest;
-import android.text.Spannable;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.style.BackgroundColorSpan;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,10 +32,20 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TabHost.TabSpec;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.util.Calendar;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+@SuppressWarnings("ConstantConditions")
+@RunWith(AndroidJUnit4.class)
 public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> {
 
     TwoWayBindingObject mBindingObject;
@@ -45,7 +55,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder(new Runnable() {
             @Override
@@ -58,6 +68,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testListViewSelectedItemPosition() throws Throwable {
         makeVisible(mBinder.listView);
         runTestOnUiThread(new Runnable() {
@@ -83,6 +94,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testSpinnerSelectedItemPosition() throws Throwable {
         makeVisible(mBinder.spinner);
         runTestOnUiThread(new Runnable() {
@@ -108,6 +120,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testSpinnerSelection() throws Throwable {
         makeVisible(mBinder.spinner2);
         runTestOnUiThread(new Runnable() {
@@ -133,6 +146,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testSpinnerSelectionNoAdapter() throws Throwable {
         makeVisible(mBinder.spinner3);
         runTestOnUiThread(new Runnable() {
@@ -158,7 +172,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
-    private void clickView(final View view, float offsetX) throws Throwable {
+    private void clickView(final View view, float offsetX) {
         final int[] xy = new int[2];
         final int[] viewSize = new int[2];
         do {
@@ -175,7 +189,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         final float x = xy[0] + offsetX;
         final float y = xy[1] + (viewSize[1] / 2f);
 
-        Instrumentation inst = getInstrumentation();
+        Instrumentation inst = InstrumentationRegistry.getInstrumentation();
 
         long downTime = SystemClock.uptimeMillis();
         long eventTime = SystemClock.uptimeMillis();
@@ -198,7 +212,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         waitForUISync();
     }
 
-    private void clickChild(View view, float offsetX) throws Throwable {
+    private void clickChild(View view, float offsetX) {
         View childView = view;
         while (childView != null) {
             childView.callOnClick();
@@ -216,6 +230,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         }
     }
 
+    @Test
     public void testCalendarViewDate() throws Throwable {
         makeVisible(mBinder.calendarView);
         runTestOnUiThread(new Runnable() {
@@ -264,6 +279,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 testValue.get(Calendar.DAY_OF_MONTH));
     }
 
+    @Test
     public void testCheckBoxChecked() throws Throwable {
         makeVisible(mBinder.checkBox);
         runTestOnUiThread(new Runnable() {
@@ -291,7 +307,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
-    private boolean focusOn(final View view) throws Throwable {
+    private boolean focusOn(final View view) {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -314,6 +330,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         return false;
     }
 
+    @Test
     public void testNumberPickerNumber() throws Throwable {
         makeVisible(mBinder.textView, mBinder.numberPicker);
         assertTrue(focusOn(mBinder.textView));
@@ -358,13 +375,14 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testRatingBarRating() throws Throwable {
         makeVisible(mBinder.ratingBar);
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                assertEquals(1f, mBindingObject.rating.get());
-                assertEquals(1f, mBinder.ratingBar.getRating());
+                assertEquals(1f, mBindingObject.rating.get(), 0f);
+                assertEquals(1f, mBinder.ratingBar.getRating(), 0f);
                 mBinder.ratingBar.setRating(2.5f);
             }
         });
@@ -379,12 +397,13 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                assertEquals(2.5f, mBinder.ratingBar.getRating());
-                assertEquals(2.5f, mBindingObject.rating.get());
+                assertEquals(2.5f, mBinder.ratingBar.getRating(), 0f);
+                assertEquals(2.5f, mBindingObject.rating.get(), 0f);
             }
         });
     }
 
+    @Test
     public void testSeekBarProgress() throws Throwable {
         makeVisible(mBinder.seekBar);
         runTestOnUiThread(new Runnable() {
@@ -412,6 +431,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testTabHostCurrentTab() throws Throwable {
         makeVisible(mBinder.tabhost);
         runTestOnUiThread(new Runnable() {
@@ -447,6 +467,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testTextViewText() throws Throwable {
         makeVisible(mBinder.textView);
         runTestOnUiThread(new Runnable() {
@@ -474,6 +495,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testDatePicker() throws Throwable {
         makeVisible(mBinder.datePicker);
         runTestOnUiThread(new Runnable() {
@@ -506,6 +528,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testExpressions1() throws Throwable {
         makeVisible(mBinder.expressions1);
         runTestOnUiThread(new Runnable() {
@@ -538,6 +561,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testExpressions2() throws Throwable {
         makeVisible(mBinder.expressions2);
         runTestOnUiThread(new Runnable() {
@@ -570,13 +594,14 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testExpressions3() throws Throwable {
         makeVisible(mBinder.expressions3);
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                assertEquals((Integer)1, mBindingObject.list.get(1));
-                assertEquals((Integer)2, mBindingObject.map.get("two"));
+                assertEquals((Integer) 1, mBindingObject.list.get(1));
+                assertEquals((Integer) 2, mBindingObject.map.get("two"));
                 assertEquals(2, mBindingObject.array.get()[1]);
                 assertEquals(1, mBinder.expressions3.getYear());
                 assertEquals(2, mBinder.expressions3.getMonth());
@@ -595,13 +620,14 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {
-                assertEquals((Integer)2003, mBindingObject.list.get(1));
-                assertEquals((Integer)4, mBindingObject.map.get("two"));
+                assertEquals((Integer) 2003, mBindingObject.list.get(1));
+                assertEquals((Integer) 4, mBindingObject.map.get("two"));
                 assertEquals(17, mBindingObject.array.get()[1]);
             }
         });
     }
 
+    @Test
     public void testExpressions4() throws Throwable {
         makeVisible(mBinder.expressions4);
         runTestOnUiThread(new Runnable() {
@@ -634,7 +660,8 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
-    public void testChaining() throws Throwable {
+    @Test
+    public void testChaining() {
         makeVisible(mBinder.checkBox, mBinder.checkBox2);
         runTestOnUiThread(new Runnable() {
             @Override
@@ -647,7 +674,8 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
-    public void testTwoWayChaining() throws Throwable {
+    @Test
+    public void testTwoWayChaining() {
         makeVisible(mBinder.checkBox3, mBinder.checkBox4);
         runTestOnUiThread(new Runnable() {
             @Override
@@ -662,6 +690,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testIncludedTwoWay1() throws Throwable {
         makeVisible(mBinder.included.editText1, mBinder.textView);
         runTestOnUiThread(new Runnable() {
@@ -691,6 +720,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testIncludedTwoWay2() throws Throwable {
         makeVisible(mBinder.included.editText2, mBinder.textView);
         runTestOnUiThread(new Runnable() {
@@ -720,12 +750,13 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testNoEditableLoop() throws Throwable {
         makeVisible(mBinder.editText1, mBinder.editText2);
 
         final SpannableString text = new SpannableString("Hello World Also");
         BackgroundColorSpan highlight = new BackgroundColorSpan(0xFFFFFF80);
-        text.setSpan(highlight, 0, 5, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        text.setSpan(highlight, 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         mBindingObject.textLatch = new CountDownLatch(2);
         runTestOnUiThread(new Runnable() {
@@ -801,6 +832,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
+    @Test
     public void testStringConversions() throws Throwable {
         makeVisible(mBinder.convertBool, mBinder.convertByte, mBinder.convertShort,
                 mBinder.convertInt, mBinder.convertLong, mBinder.convertFloat,
@@ -837,6 +869,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertEquals('a', mBindingObject.charField.get());
     }
 
+    @Test
     public void testBadStringConversions() throws Throwable {
         makeVisible(mBinder.convertBool, mBinder.convertByte, mBinder.convertShort,
                 mBinder.convertInt, mBinder.convertLong, mBinder.convertFloat,
@@ -882,6 +915,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertEquals('1', mBindingObject.charField.get());
     }
 
+    @Test
     public void testBindPojo() throws Throwable {
         makeVisible(mBinder.toField);
         runTestOnUiThread(new Runnable() {
@@ -904,6 +938,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertEquals("Goodbye", mBindingObject.textField);
     }
 
+    @Test
     public void testBindStaticField() throws Throwable {
         makeVisible(mBinder.toStaticField);
         runTestOnUiThread(new Runnable() {
@@ -923,13 +958,14 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         waitWhile(new TestCondition() {
             @Override
             public boolean testValue() {
-                return "World".equals(mBindingObject.staticField);
+                return "World".equals(TwoWayBindingObject.staticField);
             }
         });
 
-        assertEquals("Cruel", mBindingObject.staticField);
+        assertEquals("Cruel", TwoWayBindingObject.staticField);
     }
 
+    @Test
     public void testSimpleInstanceMethod() throws Throwable {
         mBindingObject.intField.set(5);
         makeVisible(mBinder.simpleInstanceMethod);
@@ -957,6 +993,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertEquals(6, mBindingObject.intField.get());
     }
 
+    @Test
     public void testSimpleStaticMethod() throws Throwable {
         mBindingObject.floatField.set(5f);
         makeVisible(mBinder.simpleStaticMethod);
@@ -981,9 +1018,10 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
             }
         });
 
-        assertEquals(6f, mBindingObject.floatField.get());
+        assertEquals(6f, mBindingObject.floatField.get(), 0f);
     }
 
+    @Test
     public void testGenericInstanceMethod() throws Throwable {
         makeVisible(mBinder.genericInstanceMethod);
         runTestOnUiThread(new Runnable() {
@@ -1012,6 +1050,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertEquals("hello", mBindingObject.stringList.get().get(0));
     }
 
+    @Test
     public void testTypedInstanceMethod() throws Throwable {
         makeVisible(mBinder.typedInstanceMethod);
         runTestOnUiThread(new Runnable() {
@@ -1040,6 +1079,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         assertEquals("hello", mBindingObject.stringList.get().get(0));
     }
 
+    @Test
     public void testArrayMethod() throws Throwable {
         makeVisible(mBinder.arrayMethod);
         runTestOnUiThread(new Runnable() {
@@ -1086,6 +1126,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
      * to pig latin, and this ensures that binding to the inversion (from pig latin) is
      * also declared implicitly.
      */
+    @Test
     public void testReversPigLatin() throws Throwable {
         mBindingObject.pigLatin.set("atinLay");
         makeVisible(mBinder.pigLatin);
@@ -1102,7 +1143,6 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
                 mBinder.pigLatin.setText("Pig");
             }
         });
-        final long timeout = SystemClock.uptimeMillis() + 500;
         waitWhile(new TestCondition() {
             @Override
             public boolean testValue() {
@@ -1115,6 +1155,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
     /**
      * Tests two-way binding when the target is the same Target as expression.
      */
+    @Test
     public void testSameTarget() throws Throwable {
         makeVisible(mBinder.sameTarget);
         assertEquals("Hello World", mBinder.sameTarget.getError().toString());
@@ -1138,6 +1179,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
      * a View, it must resolve the multi-attribute binding adapters after the two-way expressions
      * are resolved.
      */
+    @Test
     public void testCrossAttributes() throws Throwable {
         makeVisible(mBinder.mixView1, mBinder.mixView2);
         runTestOnUiThread(new Runnable() {
@@ -1165,6 +1207,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
     /**
      * This tests whether the unary not properly converts back
      */
+    @Test
     public void testUnaryNot() throws Throwable {
         mBindingObject.checked.set(false);
         makeVisible(mBinder.unaryNot);
@@ -1194,6 +1237,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
      * Tests that when a lambda expression is linked to a two-way expression, that
      * the lambda takes the correct value.
      */
+    @Test
     public void testTwoWayWithLambda() throws Throwable {
         makeVisible(mBinder.withLambda);
         mBindingObject.text.set("H");
@@ -1225,7 +1269,7 @@ public class TwoWayBindingAdapterTest extends BaseDataBinderTest<TwoWayBinding> 
         });
     }
 
-    private void makeVisible(final View... views) throws Throwable {
+    private void makeVisible(final View... views) {
         runTestOnUiThread(new Runnable() {
             @Override
             public void run() {

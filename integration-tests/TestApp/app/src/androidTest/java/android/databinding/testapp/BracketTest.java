@@ -14,15 +14,21 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.BracketTestBinding;
-
 import android.databinding.testapp.vo.BracketObject;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.util.LongSparseArray;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 import android.util.SparseIntArray;
 import android.util.SparseLongArray;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
     private String[] mArray = {
             "Hello World"
@@ -44,7 +50,7 @@ public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder(new Runnable() {
             @Override
@@ -62,6 +68,7 @@ public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
         });
     }
 
+    @Test
     @UiThreadTest
     public void testBrackets() {
         assertEquals("Hello World", mBinder.arrayText.getText().toString());
@@ -72,6 +79,7 @@ public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
         assertEquals("5", mBinder.sparseLongArrayText.getText().toString());
     }
 
+    @Test
     @UiThreadTest
     public void testBracketOutOfBounds() {
         mBinder.setIndex(1);
@@ -92,6 +100,7 @@ public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
         assertEquals("0", mBinder.sparseLongArrayText.getText().toString());
     }
 
+    @Test
     @UiThreadTest
     public void testBracketObj() {
         mBinder.executePendingBindings();
@@ -99,13 +108,15 @@ public class BracketTest extends BaseDataBinderTest<BracketTestBinding> {
         assertEquals("Hello", mBinder.sparseArrayTextObj.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testBracketMap() throws Throwable {
+    public void testBracketMap() {
         assertEquals("", mBinder.bracketMap.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testDotSubstitute() throws Throwable {
+    public void testDotSubstitute() {
         BracketObject bracketObject = new BracketObject();
         bracketObject.map.put("Hello", "World");
         bracketObject.observableMap.put("Hello", "Goodbye");

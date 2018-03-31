@@ -17,16 +17,22 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.InnerCannotReadDependencyBinding;
 import android.databinding.testapp.vo.BasicObject;
-import android.os.Debug;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-public class InnerCannotReadDependencyTest extends
-        BaseDataBinderTest<InnerCannotReadDependencyBinding> {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
+public class InnerCannotReadDependencyTest extends BaseDataBinderTest<InnerCannotReadDependencyBinding> {
 
     public InnerCannotReadDependencyTest() {
         super(InnerCannotReadDependencyBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testBinding() {
         initBinder();

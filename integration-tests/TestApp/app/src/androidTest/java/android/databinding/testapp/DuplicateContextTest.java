@@ -16,18 +16,24 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.DuplicateContextBinding;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import android.test.UiThreadTest;
-import android.widget.TextView;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class DuplicateContextTest extends BaseDataBinderTest<DuplicateContextBinding> {
 
     public DuplicateContextTest() {
         super(DuplicateContextBinding.class);
     }
 
+    @Test
     @UiThreadTest
-    public void testContext() throws Throwable {
+    public void testContext() {
         DuplicateContextBinding binding = initBinder();
         binding.setContext("Hello World");
         binding.executePendingBindings();

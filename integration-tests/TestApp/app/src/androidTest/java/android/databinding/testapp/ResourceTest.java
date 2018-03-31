@@ -16,12 +16,20 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ResourceTestBinding;
-
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.text.SpannedString;
 import android.text.style.CharacterStyle;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
 
     public ResourceTest() {
@@ -29,7 +37,7 @@ public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder(new Runnable() {
             @Override
@@ -44,8 +52,9 @@ public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
         });
     }
 
+    @Test
     @UiThreadTest
-    public void testStringFormat() throws Throwable {
+    public void testStringFormat() {
         TextView view = mBinder.textView0;
         assertEquals("Mrs. Doubtfire", view.getText().toString());
 
@@ -54,8 +63,9 @@ public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
         assertEquals("Mr. Doubtfire", view.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testQuantityString() throws Throwable {
+    public void testQuantityString() {
         TextView view = mBinder.textView1;
         assertEquals("oranges", view.getText().toString());
 
@@ -64,34 +74,39 @@ public class ResourceTest extends BaseDataBinderTest<ResourceTestBinding> {
         assertEquals("orange", view.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testFractionNoParameters() throws Throwable {
+    public void testFractionNoParameters() {
         TextView view = mBinder.fractionNoParameters;
         assertEquals("1.5", view.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testFractionOneParameter() throws Throwable {
+    public void testFractionOneParameter() {
         TextView view = mBinder.fractionOneParameter;
         assertEquals("3.0", view.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testFractionTwoParameters() throws Throwable {
+    public void testFractionTwoParameters() {
         TextView view = mBinder.fractionTwoParameters;
         assertEquals("9.0", view.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testAndroidResources() throws Throwable {
+    public void testAndroidResources() {
         TextView list = mBinder.list;
         assertEquals(String.valueOf(android.R.id.list), list.getText().toString());
         TextView message = mBinder.message;
         assertEquals(String.valueOf(android.R.id.message), message.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testFormattedText() throws Throwable {
+    public void testFormattedText() {
         CharSequence formattedText = mBinder.formattedText.getText();
         assertTrue(formattedText instanceof SpannedString);
         assertEquals("there are zero", formattedText.toString());

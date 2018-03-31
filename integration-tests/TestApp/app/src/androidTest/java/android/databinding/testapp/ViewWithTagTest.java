@@ -17,15 +17,24 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ViewWithTagBinding;
 import android.support.annotation.UiThread;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ViewWithTagTest extends BaseDataBinderTest<ViewWithTagBinding> {
     public ViewWithTagTest() {
         super(ViewWithTagBinding.class);
     }
 
+    @Test
     @UiThread
     public void test() {
         ViewWithTagBinding binder = initBinder();

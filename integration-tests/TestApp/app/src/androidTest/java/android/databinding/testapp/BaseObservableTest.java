@@ -16,13 +16,21 @@
 package android.databinding.testapp;
 
 import android.databinding.BaseObservable;
-import android.databinding.testapp.databinding.BasicBindingBinding;
-
 import android.databinding.Observable;
 import android.databinding.Observable.OnPropertyChangedCallback;
+import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> {
     private BaseObservable mObservable;
     private ArrayList<Integer> mNotifications = new ArrayList<>();
@@ -39,12 +47,13 @@ public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> 
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         mNotifications.clear();
         mObservable = new BaseObservable();
         initBinder(null);
     }
 
+    @Test
     public void testAddCallback() {
         mObservable.notifyChange();
         assertTrue(mNotifications.isEmpty());
@@ -53,6 +62,7 @@ public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> 
         assertFalse(mNotifications.isEmpty());
     }
 
+    @Test
     public void testRemoveCallback() {
         // test there is no exception when the Callback isn't there
         mObservable.removeOnPropertyChangedCallback(mCallback);
@@ -68,6 +78,7 @@ public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> 
         mObservable.removeOnPropertyChangedCallback(mCallback);
     }
 
+    @Test
     public void testNotifyChange() {
         mObservable.addOnPropertyChangedCallback(mCallback);
         mObservable.notifyChange();
@@ -75,6 +86,7 @@ public class BaseObservableTest extends BaseDataBinderTest<BasicBindingBinding> 
         assertEquals(0, (int) mNotifications.get(0));
     }
 
+    @Test
     public void testNotifyPropertyChanged() {
         final int expectedId = 100;
         mObservable.addOnPropertyChangedCallback(mCallback);

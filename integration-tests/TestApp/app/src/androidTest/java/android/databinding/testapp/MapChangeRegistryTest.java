@@ -17,11 +17,17 @@ package android.databinding.testapp;
 
 import android.databinding.MapChangeRegistry;
 import android.databinding.ObservableArrayMap;
+import android.databinding.ObservableMap;
 import android.databinding.ObservableMap.OnMapChangedCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.support.test.runner.AndroidJUnit4;
 
-import android.databinding.ObservableMap;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class MapChangeRegistryTest extends BaseDataBinderTest<BasicBindingBinding> {
 
     private int notificationCount = 0;
@@ -30,6 +36,7 @@ public class MapChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindin
         super(BasicBindingBinding.class);
     }
 
+    @Test
     public void testNotifyAllChanged() {
         MapChangeRegistry mapChangeRegistry = new MapChangeRegistry();
 

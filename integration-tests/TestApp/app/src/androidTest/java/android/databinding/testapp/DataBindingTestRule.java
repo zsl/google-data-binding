@@ -23,12 +23,14 @@ import android.support.test.rule.ActivityTestRule;
 
 /**
  * Convenience rule for tests that use data binding.
+ *
  * @param <T> The type of the generated binding class
  */
 public class DataBindingTestRule<T extends ViewDataBinding>
         extends ActivityTestRule<TestActivity> {
     final int mLayoutId;
     private T mBinding;
+
     public DataBindingTestRule(int layoutId) {
         super(TestActivity.class);
         mLayoutId = layoutId;

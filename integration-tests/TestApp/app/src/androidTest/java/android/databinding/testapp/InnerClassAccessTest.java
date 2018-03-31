@@ -17,13 +17,21 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.InnerClassAccessBinding;
 import android.databinding.testapp.vo.InnerClassOwner;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class InnerClassAccessTest extends BaseDataBinderTest<InnerClassAccessBinding> {
     public InnerClassAccessTest() {
         super(InnerClassAccessBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testValue() {
         initBinder();

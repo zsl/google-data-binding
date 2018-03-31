@@ -22,16 +22,24 @@ import android.databinding.testapp.adapter.NameClashAdapter;
 import android.databinding.testapp.adapter.NameClashAdapter.MyAdapter;
 import android.databinding.testapp.databinding.IncludeInstanceAdapterBinding;
 import android.databinding.testapp.databinding.InstanceAdapterBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
 public class InstanceAdapterTest extends BaseDataBinderTest<InstanceAdapterBinding> {
     public InstanceAdapterTest() {
         super(InstanceAdapterBinding.class);
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
     }
 
@@ -68,24 +76,27 @@ public class InstanceAdapterTest extends BaseDataBinderTest<InstanceAdapterBindi
         mBinder.executePendingBindings();
     }
 
+    @Test
     @UiThreadTest
-    public void testOneAttr() throws Throwable {
+    public void testOneAttr() {
         initNormal();
         mBinder.setStr("World");
         mBinder.executePendingBindings();
         assertEquals("Hello World foo bar baz", mBinder.textView1.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testTwoAttr() throws Throwable {
+    public void testTwoAttr() {
         initNormal();
         mBinder.setStr("World");
         mBinder.executePendingBindings();
         assertEquals("Hello World baz foo bar", mBinder.textView2.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testOneAttrOld() throws Throwable {
+    public void testOneAttrOld() {
         initNormal();
         mBinder.setStr("World");
         mBinder.executePendingBindings();
@@ -95,8 +106,9 @@ public class InstanceAdapterTest extends BaseDataBinderTest<InstanceAdapterBindi
         assertEquals("Hello World Android foo bar", mBinder.textView3.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testTwoAttrOld() throws Throwable {
+    public void testTwoAttrOld() {
         initNormal();
         mBinder.setStr("World");
         mBinder.executePendingBindings();
@@ -106,8 +118,9 @@ public class InstanceAdapterTest extends BaseDataBinderTest<InstanceAdapterBindi
         assertEquals("Hello World baz Android baz", mBinder.textView4.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testRequiredBinding() throws Throwable {
+    public void testRequiredBinding() {
         try {
             InstanceAdapterBinding.inflate(getActivity().getLayoutInflater(), null);
             fail("Binding should fail if a required BindingAdapter is missing.");
@@ -116,8 +129,9 @@ public class InstanceAdapterTest extends BaseDataBinderTest<InstanceAdapterBindi
         }
     }
 
+    @Test
     @UiThreadTest
-    public void testInclude() throws Throwable {
+    public void testInclude() {
         initNormal();
         DataBindingComponent component = DataBindingUtil.getDefaultComponent();
         DataBindingUtil.setDefaultComponent(null);
@@ -127,8 +141,9 @@ public class InstanceAdapterTest extends BaseDataBinderTest<InstanceAdapterBindi
         assertEquals("Hello World foo bar baz", binding.includedLayout.textView1.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testViewStub() throws Throwable {
+    public void testViewStub() {
         initNormal();
         DataBindingComponent component = DataBindingUtil.getDefaultComponent();
         DataBindingUtil.setDefaultComponent(null);
@@ -141,24 +156,27 @@ public class InstanceAdapterTest extends BaseDataBinderTest<InstanceAdapterBindi
         assertEquals("Hello World foo bar baz", view.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testOneAttrWithComponentStatic() throws Throwable {
+    public void testOneAttrWithComponentStatic() {
         initNormal();
         mBinder.setStr("World");
         mBinder.executePendingBindings();
         assertEquals("World component", mBinder.textView6.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testOneAttrWithComponentInstance() throws Throwable {
+    public void testOneAttrWithComponentInstance() {
         initNormal();
         mBinder.setStr("World");
         mBinder.executePendingBindings();
         assertEquals("Hello World component bar baz", mBinder.textView7.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testTwoAttrsWithComponentInstance() throws Throwable {
+    public void testTwoAttrsWithComponentInstance() {
         initNormal();
         mBinder.setStr("World");
         mBinder.executePendingBindings();

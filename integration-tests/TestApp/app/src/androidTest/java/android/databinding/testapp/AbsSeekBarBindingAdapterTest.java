@@ -17,9 +17,12 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.AbsSeekBarAdapterTestBinding;
 import android.databinding.testapp.vo.AbsSeekBarBindingObject;
-
 import android.os.Build;
 import android.widget.SeekBar;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class AbsSeekBarBindingAdapterTest
         extends BindingAdapterTestBase<AbsSeekBarAdapterTestBinding, AbsSeekBarBindingObject> {
@@ -32,12 +35,13 @@ public class AbsSeekBarBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
-    public void testThumbTint() throws Throwable {
+    @Test
+    public void testThumbTint() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             assertEquals(mBindingObject.getThumbTint(), mView.getThumbTintList().getDefaultColor());
 

@@ -18,11 +18,16 @@ package android.databinding.testapp;
 import android.databinding.testapp.databinding.AbsSpinnerAdapterTestBinding;
 import android.databinding.testapp.vo.AbsSpinnerBindingObject;
 import android.os.Build;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
 import android.widget.Spinner;
 import android.widget.SpinnerAdapter;
 
+import org.junit.Test;
+
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 public class AbsSpinnerBindingAdapterTest
         extends BindingAdapterTestBase<AbsSpinnerAdapterTestBinding, AbsSpinnerBindingObject> {
@@ -35,13 +40,14 @@ public class AbsSpinnerBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
+    @Test
     @UiThreadTest
-    public void testEntries() throws Throwable {
+    public void testEntries() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             validateEntries();
 
@@ -51,8 +57,9 @@ public class AbsSpinnerBindingAdapterTest
         }
     }
 
+    @Test
     @UiThreadTest
-    public void testList() throws Throwable {
+    public void testList() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             validateList();
 
@@ -63,8 +70,9 @@ public class AbsSpinnerBindingAdapterTest
         }
     }
 
+    @Test
     @UiThreadTest
-    public void testAdapterAndSelectedItemPosition() throws Throwable {
+    public void testAdapterAndSelectedItemPosition() {
         mBindingObject.setSelectedItemPosition(1);
         // Execute the pending bindings to ensure that the selected item
         // position is set prior to changing the adapter. This forces
@@ -80,8 +88,9 @@ public class AbsSpinnerBindingAdapterTest
         assertSame(mBindingObject.getAdapter(), mBinder.view4.getAdapter());
     }
 
+    @Test
     @UiThreadTest
-    public void testSelectedItemPosition() throws Throwable {
+    public void testSelectedItemPosition() {
         mBindingObject.setContext(getActivity());
         mBinder.view5.setAdapter(mBindingObject.getAdapter());
         mBinder.view6.setAdapter(mBindingObject.getAdapter());

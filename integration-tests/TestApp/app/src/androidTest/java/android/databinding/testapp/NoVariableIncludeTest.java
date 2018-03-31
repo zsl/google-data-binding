@@ -14,16 +14,25 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.IncludeNoVariablesBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+@RunWith(AndroidJUnit4.class)
 public class NoVariableIncludeTest extends BaseDataBinderTest<IncludeNoVariablesBinding> {
 
     public NoVariableIncludeTest() {
         super(IncludeNoVariablesBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testInclude() {
         initBinder();

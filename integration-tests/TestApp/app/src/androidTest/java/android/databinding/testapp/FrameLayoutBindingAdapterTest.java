@@ -17,10 +17,13 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.FrameLayoutAdapterTestBinding;
 import android.databinding.testapp.vo.FrameLayoutBindingObject;
-
 import android.os.Build;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
 import android.widget.FrameLayout;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class FrameLayoutBindingAdapterTest
         extends BindingAdapterTestBase<FrameLayoutAdapterTestBinding, FrameLayoutBindingObject> {
@@ -33,13 +36,14 @@ public class FrameLayoutBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
+    @Test
     @UiThreadTest
-    public void testTint() throws Throwable {
+    public void testTint() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             assertEquals(mBindingObject.getForegroundTint(),
                     mView.getForegroundTintList().getDefaultColor());

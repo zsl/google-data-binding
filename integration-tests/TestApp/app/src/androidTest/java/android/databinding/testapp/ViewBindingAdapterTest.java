@@ -20,8 +20,15 @@ import android.databinding.testapp.databinding.ViewAdapterTestBinding;
 import android.databinding.testapp.vo.ViewBindingObject;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
 import android.view.View;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTestBinding, ViewBindingObject> {
 
@@ -30,11 +37,12 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
     }
 
-    public void testPadding() throws Throwable {
+    @Test
+    public void testPadding() {
         View view = mBinder.padding;
         assertEquals(mBindingObject.getPadding(), view.getPaddingBottom());
         assertEquals(mBindingObject.getPadding(), view.getPaddingTop());
@@ -49,7 +57,8 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         assertEquals(mBindingObject.getPadding(), view.getPaddingLeft());
     }
 
-    public void testPaddingLeftRight() throws Throwable {
+    @Test
+    public void testPaddingLeftRight() {
         View view = mBinder.paddingLeftRight;
         assertEquals(mBindingObject.getPaddingLeft(), view.getPaddingLeft());
         assertEquals(mBindingObject.getPaddingRight(), view.getPaddingRight());
@@ -60,7 +69,8 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         assertEquals(mBindingObject.getPaddingRight(), view.getPaddingRight());
     }
 
-    public void testPaddingStartEnd() throws Throwable {
+    @Test
+    public void testPaddingStartEnd() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             View view = mBinder.paddingStartEnd;
             assertEquals(mBindingObject.getPaddingStart(), view.getPaddingStart());
@@ -73,7 +83,8 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         }
     }
 
-    public void testPaddingTopBottom() throws Throwable {
+    @Test
+    public void testPaddingTopBottom() {
         View view = mBinder.paddingTopBottom;
         assertEquals(mBindingObject.getPaddingTop(), view.getPaddingTop());
         assertEquals(mBindingObject.getPaddingBottom(), view.getPaddingBottom());
@@ -84,7 +95,8 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         assertEquals(mBindingObject.getPaddingBottom(), view.getPaddingBottom());
     }
 
-    public void testBackgroundTint() throws Throwable {
+    @Test
+    public void testBackgroundTint() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             View view = mBinder.backgroundTint;
             assertNotNull(view.getBackgroundTintList());
@@ -99,7 +111,8 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         }
     }
 
-    public void testFadeScrollbars() throws Throwable {
+    @Test
+    public void testFadeScrollbars() {
         View view = mBinder.fadeScrollbars;
         assertEquals(mBindingObject.getFadeScrollbars(), view.isScrollbarFadingEnabled());
 
@@ -108,7 +121,8 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         assertEquals(mBindingObject.getFadeScrollbars(), view.isScrollbarFadingEnabled());
     }
 
-    public void testNextFocus() throws Throwable {
+    @Test
+    public void testNextFocus() {
         View view = mBinder.nextFocus;
 
         assertEquals(mBindingObject.getNextFocusDown(), view.getNextFocusDownId());
@@ -130,7 +144,8 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         }
     }
 
-    public void testRequiresFadingEdge() throws Throwable {
+    @Test
+    public void testRequiresFadingEdge() {
         View view = mBinder.requiresFadingEdge;
 
         assertTrue(view.isVerticalFadingEdgeEnabled());
@@ -142,7 +157,8 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         assertTrue(view.isHorizontalFadingEdgeEnabled());
     }
 
-    public void testScrollbar() throws Throwable {
+    @Test
+    public void testScrollbar() {
         View view = mBinder.scrollbar;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
@@ -164,29 +180,32 @@ public class ViewBindingAdapterTest extends BindingAdapterTestBase<ViewAdapterTe
         assertEquals(mBindingObject.getScrollbarStyle(), view.getScrollBarStyle());
     }
 
-    public void testTransformPivot() throws Throwable {
+    @Test
+    public void testTransformPivot() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             View view = mBinder.transformPivot;
 
-            assertEquals(mBindingObject.getTransformPivotX(), view.getPivotX());
-            assertEquals(mBindingObject.getTransformPivotY(), view.getPivotY());
+            assertEquals(mBindingObject.getTransformPivotX(), view.getPivotX(), 0f);
+            assertEquals(mBindingObject.getTransformPivotY(), view.getPivotY(), 0f);
 
             changeValues();
 
-            assertEquals(mBindingObject.getTransformPivotX(), view.getPivotX());
-            assertEquals(mBindingObject.getTransformPivotY(), view.getPivotY());
+            assertEquals(mBindingObject.getTransformPivotX(), view.getPivotX(), 0f);
+            assertEquals(mBindingObject.getTransformPivotY(), view.getPivotY(), 0f);
         }
     }
 
+    @Test
     @UiThreadTest
-    public void testBackgroundDrawableDrawable() throws Throwable {
+    public void testBackgroundDrawableDrawable() {
         View view = mBinder.backgroundDrawable;
         Drawable drawable = view.getBackground();
         assertNotNull(drawable);
     }
 
+    @Test
     @UiThreadTest
-    public void testBackgroundDrawableWithTheme() throws Throwable {
+    public void testBackgroundDrawableWithTheme() {
         View view = mBinder.backgroundWithTheme;
         assertNotNull(view.getBackground());
     }

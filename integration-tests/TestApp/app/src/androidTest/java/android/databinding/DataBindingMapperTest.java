@@ -14,24 +14,37 @@
 package android.databinding;
 
 
-import android.test.AndroidTestCase;
+import android.databinding.testapp.R;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 
-public class DataBindingMapperTest extends AndroidTestCase {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+
+@RunWith(AndroidJUnit4.class)
+public class DataBindingMapperTest {
+    @Test
     public void testNotDataBindingId() {
-        View view = new View(getContext());
+        View view = new View(InstrumentationRegistry.getTargetContext());
         view.setTag("layout/unexpected");
-        android.databinding.DataBinderMapper mapper = new android.databinding.DataBinderMapperImpl();
+        DataBinderMapper mapper = new DataBinderMapperImpl();
         ViewDataBinding binding = mapper.getDataBinder(null, view, 1);
         assertNull(binding);
     }
+
+    @Test
     public void testInvalidView() {
-        View view = new View(getContext());
+        View view = new View(InstrumentationRegistry.getTargetContext());
         view.setTag("layout/unexpected");
-        android.databinding.DataBinderMapper mapper = new android.databinding.DataBinderMapperImpl();
+        DataBinderMapper mapper = new DataBinderMapperImpl();
         Throwable error = null;
         try {
-            mapper.getDataBinder(null, view, android.databinding.testapp.R.layout.multi_res_layout);
+            mapper.getDataBinder(null, view, R.layout.multi_res_layout);
         } catch (Throwable t) {
             error = t;
         }

@@ -16,13 +16,21 @@
 package android.databinding.testapp;
 
 import android.databinding.ObservableArrayList;
-import android.databinding.testapp.databinding.BasicBindingBinding;
-
 import android.databinding.ObservableList;
 import android.databinding.ObservableList.OnListChangedCallback;
+import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.support.test.runner.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBinding> {
 
     private static final int ALL = 0;
@@ -100,11 +108,12 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         mNotifications.clear();
         mObservable = new ObservableArrayList<>();
     }
 
+    @Test
     public void testAddListener() {
         mObservable.add("Hello");
         assertTrue(mNotifications.isEmpty());
@@ -113,6 +122,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         assertFalse(mNotifications.isEmpty());
     }
 
+    @Test
     public void testRemoveListener() {
         // test there is no exception when the listener isn't there
         mObservable.removeOnListChangedCallback(mListener);
@@ -128,6 +138,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         mObservable.removeOnListChangedCallback(mListener);
     }
 
+    @Test
     public void testAdd() {
         OnListChangedCallback listChangedListener = new OnListChangedCallback() {
             @Override
@@ -164,6 +175,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         assertEquals("Hello", mObservable.get(0));
     }
 
+    @Test
     public void testInsert() {
         mObservable.addOnListChangedCallback(mListener);
         mObservable.add("Hello");
@@ -182,6 +194,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         assertEquals(1, change.count);
     }
 
+    @Test
     public void testAddAll() {
         ArrayList<String> toAdd = new ArrayList<>();
         toAdd.add("Hello");
@@ -199,6 +212,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         assertEquals(2, change.count);
     }
 
+    @Test
     public void testInsertAll() {
         ArrayList<String> toAdd = new ArrayList<>();
         toAdd.add("Hello");
@@ -216,6 +230,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         assertEquals(2, change.count);
     }
 
+    @Test
     public void testClear() {
         mObservable.add("Hello");
         mObservable.add("World");
@@ -232,6 +247,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         assertEquals(1, mNotifications.size());
     }
 
+    @Test
     public void testRemoveIndex() {
         mObservable.add("Hello");
         mObservable.add("World");
@@ -244,6 +260,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         assertEquals(1, change.count);
     }
 
+    @Test
     public void testRemoveObject() {
         mObservable.add("Hello");
         mObservable.add("World");
@@ -260,6 +277,7 @@ public class ObservableArrayListTest extends BaseDataBinderTest<BasicBindingBind
         assertEquals(1, mNotifications.size());
     }
 
+    @Test
     public void testSet() {
         mObservable.add("Hello");
         mObservable.add("World");

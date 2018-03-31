@@ -19,28 +19,49 @@ package com.android.databinding.multimoduletestapp;
 import android.databinding.DataBindingUtil;
 import android.databinding.ViewDataBinding;
 import android.databinding.multimoduletestapp.R;
-import android.test.AndroidTestCase;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.LayoutInflater;
 import android.view.View;
 
-public class GeneratedLayoutTest extends AndroidTestCase {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static junit.framework.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
+public class GeneratedLayoutTest {
+    @Test
     public void testBindToDefault() {
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        View view = inflater.inflate(R.layout.library_layout, null);
-        // force override tag
-        view.setTag("layout/library_layout_0");
-        ViewDataBinding bind = DataBindingUtil.bind(view);
-        assertEquals("IndependentLibraryBindingImpl",
-                bind.getClass().getSimpleName());
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                LayoutInflater inflater = LayoutInflater.from(
+                        InstrumentationRegistry.getTargetContext());
+                View view = inflater.inflate(R.layout.library_layout, null);
+                // force override tag
+                view.setTag("layout/library_layout_0");
+                ViewDataBinding bind = DataBindingUtil.bind(view);
+                assertEquals("IndependentLibraryBindingImpl",
+                        bind.getClass().getSimpleName());
+            }
+        });
     }
 
+    @Test
     public void testBindToSw600() {
-        LayoutInflater inflater = LayoutInflater.from(getContext());
-        View view = inflater.inflate(R.layout.library_layout, null);
-        // force override tag
-        view.setTag("layout-sw600dp-land/library_layout_0");
-        ViewDataBinding bind = DataBindingUtil.bind(view);
-        assertEquals("IndependentLibraryBindingSw600dpLandImpl",
-                bind.getClass().getSimpleName());
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                LayoutInflater inflater = LayoutInflater.from(
+                        InstrumentationRegistry.getTargetContext());
+                View view = inflater.inflate(R.layout.library_layout, null);
+                // force override tag
+                view.setTag("layout-sw600dp-land/library_layout_0");
+                ViewDataBinding bind = DataBindingUtil.bind(view);
+                assertEquals("IndependentLibraryBindingSw600dpLandImpl",
+                        bind.getClass().getSimpleName());
+            }
+        });
     }
 }

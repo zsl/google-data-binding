@@ -19,7 +19,16 @@ import android.databinding.ListChangeRegistry;
 import android.databinding.ObservableList;
 import android.databinding.ObservableList.OnListChangedCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
 public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBinding> {
 
     private ListChangeRegistry mListChangeRegistry;
@@ -31,18 +40,18 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mListChangeRegistry = new ListChangeRegistry();
         mCallCount = 0;
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
+    @After
+    public void tearDown() throws Exception {
         mListChangeRegistry = null;
     }
 
+    @Test
     public void testNotifyChangedAll() {
         OnListChangedCallback listChangedCallback = new OnListChangedCallback() {
             @Override
@@ -77,6 +86,7 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(1, mCallCount);
     }
 
+    @Test
     public void testNotifyChanged() {
         final int expectedStart = 10;
         final int expectedCount = 3;
@@ -116,6 +126,7 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(1, mCallCount);
     }
 
+    @Test
     public void testNotifyInserted() {
         final int expectedStart = 10;
         final int expectedCount = 3;
@@ -155,6 +166,7 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(1, mCallCount);
     }
 
+    @Test
     public void testNotifyMoved() {
         final int expectedFrom = 10;
         final int expectedTo = 100;
@@ -196,6 +208,7 @@ public class ListChangeRegistryTest extends BaseDataBinderTest<BasicBindingBindi
         assertEquals(1, mCallCount);
     }
 
+    @Test
     public void testNotifyRemoved() {
         final int expectedStart = 10;
         final int expectedCount = 3;

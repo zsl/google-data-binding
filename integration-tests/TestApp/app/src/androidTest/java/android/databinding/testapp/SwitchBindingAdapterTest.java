@@ -17,10 +17,13 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.SwitchAdapterTestBinding;
 import android.databinding.testapp.vo.SwitchBindingObject;
-
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.widget.Switch;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class SwitchBindingAdapterTest
         extends BindingAdapterTestBase<SwitchAdapterTestBinding, SwitchBindingObject> {
@@ -33,11 +36,12 @@ public class SwitchBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
+    @Test
     public void testSwitch() throws Throwable {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             assertEquals(mBindingObject.getThumb(),

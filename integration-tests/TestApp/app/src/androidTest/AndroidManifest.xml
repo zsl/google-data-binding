@@ -16,9 +16,7 @@
     <uses-sdk android:minSdkVersion="14" tools:overrideLibrary="android.support.test,
                       android.app, android.support.test.rule, android.support.test.espresso,
                       android.support.test.espresso.idling"/>
-    <application android:allowBackup="true"
-                 android:label="@string/app_name"
-    >
+    <application android:allowBackup="true">
         <activity android:name=".TestActivity"
                   android:screenOrientation="portrait"/>
         <activity android:name=".LandscapeActivity"

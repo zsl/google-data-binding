@@ -17,10 +17,12 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.CheckedTextViewAdapterTestBinding;
 import android.databinding.testapp.vo.CheckedTextViewBindingObject;
-
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
-import android.widget.CheckedTextView;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class CheckedTextViewBindingAdapterTest extends
         BindingAdapterTestBase<CheckedTextViewAdapterTestBinding, CheckedTextViewBindingObject> {
@@ -30,7 +32,8 @@ public class CheckedTextViewBindingAdapterTest extends
                 R.layout.checked_text_view_adapter_test);
     }
 
-    public void testView() throws Throwable {
+    @Test
+    public void testView() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             assertEquals(mBindingObject.getCheckMark().getColor(),
                     ((ColorDrawable) mBinder.view.getCheckMarkDrawable()).getColor());

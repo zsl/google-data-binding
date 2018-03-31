@@ -17,9 +17,12 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ProgressBarAdapterTestBinding;
 import android.databinding.testapp.vo.ProgressBarBindingObject;
-
 import android.os.Build;
 import android.widget.ProgressBar;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class ProgressBarBindingAdapterTest
         extends BindingAdapterTestBase<ProgressBarAdapterTestBinding, ProgressBarBindingObject> {
@@ -32,12 +35,13 @@ public class ProgressBarBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
-    public void testTint() throws Throwable {
+    @Test
+    public void testTint() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             assertEquals(mBindingObject.getIndeterminateTint(),
                     mView.getIndeterminateTintList().getDefaultColor());

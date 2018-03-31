@@ -16,13 +16,23 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.BasicBindingBinding;
-
+import android.support.test.runner.AndroidJUnit4;
 import android.util.ArrayMap;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.HashSet;
-import android.databinding.testapp.BR;
+
+import static java.lang.reflect.Modifier.FINAL;
+import static java.lang.reflect.Modifier.PUBLIC;
+import static java.lang.reflect.Modifier.STATIC;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ProcessBindableTest extends BaseDataBinderTest<BasicBindingBinding> {
     private static String[] EXPECTED_BINDING_NAMES = {
             "bindableField1",
@@ -39,12 +49,13 @@ public class ProcessBindableTest extends BaseDataBinderTest<BasicBindingBinding>
         super(BasicBindingBinding.class);
     }
 
+    @Test
     public void testFieldsGenerated() throws IllegalAccessException {
         Field[] fields = BR.class.getFields();
 
         ArrayMap<String, Integer> fieldValues = new ArrayMap<>();
-        int modifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
-        for (Field field: fields) {
+        int modifiers = PUBLIC | STATIC | FINAL;
+        for (Field field : fields) {
             assertTrue(field.getModifiers() == modifiers);
             String name = field.getName();
             fieldValues.put(name, field.getInt(null));

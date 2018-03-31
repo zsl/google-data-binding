@@ -21,8 +21,16 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class VersionTest extends BaseDataBinderTest<VersionCheckBinding> {
 
     public VersionTest() {
@@ -30,19 +38,19 @@ public class VersionTest extends BaseDataBinderTest<VersionCheckBinding> {
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         DataBinderTrojan.setBuildSdkInt(Build.VERSION_CODES.ICE_CREAM_SANDWICH);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
+    @After
+    public void tearDown() throws Exception {
         DataBinderTrojan.setBuildSdkInt(Build.VERSION.SDK_INT);
     }
 
+    @Test
     @UiThreadTest
-    public void testCast() throws Throwable {
+    public void testCast() {
         initBinder();
         Drawable drawable = new ColorDrawable(Color.BLUE);
         mBinder.setDrawable(drawable);

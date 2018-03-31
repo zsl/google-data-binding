@@ -17,9 +17,20 @@ import android.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.ObservableFieldTestBinding;
 import android.databinding.testapp.vo.ObservableFieldBindingObject;
 import android.databinding.testapp.vo.User;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static android.databinding.testapp.vo.ObservableFieldBindingObject.MyParcelable;
+import static java.lang.String.valueOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestBinding> {
     private ObservableFieldBindingObject mObj;
 
@@ -28,7 +39,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder(new Runnable() {
             @Override
@@ -40,6 +51,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         });
     }
 
+    @Test
     @UiThreadTest
     public void testBoolean() {
         assertEquals("false", mBinder.bField.getText());
@@ -52,6 +64,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("false", mBinder.bDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testByte() {
         assertEquals("0", mBinder.tField.getText());
@@ -64,6 +77,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("2", mBinder.tDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testShort() {
         assertEquals("0", mBinder.sField.getText());
@@ -76,6 +90,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("2", mBinder.sDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testChar() {
         assertEquals("\u0000", mBinder.cField.getText());
@@ -88,6 +103,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("-", mBinder.cDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testInt() {
         assertEquals("0", mBinder.iField.getText());
@@ -100,6 +116,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("2", mBinder.iDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testLong() {
         assertEquals("0", mBinder.lField.getText());
@@ -112,6 +129,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("2", mBinder.lDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testFloat() {
         assertEquals("0.0", mBinder.fField.getText());
@@ -124,6 +142,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("2.0", mBinder.fDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testDouble() {
         assertEquals("0.0", mBinder.dField.getText());
@@ -136,6 +155,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("2.0", mBinder.dDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testObject() {
         assertEquals("Hello", mBinder.oField.getText());
@@ -148,21 +168,23 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
 //        assertEquals("World dependency", mBinder.oDep.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testParcelable() {
         TextView x = mBinder.pFieldx;
         TextView y = mBinder.pFieldy;
-        assertEquals(x.getText().toString(), String.valueOf(mObj.pField.get().getX()));
+        assertEquals(x.getText().toString(), valueOf(mObj.pField.get().getX()));
         assertEquals(y.getText().toString(), mObj.pField.get().getY());
-        ObservableFieldBindingObject.MyParcelable p2 =
-                new ObservableFieldBindingObject.MyParcelable(7, "updated");
+        MyParcelable p2 =
+                new MyParcelable(7, "updated");
         mObj.pField.set(p2);
         mBinder.executePendingBindings();
 
-        assertEquals(x.getText().toString(), String.valueOf(mObj.pField.get().getX()));
+        assertEquals(x.getText().toString(), valueOf(mObj.pField.get().getX()));
         assertEquals(y.getText().toString(), mObj.pField.get().getY());
     }
 
+    @Test
     @UiThreadTest
     public void testObservableVariables() {
         ObservableBoolean enabled = new ObservableBoolean(false);
@@ -174,6 +196,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertTrue(mBinder.enabledView.isEnabled());
     }
 
+    @Test
     @UiThreadTest
     public void testNestedObservables() {
         ObservableBoolean enabled = new ObservableBoolean(false);
@@ -189,6 +212,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertEquals(mObj.oField.get(), mBinder.nestedObservableView.getText().toString());
     }
 
+    @Test
     @UiThreadTest
     public void testModelObject() {
         TextView view = mBinder.mFieldModel;
@@ -202,6 +226,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertEquals("new name", view.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testModelProperty() {
         TextView view = mBinder.mFieldModel;
@@ -213,6 +238,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertEquals("change name", view.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testNestedModelObject() {
         TextView view = mBinder.mFieldNestedModel;
@@ -226,6 +252,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertEquals("new friend name", view.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testNestedModelProperty() {
         TextView view = mBinder.mFieldNestedModel;
@@ -237,6 +264,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertEquals("change friend name", view.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testObjectParameter() {
         TextView view = mBinder.observableCast;
@@ -253,6 +281,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertEquals("true", view.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testArgvParameter() {
         TextView view = mBinder.observableCast2;
@@ -269,6 +298,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
         assertEquals("true", view.getText());
     }
 
+    @Test
     @UiThreadTest
     public void testObservableArgvParameter() {
         TextView view = mBinder.observableCast3;
@@ -288,6 +318,7 @@ public class ObservableFieldTest extends BaseDataBinderTest<ObservableFieldTestB
     /**
      * TODO: This should disappear in Android Studio 2.4 after this capapbility has been removed.
      */
+    @Test
     @UiThreadTest
     public void testObservableGet() {
         ObservableBoolean enabled = new ObservableBoolean(false);

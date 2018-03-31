@@ -13,13 +13,17 @@
 
 package android.databinding.testapp;
 
-import android.databinding.testapp.BaseDataBinderTest;
-import android.databinding.testapp.R;
 import android.databinding.testapp.databinding.ObservableWithNotBindableFieldBinding;
 import android.databinding.testapp.vo.ObservableWithNotBindableFieldObject;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import android.test.UiThreadTest;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class ObservableWithNotBindableFieldObjectTest extends BaseDataBinderTest<ObservableWithNotBindableFieldBinding> {
 
 
@@ -27,6 +31,7 @@ public class ObservableWithNotBindableFieldObjectTest extends BaseDataBinderTest
         super(ObservableWithNotBindableFieldBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testSimple() {
         initBinder();

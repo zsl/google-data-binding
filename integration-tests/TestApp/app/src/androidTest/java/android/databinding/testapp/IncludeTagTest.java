@@ -19,20 +19,32 @@ import android.databinding.testapp.databinding.LayoutWithIncludeBinding;
 import android.databinding.testapp.databinding.MergeContainingMergeBinding;
 import android.databinding.testapp.databinding.MergeLayoutBinding;
 import android.databinding.testapp.vo.NotBindableVo;
-
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.lang.reflect.Field;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding> {
 
     public IncludeTagTest() {
         super(LayoutWithIncludeBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testIncludeTag() {
         initBinder();
@@ -87,14 +99,15 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         assertEquals(View.INVISIBLE, mBinder.includedLayout.getRoot().getVisibility());
 
         assertEquals(mBinder.includedPlainLayout.getClass(), FrameLayout.class);
-        assertEquals(((FrameLayout)mBinder.includedPlainLayout).getChildCount(), 0);
+        assertEquals(((FrameLayout) mBinder.includedPlainLayout).getChildCount(), 0);
         assertNull(mBinder.includedMergeLayout);
     }
 
     // Make sure that when an included layout's executePendingBindings is run that the includer
     // is run prior.
+    @Test
     @UiThreadTest
-    public void testCorrectOrder() throws Throwable {
+    public void testCorrectOrder() {
         initBinder();
         NotBindableVo.sTrackedValues.clear();
         NotBindableVo vo = new NotBindableVo(3, "a");
@@ -109,7 +122,8 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
     }
 
     // Make sure that includes don't cause infinite loops with requestRebind
-    public void testNoInfiniteLoop() throws Throwable {
+    @Test
+    public void testNoInfiniteLoop() throws NoSuchFieldException, IllegalAccessException {
         initBinder();
         NotBindableVo vo = new NotBindableVo(3, "a");
         mBinder.setOuterObject(vo);
@@ -125,7 +139,8 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
     }
 
     // Make sure that including with a generic parameter works
-    public void testGenericIncludeValue() throws Throwable {
+    @Test
+    public void testGenericIncludeValue() {
         initBinder();
         NotBindableVo vo = new NotBindableVo();
         ObservableArrayMap<String, String> map = new ObservableArrayMap<>();

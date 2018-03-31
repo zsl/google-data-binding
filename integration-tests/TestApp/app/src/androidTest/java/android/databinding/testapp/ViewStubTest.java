@@ -15,16 +15,23 @@
  */
 package android.databinding.testapp;
 
+import android.databinding.ViewStubProxy;
 import android.databinding.testapp.databinding.ViewStubBinding;
 import android.databinding.testapp.databinding.ViewStubContentsBinding;
-import android.databinding.ViewStubProxy;
-import android.support.v4.util.ArrayMap;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
-import android.widget.TextView;
 
-import java.util.ArrayList;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class ViewStubTest extends BaseDataBinderTest<ViewStubBinding> {
 
     public ViewStubTest() {
@@ -32,7 +39,7 @@ public class ViewStubTest extends BaseDataBinderTest<ViewStubBinding> {
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder(new Runnable() {
             @Override
@@ -45,8 +52,9 @@ public class ViewStubTest extends BaseDataBinderTest<ViewStubBinding> {
         });
     }
 
+    @Test
     @UiThreadTest
-    public void testInflation() throws Throwable {
+    public void testInflation() {
         ViewStubProxy viewStubProxy = mBinder.viewStub;
         assertFalse(viewStubProxy.isInflated());
         assertNull(viewStubProxy.getBinding());
@@ -66,8 +74,9 @@ public class ViewStubTest extends BaseDataBinderTest<ViewStubBinding> {
         assertEquals("World", contentsBinding.lastNameContents.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testChangeValues() throws Throwable {
+    public void testChangeValues() {
         ViewStubProxy viewStubProxy = mBinder.viewStub;
         mBinder.setViewStubVisibility(View.VISIBLE);
         mBinder.executePendingBindings();

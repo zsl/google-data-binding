@@ -16,9 +16,16 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.CollisionBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-public class CollisionAdapterTest extends BaseDataBinderTest<CollisionBinding>{
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
+public class CollisionAdapterTest extends BaseDataBinderTest<CollisionBinding> {
     public CollisionAdapterTest() {
         super(CollisionBinding.class);
     }
@@ -27,6 +34,7 @@ public class CollisionAdapterTest extends BaseDataBinderTest<CollisionBinding>{
      * Make sure the correct getter is being used in the two-way data binding.
      * We don't want it to be confused between the Double and Integer return values.
      */
+    @Test
     @UiThreadTest
     public void testDoubleIntConfusion() {
         initBinder();
@@ -46,6 +54,7 @@ public class CollisionAdapterTest extends BaseDataBinderTest<CollisionBinding>{
      * Make sure the correct getter is being used in the two-way data binding.
      * We don't want it to be confused between the Long and long return values.
      */
+    @Test
     @UiThreadTest
     public void testLongConfusion() {
         initBinder();

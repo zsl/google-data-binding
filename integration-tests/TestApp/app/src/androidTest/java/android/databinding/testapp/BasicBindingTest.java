@@ -16,66 +16,86 @@ package android.databinding.testapp;
 import android.databinding.DataBindingUtil;
 import android.databinding.OnRebindCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
-import android.databinding.testapp.databinding.NoExpressionsBinding;
-import android.databinding.testapp.databinding.NoDataElementBinding;
 import android.databinding.testapp.databinding.JustIdBinding;
-import android.test.UiThreadTest;
+import android.databinding.testapp.databinding.NoDataElementBinding;
+import android.databinding.testapp.databinding.NoExpressionsBinding;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
 public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
     public BasicBindingTest() {
         super(BasicBindingBinding.class);
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder();
     }
 
+    @Test
     @UiThreadTest
     public void testTextViewContentInInitialization() {
         assertAB("X", "Y");
     }
 
+    @Test
     @UiThreadTest
     public void testNullValuesInInitialization() {
         assertAB(null, null);
     }
 
+    @Test
     @UiThreadTest
     public void testSecondIsNullInInitialization() {
         assertAB(null, "y");
     }
 
+    @Test
     @UiThreadTest
     public void testFirstIsNullInInitialization() {
         assertAB("x", null);
     }
 
+    @Test
     @UiThreadTest
     public void testTextViewContent() {
         assertAB("X", "Y");
     }
 
+    @Test
     @UiThreadTest
     public void testNullValues() {
         assertAB(null, null);
     }
 
+    @Test
     @UiThreadTest
     public void testSecondIsNull() {
         assertAB(null, "y");
     }
 
+    @Test
     @UiThreadTest
     public void testFirstIsNull() {
         assertAB("x", null);
     }
 
-    public void testStopBinding() throws Throwable {
+    @Test
+    public void testStopBinding() {
         final NoRebind noRebind = new NoRebind();
         runTestOnUiThread(new Runnable() {
             @Override
@@ -118,34 +138,39 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
         });
     }
 
+    @Test
     @UiThreadTest
-    public void testNoExpressionBinding() throws Throwable {
+    public void testNoExpressionBinding() {
         NoExpressionsBinding binding = NoExpressionsBinding.inflate(getActivity().getLayoutInflater());
         assertNotNull(binding);
     }
 
+    @Test
     @UiThreadTest
-    public void testNoDataElement() throws Throwable {
+    public void testNoDataElement() {
         NoDataElementBinding binding = NoDataElementBinding.inflate(getActivity().getLayoutInflater());
         assertNotNull(binding);
     }
 
+    @Test
     @UiThreadTest
-    public void testJustIds() throws Throwable {
+    public void testJustIds() {
         JustIdBinding binding = JustIdBinding.inflate(getActivity().getLayoutInflater());
         assertNotNull(binding);
         assertNotNull(binding.textView);
         assertNotNull(binding.superLongIdThatYouWouldNeverUseButWeWillAcceptItEvenIfItTotallySucks);
     }
 
+    @Test
     @UiThreadTest
-    public void testNoBinding() throws Throwable {
+    public void testNoBinding() {
         assertNull(DataBindingUtil.inflate(getActivity().getLayoutInflater(), R.layout.plain_layout,
                 null, false));
     }
 
+    @Test
     @UiThreadTest
-    public void testInflation() throws Throwable {
+    public void testInflation() {
         ViewGroup viewGroup = (ViewGroup) mBinder.getRoot();
         BasicBindingBinding binding =
                 BasicBindingBinding.inflate(getActivity().getLayoutInflater(), viewGroup, true);
@@ -154,8 +179,9 @@ public class BasicBindingTest extends BaseDataBinderTest<BasicBindingBinding> {
         assertNotSame(binding.textView, mBinder.textView);
     }
 
+    @Test
     @UiThreadTest
-    public void testAndroidId() throws Throwable {
+    public void testAndroidId() {
         JustIdBinding binding = JustIdBinding.inflate(getActivity().getLayoutInflater());
         assertNotNull(binding);
         assertNotNull(binding.empty);

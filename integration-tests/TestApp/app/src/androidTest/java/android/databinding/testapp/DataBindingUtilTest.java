@@ -17,22 +17,35 @@ import android.databinding.DataBindingUtil;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.databinding.testapp.databinding.CenteredContentBinding;
 import android.databinding.testapp.databinding.MergeLayoutBinding;
-import android.test.ActivityInstrumentationTestCase2;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.rule.ActivityTestRule;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.InflateException;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 
-public class DataBindingUtilTest
-        extends ActivityInstrumentationTestCase2<TestActivity> {
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-    public DataBindingUtilTest() {
-        super(TestActivity.class);
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public class DataBindingUtilTest {
+    @Rule
+    public final ActivityTestRule<TestActivity> rule = new ActivityTestRule<>(TestActivity.class);
+
+    private TestActivity getActivity() {
+        return rule.getActivity();
     }
 
+    @Test
     @UiThreadTest
-    public void testFindBinding() throws Throwable {
+    public void testFindBinding() {
         BasicBindingBinding binding = BasicBindingBinding.inflate(getActivity().getLayoutInflater());
         assertEquals(binding, DataBindingUtil.findBinding(binding.textView));
         assertEquals(binding, DataBindingUtil.findBinding(binding.getRoot()));
@@ -45,15 +58,17 @@ public class DataBindingUtilTest
         assertEquals(innerBinding, DataBindingUtil.findBinding(innerBinding.textView));
     }
 
+    @Test
     @UiThreadTest
-    public void testGetBinding() throws Throwable {
+    public void testGetBinding() {
         BasicBindingBinding binding = BasicBindingBinding.inflate(getActivity().getLayoutInflater());
         assertNull(DataBindingUtil.getBinding(binding.textView));
         assertEquals(binding, DataBindingUtil.getBinding(binding.getRoot()));
     }
 
+    @Test
     @UiThreadTest
-    public void testSetContentView() throws Throwable {
+    public void testSetContentView() {
         CenteredContentBinding binding = DataBindingUtil.setContentView(getActivity(),
                 R.layout.centered_content);
         assertNotNull(binding);
@@ -62,10 +77,11 @@ public class DataBindingUtilTest
         assertEquals(LayoutParams.WRAP_CONTENT, layoutParams.height);
     }
 
+    @Test
     @UiThreadTest
-    public void testBind() throws Throwable {
+    public void testBind() {
         getActivity().setContentView(R.layout.basic_binding);
-        ViewGroup content = (ViewGroup) getActivity().findViewById(android.R.id.content);
+        ViewGroup content = getActivity().findViewById(android.R.id.content);
         assertEquals(1, content.getChildCount());
         View view = content.getChildAt(0);
         BasicBindingBinding binding = DataBindingUtil.bind(view);
@@ -73,10 +89,11 @@ public class DataBindingUtilTest
         assertEquals(binding, DataBindingUtil.<BasicBindingBinding>bind(view));
     }
 
+    @Test
     @UiThreadTest
-    public void testInflate() throws Throwable {
+    public void testInflate() {
         getActivity().getWindow().getDecorView(); // force a content to exist.
-        ViewGroup content = (ViewGroup) getActivity().findViewById(android.R.id.content);
+        ViewGroup content = getActivity().findViewById(android.R.id.content);
         BasicBindingBinding binding = DataBindingUtil.inflate(getActivity().getLayoutInflater(),
                 R.layout.basic_binding, content, false);
         assertNotNull(binding);

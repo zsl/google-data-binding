@@ -13,22 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package java.android.databinding.testapp;
+package android.databinding.testapp;
 
-import android.databinding.testapp.BaseDataBinderTest;
 import android.databinding.testapp.databinding.VariableNameCollisionBinding;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import java.util.ArrayList;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class VariableNameCollisionTest extends BaseDataBinderTest<VariableNameCollisionBinding> {
 
     public VariableNameCollisionTest() {
         super(VariableNameCollisionBinding.class);
     }
 
+    @Test
     @UiThreadTest
-    public void testValue() throws Throwable {
+    public void testValue() {
         initBinder();
         mBinder.executePendingBindings();
         assertEquals("0", mBinder.count.getText().toString());

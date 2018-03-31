@@ -17,10 +17,15 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.TableLayoutAdapterTestBinding;
 import android.databinding.testapp.vo.TableLayoutBindingObject;
-
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.widget.TableLayout;
+
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TableLayoutBindingAdapterTest
         extends BindingAdapterTestBase<TableLayoutAdapterTestBinding, TableLayoutBindingObject> {
@@ -33,11 +38,12 @@ public class TableLayoutBindingAdapterTest
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         mView = mBinder.view;
     }
 
+    @Test
     public void testDivider() throws Throwable {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             assertEquals(mBindingObject.getDivider(),
@@ -48,6 +54,7 @@ public class TableLayoutBindingAdapterTest
         }
     }
 
+    @Test
     public void testColumns() throws Throwable {
         assertFalse(mView.isColumnCollapsed(0));
         assertTrue(mView.isColumnCollapsed(1));

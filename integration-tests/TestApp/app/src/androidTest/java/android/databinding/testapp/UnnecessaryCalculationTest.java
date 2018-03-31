@@ -17,11 +17,15 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.UnnecessaryCalculationBinding;
 import android.databinding.testapp.vo.BasicObject;
-import android.support.annotation.UiThread;
-import android.test.UiThreadTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class UnnecessaryCalculationTest extends BaseDataBinderTest<UnnecessaryCalculationBinding> {
 
     public UnnecessaryCalculationTest() {
@@ -29,11 +33,12 @@ public class UnnecessaryCalculationTest extends BaseDataBinderTest<UnnecessaryCa
     }
 
     @Override
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
         super.setUp();
         initBinder();
     }
 
+    @Test
     @UiThreadTest
     public void testDontSetUnnecessaryFlags() {
         BasicObjWithCounter obja = new BasicObjWithCounter();
@@ -66,7 +71,7 @@ public class UnnecessaryCalculationTest extends BaseDataBinderTest<UnnecessaryCa
 
         @Override
         public String boolMethod(boolean value) {
-            counter ++;
+            counter++;
             return super.boolMethod(value);
         }
     }

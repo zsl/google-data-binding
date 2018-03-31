@@ -3,23 +3,33 @@ package android.databinding.testapp;
 import android.databinding.testapp.databinding.ConditionalBindingBinding;
 import android.databinding.testapp.vo.ConditionalVo;
 import android.databinding.testapp.vo.NotBindableVo;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 
-import android.test.UiThreadTest;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-public class ConditionalBindingTest extends BaseDataBinderTest<ConditionalBindingBinding>{
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public class ConditionalBindingTest extends BaseDataBinderTest<ConditionalBindingBinding> {
 
     public ConditionalBindingTest() {
         super(ConditionalBindingBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void test1() {
         initBinder();
         testCorrectness(true, true);
     }
 
+    @Test
     @UiThreadTest
-    public void testTernary() throws Throwable {
+    public void testTernary() {
         ConditionalVo obj4 = new ConditionalVo();
         initBinder();
         mBinder.setObj4(obj4);
@@ -30,8 +40,9 @@ public class ConditionalBindingTest extends BaseDataBinderTest<ConditionalBindin
         assertEquals("Hello World", mBinder.textView1.getText().toString());
     }
 
+    @Test
     @UiThreadTest
-    public void testNullListener() throws Throwable {
+    public void testNullListener() {
         ConditionalVo obj4 = new ConditionalVo();
         initBinder();
         mBinder.setObj4(obj4);

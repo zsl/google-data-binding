@@ -16,18 +16,24 @@ package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.LayoutWithObjectBooleanPredicateBinding;
 import android.databinding.testapp.vo.NotBindableVo;
-import android.test.UiThreadTest;
-import android.test.suitebuilder.annotation.MediumTest;
+import android.support.test.annotation.UiThreadTest;
+import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 
-@MediumTest
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(AndroidJUnit4.class)
 public class BindConditionalToBooleanObjectTest
-        extends BaseDataBinderTest<LayoutWithObjectBooleanPredicateBinding>{
+        extends BaseDataBinderTest<LayoutWithObjectBooleanPredicateBinding> {
 
     public BindConditionalToBooleanObjectTest() {
         super(LayoutWithObjectBooleanPredicateBinding.class);
     }
 
+    @Test
     @UiThreadTest
     public void testNull() {
         initBinder();
@@ -38,6 +44,7 @@ public class BindConditionalToBooleanObjectTest
         assertEquals(View.GONE, mBinder.getRoot().getVisibility());
     }
 
+    @Test
     @UiThreadTest
     public void testTrue() {
         initBinder();
@@ -48,6 +55,7 @@ public class BindConditionalToBooleanObjectTest
         assertEquals(View.INVISIBLE, mBinder.getRoot().getVisibility());
     }
 
+    @Test
     @UiThreadTest
     public void testFalse() {
         initBinder();
