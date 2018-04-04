@@ -98,7 +98,7 @@ iml_module(
     deps = [
         "//tools/data-binding:studio.baseLibrary[module]",
         "//tools/data-binding:studio.baseLibrarySupport[module]",
-        "//tools/base/annotations:studio.android-annotations[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
@@ -210,7 +210,7 @@ iml_module(
     deps = [
         "//tools/data-binding:studio.baseLibrary[module]",
         "//tools/data-binding:studio.baseLibrarySupport[module]",
-        "//tools/base/annotations:studio.android-annotations[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
         "//tools/idea/.idea/libraries:commons-io",
