@@ -15,8 +15,8 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.BaseObservable;
-import android.databinding.ObservableField;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.ObservableField;
 import android.databinding.testapp.BR;
 import android.util.ArrayMap;
 

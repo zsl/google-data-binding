@@ -13,7 +13,7 @@
 
 package android.databinding.testapp;
 
-import android.databinding.ObservableBoolean;
+import androidx.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.ObservableFieldTestBinding;
 import android.databinding.testapp.vo.ObservableFieldBindingObject;
 import android.databinding.testapp.vo.User;

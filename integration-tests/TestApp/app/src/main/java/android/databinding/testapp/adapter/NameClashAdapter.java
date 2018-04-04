@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp.adapter;
 
-import android.databinding.BindingAdapter;
+import androidx.databinding.BindingAdapter;
 import android.view.View;
 
 public class NameClashAdapter {

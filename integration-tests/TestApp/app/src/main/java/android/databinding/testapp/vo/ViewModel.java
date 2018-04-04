@@ -12,10 +12,10 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
-import android.databinding.ObservableField;
-import android.databinding.ObservableInt;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
+import androidx.databinding.ObservableField;
+import androidx.databinding.ObservableInt;
 
 public class ViewModel extends BaseObservable {
     @Bindable

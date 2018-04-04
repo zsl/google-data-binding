@@ -13,7 +13,7 @@
 
 package android.databinding.testapp;
 
-import android.databinding.DataBindingUtil;
+import androidx.databinding.DataBindingUtil;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.databinding.testapp.databinding.CenteredContentBinding;
 import android.databinding.testapp.databinding.MergeLayoutBinding;

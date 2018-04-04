@@ -20,7 +20,7 @@
         <variable name="obj" type="android.databinding.testapp.vo.CallbackBindingObject"/>
         <variable name="obj2" type="android.databinding.testapp.vo.CallbackBindingObject"/>
         <variable name="objArr" type="android.databinding.testapp.vo.CallbackBindingObject[]"/>
-        <variable name="b" type="android.databinding.ObservableBoolean"/>
+        <variable name="b" type="androidx.databinding.ObservableBoolean"/>
     </data>
     <LinearLayout
             android:orientation="vertical"

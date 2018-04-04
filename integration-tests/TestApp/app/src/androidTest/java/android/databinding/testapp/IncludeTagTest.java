@@ -13,8 +13,8 @@
 
 package android.databinding.testapp;
 
-import android.databinding.ObservableArrayMap;
-import android.databinding.ViewDataBinding;
+import androidx.databinding.ObservableArrayMap;
+import androidx.databinding.ViewDataBinding;
 import android.databinding.testapp.databinding.LayoutWithIncludeBinding;
 import android.databinding.testapp.databinding.MergeContainingMergeBinding;
 import android.databinding.testapp.databinding.MergeLayoutBinding;

@@ -13,7 +13,7 @@
 
 package android.databinding.testapp;
 
-import android.databinding.DataBinderTrojan;
+import androidx.databinding.DataBinderTrojan;
 import android.databinding.testapp.databinding.NewApiLayoutBinding;
 import android.os.Build;
 import android.support.test.annotation.UiThreadTest;

@@ -16,7 +16,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data class=".IndependentLibraryBinding">
         <variable name="foo"
-                  type="android.databinding.test.independentlibrary.vo.MyBindableObject"/>
+                  type="androidx.databinding.test.independentlibrary.vo.MyBindableObject"/>
     </data>
     <LinearLayout
             android:orientation="vertical"

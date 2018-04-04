@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.Bindable;
+import androidx.databinding.Bindable;
 
 public class CompoundButtonBindingObject extends BindingAdapterBindingObject {
     @Bindable

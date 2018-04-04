@@ -15,13 +15,13 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.ObservableArrayMap;
-import android.databinding.ObservableMap;
-import android.databinding.ObservableMap.OnMapChangedCallback;
+import androidx.databinding.ObservableArrayMap;
+import androidx.databinding.ObservableMap;
+import androidx.databinding.ObservableMap.OnMapChangedCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.v4.util.ArrayMap;
-import android.support.v4.util.SimpleArrayMap;
+import androidx.collection.ArrayMap;
+import androidx.collection.SimpleArrayMap;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

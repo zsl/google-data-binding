@@ -17,8 +17,8 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools">
     <data>
-        <variable name="obj1" type="android.databinding.testlibrary1.TestLibObject"/>
-        <variable name="obj2" type="android.databinding.testlibrary1.TestLibObject"/>
+        <variable name="obj1" type="androidx.databinding.testlibrary1.TestLibObject"/>
+        <variable name="obj2" type="androidx.databinding.testlibrary1.TestLibObject"/>
     </data>
     <RelativeLayout android:layout_width="match_parent"
                     android:layout_height="match_parent"

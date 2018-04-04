@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.Bindable;
+import androidx.databinding.Bindable;
 import android.databinding.testapp.R;
 
 public class RadioGroupBindingObject extends BindingAdapterBindingObject {

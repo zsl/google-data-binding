@@ -908,7 +908,7 @@ public class SetterStore {
                         }
                     }
                 } catch (Exception e) {
-                    //printMessage(Diagnostic.Kind.NOTE, "Unknown class: " + className);
+                    L.d(e, "Unknown class: " + className);
                 }
             }
         }

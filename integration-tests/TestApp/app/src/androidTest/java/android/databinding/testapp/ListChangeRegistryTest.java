@@ -15,9 +15,9 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.ListChangeRegistry;
-import android.databinding.ObservableList;
-import android.databinding.ObservableList.OnListChangedCallback;
+import androidx.databinding.ListChangeRegistry;
+import androidx.databinding.ObservableList;
+import androidx.databinding.ObservableList.OnListChangedCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.support.test.runner.AndroidJUnit4;
 

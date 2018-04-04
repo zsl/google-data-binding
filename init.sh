@@ -21,7 +21,7 @@ cd extensions;
 copy_gradle "../.."
 echo "start in $current_dir"
 cd $current_dir;
-for line in `find integration-tests -name 'settings.gradle'`
+for line in `find integration-tests integration-tests-support -name 'settings.gradle'`
 do
   echo "will prepare build for ${line}";
   cd $current_dir;
@@ -44,7 +44,7 @@ create_local_properties() {
 }
 
 cd $current_dir;
-for line in `find integration-tests -name 'settings.gradle'`
+for line in `find integration-tests integration-tests-support -name 'settings.gradle'`
 do
   cd $current_dir;
   dir_name=`(dirname ${line})`

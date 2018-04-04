@@ -18,7 +18,7 @@ package android.databinding.testapp;
 import android.databinding.testapp.databinding.CastTestBinding;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.v4.util.ArrayMap;
+import androidx.collection.ArrayMap;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

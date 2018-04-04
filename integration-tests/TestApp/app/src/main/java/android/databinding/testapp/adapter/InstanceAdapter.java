@@ -15,8 +15,8 @@
  */
 package android.databinding.testapp.adapter;
 
-import android.databinding.BindingAdapter;
-import android.databinding.DataBindingComponent;
+import androidx.databinding.BindingAdapter;
+import androidx.databinding.DataBindingComponent;
 import android.databinding.testapp.TestComponent;
 import android.widget.TextView;
 

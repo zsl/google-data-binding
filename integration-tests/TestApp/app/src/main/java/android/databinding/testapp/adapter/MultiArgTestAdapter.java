@@ -14,9 +14,9 @@
 package android.databinding.testapp.adapter;
 
 
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
-import android.databinding.BindingAdapter;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
+import androidx.databinding.BindingAdapter;
 import android.view.View;
 import android.databinding.testapp.BR;
 import android.widget.TextView;

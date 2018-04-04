@@ -763,7 +763,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes
         val includes = includedBinders.filter { it.isUsed }
         if (includes.isNotEmpty()) {
             nl("@Override")
-            block("public void setLifecycleOwner(@Nullable android.arch.lifecycle.LifecycleOwner lifecycleOwner)") {
+            block("public void setLifecycleOwner(@Nullable ${libTypes.lifecycleOwner} lifecycleOwner)") {
                 nl("super.setLifecycleOwner(lifecycleOwner);")
                 includes.forEach { binder ->
                     nl("${binder.fieldName}.setLifecycleOwner(lifecycleOwner);");

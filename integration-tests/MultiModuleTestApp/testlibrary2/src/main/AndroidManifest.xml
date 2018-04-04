@@ -16,7 +16,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="android.databinding.testlibrary2" >
+    package="androidx.databinding.testlibrary2" >
 
   <application
       android:allowBackup="true"

@@ -16,9 +16,9 @@
 package android.databinding.testapp.vo;
 
 import android.content.Context;
-import android.databinding.Bindable;
-import android.databinding.ObservableArrayList;
-import android.databinding.ObservableList;
+import androidx.databinding.Bindable;
+import androidx.databinding.ObservableArrayList;
+import androidx.databinding.ObservableList;
 import android.databinding.testapp.BR;
 import android.databinding.testapp.R;
 import android.widget.ArrayAdapter;

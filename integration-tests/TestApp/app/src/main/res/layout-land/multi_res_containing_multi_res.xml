@@ -15,7 +15,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:bind="http://schemas.android.com/apk/res-auto">
     <data>
-        <variable name="outerObservableInt" type="android.databinding.ObservableInt"/>
+        <variable name="outerObservableInt" type="androidx.databinding.ObservableInt"/>
         <variable name="outerPlainInt" type="int"/>
         <variable name="outerBoxedInt" type="java.lang.Integer"/>
     </data>

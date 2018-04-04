@@ -15,8 +15,8 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.Bindable;
-import android.databinding.adapters.ViewBindingAdapter;
+import androidx.databinding.Bindable;
+import androidx.databinding.adapters.ViewBindingAdapter;
 import android.databinding.testapp.R;
 import android.view.View;
 

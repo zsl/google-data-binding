@@ -13,7 +13,7 @@
 
 package android.databinding.testapp.multiconfig;
 
-import android.databinding.ViewDataBinding;
+import androidx.databinding.ViewDataBinding;
 import android.databinding.testapp.BR;
 import android.databinding.testapp.LandscapeActivity;
 import android.databinding.testapp.TestActivityTestBase;

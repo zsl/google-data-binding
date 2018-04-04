@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.ViewDataBinding;
+import androidx.databinding.ViewDataBinding;
 import android.databinding.testapp.vo.BindingAdapterBindingObject;
 
 import java.lang.reflect.InvocationTargetException;

@@ -75,8 +75,16 @@ public class ResourceBundle implements Serializable {
 
     private boolean mValidated = false;
 
-    public ResourceBundle(String appPackage) {
+    private final boolean mUseAndroidX;
+
+    private final String viewDataBindingClass;
+
+    public ResourceBundle(String appPackage, boolean useAndroidX) {
         mAppPackage = appPackage;
+        mUseAndroidX = useAndroidX;
+        viewDataBindingClass = useAndroidX
+                ? "androidx.databinding.ViewDataBinding"
+                : "android.databinding.ViewDataBinding";
     }
 
     public void addLayoutBundle(LayoutFileBundle bundle, boolean fromSource) {
@@ -279,8 +287,7 @@ public class ResourceBundle implements Serializable {
                                 } else if (!existingType.equals(target.getFullClassName())) {
                                     if (target.isBinder()) {
                                         L.d("overriding %s as base binder", target.getId());
-                                        viewTypes.put(target.mId,
-                                                "android.databinding.ViewDataBinding");
+                                        viewTypes.put(target.mId, viewDataBindingClass);
                                         includes.put(target.mId, target.getIncludedLayout());
                                     } else {
                                         L.d("overriding %s as base view", target.getId());

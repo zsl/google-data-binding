@@ -13,8 +13,8 @@
 
 package android.databinding.testapp;
 
-import android.databinding.DataBindingUtil;
-import android.databinding.OnRebindCallback;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.OnRebindCallback;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.databinding.testapp.databinding.JustIdBinding;
 import android.databinding.testapp.databinding.NoDataElementBinding;

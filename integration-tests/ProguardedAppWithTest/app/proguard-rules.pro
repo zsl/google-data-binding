@@ -16,8 +16,10 @@
 #   public *;
 #}
 
--keep class com.example.android.proguardedappwithtest.databinding.**
+-keep class com.example.androidx.proguardedappwithtest.databinding.**
 
--keepclassmembers class com.example.android.proguardedappwithtest.databinding.** {
+-keepclassmembers class com.example.androidx.proguardedappwithtest.databinding.** {
   *;
 }
+-dontwarn androidx.databinding.**
+-dontwarn org.xmlpull.v1.**

@@ -15,7 +15,7 @@
 
     <data>
 
-        <import type="android.arch.lifecycle.LiveData" />
+        <import type="androidx.lifecycle.LiveData" />
 
         <variable
             name="liveData"

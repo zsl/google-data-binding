@@ -15,7 +15,7 @@
     <data>
         <import type="android.databinding.testapp.ObservableFieldMethods"/>
         <variable name="obj" type="android.databinding.testapp.vo.ObservableFieldBindingObject"/>
-        <variable name="enabled" type="android.databinding.ObservableBoolean"/>
+        <variable name="enabled" type="androidx.databinding.ObservableBoolean"/>
     </data>
     <LinearLayout
             android:orientation="vertical"

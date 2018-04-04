@@ -32,7 +32,7 @@ class MergedBindingMapperWriter(private val packages: List<String>,
                                 compilerArgs: DataBindingCompilerArgs,
                                 private val featurePackages : Set<String>,
                                 private val hasV1CompatMapper: Boolean,
-                                libTypes: LibTypes) {
+                                private val libTypes: LibTypes) {
     private val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
     private val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
     private val overrideField = FieldSpec.builder(ClassName.bestGuess(libTypes.dataBinderMapper),
@@ -67,7 +67,7 @@ class MergedBindingMapperWriter(private val packages: List<String>,
             }
             if (hasV1CompatMapper) {
                 val compatMapper = ClassName.get(
-                    BindingMapperWriter.V1_COMPAT_MAPPER_PKG,
+                    BindingMapperWriter.v1CompatMapperPkg(libTypes.useAndroidX),
                     BindingMapperWriter.V1_COMPAT_MAPPER_NAME)
                 addStatement("addMapper(new $T())", compatMapper)
             }

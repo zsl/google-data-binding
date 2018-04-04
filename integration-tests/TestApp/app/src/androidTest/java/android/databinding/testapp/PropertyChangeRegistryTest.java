@@ -15,9 +15,9 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.Observable;
-import android.databinding.Observable.OnPropertyChangedCallback;
-import android.databinding.PropertyChangeRegistry;
+import androidx.databinding.Observable;
+import androidx.databinding.Observable.OnPropertyChangedCallback;
+import androidx.databinding.PropertyChangeRegistry;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.support.test.runner.AndroidJUnit4;
 

@@ -15,18 +15,18 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.ObservableBoolean;
+import androidx.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.LiveDataBinding;
 import android.databinding.testapp.databinding.PlainViewGroupBinding;
 import android.databinding.testapp.vo.LiveDataContainer;
 import android.databinding.testapp.vo.LiveDataObject;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

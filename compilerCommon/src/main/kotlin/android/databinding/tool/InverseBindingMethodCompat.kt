@@ -60,7 +60,7 @@ data class InverseBindingMethodsCompat(val methods: List<InverseBindingMethodCom
                         type = safeType { it.type.java.canonicalName },
                         attribute = it.attribute,
                         event = it.event,
-                        method = it.event
+                        method = it.method
                 )
             })
         }

@@ -6,9 +6,10 @@
 -dontwarn android.support.test.**
 -dontwarn junit.**
 -dontwarn org.junit.**
--dontwarn android.databinding.**
+-dontwarn androidx.databinding.**
 -dontskipnonpubliclibraryclassmembers
 -dontobfuscate
 -dontoptimize
 -dontshrink
--dontwarn com.example.android.proguardedappwithtest.**
+-dontwarn com.example.androidx.proguardedappwithtest.**
+-dontwarn org.xmlpull.v1.**

@@ -16,7 +16,7 @@
 
     <data>
 
-        <import type="android.arch.lifecycle.LiveData" />
+        <import type="androidx.lifecycle.LiveData" />
 
         <variable
             name="liveData"
@@ -32,7 +32,7 @@
 
         <variable
             name="bValue"
-            type="android.databinding.ObservableBoolean" />
+            type="androidx.databinding.ObservableBoolean" />
     </data>
 
     <LinearLayout

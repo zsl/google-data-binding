@@ -146,8 +146,8 @@ object AndroidDataBinding {
 
     private fun createXmlProcessor(processXmlOptions: ProcessXmlOptions): LayoutXmlProcessor {
         val fileWriter = ExecFileWriter(processXmlOptions.resOutput)
-        return LayoutXmlProcessor(processXmlOptions.appId, fileWriter, MyFileLookup()
-        )
+        return LayoutXmlProcessor(processXmlOptions.appId, fileWriter, MyFileLookup(),
+                processXmlOptions.useAndroidX)
     }
 
     internal class MyFileLookup : LayoutXmlProcessor.OriginalFileLookup {

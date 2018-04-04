@@ -211,7 +211,7 @@ public class CompilerChef {
                 writeMergedMapper(processingEnv, compilerArgs, modulePackages);
             }
         } else {
-            final String pkg = "android.databinding";
+            final String pkg = ModelAnalyzer.getInstance().libTypes.getBindingPackage();
             final String mapperName = "DataBinderMapperImpl";
 
             ensureDataBinder();
@@ -224,18 +224,22 @@ public class CompilerChef {
         }
     }
 
+    public boolean useAndroidX() {
+        return ModelAnalyzer.getInstance().libTypes.getUseAndroidX();
+    }
+
     private void writeMapperForV1Compat(
             DataBindingCompilerArgs compilerArgs,
             Map<String, Integer> brValueLookup) {
         LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
         BindingMapperWriter dbr = new BindingMapperWriter(
-                BindingMapperWriter.V1_COMPAT_MAPPER_PKG,
+                BindingMapperWriter.v1CompatMapperPkg(useAndroidX()),
                 BindingMapperWriter.V1_COMPAT_MAPPER_NAME,
                 mV1CompatChef.getLayoutBinders(),
                 compilerArgs,
                 libTypes);
         mFileWriter.writeToFile(
-                BindingMapperWriter.V1_COMPAT_MAPPER_PKG + "." + dbr.getClassName(),
+                BindingMapperWriter.v1CompatQName(useAndroidX()),
                 dbr.write(brValueLookup));
     }
 

@@ -22,6 +22,7 @@ import android.databinding.tool.DataBindingCompilerArgs;
 import android.databinding.tool.LayoutXmlProcessor;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
+import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.store.GenClassInfoLog;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.GenerationalClassUtil;
@@ -75,7 +76,9 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             throws JAXBException {
         try {
             ResourceBundle resourceBundle;
-            resourceBundle = new ResourceBundle(args.getModulePackage());
+            resourceBundle = new ResourceBundle(
+                    args.getModulePackage(),
+                    ModelAnalyzer.getInstance().libTypes.getUseAndroidX());
             final List<IntermediateV2> intermediateList;
             GenClassInfoLog infoLog = null;
             @Nullable
@@ -255,7 +258,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             Set<String> classNames = compilerChef.getClassesToBeStripped();
             if (v1CompatChef != null) {
                 classNames.addAll(v1CompatChef.getClassesToBeStripped());
-                classNames.add(BindingMapperWriter.V1_COMPAT_QNAME);
+                classNames.add(BindingMapperWriter.v1CompatMapperPkg(compilerChef.useAndroidX()));
             }
             String out = Joiner.on(StringUtils.LINE_SEPARATOR).join(classNames);
             L.d("Writing list of classes to %s . \nList:%s",

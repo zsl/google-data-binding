@@ -18,8 +18,8 @@ package android.databinding.testapp;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
-import android.databinding.ObservableBoolean;
-import android.databinding.ObservableField;
+import androidx.databinding.ObservableBoolean;
+import androidx.databinding.ObservableField;
 
 public class ObservableFieldMethods {
     public static ObservableBoolean makeObservable(boolean val) {

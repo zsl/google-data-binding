@@ -15,7 +15,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:bind="http://schemas.android.com/apk/res-auto">
     <data>
-        <import type="android.databinding.ObservableArrayMap"/>
+        <import type="androidx.databinding.ObservableArrayMap"/>
         <variable name="outerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
         <variable name="map" type="ObservableArrayMap&lt;String, String&gt;"/>
         <variable name="visibility" type="int"/>

@@ -15,8 +15,8 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.ObservableArrayMap;
-import android.databinding.ObservableMap;
+import androidx.databinding.ObservableArrayMap;
+import androidx.databinding.ObservableMap;
 
 import java.util.HashMap;
 

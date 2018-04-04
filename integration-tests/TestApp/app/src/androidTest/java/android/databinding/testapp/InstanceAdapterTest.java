@@ -15,8 +15,8 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.DataBindingComponent;
-import android.databinding.DataBindingUtil;
+import androidx.databinding.DataBindingComponent;
+import androidx.databinding.DataBindingUtil;
 import android.databinding.testapp.adapter.InstanceAdapter;
 import android.databinding.testapp.adapter.NameClashAdapter;
 import android.databinding.testapp.adapter.NameClashAdapter.MyAdapter;

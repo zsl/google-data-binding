@@ -16,8 +16,8 @@
 
 package com.example.android.instantapp.featureA.vo;
 
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
 
 public class FeatureAOnlyPojo extends BaseObservable {
     @Bindable

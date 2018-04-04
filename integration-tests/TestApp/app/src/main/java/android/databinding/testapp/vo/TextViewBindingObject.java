@@ -15,8 +15,8 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.Bindable;
-import android.databinding.adapters.TextViewBindingAdapter;
+import androidx.databinding.Bindable;
+import androidx.databinding.adapters.TextViewBindingAdapter;
 import android.databinding.testapp.BR;
 import android.text.Editable;
 import android.text.InputType;

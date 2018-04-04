@@ -15,10 +15,10 @@
  */
 package android.databinding.testapp.adapter;
 
-import android.databinding.BindingAdapter;
-import android.databinding.InverseBindingAdapter;
-import android.databinding.InverseBindingListener;
-import android.databinding.adapters.ListenerUtil;
+import androidx.databinding.BindingAdapter;
+import androidx.databinding.InverseBindingAdapter;
+import androidx.databinding.InverseBindingListener;
+import androidx.databinding.adapters.ListenerUtil;
 import android.databinding.testapp.R;
 import android.text.Editable;
 import android.text.TextWatcher;

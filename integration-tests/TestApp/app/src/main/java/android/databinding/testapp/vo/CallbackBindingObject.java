@@ -16,8 +16,8 @@
 package android.databinding.testapp.vo;
 
 import android.content.Context;
-import android.databinding.BaseObservable;
-import android.databinding.ObservableBoolean;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.ObservableBoolean;
 import android.graphics.Outline;
 import android.media.MediaPlayer;
 import android.text.Editable;

@@ -14,7 +14,7 @@
 
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <import type="android.databinding.ObservableArrayMap"/>
+        <import type="androidx.databinding.ObservableArrayMap"/>
         <variable name="innerObject" type="android.databinding.testapp.vo.NotBindableVo"/>
         <variable name="innerValue" type="java.lang.String"/>
         <variable name="map" type="ObservableArrayMap&lt;String, String&gt;"/>

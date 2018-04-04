@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.DataBindingComponent;
+import androidx.databinding.DataBindingComponent;
 
 public interface TestComponent extends DataBindingComponent{
 

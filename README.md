@@ -44,6 +44,10 @@ cd {src}/tools && ./gradlew :pL
 cd {src}/tools/data-binding && ./gradlew build
 ```
 
+Due to the androidX change, we still keep the libraries in the old namespace.
+They are under extensions-support so any change in extensions should be ported to
+extensions-support.
+
 ## Running in the IDE
 ### Compile Time Code
 The main project still has proper gradle configuration so you can open it in Intellij
@@ -74,6 +78,11 @@ We also compile them in bazel builds:
 `bazel test //tools/base/build-system/integration-test/application:tests --test_filter=DataBinding\* --test_output=errors --action_env="GTEST_COLOR=1"`
 
 If you did run `./init.sh`, you can open integration tests in Android Studio.
+
+Due to the AndroidX change, we still keep old integration tests that use the android.databinding
+package.
+They live in integration-tests-support folder and are an exact copy of what we had at the time of
+the migration.
 
 ### Making Build File Changes
 There are multiple ways data binding is compiled so build file changes are a bit tricky.

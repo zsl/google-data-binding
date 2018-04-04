@@ -17,11 +17,11 @@ package android.databinding.testapp;
 
 import android.annotation.TargetApi;
 import android.app.Fragment;
-import android.databinding.DataBindingUtil;
+import androidx.databinding.DataBindingUtil;
 import android.databinding.testapp.databinding.BasicBindingBinding;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;

@@ -16,8 +16,8 @@
 
 package android.databinding.testapp.adapter;
 
-import android.databinding.ObservableBoolean;
-import android.databinding.BindingAdapter;
+import androidx.databinding.ObservableBoolean;
+import androidx.databinding.BindingAdapter;
 import android.view.View;
 
 /**

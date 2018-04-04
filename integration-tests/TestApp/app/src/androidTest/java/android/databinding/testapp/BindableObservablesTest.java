@@ -17,8 +17,8 @@
 package android.databinding.testapp;
 
 import android.annotation.TargetApi;
-import android.databinding.ObservableField;
-import android.databinding.ObservableInt;
+import androidx.databinding.ObservableField;
+import androidx.databinding.ObservableInt;
 import android.databinding.testapp.databinding.BindableObservablesBinding;
 import android.databinding.testapp.vo.ViewModel;
 import android.os.Build;

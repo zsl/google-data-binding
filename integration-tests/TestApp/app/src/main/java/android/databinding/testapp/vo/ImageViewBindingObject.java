@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.Bindable;
+import androidx.databinding.Bindable;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
