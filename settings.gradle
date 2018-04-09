@@ -1,5 +1,7 @@
 include ':dataBinding:baseLibrary'
 project(':dataBinding:baseLibrary').projectDir = new File("baseLibrary")
+include ':dataBinding:baseLibrarySupport'
+project(':dataBinding:baseLibrarySupport').projectDir = new File("baseLibrarySupport")
 include ':dataBinding:compiler'
 project(':dataBinding:compiler').projectDir = new File("compiler")
 include ':dataBinding:compilationTests'

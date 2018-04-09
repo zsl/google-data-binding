@@ -56,7 +56,7 @@ public class SafeUnboxingTest {
     }
 
     private void createFakeViewDataBinding() {
-        InjectedClass injectedClass = new InjectedClass("android.databinding.ViewDataBinding",
+        InjectedClass injectedClass = new InjectedClass("androidx.databinding.ViewDataBinding",
                 "java.lang.Object");
         for (Map.Entry<Class, Class> entry : ModelClass.BOX_MAPPING.entrySet()) {
             injectedClass.addMethod(new InjectedMethod(injectedClass, true,

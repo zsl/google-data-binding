@@ -22,6 +22,7 @@ import android.databinding.tool.expr.ExprModel;
 import android.databinding.tool.expr.IdentifierExpr;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.scopes.FileScopeProvider;
+import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.store.Location;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.store.ResourceBundle.BindingTargetBundle;
@@ -339,7 +340,7 @@ public class LayoutBinder implements FileScopeProvider {
 
     private void ensureWriter() {
         if (mWriter == null) {
-            mWriter = new LayoutBinderWriter(this);
+            mWriter = new LayoutBinderWriter(this, ModelAnalyzer.getInstance().libTypes);
         }
     }
 

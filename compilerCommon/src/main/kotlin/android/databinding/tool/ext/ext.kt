@@ -13,6 +13,7 @@
 
 package android.databinding.tool.ext
 
+import android.databinding.tool.LibTypes
 import android.databinding.tool.expr.VersionProvider
 import com.squareup.javapoet.ArrayTypeName
 import com.squareup.javapoet.ClassName
@@ -33,6 +34,7 @@ fun String.stripNonJava() = this.split("[^a-zA-Z0-9]".toRegex()).map { it.trim()
  * Eventually, we should move to a better model similar to the UserProperty stuff in IJ
  * source.
  */
+
 private val mappingHashes = CopyOnWriteArrayList<MutableMap<*, *>>()
 
 fun cleanLazyProps() {
@@ -79,15 +81,15 @@ data class VersionedResult<T>(val version: Int, val result: T)
 fun <K, T> lazyProp(initializer: (k: K) -> T): ReadOnlyProperty<K, T> = LazyExt(initializer)
 fun <K, T> versionedLazy(initializer: (k: K) -> T): ReadOnlyProperty<K, T> = VersionedLazyExt(initializer)
 
-public fun Class<*>.toJavaCode(): String {
+fun Class<*>.toJavaCode(): String {
     if (name.startsWith('[')) {
-        val numArray = name.lastIndexOf('[') + 1;
-        val componentType: String;
+        val numArray = name.lastIndexOf('[') + 1
+        val componentType: String
         when (name[numArray]) {
             'Z' -> componentType = "boolean"
             'B' -> componentType = "byte"
             'C' -> componentType = "char"
-            'L' -> componentType = name.substring(numArray + 1, name.length - 1).replace('$', '.');
+            'L' -> componentType = name.substring(numArray + 1, name.length - 1).replace('$', '.')
             'D' -> componentType = "double"
             'F' -> componentType = "float"
             'I' -> componentType = "int"
@@ -95,14 +97,14 @@ public fun Class<*>.toJavaCode(): String {
             'S' -> componentType = "short"
             else -> componentType = name.substring(numArray)
         }
-        val arrayComp = name.substring(0, numArray).replace("[", "[]");
-        return componentType + arrayComp;
+        val arrayComp = name.substring(0, numArray).replace("[", "[]")
+        return componentType + arrayComp
     } else {
         return name.replace("$", "")
     }
 }
 
-public fun String.androidId(): String {
+fun String.androidId(): String {
     val name = this.split("/")[1]
     if (name.contains(':')) {
         return name.split(':')[1]
@@ -111,36 +113,64 @@ public fun String.androidId(): String {
     }
 }
 
-public fun String.toCamelCase(): String {
+fun String.toCamelCase(): String {
     val split = this.split("_")
     if (split.size == 0) return ""
     if (split.size == 1) return split[0].capitalize()
     return split.joinToCamelCase()
 }
 
-public fun String.toCamelCaseAsVar(): String {
+fun String.toCamelCaseAsVar(): String {
     val split = this.split("_")
-    if (split.size == 0) return ""
+    if (split.isEmpty()) return ""
     if (split.size == 1) return split[0]
     return split.joinToCamelCaseAsVar()
 }
 
-public fun String.br(): String =
+fun String.br(): String =
         "BR.${if (this == "") "_all" else this}"
 
 fun String.readableName() = stripNonJava()
 
-fun String.toTypeName(imports: Map<String, String>) : TypeName {
-    return this.toTypeName(imports, true)
+fun String.toTypeName(libTypes: LibTypes, imports: Map<String, String>) : TypeName {
+    return this.toTypeName(
+            libTypes = libTypes,
+            imports = imports,
+            useReplacements = true)
 }
 
-fun String.toTypeName() : TypeName {
-    return toTypeName(imports = null, useReplacements = false)
+fun String.toTypeName(libTypes : LibTypes) : TypeName {
+    return toTypeName(libTypes = libTypes, imports = null, useReplacements = false)
 }
 
-private fun String.toTypeName(imports: Map<String, String>?, useReplacements: Boolean) : TypeName {
+// tmp method for studio compatibility
+fun String.toTypeName(useAndroidX: Boolean) : TypeName {
+    return toTypeName(useAndroidX = useAndroidX, imports = null, useReplacements = false)
+}
+
+fun String.toClassName() : ClassName {
+    return ClassName.bestGuess(this)
+}
+
+private fun String.toTypeName(
+        libTypes: LibTypes,
+        imports: Map<String, String>?,
+        useReplacements: Boolean) : TypeName {
+    return this.toTypeName(
+      useAndroidX = libTypes.useAndroidX,
+      imports = imports,
+      useReplacements = useReplacements
+    )
+}
+private fun String.toTypeName(
+      useAndroidX: Boolean,
+      imports: Map<String, String>?,
+      useReplacements: Boolean) : TypeName {
     if (this.endsWith("[]")) {
-        val qType = this.substring(0, this.length - 2).trim().toTypeName(imports, useReplacements)
+        val qType = this.substring(0, this.length - 2).trim().toTypeName(
+                useAndroidX = useAndroidX,
+                imports = imports,
+                useReplacements = useReplacements)
         return ArrayTypeName.of(qType)
     }
     val genericEnd = this.lastIndexOf(">")
@@ -149,9 +179,17 @@ private fun String.toTypeName(imports: Map<String, String>?, useReplacements: Bo
         if (genericStart >= 0) {
             val typeParams = this.substring(genericStart + 1, genericEnd).trim()
             val typeParamsQualified = splitTemplateParameters(typeParams).map {
-                it.toTypeName(imports, useReplacements)
+                it.toTypeName(
+                        useAndroidX = useAndroidX,
+                        imports = imports,
+                        useReplacements = useReplacements)
             }
-            val klass = this.substring(0, genericStart).trim().toTypeName(imports, useReplacements)
+            val klass = this.substring(0, genericStart)
+                    .trim()
+                    .toTypeName(
+                            useAndroidX = useAndroidX,
+                            imports = imports,
+                            useReplacements = useReplacements)
             return ParameterizedTypeName.get(klass as ClassName,
                     *typeParamsQualified.toTypedArray())
         }
@@ -160,7 +198,10 @@ private fun String.toTypeName(imports: Map<String, String>?, useReplacements: Bo
         // check for replacements
         val replacement = REPLACEMENTS[this]
         if (replacement != null) {
-            return replacement.toTypeName(imports, useReplacements)
+            return when(useAndroidX) {
+                true -> replacement.androidX
+                false -> replacement.support
+            }
         }
     }
     val import = imports?.get(this)
@@ -195,7 +236,9 @@ private fun splitTemplateParameters(templateParameters: String): ArrayList<Strin
 }
 
 private val REPLACEMENTS = mapOf(
-        "android.view.ViewStub" to "android.databinding.ViewStubProxy"
+        "android.view.ViewStub" to Replacement(
+                support = ClassName.get("android.databinding", "ViewStubProxy"),
+                androidX = ClassName.get("androidx.databinding","ViewStubProxy"))
 )
 
 private val PRIMITIVE_TYPE_NAME_MAP = mapOf(
@@ -208,3 +251,5 @@ private val PRIMITIVE_TYPE_NAME_MAP = mapOf(
         TypeName.CHAR.toString() to TypeName.CHAR,
         TypeName.FLOAT.toString() to TypeName.FLOAT,
         TypeName.DOUBLE.toString() to TypeName.DOUBLE)
+
+private data class Replacement(val support : ClassName, val androidX : ClassName)

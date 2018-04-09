@@ -126,8 +126,7 @@ public class Binding implements LocationScopeProvider {
             mExpr = mExpr.unwrapObservableField();
             if (isListenerAttribute(mName)) {
                 ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
-                ModelClass viewStubProxy = modelAnalyzer.
-                        findClass("android.databinding.ViewStubProxy", null);
+                ModelClass viewStubProxy = modelAnalyzer.getViewStubProxyType();
                 mSetterCall = SetterStore.get().getSetterCall(mName,
                         viewStubProxy, mExpr.getResolvedType(), mExpr.getModel().getImports());
             } else if (isViewStubAttribute(mName)) {
@@ -167,8 +166,7 @@ public class Binding implements LocationScopeProvider {
         SetterStore setterStore = SetterStore.get();
         if (viewType != null && viewType.extendsViewStub()) {
             if (isListenerAttribute(name)) {
-                ModelClass viewStubProxy = modelAnalyzer.
-                        findClass("android.databinding.ViewStubProxy", null);
+                ModelClass viewStubProxy = modelAnalyzer.getViewStubProxyType();
                 setterCall = SetterStore.get().getSetterCall(name,
                         viewStubProxy, objectParameter, model.getImports());
             } else if (isViewStubAttribute(name)) {

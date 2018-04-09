@@ -15,6 +15,7 @@
  */
 package android.databinding;
 
+import androidx.databinding.CallbackRegistry;
 import org.junit.Test;
 
 import java.util.ArrayList;

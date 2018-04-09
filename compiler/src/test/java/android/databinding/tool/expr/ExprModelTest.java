@@ -16,8 +16,8 @@
 
 package android.databinding.tool.expr;
 
-import android.databinding.Bindable;
-import android.databinding.Observable;
+import androidx.databinding.Bindable;
+import androidx.databinding.Observable;
 import android.databinding.tool.LayoutBinder;
 import android.databinding.tool.MockLayoutBinder;
 import android.databinding.tool.reflection.ModelAnalyzer;

@@ -64,8 +64,8 @@ configurations {
 
 
 dependencies {
-    implementation rootProject.ext.libs.android_support_core_utils
-    implementation "com.android.databinding:baseLibrary:${dataBindingConfig.version}"
+    implementation rootProject.ext.libs.android_support_collection
+    implementation "androidx.databinding:baseLibrary:${dataBindingConfig.version}"
     compileOnly rootProject.ext.libs.android_arch_lifecycle_extensions
     api rootProject.ext.libs.android_arch_lifecycle_runtime
 }
@@ -142,8 +142,8 @@ class ExcludeShimTransform extends Transform {
                 outputDir.mkdirs();
                 FileTree tree = project.fileTree(dir: it.getFile())
                 tree.include '**/*.class'
-                tree.exclude 'android/databinding/DataBindingComponent.*'
-                tree.exclude 'android/databinding/DataBinderMapperImpl.*'
+                tree.exclude 'androidx/databinding/DataBindingComponent.*'
+                tree.exclude 'androidx/databinding/DataBinderMapperImpl.*'
                 tree.copy {
                     into outputDir
                 }

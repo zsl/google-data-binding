@@ -16,17 +16,16 @@
 
 package android.databinding.annotationprocessor;
 
-import android.databinding.Bindable;
 import android.databinding.tool.CompilerChef.BindableHolder;
 import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.LibTypes;
+import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.util.GenerationalClassUtil;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.LoggedErrorException;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.BRWriter;
 import android.databinding.tool.writer.JavaFileWriter;
-
-import com.google.common.collect.Sets;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -39,16 +38,10 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.util.Types;
 
-import java.io.File;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 // binding app info and library info are necessary to trigger this.
 public class ProcessBindable extends ProcessDataBinding.ProcessingStep implements BindableHolder {
@@ -62,11 +55,13 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
             mProperties = new IntermediateV1(args.getModulePackage());
             mergeLayoutVariables();
             mLayoutVariables.clear();
+            LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
             TypeElement observableType = processingEnv.getElementUtils().
-                    getTypeElement("android.databinding.Observable");
+                    getTypeElement(libTypes.getObservable());
             Types typeUtils = processingEnv.getTypeUtils();
+
             for (Element element : AnnotationUtil
-                    .getElementsAnnotatedWith(roundEnv, Bindable.class)) {
+                    .getElementsAnnotatedWith(roundEnv, libTypes.getBindableClass())) {
                 try {
                     Element enclosingElement = element.getEnclosingElement();
                     ElementKind kind = enclosingElement.getKind();

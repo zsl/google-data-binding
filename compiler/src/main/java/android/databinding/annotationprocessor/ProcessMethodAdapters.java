@@ -15,27 +15,20 @@
  */
 package android.databinding.annotationprocessor;
 
-import android.databinding.BindingAdapter;
-import android.databinding.BindingConversion;
-import android.databinding.BindingMethod;
-import android.databinding.BindingMethods;
-import android.databinding.InverseBindingAdapter;
-import android.databinding.InverseBindingMethod;
-import android.databinding.InverseBindingMethods;
-import android.databinding.InverseMethod;
-import android.databinding.Untaggable;
+import android.databinding.tool.BindingAdapterCompat;
+import android.databinding.tool.BindingMethodsCompat;
 import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.InverseBindingAdapterCompat;
+import android.databinding.tool.InverseBindingMethodsCompat;
+import android.databinding.tool.InverseMethodCompat;
+import android.databinding.tool.LibTypes;
+import android.databinding.tool.UntaggableCompat;
 import android.databinding.tool.reflection.ModelAnalyzer;
-import android.databinding.tool.reflection.annotation.AnnotationTypeUtil;
 import android.databinding.tool.store.SetterStore;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.LoggedErrorException;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
@@ -45,21 +38,22 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
-import javax.lang.model.type.MirroredTypeException;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.HashSet;
+import java.util.List;
 
 public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     private final static String INVERSE_BINDING_EVENT_ATTR_SUFFIX = "AttrChanged";
 
-    public ProcessMethodAdapters() {
-    }
-
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnv,
-            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args) {
+                                ProcessingEnvironment processingEnvironment,
+                                DataBindingCompilerArgs args) {
         L.d("processing adapters");
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         Preconditions.checkNotNull(modelAnalyzer, "Model analyzer should be"
@@ -89,25 +83,28 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
 
     @Override
     public void onProcessingOver(RoundEnvironment roundEnvironment,
-            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args) {
+                                 ProcessingEnvironment processingEnvironment,
+                                 DataBindingCompilerArgs args) {
 
     }
 
     private void addBindingAdapters(RoundEnvironment roundEnv, ProcessingEnvironment
             processingEnv, SetterStore store) {
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
+        Class<? extends Annotation> adapterAnnotation = libTypes.getBindingAdapterClass();
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, BindingAdapter.class)) {
+                .getElementsAnnotatedWith(roundEnv, adapterAnnotation)) {
             try {
                 if (element.getKind() != ElementKind.METHOD ||
                         !element.getModifiers().contains(Modifier.PUBLIC)) {
                     L.e(element, "@BindingAdapter on invalid element: %s", element);
                     continue;
                 }
-                BindingAdapter bindingAdapter = element.getAnnotation(BindingAdapter.class);
+                BindingAdapterCompat bindingAdapter = BindingAdapterCompat.create(element);
 
                 ExecutableElement executableElement = (ExecutableElement) element;
                 List<? extends VariableElement> parameters = executableElement.getParameters();
-                if (bindingAdapter.value().length == 0) {
+                if (bindingAdapter.getAttributes().length == 0) {
                     L.e(element, "@BindingAdapter requires at least one attribute. %s",
                             element);
                     continue;
@@ -115,7 +112,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
 
                 final boolean takesComponent = takesComponent(executableElement, processingEnv);
                 final int startIndex = 1 + (takesComponent ? 1 : 0);
-                final int numAttributes = bindingAdapter.value().length;
+                final int numAttributes = bindingAdapter.getAttributes().length;
                 final int numAdditionalArgs = parameters.size() - startIndex;
                 if (numAdditionalArgs == (2 * numAttributes)) {
                     // This BindingAdapter takes old and new values. Make sure they are properly ordered
@@ -126,9 +123,9 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                                 parameters.get(i + numAttributes).asType())) {
                             L.e(executableElement,
                                     "BindingAdapter %s: old values should be followed " +
-                                            "by new values. Parameter %d must be the same type as parameter "
-                                            +
-                                            "%d.", executableElement, i + 1, i + numAttributes + 1);
+                                            "by new values. Parameter %d must be the same type " +
+                                            "as parameter %d.",
+                                    executableElement, i + 1, i + numAttributes + 1);
                             hasParameterError = true;
                             break;
                         }
@@ -139,19 +136,19 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 } else if (numAdditionalArgs != numAttributes) {
                     L.e(element, "@BindingAdapter %s has %d attributes and %d value " +
                                     "parameters. There should be %d or %d value parameters.",
-                            executableElement, numAttributes, numAdditionalArgs, numAttributes,
-                            numAttributes * 2);
+                            executableElement, numAttributes, numAdditionalArgs,
+                            numAttributes, numAttributes * 2);
                     continue;
                 }
-                warnAttributeNamespaces(element, bindingAdapter.value());
+                warnAttributeNamespaces(element, bindingAdapter.getAttributes());
                 try {
                     if (numAttributes == 1) {
-                        final String attribute = bindingAdapter.value()[0];
+                        final String attribute = bindingAdapter.getAttributes()[0];
                         store.addBindingAdapter(processingEnv, attribute, executableElement,
                                 takesComponent);
                     } else {
-                        store.addBindingAdapter(processingEnv, bindingAdapter.value(),
-                                executableElement, takesComponent, bindingAdapter.requireAll());
+                        store.addBindingAdapter(processingEnv, bindingAdapter.getAttributes(),
+                                executableElement, takesComponent, bindingAdapter.getRequireAll());
                     }
                 } catch (IllegalArgumentException e) {
                     L.e(element, "@BindingAdapter for duplicate View and parameter type: %s",
@@ -164,10 +161,11 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private static boolean takesComponent(ExecutableElement executableElement,
-            ProcessingEnvironment processingEnvironment) {
+                                          ProcessingEnvironment processingEnvironment) {
         List<? extends VariableElement> parameters = executableElement.getParameters();
         Elements elementUtils = processingEnvironment.getElementUtils();
-        TypeMirror viewElement = elementUtils.getTypeElement("android.view.View").asType();
+        TypeMirror viewElement = elementUtils
+                .getTypeElement("android.view.View").asType();
         if (parameters.size() < 2) {
             return false; // Validation will fail in the caller
         }
@@ -177,12 +175,13 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 typeUtils.isAssignable(parameter1, viewElement)) {
             return false; // first parameter is a View
         }
+        ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
         if (parameters.size() < 3) {
             TypeMirror viewStubProxy = elementUtils.
-                    getTypeElement("android.databinding.ViewStubProxy").asType();
+                    getTypeElement(analyzer.libTypes.getViewStubProxy()).asType();
             if (!typeUtils.isAssignable(parameter1, viewStubProxy)) {
-                L.e(executableElement, "@BindingAdapter %s is applied to a method that has two " +
-                        "parameters, the first must be a View type", executableElement);
+                L.e(executableElement, "@BindingAdapter %s is applied to a method that has" +
+                        " two parameters, the first must be a View type:", executableElement);
             }
             return false;
         }
@@ -190,10 +189,10 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
         if (typeUtils.isAssignable(parameter2, viewElement)) {
             return true; // second parameter is a View
         }
-        L.e(executableElement, "@BindingAdapter %s is applied to a method that doesn't take a " +
-                "View subclass as the first or second parameter. When a BindingAdapter uses a " +
-                "DataBindingComponent, the component parameter is first and the View " +
-                "parameter is second, otherwise the View parameter is first.",
+        L.e(executableElement, "@BindingAdapter %s is applied to a method that doesn't take " +
+                        "a View subclass as the first or second parameter. When a BindingAdapter" +
+                        " uses a DataBindingComponent, the component parameter is first and the " +
+                        "View parameter is second, otherwise the View parameter is first.",
                 executableElement);
         return false;
     }
@@ -211,21 +210,19 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private void addRenamed(RoundEnvironment roundEnv, SetterStore store) {
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
+        Class<? extends Annotation> bindingMethodsClass = libTypes.getBindingMethodsClass();
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, BindingMethods.class)) {
-            BindingMethods bindingMethods = element.getAnnotation(BindingMethods.class);
+                .getElementsAnnotatedWith(roundEnv, bindingMethodsClass)) {
+            BindingMethodsCompat bindingMethods = BindingMethodsCompat.create(element);
 
-            for (BindingMethod bindingMethod : bindingMethods.value()) {
+            for (BindingMethodsCompat.BindingMethodCompat bindingMethod :
+                    bindingMethods.getMethods()) {
                 try {
-                    final String attribute = bindingMethod.attribute();
-                    final String method = bindingMethod.method();
+                    final String attribute = bindingMethod.getAttribute();
+                    final String method = bindingMethod.getMethod();
                     warnAttributeNamespace(element, attribute);
-                    String type;
-                    try {
-                        type = bindingMethod.type().getCanonicalName();
-                    } catch (MirroredTypeException e) {
-                        type = AnnotationTypeUtil.getInstance().toJava(e.getTypeMirror());
-                    }
+                    String type = bindingMethod.getType();
                     store.addRenamedMethod(attribute, type, method, (TypeElement) element);
                 } catch (LoggedErrorException e) {
                     // this will be logged later
@@ -235,14 +232,16 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private void addConversions(RoundEnvironment roundEnv, SetterStore store) {
+        Class<? extends Annotation> bindingConversionClass = ModelAnalyzer.getInstance()
+                .libTypes.getBindingConversionClass();
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, BindingConversion.class)) {
+                .getElementsAnnotatedWith(roundEnv, bindingConversionClass)) {
             try {
                 if (element.getKind() != ElementKind.METHOD ||
                         !element.getModifiers().contains(Modifier.STATIC) ||
                         !element.getModifiers().contains(Modifier.PUBLIC)) {
-                    L.e(element, "@BindingConversion is only allowed on public static methods %s",
-                            element);
+                    L.e(element, "@BindingConversion is only allowed on public static " +
+                            "methods %s", element);
                     continue;
                 }
 
@@ -264,12 +263,16 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private void addInverseAdapters(RoundEnvironment roundEnv,
-            ProcessingEnvironment processingEnv, SetterStore store) {
+                                    ProcessingEnvironment processingEnv, SetterStore store) {
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
+        Class<? extends Annotation> inverseBindingAdapterClass =
+                libTypes.getInverseBindingAdapterClass();
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, InverseBindingAdapter.class)) {
+                .getElementsAnnotatedWith(roundEnv, inverseBindingAdapterClass)) {
             try {
                 if (!element.getModifiers().contains(Modifier.PUBLIC)) {
-                    L.e(element, "@InverseBindingAdapter must be associated with a public method");
+                    L.e(element,
+                            "@InverseBindingAdapter must be associated with a public method");
                     continue;
                 }
                 ExecutableElement executableElement = (ExecutableElement) element;
@@ -277,19 +280,19 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                     L.e(element, "@InverseBindingAdapter must have a non-void return type");
                     continue;
                 }
-                final InverseBindingAdapter inverseBindingAdapter =
-                        executableElement.getAnnotation(InverseBindingAdapter.class);
-                final String attribute = inverseBindingAdapter.attribute();
+                final InverseBindingAdapterCompat inverseBindingAdapter =
+                        InverseBindingAdapterCompat.create(executableElement);
+                final String attribute = inverseBindingAdapter.getAttribute();
                 warnAttributeNamespace(element, attribute);
-                final String event = inverseBindingAdapter.event().isEmpty()
-                        ? inverseBindingAdapter.attribute() + INVERSE_BINDING_EVENT_ATTR_SUFFIX
-                        : inverseBindingAdapter.event();
+                final String event = inverseBindingAdapter.getEvent().isEmpty()
+                        ? inverseBindingAdapter.getAttribute() + INVERSE_BINDING_EVENT_ATTR_SUFFIX
+                        : inverseBindingAdapter.getEvent();
                 warnAttributeNamespace(element, event);
                 final boolean takesComponent = takesComponent(executableElement, processingEnv);
                 final int expectedArgs = takesComponent ? 2 : 1;
                 final int numParameters = executableElement.getParameters().size();
                 if (numParameters != expectedArgs) {
-                    L.e(element,"@InverseBindingAdapter %s takes %s parameters, but %s "
+                    L.e(element, "@InverseBindingAdapter %s takes %s parameters, but %s "
                             + "parameters were expected", element, numParameters, expectedArgs);
                     continue;
                 }
@@ -298,7 +301,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                             takesComponent);
                 } catch (IllegalArgumentException e) {
                     L.e(element, "@InverseBindingAdapter for duplicate View and parameter "
-                                    + "type: %s", element);
+                            + "type: %s", element);
                 }
             } catch (LoggedErrorException e) {
                 // This will be logged later
@@ -307,26 +310,25 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private void addInverseBindingMethods(RoundEnvironment roundEnv, SetterStore store) {
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
+        Class<? extends Annotation> inverseBindingMethodsClass = libTypes
+                .getInverseBindingMethodsClass();
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, InverseBindingMethods.class)) {
-            InverseBindingMethods bindingMethods =
-                    element.getAnnotation(InverseBindingMethods.class);
+                .getElementsAnnotatedWith(roundEnv, inverseBindingMethodsClass)) {
+            InverseBindingMethodsCompat bindingMethods =
+                    InverseBindingMethodsCompat.create(element);
 
-            for (InverseBindingMethod bindingMethod : bindingMethods.value()) {
+            for (InverseBindingMethodsCompat.InverseBindingMethodCompat bindingMethod :
+                    bindingMethods.getMethods()) {
                 try {
-                    final String attribute = bindingMethod.attribute();
-                    final String method = bindingMethod.method();
-                    final String event = bindingMethod.event().isEmpty()
-                            ? bindingMethod.attribute() + INVERSE_BINDING_EVENT_ATTR_SUFFIX
-                            : bindingMethod.event();
+                    final String attribute = bindingMethod.getAttribute();
+                    final String method = bindingMethod.getMethod();
+                    final String event = bindingMethod.getEvent().isEmpty()
+                            ? bindingMethod.getAttribute() + INVERSE_BINDING_EVENT_ATTR_SUFFIX
+                            : bindingMethod.getEvent();
                     warnAttributeNamespace(element, attribute);
                     warnAttributeNamespace(element, event);
-                    String type;
-                    try {
-                        type = bindingMethod.type().getCanonicalName();
-                    } catch (MirroredTypeException e) {
-                        type = AnnotationTypeUtil.getInstance().toJava(e.getTypeMirror());
-                    }
+                    String type = bindingMethod.getType();
                     store.addInverseBindingMethod(attribute, event, type, method,
                             (TypeElement) element);
                 } catch (LoggedErrorException e) {
@@ -337,9 +339,11 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private void addInverseMethods(RoundEnvironment roundEnv, ProcessingEnvironment processingEnv,
-            SetterStore store) {
+                                   SetterStore store) {
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
+        Class<? extends Annotation> inverseMethodClass = libTypes.getInverseMethodClass();
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, InverseMethod.class)) {
+                .getElementsAnnotatedWith(roundEnv, inverseMethodClass)) {
             try {
                 if (!element.getModifiers().contains(Modifier.PUBLIC)) {
                     L.e(element, "@InverseMethods must be associated with a public method");
@@ -350,12 +354,12 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                     L.e(element, "@InverseMethods must have a non-void return type");
                     continue;
                 }
-                final InverseMethod inverseMethod =
-                        executableElement.getAnnotation(InverseMethod.class);
-                final String target = inverseMethod.value();
+                final InverseMethodCompat inverseMethod =
+                        InverseMethodCompat.create(executableElement);
+                final String target = inverseMethod.getValue();
                 if (!StringUtils.isNotBlank(target)) {
-                    L.e(element, "@InverseMethod must supply a value containing the name of the " +
-                            "method to call when going from View value to bound value");
+                    L.e(element, "@InverseMethod must supply a value containing the name of " +
+                            "the method to call when going from View value to bound value");
                     continue;
                 }
                 if (executableElement.getParameters().isEmpty()) {
@@ -364,7 +368,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
                 }
                 try {
                     ExecutableElement inverse = findInverseOf(processingEnv, executableElement,
-                            inverseMethod.value());
+                            inverseMethod.getValue());
                     store.addInverseMethod(processingEnv, executableElement, inverse);
                 } catch (IllegalArgumentException e) {
                     L.e(element, "%s", e.getMessage());
@@ -376,7 +380,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private ExecutableElement findInverseOf(ProcessingEnvironment env, ExecutableElement method,
-            String name) throws IllegalArgumentException {
+                                            String name) throws IllegalArgumentException {
         TypeElement enclosingType = (TypeElement) method.getEnclosingElement();
         List<? extends VariableElement> params = method.getParameters();
         Types typeUtil = env.getTypeUtils();
@@ -449,11 +453,13 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private void addUntaggable(RoundEnvironment roundEnv, SetterStore store) {
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
+        Class<? extends Annotation> untaggableClass = libTypes.getUntaggableClass();
         for (Element element : AnnotationUtil.
-                getElementsAnnotatedWith(roundEnv, Untaggable.class)) {
+                getElementsAnnotatedWith(roundEnv, untaggableClass)) {
             try {
-                Untaggable untaggable = element.getAnnotation(Untaggable.class);
-                store.addUntaggableTypes(untaggable.value(), (TypeElement) element);
+                UntaggableCompat untaggable = UntaggableCompat.create(element);
+                store.addUntaggableTypes(untaggable.getValue(), (TypeElement) element);
             } catch (LoggedErrorException e) {
                 // This will be logged later
             }
@@ -461,24 +467,24 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     }
 
     private void clearIncrementalClasses(RoundEnvironment roundEnv, SetterStore store) {
-        HashSet<String> classes = new HashSet<String>();
-
+        HashSet<String> classes = new HashSet<>();
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, BindingAdapter.class)) {
+                .getElementsAnnotatedWith(roundEnv, libTypes.getBindingAdapterClass())) {
             TypeElement containingClass = (TypeElement) element.getEnclosingElement();
             classes.add(containingClass.getQualifiedName().toString());
         }
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, BindingMethods.class)) {
+                .getElementsAnnotatedWith(roundEnv, libTypes.getBindingMethodsClass())) {
             classes.add(((TypeElement) element).getQualifiedName().toString());
         }
         for (Element element : AnnotationUtil
-                .getElementsAnnotatedWith(roundEnv, BindingConversion.class)) {
+                .getElementsAnnotatedWith(roundEnv, libTypes.getBindingConversionClass())) {
             classes.add(((TypeElement) element.getEnclosingElement()).getQualifiedName().
                     toString());
         }
         for (Element element : AnnotationUtil.
-                getElementsAnnotatedWith(roundEnv, Untaggable.class)) {
+                getElementsAnnotatedWith(roundEnv, libTypes.getUntaggableClass())) {
             classes.add(((TypeElement) element).getQualifiedName().toString());
         }
         store.clear(classes);

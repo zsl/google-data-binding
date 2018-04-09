@@ -1,0 +1,199 @@
+import com.android.build.gradle.LibraryExtension
+
+buildscript {
+    def ENV = System.getenv()
+
+    Properties databindingProperties = new Properties()
+    databindingProperties.load(new FileInputStream("$projectDir/../databinding.properties"))
+    Properties buildToolsProperties = new Properties()
+    buildToolsProperties.load(new FileInputStream("$projectDir/../../buildSrc/base/version.properties"))
+
+    def runningInIde = project.hasProperty('android.injected.invoked.from.ide')
+    // this is done by bazel but if we are in IDE it also configures so we need to distinguish
+    def autoConfigured = !gradle.startParameter.getInitScripts().isEmpty() && !runningInIde
+    ext.autoConfigured = autoConfigured
+
+
+    def TOOLS_VERSION = ENV['VERSION'] ?: buildToolsProperties.get("buildVersion")
+    def OUT_REPO = ENV['OUT_REPO'] ?: ENV['BUILD_DIR'] ?: []
+    def MAVEN_REPO = ENV['MAVEN_REPO']
+    def PREBUILTS_REPO = ENV['PREBUILTS_REPO']
+    if (runningInIde) {
+        Properties devVersions = new Properties()
+        devVersions.load(new FileInputStream("$projectDir/../../buildSrc/base/dev-version.properties"))
+        // invoked in the IDE, go w/ defaults.
+        TOOLS_VERSION = devVersions.buildVersion
+        MAVEN_REPO = MAVEN_REPO ?: "${projectDir}/../../../out/repo"
+        OUT_REPO = OUT_REPO ?: "${projectDir}/../../../out/repo"
+        PREBUILTS_REPO = PREBUILTS_REPO ?: "${projectDir}/../../../prebuilts/tools/common/m2/repository"
+    } else if (autoConfigured) {
+        if (TOOLS_VERSION == null || OUT_REPO == null) {
+            throw new GradleException("""must set the following env variables:
+                    VERSION:$TOOLS_VERSION // tools build version
+                    OUT_REPO:$OUT_REPO // maven repo to upload artifacts""")
+        }
+    } else if (TOOLS_VERSION == null
+            || MAVEN_REPO == null
+            || OUT_REPO == null
+            || PREBUILTS_REPO == null) {
+        throw new GradleException("""must set the following env variables:
+                        VERSION:$TOOLS_VERSION // tools build version
+                        MAVEN_REPO:$MAVEN_REPO // maven repo for ToT tools build
+                        OUT_REPO:$OUT_REPO // maven repo to upload artifacts
+                        PREBUILTS_REPO:$PREBUILTS_REPO // prebuilts repo to fix support library dependencies""")
+    }
+
+    databindingProperties.version = TOOLS_VERSION
+    databindingProperties.androidPluginVersion = TOOLS_VERSION
+    databindingProperties.compileSdkVersion = databindingProperties.compileSdkVersionStr.trim()
+
+    databindingProperties.maven = [:]
+    if (autoConfigured) {
+        // bazel build
+        databindingProperties.maven.out_repo = new File(OUT_REPO, "local_repo").getAbsolutePath()
+        databindingProperties.maven.zip_out = new File(OUT_REPO, "local_repo_zip")
+    } else {
+        // gradle build
+        databindingProperties.maven.out_repo = new File(OUT_REPO).getAbsolutePath()
+        databindingProperties.maven.tools_repo = file(MAVEN_REPO).getAbsolutePath()
+        databindingProperties.maven.prebuilts_repo = file(PREBUILTS_REPO).getAbsolutePath()
+    }
+    ext.dataBindingConfig = databindingProperties
+    def supportLibVersion = "26.1.0"
+    ext.libs = [:]
+    ext.libs.android_support_core_utils = "com.android.support:support-core-utils:$supportLibVersion"
+    ext.libs.android_support_cardview_v7 = "com.android.support:cardview-v7:$supportLibVersion"
+    ext.libs.android_support_appcompat_v7 = "com.android.support:appcompat-v7:$supportLibVersion"
+    ext.libs.android_arch_lifecycle_extensions = "android.arch.lifecycle:extensions:1.0.0"
+    ext.libs.android_arch_lifecycle_runtime = "android.arch.lifecycle:runtime:1.0.3"
+
+    dependencies {
+        classpath "com.android.tools.build:gradle:$TOOLS_VERSION"
+    }
+
+    if (!autoConfigured) {
+        repositories {
+            maven {
+                url = dataBindingConfig.maven.tools_repo
+            }
+            maven {
+                url = dataBindingConfig.maven.prebuilts_repo
+            }
+        }
+    }
+}
+
+task createArchive(type: Zip) {
+    description "Creates a maven repository that includes just the libraries compiled in this" +
+            " project, without any history from prebuilts."
+    from dataBindingConfig.maven.out_repo
+    destinationDir dataBindingConfig.maven.zip_out
+    baseName = "dataBindingRuntimeRepo"
+    doLast {
+    println "created rpeo at  ${dataBindingConfig.maven}"
+    }
+}
+
+subprojects {
+    def ENV = System.getenv()
+    if (ENV['BUILD_DIR'] != null) {
+        buildDir = new File(ENV['BUILD_DIR'], "$name-build")
+    }
+    if (project.path == ":doclava") {
+        return
+    }
+    apply plugin: 'maven'
+    group = "com.android.databinding"
+    version = dataBindingConfig.version
+    if (!autoConfigured) {
+        repositories {
+            maven {
+                url = dataBindingConfig.maven.tools_repo
+            }
+            maven {
+                url = dataBindingConfig.maven.prebuilts_repo
+            }
+        }
+    }
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                repository(url: "file://${dataBindingConfig.maven.out_repo}")
+            }
+        }
+    }
+    createArchive.dependsOn tasks['uploadArchives']
+}
+
+// creates the javadoc task for all of data binding runtime libraries
+def getRootDocsTask(p) {
+    def rootDocs = rootProject.tasks.findByName("generateDocs")
+    if (rootDocs != null) {
+        return rootDocs
+    }
+    rootDocs = p.rootProject.tasks.create(name : "generateDocs",type: Javadoc, dependsOn: p.configurations.doclava) {
+        def docDir = "javadoc-offline"
+        if (project.hasProperty("online")) {
+            docDir = "javadoc-online"
+            options.addStringOption("dac_libraryroot", "android/databinding")
+            options.addStringOption("dac_dataname", "DATABINDING_DATA")
+            options.addStringOption("toroot", "/")
+            options.addStringOption("hdf", "dac")
+            options.addBooleanOption("devsite", true)
+        }
+        title = null
+        destinationDir = new File(buildDir, docDir)
+        // add baseLibrary sources, not pretty but easy solution.
+        source = files('../baseLibrary/src/main/java')
+        classpath = files("${rootDir}/../../../prebuilts/sdk/${dataBindingConfig.compileSdkVersion}/android.jar")
+        options.addStringOption "federate Android", "http://developer.android.com"
+        options.addStringOption "federationapi Android",
+                "${rootDir}/../../../prebuilts/sdk/api/${dataBindingConfig.compileSdkVersion}.txt"
+        options.encoding = "UTF-8"
+        options.doclet = "com.google.doclava.Doclava"
+        options.docletpath = p.configurations.getByName("doclava").resolve().toList()
+        options.addStringOption("templatedir", "${rootDir}/../../../external/doclava/res/assets/templates-sdk/")
+        exclude '**/BuildConfig.java'
+        exclude '**/R.java'
+    }
+}
+
+def enableDoclava(p) {
+    p.configurations {
+        doclava
+    }
+
+    p.dependencies {
+        doclava project(':doclava')
+    }
+
+    def docsTask  = getRootDocsTask(p)
+    p.afterEvaluate {
+        p.android.libraryVariants.all { variant ->
+            def name = variant.buildType.name
+
+            if (name.equals(com.android.builder.core.BuilderConstants.DEBUG)) {
+                return // Skip debug builds.
+            }
+            docsTask.classpath += p.files(variant.javaCompile.classpath) +
+                    p.files(variant.javaCompile.destinationDir)
+            docsTask.source += files(p.android.sourceSets.main.java.srcDirs)
+            docsTask.dependsOn variant.javaCompile
+        }
+    }
+
+}
+
+if (findProject(":doclava") != null) {
+    subprojects { p ->
+        if (p.path != ":doclava") {
+            project.plugins.whenPluginAdded { plugin ->
+                def isAndroidLibrary = "com.android.build.gradle.LibraryPlugin".equals(plugin.class.name)
+                if (isAndroidLibrary) {
+                    enableDoclava(p)
+                }
+            }
+        }
+    }
+}

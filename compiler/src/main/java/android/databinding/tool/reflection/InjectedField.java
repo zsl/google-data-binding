@@ -34,11 +34,6 @@ public class InjectedField extends ModelField {
     }
 
     @Override
-    public boolean isBindable() {
-        return false;
-    }
-
-    @Override
     public String getName() {
         return mName;
     }

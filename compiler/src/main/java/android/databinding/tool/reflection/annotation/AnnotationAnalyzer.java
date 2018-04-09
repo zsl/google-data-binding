@@ -15,6 +15,7 @@
  */
 package android.databinding.tool.reflection.annotation;
 
+import android.databinding.tool.LibTypes;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.TypeUtil;
@@ -24,7 +25,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Generated;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -50,7 +50,8 @@ public class AnnotationAnalyzer extends ModelAnalyzer {
 
     public final ProcessingEnvironment mProcessingEnv;
 
-    public AnnotationAnalyzer(ProcessingEnvironment processingEnvironment) {
+    public AnnotationAnalyzer(ProcessingEnvironment processingEnvironment, LibTypes libTypes) {
+        super(libTypes);
         mProcessingEnv = processingEnvironment;
     }
 

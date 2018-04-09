@@ -231,7 +231,11 @@ public class InjectedClass extends ModelClass {
 
     @Override
     public TypeName getTypeName() {
-        return ExtKt.toTypeName(mClassName);
+        ModelAnalyzer instance = ModelAnalyzer.getInstance();
+        if (instance == null) {
+            return ExtKt.toTypeName(mClassName, false);
+        }
+        return ExtKt.toTypeName(mClassName, instance.libTypes);
     }
 
     @Override

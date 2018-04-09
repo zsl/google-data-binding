@@ -38,16 +38,19 @@ import java.util.Set;
  */
 public class DataBinder {
     List<LayoutBinder> mLayoutBinders = new ArrayList<LayoutBinder>();
-    private static final String COMPONENT_CLASS = "android.databinding.DataBindingComponent";
+    private final String mComponentClass;
 
     private JavaFileWriter mFileWriter;
 
     Set<String> mClassesToBeStripped = new HashSet<String>();
     private final boolean mEnableV2;
+    private final LibTypes mLibTypes;
 
-    public DataBinder(ResourceBundle resourceBundle, boolean enableV2) {
+    public DataBinder(ResourceBundle resourceBundle, boolean enableV2, LibTypes libTypes) {
         L.d("reading resource bundle into data binder");
+        mLibTypes = libTypes;
         mEnableV2 = enableV2;
+        mComponentClass = mLibTypes.getBindingPackage() + ".DataBindingComponent";
         if (mEnableV2) {
             for(ResourceBundle.LayoutFileBundle bundle :
                     resourceBundle.getLayoutFileBundlesInSource()) {
@@ -190,10 +193,10 @@ public class DataBinder {
     }
 
     public void writeComponent() {
-        ComponentWriter componentWriter = new ComponentWriter();
+        ComponentWriter componentWriter = new ComponentWriter(mLibTypes);
 
-        mClassesToBeStripped.add(COMPONENT_CLASS);
-        mFileWriter.writeToFile(COMPONENT_CLASS, componentWriter.createComponent());
+        mClassesToBeStripped.add(mComponentClass);
+        mFileWriter.writeToFile(mComponentClass, componentWriter.createComponent());
     }
 
     public Set<String> getClassesToBeStripped() {

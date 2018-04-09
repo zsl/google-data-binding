@@ -14,6 +14,7 @@
 package android.databinding.tool.reflection.java;
 
 import android.databinding.tool.Context;
+import android.databinding.tool.LibTypes;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.SdkUtil;
@@ -21,24 +22,19 @@ import android.databinding.tool.reflection.TypeUtil;
 import android.databinding.tool.util.L;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Properties;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.FileFilterUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.io.filefilter.AbstractFileFilter;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
 
 public class JavaAnalyzer extends ModelAnalyzer {
     public static final Map<String, Class> PRIMITIVE_TYPES;
@@ -58,7 +54,8 @@ public class JavaAnalyzer extends ModelAnalyzer {
 
     private final ClassLoader mClassLoader;
 
-    public JavaAnalyzer(ClassLoader classLoader) {
+    public JavaAnalyzer(ClassLoader classLoader, LibTypes libTypes) {
+        super(libTypes);
         mClassLoader = classLoader;
     }
 
@@ -77,8 +74,8 @@ public class JavaAnalyzer extends ModelAnalyzer {
     }
 
     @Override
-    protected ModelClass[] getObservableFieldTypes() {
-        return new ModelClass[0];
+    protected List<ModelClass> getObservableFieldTypes() {
+        return Collections.emptyList();
     }
 
     @Override
@@ -240,7 +237,7 @@ public class JavaAnalyzer extends ModelAnalyzer {
         try {
             ClassLoader classLoader = new URLClassLoader(new URL[]{androidJar.toURI().toURL()},
                     ModelAnalyzer.class.getClassLoader());
-            JavaAnalyzer javaAnalyzer = new JavaAnalyzer(classLoader);
+            JavaAnalyzer javaAnalyzer = new JavaAnalyzer(classLoader, new LibTypes(true));
             Context.initForTests(javaAnalyzer,
                     SdkUtil.create(new File(androidHome), 8));
         } catch (MalformedURLException e) {

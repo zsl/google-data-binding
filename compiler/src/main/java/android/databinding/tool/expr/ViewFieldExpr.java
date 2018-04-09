@@ -43,7 +43,7 @@ public class ViewFieldExpr extends BuiltInVariableExpr {
     protected ModelClass resolveType(ModelAnalyzer modelAnalyzer) {
         final ModelClass type = modelAnalyzer.findClass(mBindingTarget.getInterfaceType(), null);
         if (type == null) {
-            return modelAnalyzer.findClass(ModelAnalyzer.VIEW_DATA_BINDING, null);
+            return modelAnalyzer.findClass(modelAnalyzer.libTypes.getViewDataBinding(), null);
         }
         return type;
     }

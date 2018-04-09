@@ -43,6 +43,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @SupportedAnnotationTypes({
+        "androidx.databinding.BindingAdapter",
+        "androidx.databinding.InverseBindingMethods",
+        "androidx.databinding.InverseBindingAdapter",
+        "androidx.databinding.InverseMethod",
+        "androidx.databinding.Untaggable",
+        "androidx.databinding.BindingMethods",
+        "androidx.databinding.BindingConversion",
+        "androidx.databinding.BindingBuildInfo",
         "android.databinding.BindingAdapter",
         "android.databinding.InverseBindingMethods",
         "android.databinding.InverseBindingAdapter",

@@ -5,6 +5,7 @@ load("//tools/base/bazel:maven.bzl", "maven_java_library", "maven_pom")
 load("//tools/base/bazel:utils.bzl", "merged_properties")
 load("//tools/base/bazel:gradle.bzl", "gradle_build")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
+load("//tools/base/bazel:merge_archives.bzl", "merge_archives")
 
 exports_files(["databinding.properties"])
 
@@ -13,6 +14,19 @@ iml_module(
     name = "studio.baseLibrary",
     srcs = ["baseLibrary/src/main/java"],
     iml_files = ["baseLibrary/db-baseLibrary.iml"],
+    tags = ["managed"],
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/tools/common/m2/repository/junit/junit/4.12:jar[test]",
+        "//prebuilts/tools/common/m2/repository/org/hamcrest/hamcrest-core/1.3:jar[test]",
+    ],
+)
+
+iml_module(
+    name = "studio.baseLibrarySupport",
+    srcs = ["baseLibrarySupport/src/main/java"],
+    iml_files = ["baseLibrarySupport/db-baseLibrarySupport.iml"],
     tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -35,8 +49,28 @@ maven_java_library(
     visibility = ["//visibility:public"],
 )
 
+maven_java_library(
+    name = "tools.baseLibrarySupport",
+    srcs = glob(["baseLibrarySupport/src/main/java/**"]),
+    javacopts = [
+        "-source 6",
+        "-target 6",
+    ],
+    pom = ":baseLibrarySupport.pom",
+    resource_strip_prefix = "tools/data-binding/baseLibrary",
+    resources = ["baseLibrary/NOTICE"],
+    visibility = ["//visibility:public"],
+)
+
 maven_pom(
     name = "baseLibrary.pom",
+    artifact = "baseLibrary",
+    group = "androidx.databinding",
+    source = "//tools/buildSrc/base:build_version",
+)
+
+maven_pom(
+    name = "baseLibrarySupport.pom",
     artifact = "baseLibrary",
     group = "com.android.databinding",
     source = "//tools/buildSrc/base:build_version",
@@ -56,11 +90,15 @@ iml_module(
     test_srcs = ["compilerCommon/src/test/java"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    exports = ["//tools/data-binding:studio.baseLibrary"],
+    exports = [
+        "//tools/data-binding:studio.baseLibrary",
+        "//tools/data-binding:studio.baseLibrarySupport",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/data-binding:studio.baseLibrary[module]",
-        "//tools/base/annotations:studio.android-annotations[module]",
+        "//tools/data-binding:studio.baseLibrarySupport[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
@@ -68,6 +106,7 @@ iml_module(
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
         "//tools/idea/.idea/libraries:javapoet-1.8.0",
+        "//tools/idea/.idea/libraries:jetifier-core",
         "//tools/idea/.idea/libraries:gson",
     ],
 )
@@ -111,7 +150,9 @@ kotlin_library(
     visibility = ["//visibility:public"],
     deps = [
         ":tools.baseLibrary",
+        ":tools.baseLibrarySupport",
         "//tools/base/annotations",
+        "//tools/base/third_party:com.android.tools.build.jetifier_jetifier-core",
         "//tools/base/third_party:com.google.code.gson_gson",
         "//tools/base/third_party:com.google.guava_guava",
         "//tools/base/third_party:com.googlecode.juniversalchardet_juniversalchardet",
@@ -125,7 +166,7 @@ kotlin_library(
 maven_pom(
     name = "compilerCommon.pom",
     artifact = "compilerCommon",
-    group = "com.android.databinding",
+    group = "androidx.databinding",
     source = "//tools/buildSrc/base:build_version",
 )
 
@@ -160,11 +201,16 @@ iml_module(
     ],
     test_srcs = ["compiler/src/test/java"],
     visibility = ["//visibility:public"],
-    exports = ["//tools/data-binding:studio.baseLibrary"],
+    # do not sort: must match IML order
+    exports = [
+        "//tools/data-binding:studio.baseLibrary",
+        "//tools/data-binding:studio.baseLibrarySupport",
+    ],
     # do not sort: must match IML order
     deps = [
         "//tools/data-binding:studio.baseLibrary[module]",
-        "//tools/base/annotations:studio.android-annotations[module]",
+        "//tools/data-binding:studio.baseLibrarySupport[module]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
         "//tools/idea/.idea/libraries:commons-io",
@@ -189,6 +235,7 @@ kotlin_library(
     visibility = ["//visibility:public"],
     deps = [
         ":tools.baseLibrary",
+        ":tools.baseLibrarySupport",
         ":tools.compilerCommon",
         "//tools/base/annotations",
         "//tools/base/third_party:com.google.guava_guava",
@@ -202,7 +249,7 @@ kotlin_library(
 maven_pom(
     name = "compiler.pom",
     artifact = "compiler",
-    group = "com.android.databinding",
+    group = "androidx.databinding",
     source = "//tools/buildSrc/base:build_version",
 )
 
@@ -216,6 +263,38 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/compiler/1.0.0:jar",
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/extensions/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/android/arch/lifecycle/runtime/1.0.3:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/annotation/annotation/1.0.0-alpha1:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/appcompat/appcompat/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-common/2.0.0-alpha1:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/arch/core/core-runtime/2.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/asynclayoutinflater/asynclayoutinflater/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/cardview/cardview/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/collection/collection/1.0.0-alpha1:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/coordinatorlayout/coordinatorlayout/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/core/core/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/cursoradapter/cursoradapter/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/customview/customview/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/documentfile/documentfile/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/drawerlayout/drawerlayout/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/fragment/fragment/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/interpolator/interpolator/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/legacy/legacy-support-core-ui/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/legacy/legacy-support-core-utils/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-common/2.0.0-alpha1:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-compiler/2.0.0-alpha1:jar",
+        "//prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-extensions/2.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-livedata-core/2.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-livedata/2.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-runtime/2.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/lifecycle/lifecycle-viewmodel/2.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/loader/loader/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/localbroadcastmanager/localbroadcastmanager/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/print/print/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/slidingpanelayout/slidingpanelayout/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/swiperefreshlayout/swiperefreshlayout/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/vectordrawable/vectordrawable-animated/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/vectordrawable/vectordrawable/1.0.0-alpha1:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/viewpager/viewpager/1.0.0-alpha1:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/animated-vector-drawable/26.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/appcompat-v7/26.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/cardview-v7/26.1.0:aar",
@@ -232,7 +311,7 @@ maven_repo(
 )
 
 gradle_build(
-    name = "runtimeLibraries",
+    name = "runtimeLibrariesAndroidX",
     build_file = "extensions/build.gradle",
     data = [
         "//tools/base/build-system:gradle-distrib",
@@ -254,14 +333,45 @@ gradle_build(
             "extensions/gradlew.bat",
         ],
     ),
-    output_file = "data_binding_runtime.zip",
+    output_file = "data_binding_runtime_androidx.zip",
     output_file_source = "local_repo_zip/dataBindingRuntimeRepo.zip",
     repos = [
         "//tools/base/build-system:gradle_plugin_repo.zip",
         ":external_deps.zip",
     ],
     tasks = ["createArchive"],
-    visibility = ["//visibility:public"],
+)
+
+gradle_build(
+    name = "runtimeLibrariesSupport",
+    build_file = "extensions-support/build.gradle",  #TODO rename to extensionSupport
+    data = [
+        "//tools/base/build-system:gradle-distrib",
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:support_latest",
+        "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:build-tools/latest",
+        "//tools/buildSrc/base:version.properties",
+        "//tools/data-binding:databinding.properties",
+    ] + glob(
+        ["extensions-support/**"],
+        exclude = [
+            "extensions-support/.gradle/**",
+            "extensions-support/build/**",
+            "extensions-support/local.properties",
+            "extensions-support/**/build",
+            "extensions-support/gradle/**",
+            "extensions-support/gradlew",
+            "extensions-support/gradlew.bat",
+        ],
+    ),
+    output_file = "data_binding_runtime_support.zip",
+    output_file_source = "local_repo_zip/dataBindingRuntimeRepo.zip",
+    repos = [
+        "//tools/base/build-system:gradle_plugin_repo.zip",
+        ":external_deps.zip",
+    ],
+    tasks = ["createArchive"],
 )
 
 filegroup(
@@ -275,4 +385,14 @@ filegroup(
         ],
     ),
     visibility = ["//visibility:public"],
+)
+
+merge_archives(
+    name = "runtimeLibraries",
+    output_file = "data_binding_runtime.zip",
+    visibility = ["//visibility:public"],
+    zips = [
+        "//tools/data-binding:data_binding_runtime_support.zip",
+        "//tools/data-binding:data_binding_runtime_androidx.zip",
+    ],
 )

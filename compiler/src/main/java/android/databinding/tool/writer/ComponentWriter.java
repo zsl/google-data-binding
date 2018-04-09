@@ -15,6 +15,7 @@
  */
 package android.databinding.tool.writer;
 
+import android.databinding.tool.LibTypes;
 import android.databinding.tool.store.SetterStore;
 
 import java.util.List;
@@ -25,13 +26,16 @@ import java.util.Map;
  */
 public class ComponentWriter {
     private static final String INDENT = "    ";
-
-    public ComponentWriter() {
+    private final LibTypes mLibTypes;
+    public ComponentWriter(LibTypes libTypes) {
+        mLibTypes = libTypes;
     }
 
     public String createComponent() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("package android.databinding;\n\n");
+        builder.append("package ");
+        builder.append(mLibTypes.getBindingPackage());
+        builder.append(";\n\n");
         builder.append("public interface DataBindingComponent {\n");
         final SetterStore setterStore = SetterStore.get();
         Map<String, List<String>> bindingAdapters = setterStore.getComponentBindingAdapters();

@@ -15,7 +15,7 @@
  */
 package android.databinding.tool.reflection.annotation;
 
-import android.databinding.Bindable;
+import android.databinding.tool.BindableCompat;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelField;
 
@@ -39,11 +39,6 @@ class AnnotationField extends ModelField {
     @Override
     public String toString() {
         return mField.toString();
-    }
-
-    @Override
-    public boolean isBindable() {
-        return mField.getAnnotation(Bindable.class) != null;
     }
 
     @Override
@@ -74,8 +69,8 @@ class AnnotationField extends ModelField {
     }
 
     @Override
-    public Bindable getBindableAnnotation() {
-        return mField.getAnnotation(Bindable.class);
+    public BindableCompat getBindableAnnotation() {
+        return BindableCompat.extractFrom(mField);
     }
 
     @Override

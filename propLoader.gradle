@@ -29,7 +29,7 @@ apply from: "${root}/../buildSrc/base/version.gradle"
 databindingProperties.version = ext.buildVersion
 databindingProperties.androidPluginVersion=ext.buildVersion
 databindingProperties.isIndependent = rootProject.name.equals("data-binding")
-databindingProperties.compileSdkVersion = Integer.parseInt(databindingProperties.compileSdkVersionStr)
+databindingProperties.compileSdkVersion = databindingProperties.compileSdkVersionStr.trim()
 
 ext.dataBindingConfig = databindingProperties
 databindingProperties.artifactOutFolder = "${root}/../../out/repo"

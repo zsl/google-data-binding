@@ -15,7 +15,7 @@
  */
 package android.databinding.tool.reflection;
 
-import android.databinding.Bindable;
+import android.databinding.tool.BindableCompat;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,14 +44,16 @@ public abstract class ModelMethod {
     public abstract boolean isAbstract();
 
     /**
-     * @return whether or not this method has been given the {@link Bindable} annotation.
+     * @return whether or not this method has been given the {@code Bindable} annotation.
      */
-    public abstract boolean isBindable();
+    public final boolean isBindable() {
+        return getBindableAnnotation() != null;
+    }
 
     /**
      * @return the Bindable annotation on the method or null if it doesn't exist.
      */
-    public Bindable getBindableAnnotation() {
+    public BindableCompat getBindableAnnotation() {
         return null;
     }
 

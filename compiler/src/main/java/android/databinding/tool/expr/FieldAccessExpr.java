@@ -189,17 +189,17 @@ public class FieldAccessExpr extends MethodBaseExpr {
         if (mGetter != null && mGetter.canBeInvalidated()) {
             if (mGetter.type == Type.FIELD) {
                 if (mGetter.bindableAnnotation != null &&
-                        mGetter.bindableAnnotation.value().length != 0) {
+                        mGetter.bindableAnnotation.getDependencies().length != 0) {
                     L.e("Bindable annotation with property names is only supported on methods. " +
                                     "Field '%s.%s' has @Bindable(\"%s\")",
                             getTarget().getResolvedType().toJavaCode(), mGetter.name,
-                            StringUtils.join(mGetter.bindableAnnotation.value(), "\", \""));
+                            StringUtils.join(mGetter.bindableAnnotation.getDependencies(), "\", \""));
                 }
             } else if (mGetter.method != null && mGetter.canBeInvalidated() &&
                     mGetter.bindableAnnotation != null) {
                 try {
                     Scope.enter(this);
-                    String[] dependencyArray = mGetter.bindableAnnotation.value();
+                    String[] dependencyArray = mGetter.bindableAnnotation.getDependencies();
 
                     Expr target = getTarget();
                     ModelClass resolvedType = target.getResolvedType();

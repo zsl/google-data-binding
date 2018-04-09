@@ -15,7 +15,7 @@
  */
 package android.databinding.tool.reflection;
 
-import android.databinding.Bindable;
+import android.databinding.tool.BindableCompat;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -44,10 +44,11 @@ public class Callable {
 
     private final int mParameterCount;
 
-    public final Bindable bindableAnnotation;
+    @Nullable
+    public final BindableCompat bindableAnnotation;
 
     public Callable(Type type, String name, String setterName, ModelClass resolvedType,
-            int parameterCount, int flags, ModelMethod method, Bindable bindable) {
+            int parameterCount, int flags, ModelMethod method, @Nullable BindableCompat bindable) {
         this.type = type;
         this.name = name;
         this.resolvedType = resolvedType;

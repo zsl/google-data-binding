@@ -16,14 +16,16 @@
 package android.databinding.tool.reflection;
 
 import android.databinding.tool.Context;
-import android.databinding.tool.reflection.annotation.AnnotationAnalyzer;
+import android.databinding.tool.LibTypes;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import javax.annotation.processing.ProcessingEnvironment;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * This is the base class for several implementations of something that
@@ -32,52 +34,16 @@ import javax.annotation.processing.ProcessingEnvironment;
  */
 public abstract class ModelAnalyzer {
     public static final String GENERATED_ANNOTATION = "javax.annotation.Generated";
-    public static final String[] LIST_CLASS_NAMES = {
-            "java.util.List",
-            "android.util.SparseArray",
-            "android.util.SparseBooleanArray",
-            "android.util.SparseIntArray",
-            "android.util.SparseLongArray",
-            "android.util.LongSparseArray",
-            "android.support.v4.util.LongSparseArray",
-    };
 
-    public static final String MAP_CLASS_NAME = "java.util.Map";
+    private static final String MAP_CLASS_NAME = "java.util.Map";
 
-    public static final String STRING_CLASS_NAME = "java.lang.String";
+    private static final String STRING_CLASS_NAME = "java.lang.String";
 
-    public static final String OBJECT_CLASS_NAME = "java.lang.Object";
+    private static final String OBJECT_CLASS_NAME = "java.lang.Object";
 
-    public static final String OBSERVABLE_CLASS_NAME = "android.databinding.Observable";
+    private static final String VIEW_STUB_CLASS_NAME = "android.view.ViewStub";
 
-    public static final String OBSERVABLE_LIST_CLASS_NAME = "android.databinding.ObservableList";
-
-    public static final String OBSERVABLE_MAP_CLASS_NAME = "android.databinding.ObservableMap";
-
-    public static final String LIVE_DATA_CLASS_NAME = "android.arch.lifecycle.LiveData";
-
-    public static final String MUTABLE_LIVE_DATA_CLASS_NAME =
-            "android.arch.lifecycle.MutableLiveData";
-
-    public static final String[] OBSERVABLE_FIELDS = {
-            "android.databinding.ObservableBoolean",
-            "android.databinding.ObservableByte",
-            "android.databinding.ObservableChar",
-            "android.databinding.ObservableShort",
-            "android.databinding.ObservableInt",
-            "android.databinding.ObservableLong",
-            "android.databinding.ObservableFloat",
-            "android.databinding.ObservableDouble",
-            "android.databinding.ObservableField",
-            "android.databinding.ObservableParcelable",
-    };
-
-    public static final String VIEW_DATA_BINDING =
-            "android.databinding.ViewDataBinding";
-
-    public static final String VIEW_STUB_CLASS_NAME = "android.view.ViewStub";
-
-    private ModelClass[] mListTypes;
+    private List<ModelClass> mListTypes;
     private ModelClass mMapType;
     private ModelClass mStringType;
     private ModelClass mObjectType;
@@ -86,9 +52,12 @@ public abstract class ModelAnalyzer {
     private ModelClass mObservableMapType;
     private ModelClass mLiveDataType;
     private ModelClass mMutableLiveDataType;
-    private ModelClass[] mObservableFieldTypes;
+    private List<ModelClass> mObservableFieldTypes;
     private ModelClass mViewBindingType;
     private ModelClass mViewStubType;
+    private ModelClass mViewStubProxyType;
+
+    public final LibTypes libTypes;
 
     /**
      * If it is present, we annotate generated classes with @Generated.
@@ -97,6 +66,10 @@ public abstract class ModelAnalyzer {
 
     private final Map<String, InjectedClass> mInjectedClasses =
             new HashMap<String, InjectedClass>();
+
+    protected ModelAnalyzer(LibTypes libTypes) {
+        this.libTypes = libTypes;
+    }
 
     public ModelClass findCommonParentOf(ModelClass modelClass1, ModelClass modelClass2) {
         return findCommonParentOf(modelClass1, modelClass2, true);
@@ -238,15 +211,13 @@ public abstract class ModelAnalyzer {
         return injectedClass;
     }
 
-    ModelClass[] getListTypes() {
+    List<ModelClass> getListTypes() {
         if (mListTypes == null) {
-            mListTypes = new ModelClass[LIST_CLASS_NAMES.length];
-            for (int i = 0; i < mListTypes.length; i++) {
-                final ModelClass modelClass = findClass(LIST_CLASS_NAMES[i], null);
-                if (modelClass != null) {
-                    mListTypes[i] = modelClass.erasure();
-                }
-            }
+            mListTypes = libTypes.getListClassNames()
+                    .stream()
+                    .map(this::loadClassErasure)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
         }
         return mListTypes;
     }
@@ -274,54 +245,62 @@ public abstract class ModelAnalyzer {
 
     ModelClass getObservableType() {
         if (mObservableType == null) {
-            mObservableType = findClass(OBSERVABLE_CLASS_NAME, null);
+            mObservableType = findClass(libTypes.getObservable(), null);
         }
         return mObservableType;
     }
 
     ModelClass getObservableListType() {
         if (mObservableListType == null) {
-            mObservableListType = loadClassErasure(OBSERVABLE_LIST_CLASS_NAME);
+            mObservableListType = loadClassErasure(libTypes.getObservableList());
         }
         return mObservableListType;
     }
 
     ModelClass getObservableMapType() {
         if (mObservableMapType == null) {
-            mObservableMapType = loadClassErasure(OBSERVABLE_MAP_CLASS_NAME);
+            mObservableMapType = loadClassErasure(libTypes.getObservableMap());
         }
         return mObservableMapType;
     }
 
     ModelClass getLiveDataType() {
         if (mLiveDataType == null) {
-            mLiveDataType = loadClassErasure(LIVE_DATA_CLASS_NAME);
+            mLiveDataType = loadClassErasure(libTypes.getLiveData());
         }
         return mLiveDataType;
     }
 
     ModelClass getMutableLiveDataType() {
         if (mMutableLiveDataType == null) {
-            mMutableLiveDataType = loadClassErasure(MUTABLE_LIVE_DATA_CLASS_NAME);
+            mMutableLiveDataType = loadClassErasure(libTypes.getMutableLiveData());
         }
         return mMutableLiveDataType;
     }
 
     ModelClass getViewDataBindingType() {
         if (mViewBindingType == null) {
-            mViewBindingType = findClass(VIEW_DATA_BINDING, null);
+            mViewBindingType = findClass(libTypes.getViewDataBinding(), null);
         }
         Preconditions.checkNotNull(mViewBindingType, "Cannot find %s class. Something is wrong "
-                + "in the classpath, please submit a bug report", VIEW_DATA_BINDING);
+                + "in the classpath, please submit a bug report", libTypes.getViewDataBinding());
         return mViewBindingType;
     }
 
-    protected ModelClass[] getObservableFieldTypes() {
+    public ModelClass getViewStubProxyType() {
+        if (mViewStubProxyType == null) {
+            mViewStubProxyType = findClass(libTypes.getViewStubProxy(), null);
+        }
+        return mViewStubProxyType;
+    }
+
+    protected List<ModelClass> getObservableFieldTypes() {
         if (mObservableFieldTypes == null) {
-            mObservableFieldTypes = new ModelClass[OBSERVABLE_FIELDS.length];
-            for (int i = 0; i < OBSERVABLE_FIELDS.length; i++) {
-                mObservableFieldTypes[i] = loadClassErasure(OBSERVABLE_FIELDS[i]);
-            }
+            mObservableFieldTypes = libTypes.getObservableFields()
+                        .stream()
+                        .map(this::loadClassErasure)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toList());
         }
         return mObservableFieldTypes;
     }

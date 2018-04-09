@@ -15,7 +15,7 @@
  */
 package android.databinding.tool.reflection.annotation;
 
-import android.databinding.Bindable;
+import android.databinding.tool.BindableCompat;
 import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.reflection.ModelMethod;
 import android.databinding.tool.reflection.SdkUtil;
@@ -147,13 +147,8 @@ class AnnotationMethod extends ModelMethod {
     }
 
     @Override
-    public boolean isBindable() {
-        return mExecutableElement.getAnnotation(Bindable.class) != null;
-    }
-
-    @Override
-    public Bindable getBindableAnnotation() {
-        return mExecutableElement.getAnnotation(Bindable.class);
+    public BindableCompat getBindableAnnotation() {
+        return BindableCompat.extractFrom(mExecutableElement);
     }
 
     @Override

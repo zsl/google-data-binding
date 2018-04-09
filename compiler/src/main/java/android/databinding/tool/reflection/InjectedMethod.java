@@ -106,11 +106,6 @@ public class InjectedMethod extends ModelMethod {
     }
 
     @Override
-    public boolean isBindable() {
-        return false;
-    }
-
-    @Override
     public int getMinApi() {
         return 0;
     }

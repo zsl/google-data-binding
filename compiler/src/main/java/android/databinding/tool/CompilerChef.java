@@ -17,26 +17,21 @@ import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.reflection.InjectedClass;
 import android.databinding.tool.reflection.ModelAnalyzer;
-import android.databinding.tool.store.GenClassInfoLog;
-import android.databinding.tool.store.ResourceBundle;
-import android.databinding.tool.util.L;
-import android.databinding.tool.writer.BRWriter;
-import android.databinding.tool.reflection.ModelClass;
 import android.databinding.tool.store.FeatureInfoList;
 import android.databinding.tool.store.GenClassInfoLog;
 import android.databinding.tool.store.ResourceBundle;
 import android.databinding.tool.util.L;
-import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.writer.BindingMapperWriter;
 import android.databinding.tool.writer.BindingMapperWriterV2;
 import android.databinding.tool.writer.JavaFileWriter;
 import android.databinding.tool.writer.MergedBindingMapperWriter;
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.TypeElement;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -45,11 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.TypeElement;
 
 /**
  * Chef class for compiler.
@@ -118,7 +109,8 @@ public class CompilerChef {
 
     public void ensureDataBinder() {
         if (mDataBinder == null) {
-            mDataBinder = new DataBinder(mResourceBundle, mEnableV2);
+            LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
+            mDataBinder = new DataBinder(mResourceBundle, mEnableV2, libTypes);
             mDataBinder.setFileWriter(mFileWriter);
         }
     }
@@ -146,7 +138,7 @@ public class CompilerChef {
                     + bundles.get(0).getBindingClassName();
             // inject base class
             InjectedClass bindingClass =
-                    new InjectedClass(className, ModelAnalyzer.VIEW_DATA_BINDING);
+                    new InjectedClass(className, analyzer.libTypes.getViewDataBinding());
             analyzer.injectClass(bindingClass);
 
             for (ResourceBundle.LayoutFileBundle layoutFileBundle : bundles) {
@@ -223,8 +215,9 @@ public class CompilerChef {
             final String mapperName = "DataBinderMapperImpl";
 
             ensureDataBinder();
+            LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
             BindingMapperWriter dbr = new BindingMapperWriter(pkg, mapperName,
-                    mDataBinder.getLayoutBinders(), compilerArgs);
+                    mDataBinder.getLayoutBinders(), compilerArgs, libTypes);
             mFileWriter.writeToFile(
                     pkg + "." + dbr.getClassName(),
                     dbr.write(brValueLookup));
@@ -234,11 +227,13 @@ public class CompilerChef {
     private void writeMapperForV1Compat(
             DataBindingCompilerArgs compilerArgs,
             Map<String, Integer> brValueLookup) {
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
         BindingMapperWriter dbr = new BindingMapperWriter(
                 BindingMapperWriter.V1_COMPAT_MAPPER_PKG,
                 BindingMapperWriter.V1_COMPAT_MAPPER_NAME,
                 mV1CompatChef.getLayoutBinders(),
-                compilerArgs);
+                compilerArgs,
+                libTypes);
         mFileWriter.writeToFile(
                 BindingMapperWriter.V1_COMPAT_MAPPER_PKG + "." + dbr.getClassName(),
                 dbr.write(brValueLookup));
@@ -271,12 +266,14 @@ public class CompilerChef {
                 }).collect(Collectors.toList());
         Set<String> featurePackageIds = loadFeaturePackageIds(compilerArgs);
         StringBuilder sb = new StringBuilder();
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
         MergedBindingMapperWriter mergedBindingMapperWriter =
                 new MergedBindingMapperWriter(
                         availableDependencyModules,
                         compilerArgs,
                         featurePackageIds,
-                        mV1CompatChef != null);
+                        mV1CompatChef != null,
+                        libTypes);
         TypeSpec mergedMapperSpec = mergedBindingMapperWriter.write();
         try {
             JavaFile.builder(mergedBindingMapperWriter.getPkg(), mergedMapperSpec)
@@ -317,9 +314,11 @@ public class CompilerChef {
         }
         GenClassInfoLog infoLogInThisModule = infoLog
                 .createPackageInfoLog(compilerArgs.getModulePackage());
+        LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
         BindingMapperWriterV2 v2 = new BindingMapperWriterV2(
                 infoLogInThisModule,
-                compilerArgs);
+                compilerArgs,
+                libTypes);
         TypeSpec spec = v2.write(brValueLookup);
         StringBuilder sb = new StringBuilder();
         try {

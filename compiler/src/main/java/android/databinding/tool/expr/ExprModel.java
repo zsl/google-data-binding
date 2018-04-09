@@ -210,8 +210,10 @@ public class ExprModel {
     }
 
     public IdentifierExpr viewDataBinding() {
-        IdentifierExpr viewDataBinding = staticIdentifier(ModelAnalyzer.VIEW_DATA_BINDING);
-        viewDataBinding.setUserDefinedType(ModelAnalyzer.VIEW_DATA_BINDING);
+        ModelAnalyzer analyzer = ModelAnalyzer.getInstance();
+        String qualifiedName = analyzer.libTypes.getViewDataBinding();
+        IdentifierExpr viewDataBinding = staticIdentifier(qualifiedName);
+        viewDataBinding.setUserDefinedType(qualifiedName);
         return viewDataBinding;
     }
 
