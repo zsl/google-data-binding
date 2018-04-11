@@ -36,6 +36,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding> {
@@ -123,7 +124,7 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
 
     // Make sure that includes don't cause infinite loops with requestRebind
     @Test
-    public void testNoInfiniteLoop() throws NoSuchFieldException, IllegalAccessException {
+    public void testNoInfiniteLoop() {
         initBinder();
         NotBindableVo vo = new NotBindableVo(3, "a");
         mBinder.setOuterObject(vo);
@@ -131,11 +132,22 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         waitForUISync();
 
         // Make sure that a rebind hasn't been requested again after executePendingBindings
-        Field field = ViewDataBinding.class.getDeclaredField("mPendingRebind");
-        field.setAccessible(true);
-        assertFalse(field.getBoolean(mBinder));
-        assertFalse(field.getBoolean(mBinder.trackedInclude));
-        assertFalse(field.getBoolean(mBinder.includedLayout));
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Field field = ViewDataBinding.class.getDeclaredField("mPendingRebind");
+                    field.setAccessible(true);
+                    assertFalse(field.getBoolean(mBinder));
+                    assertFalse(field.getBoolean(mBinder.trackedInclude));
+                    assertFalse(field.getBoolean(mBinder.includedLayout));
+                } catch (IllegalAccessException e) {
+                    fail(e.getMessage());
+                } catch (NoSuchFieldException e) {
+                    fail(e.getMessage());
+                }
+            }
+        });
     }
 
     // Make sure that including with a generic parameter works
