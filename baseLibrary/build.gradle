@@ -66,6 +66,7 @@ javadoc {
    options.addStringOption('Xdoclint:none', '-quiet')
 }
 
+archivesBaseName = "databinding-common"
 project.ext.pomName = 'Data Binding Base Library'
 project.ext.pomDesc = 'Shared library between Data Binding runtime lib and compiler'
 enablePublishing(this, true)
