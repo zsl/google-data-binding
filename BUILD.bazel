@@ -381,7 +381,18 @@ filegroup(
         exclude = [
             "**/build/**",
             "**/.gradle/**",
-            "integration-tests/App With Spaces/**",
+        ],
+    ),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "integration-test-projects-support",
+    srcs = glob(
+        ["integration-tests-support/**"],
+        exclude = [
+            "**/build/**",
+            "**/.gradle/**",
         ],
     ),
     visibility = ["//visibility:public"],

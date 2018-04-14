@@ -16,7 +16,7 @@
 package android.databinding.testapp;
 
 import android.annotation.TargetApi;
-import android.databinding.adapters.TextViewBindingAdapter;
+import androidx.databinding.adapters.TextViewBindingAdapter;
 import android.databinding.testapp.databinding.TextViewAdapterTestBinding;
 import android.databinding.testapp.vo.TextViewBindingObject;
 import android.graphics.drawable.ColorDrawable;
@@ -312,7 +312,7 @@ public class TextViewBindingAdapterTest
 
     @Test
     public void testInputMethod() {
-        TextView textView = mBinder.textInputMethod;
+        EditText textView = mBinder.textInputMethod;
         assertTrue(TextViewBindingObject.KeyListener1.class.isInstance(textView.getKeyListener()));
         changeValues();
         assertTrue(TextViewBindingObject.KeyListener2.class.isInstance(textView.getKeyListener()));

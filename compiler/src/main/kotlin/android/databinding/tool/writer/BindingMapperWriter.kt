@@ -17,10 +17,12 @@ import android.databinding.tool.DataBindingCompilerArgs
 import android.databinding.tool.LayoutBinder
 import android.databinding.tool.LibTypes
 
-class BindingMapperWriter(var pkg : String, var className: String,
-                          val layoutBinders : List<LayoutBinder>,
-                          val compilerArgs: DataBindingCompilerArgs,
-                          val libTypes: LibTypes) {
+class BindingMapperWriter(
+        var pkg : String,
+        var className: String,
+        private val layoutBinders : List<LayoutBinder>,
+        private val compilerArgs: DataBindingCompilerArgs,
+        val libTypes: LibTypes) {
     private val appClassName : String = className
     private val testClassName = "Test$className"
     private val baseMapperClassName = libTypes.dataBinderMapper
@@ -170,7 +172,19 @@ class BindingMapperWriter(var pkg : String, var className: String,
 
     companion object {
         const val V1_COMPAT_MAPPER_NAME = "V1CompatDataBinderMapperImpl"
-        const val V1_COMPAT_MAPPER_PKG = "android.databinding"
-        const val V1_COMPAT_QNAME = V1_COMPAT_MAPPER_PKG + "." + V1_COMPAT_MAPPER_NAME
+
+        @JvmStatic
+        fun v1CompatMapperPkg(useAndroidX  : Boolean) : String {
+            return if (useAndroidX) {
+                "androidx.databinding"
+            } else {
+                "android.databinding"
+            }
+        }
+
+        @JvmStatic
+        fun v1CompatQName(useAndroidX: Boolean) : String {
+            return v1CompatMapperPkg(useAndroidX) + "." + V1_COMPAT_MAPPER_NAME
+        }
     }
 }

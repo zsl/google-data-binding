@@ -4,9 +4,9 @@ android {
     compileSdkVersion rootProject.latestCompileSdk
     buildToolsVersion rootProject.buildToolsVersion
     defaultConfig {
-        applicationId "com.example.android.proguardedappwithtest"
+        applicationId "com.example.androidx.proguardedappwithtest"
         minSdkVersion 14
-        targetSdkVersion rootProject.latestCompileSdk
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -18,18 +18,18 @@ android {
         debug {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            testProguardFiles 'proguard-test-rules.pro'
+            testProguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-test-rules.pro'
         }
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            testProguardFiles 'proguard-test-rules.pro'
+            testProguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-test-rules.pro'
         }
     }
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2')
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:3.0.1')
     testCompile 'junit:junit:4.12'
 }

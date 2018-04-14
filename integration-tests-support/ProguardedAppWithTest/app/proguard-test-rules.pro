@@ -1,0 +1,14 @@
+-dontwarn javax.lang.**
+-dontwarn javax.util.**
+-dontwarn java.beans.**
+-dontwarn org.easymock.**
+-dontwarn org.jmock.**
+-dontwarn android.support.test.**
+-dontwarn junit.**
+-dontwarn org.junit.**
+-dontwarn android.databinding.**
+-dontskipnonpubliclibraryclassmembers
+-dontobfuscate
+-dontoptimize
+-dontshrink
+-dontwarn com.example.android.proguardedappwithtest.**

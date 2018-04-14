@@ -15,9 +15,9 @@
  */
 
 package android.databinding.testapp.vo;
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
-import android.databinding.ObservableInt;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
+import androidx.databinding.ObservableInt;
 import android.databinding.testapp.BR;
 
 public class BasicObject extends BaseObservable {

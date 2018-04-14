@@ -16,7 +16,7 @@
 package android.databinding.testapp;
 
 import android.databinding.testapp.databinding.ViewWithTagBinding;
-import android.support.annotation.UiThread;
+import androidx.annotation.UiThread;
 import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
 import android.view.ViewGroup;

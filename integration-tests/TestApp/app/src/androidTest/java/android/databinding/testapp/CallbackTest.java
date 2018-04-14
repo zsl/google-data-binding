@@ -17,7 +17,7 @@
 package android.databinding.testapp;
 
 import android.annotation.TargetApi;
-import android.databinding.ObservableBoolean;
+import androidx.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.CallbacksBinding;
 import android.databinding.testapp.vo.CallbackBindingObject;
 import android.databinding.testapp.vo.NotBindableVo;

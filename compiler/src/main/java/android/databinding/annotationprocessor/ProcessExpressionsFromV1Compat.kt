@@ -18,6 +18,7 @@ package android.databinding.annotationprocessor
 
 import android.databinding.tool.CompilerChef
 import android.databinding.tool.DataBindingCompilerArgs
+import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.store.ResourceBundle
 import android.databinding.tool.writer.BindingMapperWriterV2
 import android.databinding.tool.writer.JavaFileWriter
@@ -55,7 +56,8 @@ class ProcessExpressionsFromV1Compat(
         }
         // mapping from key (layoutName) to generated code QName (or base class)
         val classMapping = mutableMapOf<String, String>()
-        val compatBundle = ResourceBundle(args.modulePackage)
+        val compatBundle = ResourceBundle(args.modulePackage,
+                ModelAnalyzer.getInstance().libTypes.useAndroidX)
         intermediates
             .flatMap {
                 it.extractBundles()

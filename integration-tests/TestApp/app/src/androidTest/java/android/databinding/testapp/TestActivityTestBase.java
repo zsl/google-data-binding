@@ -14,7 +14,7 @@
 package android.databinding.testapp;
 
 import android.content.Intent;
-import android.databinding.ViewDataBinding;
+import androidx.databinding.ViewDataBinding;
 import android.os.Looper;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.rule.ActivityTestRule;

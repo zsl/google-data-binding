@@ -13,8 +13,6 @@
 
 package android.databinding.testapp;
 
-import android.databinding.ObservableArrayMap;
-import android.databinding.ViewDataBinding;
 import android.databinding.testapp.databinding.LayoutWithIncludeBinding;
 import android.databinding.testapp.databinding.MergeContainingMergeBinding;
 import android.databinding.testapp.databinding.MergeLayoutBinding;
@@ -30,12 +28,16 @@ import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 
+import androidx.databinding.ObservableArrayMap;
+import androidx.databinding.ViewDataBinding;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding> {
@@ -53,13 +55,13 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         NotBindableVo vo = new NotBindableVo(3, "a");
         mBinder.setOuterObject(vo);
         mBinder.executePendingBindings();
-        final TextView outerText = (TextView) mBinder.getRoot().findViewById(R.id.outerTextView);
+        final TextView outerText = mBinder.getRoot().findViewById(R.id.outerTextView);
         assertEquals("a", outerText.getText());
-        final TextView innerText = (TextView) mBinder.getRoot().findViewById(R.id.innerTextView);
+        final TextView innerText = mBinder.getRoot().findViewById(R.id.innerTextView);
         assertEquals("modified 3a", innerText.getText().toString());
-        TextView textView1 = (TextView) mBinder.getRoot().findViewById(R.id.innerTextView1);
+        TextView textView1 = mBinder.getRoot().findViewById(R.id.innerTextView1);
         assertEquals(mBinder.getRoot(), textView1.getParent().getParent());
-        TextView textView2 = (TextView) mBinder.getRoot().findViewById(R.id.innerTextView2);
+        TextView textView2 = mBinder.getRoot().findViewById(R.id.innerTextView2);
         assertEquals(mBinder.getRoot(), textView2.getParent().getParent());
         assertEquals("a hello 3a", textView1.getText().toString());
         assertEquals("b hello 3a", textView2.getText().toString());
@@ -103,7 +105,7 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         assertNull(mBinder.includedMergeLayout);
     }
 
-    // Make sure that when an included layout's executePendingBindings is run that the includer
+    // Make sure that when an included layout's executePendingBindings is run that the include
     // is run prior.
     @Test
     @UiThreadTest
@@ -123,7 +125,7 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
 
     // Make sure that includes don't cause infinite loops with requestRebind
     @Test
-    public void testNoInfiniteLoop() throws NoSuchFieldException, IllegalAccessException {
+    public void testNoInfiniteLoop() {
         initBinder();
         NotBindableVo vo = new NotBindableVo(3, "a");
         mBinder.setOuterObject(vo);
@@ -131,11 +133,22 @@ public class IncludeTagTest extends BaseDataBinderTest<LayoutWithIncludeBinding>
         waitForUISync();
 
         // Make sure that a rebind hasn't been requested again after executePendingBindings
-        Field field = ViewDataBinding.class.getDeclaredField("mPendingRebind");
-        field.setAccessible(true);
-        assertFalse(field.getBoolean(mBinder));
-        assertFalse(field.getBoolean(mBinder.trackedInclude));
-        assertFalse(field.getBoolean(mBinder.includedLayout));
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Field field = ViewDataBinding.class.getDeclaredField("mPendingRebind");
+                    field.setAccessible(true);
+                    assertFalse(field.getBoolean(mBinder));
+                    assertFalse(field.getBoolean(mBinder.trackedInclude));
+                    assertFalse(field.getBoolean(mBinder.includedLayout));
+                } catch (IllegalAccessException e) {
+                    fail(e.getMessage());
+                } catch (NoSuchFieldException e) {
+                    fail(e.getMessage());
+                }
+            }
+        });
     }
 
     // Make sure that including with a generic parameter works

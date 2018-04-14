@@ -16,7 +16,7 @@
 
 package android.databinding.testapp;
 
-import android.databinding.ObservableBoolean;
+import androidx.databinding.ObservableBoolean;
 import android.databinding.testapp.databinding.ObservableAdapterBinding;
 import android.support.test.annotation.UiThreadTest;
 import android.support.test.runner.AndroidJUnit4;

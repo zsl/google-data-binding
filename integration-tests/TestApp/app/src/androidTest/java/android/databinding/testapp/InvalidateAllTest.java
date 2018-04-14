@@ -1,7 +1,7 @@
 package android.databinding.testapp;
 
-import android.databinding.OnRebindCallback;
-import android.databinding.ViewDataBinding;
+import androidx.databinding.OnRebindCallback;
+import androidx.databinding.ViewDataBinding;
 import android.databinding.testapp.databinding.InvalidateAllLayoutBinding;
 import android.databinding.testapp.vo.NotBindableVo;
 import android.support.test.runner.AndroidJUnit4;

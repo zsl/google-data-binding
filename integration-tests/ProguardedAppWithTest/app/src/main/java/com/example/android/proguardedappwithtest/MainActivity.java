@@ -1,12 +1,13 @@
 package com.example.android.proguardedappwithtest;
 
 import android.app.Activity;
-import android.databinding.DataBindingUtil;
+import androidx.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.example.androidx.proguardedappwithtest.R;
 import com.example.android.proguardedappwithtest.vo.User;
-import com.example.android.proguardedappwithtest.databinding.ActivityMainBinding;
+import com.example.androidx.proguardedappwithtest.databinding.ActivityMainBinding;
 public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {

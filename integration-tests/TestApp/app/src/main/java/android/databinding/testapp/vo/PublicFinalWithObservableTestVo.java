@@ -13,8 +13,8 @@
 
 package android.databinding.testapp.vo;
 
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
 import android.databinding.testapp.BR;
 import android.databinding.testapp.R;
 

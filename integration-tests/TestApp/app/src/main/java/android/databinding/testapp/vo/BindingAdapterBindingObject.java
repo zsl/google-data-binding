@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.BaseObservable;
+import androidx.databinding.BaseObservable;
 
 public abstract class BindingAdapterBindingObject extends BaseObservable {
 

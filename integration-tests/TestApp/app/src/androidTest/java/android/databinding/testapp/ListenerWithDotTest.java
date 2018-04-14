@@ -16,7 +16,7 @@
 
 package android.databinding.testapp;
 
-import android.databinding.ViewStubProxy;
+import androidx.databinding.ViewStubProxy;
 import android.databinding.testapp.databinding.ListenersWithDotBinding;
 import android.databinding.testapp.vo.ListenerBindingObject;
 import android.databinding.testapp.vo.ListenerBindingObject.Inner;

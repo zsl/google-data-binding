@@ -18,6 +18,9 @@ build/kotlin-build/caches/version.txt
 integration-tests/*/build
 integration-tests/*/gradlew
 integration-tests/*/gradle
+integration-tests-support/*/gradle
+integration-tests-support/*/build
+integration-tests-support/*/gradlew
 extensions/gradle
 extensions/gradlew
 extensions-support/gradle

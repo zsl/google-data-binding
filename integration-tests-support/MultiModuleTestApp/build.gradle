@@ -1,0 +1,17 @@
+buildscript {
+    def runningInIde = project.hasProperty('android.injected.invoked.from.ide')
+    rootProject.ext.runningInIde = runningInIde
+    if (runningInIde) {
+        apply from: "../ideCommonBuildScript.gradle"
+    } else {
+        apply from: "../commonHeader.gradle"
+        apply from: "../commonBuildScript.gradle"
+    }
+}
+if (!rootProject.ext.runningInIde) {
+    apply from: "../commonHeader.gradle"
+    subprojects {
+        project.apply from: "../../commonHeader.gradle"
+        project.apply from: "../../commonLocalRepo.gradle"
+    }
+}

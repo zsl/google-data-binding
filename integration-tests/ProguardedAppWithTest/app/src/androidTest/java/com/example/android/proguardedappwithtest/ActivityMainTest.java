@@ -6,6 +6,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import com.example.androidx.proguardedappwithtest.R;
 import android.view.View;
 import android.widget.TextView;
 

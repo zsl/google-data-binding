@@ -21,9 +21,9 @@ android {
     buildToolsVersion rootProject.buildToolsVersion
 
     defaultConfig {
-        applicationId "com.example.android.instantapp.app"
+        applicationId "com.example.androidx.instantapp.app"
         minSdkVersion 14
-        targetSdkVersion rootProject.latestCompileSdk
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
     }

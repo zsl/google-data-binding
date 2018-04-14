@@ -121,6 +121,10 @@ class LibTypes(val useAndroidX: Boolean) {
         convert("android.support.annotation.Nullable")
     }
 
+    val lifecycleOwner by lazy(LazyThreadSafetyMode.NONE) {
+        convert("android.arch.lifecycle.LifecycleOwner")
+    }
+
     val bindableClass = when {
         useAndroidX -> androidx.databinding.Bindable::class.java
         else -> android.databinding.Bindable::class.java

@@ -13,7 +13,7 @@
 
 package android.databinding.testapp;
 
-import android.databinding.ViewDataBinding;
+import androidx.databinding.ViewDataBinding;
 
 public class BaseDataBinderTest<T extends ViewDataBinding>
         extends TestActivityTestBase<T, TestActivity> {

@@ -13,7 +13,7 @@
 
 package android.databinding.testapp;
 
-import android.databinding.DataBindingUtil;
+import androidx.databinding.DataBindingUtil;
 import android.support.test.runner.AndroidJUnit4;
 
 import org.junit.Test;

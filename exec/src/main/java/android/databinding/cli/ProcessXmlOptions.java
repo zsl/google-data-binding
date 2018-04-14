@@ -58,6 +58,14 @@ public class ProcessXmlOptions {
                             + " layout-info out folder.")
     private boolean zipLayoutInfo = false;
 
+    /**
+     * True if Data Binding should generate code that uses androidX.
+     */
+    @Parameter(names = "-useAndroidX",
+            required = false,
+            description = "Specifies whether data binding should use androidX packages or not")
+    private boolean useAndroidX = true;
+
     public String getAppId() {
         return appId;
     }
@@ -110,6 +118,14 @@ public class ProcessXmlOptions {
         this.layoutInfoOutput = layoutInfoOutput;
     }
 
+    public boolean getUseAndroidX() {
+        return useAndroidX;
+    }
+
+    public void setUseAndroidX(boolean useAndroidX) {
+        this.useAndroidX = useAndroidX;
+    }
+
     public void setZipLayoutInfo(boolean zipLayoutInfo) {
         this.zipLayoutInfo = zipLayoutInfo;
     }
@@ -124,6 +140,7 @@ public class ProcessXmlOptions {
                 ", resOutput=" + resOutput +
                 ", layoutInfoOutput=" + layoutInfoOutput +
                 ", zipLayoutInfo=" + zipLayoutInfo +
+                ", useAndroidX=" + useAndroidX +
                 '}';
     }
 }

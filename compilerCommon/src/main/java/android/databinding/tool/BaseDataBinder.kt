@@ -25,8 +25,10 @@ import android.databinding.tool.writer.JavaFileWriter
 import com.squareup.javapoet.JavaFile
 
 @Suppress("unused")// used by tools
-class BaseDataBinder(val input : LayoutInfoInput) {
-    private val resourceBundle : ResourceBundle = ResourceBundle(input.packageName)
+class BaseDataBinder(
+        val input : LayoutInfoInput) {
+    private val resourceBundle : ResourceBundle = ResourceBundle(
+            input.packageName, input.args.useAndroidX)
     init {
         input.filesToConsider
                 .forEach {

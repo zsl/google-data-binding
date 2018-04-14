@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.DataBinderTrojan;
+import androidx.databinding.DataBinderTrojan;
 import android.databinding.testapp.databinding.VersionCheckBinding;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;

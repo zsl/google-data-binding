@@ -16,10 +16,10 @@
 
 package com.example.android.instantapp.featureA;
 
-import android.databinding.DataBindingUtil;
+import androidx.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.Debug;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.android.instantapp.featureA.databinding.ActivityMainABinding;
 import com.example.android.instantapp.vo.ObservablePojo;

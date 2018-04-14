@@ -16,7 +16,7 @@
 package android.databinding.testapp.adapter;
 
 import android.annotation.TargetApi;
-import android.databinding.BindingAdapter;
+import androidx.databinding.BindingAdapter;
 import android.os.Build.VERSION_CODES;
 import android.view.View;
 

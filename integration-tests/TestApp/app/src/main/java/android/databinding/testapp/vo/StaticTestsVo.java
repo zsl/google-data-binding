@@ -12,7 +12,7 @@
  */
 package android.databinding.testapp.vo;
 
-import android.databinding.ObservableField;
+import androidx.databinding.ObservableField;
 
 public class StaticTestsVo {
     public static String ourStaticField = "Static";

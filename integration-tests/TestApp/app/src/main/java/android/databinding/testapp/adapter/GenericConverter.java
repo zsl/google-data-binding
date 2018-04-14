@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp.adapter;
 
-import android.databinding.BindingConversion;
+import androidx.databinding.BindingConversion;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

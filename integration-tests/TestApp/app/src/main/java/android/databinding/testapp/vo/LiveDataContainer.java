@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp.vo;
 
-import android.arch.lifecycle.MutableLiveData;
+import androidx.lifecycle.MutableLiveData;
 
 public class LiveDataContainer {
     private int value = 0;

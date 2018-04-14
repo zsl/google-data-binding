@@ -15,7 +15,7 @@
  */
 package android.databinding.testapp;
 
-import android.databinding.ViewStubProxy;
+import androidx.databinding.ViewStubProxy;
 import android.databinding.testapp.databinding.ViewStubBinding;
 import android.databinding.testapp.databinding.ViewStubContentsBinding;
 import android.support.test.annotation.UiThreadTest;

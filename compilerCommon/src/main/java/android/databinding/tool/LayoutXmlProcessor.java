@@ -54,10 +54,13 @@ public class LayoutXmlProcessor {
     private final OriginalFileLookup mOriginalFileLookup;
     private final LayoutFileParser mLayoutFileParser = new LayoutFileParser();
 
-    public LayoutXmlProcessor(String applicationPackage,
-            JavaFileWriter fileWriter, OriginalFileLookup originalFileLookup) {
+    public LayoutXmlProcessor(
+            String applicationPackage,
+            JavaFileWriter fileWriter,
+            OriginalFileLookup originalFileLookup,
+            boolean useAndroidX) {
         mFileWriter = fileWriter;
-        mResourceBundle = new ResourceBundle(applicationPackage);
+        mResourceBundle = new ResourceBundle(applicationPackage, useAndroidX);
         mOriginalFileLookup = originalFileLookup;
     }
 
