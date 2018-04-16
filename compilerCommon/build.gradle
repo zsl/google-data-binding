@@ -98,6 +98,7 @@ tasks.create(name : 'exportBuildVersions').doLast {
 tasks['jar'].dependsOn('exportBuildVersions')
 tasks['exportBuildVersions'].dependsOn('processResources')
 
+archivesBaseName = "databinding-compiler-common"
 project.ext.pomName = 'Data Binding Compiler Common'
 project.ext.pomDesc = 'Common library that can be shared between different build tools'
 enablePublishing(this, true)

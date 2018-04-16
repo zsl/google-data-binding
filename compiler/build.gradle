@@ -63,6 +63,7 @@ javadoc {
    options.addStringOption('Xdoclint:none', '-quiet')
 }
 
+archivesBaseName = "databinding-compiler"
 project.ext.pomName = 'Data Binding Annotation Processor'
 project.ext.pomDesc = 'The annotation processor for Data Binding. Generates binding classes for runtime.'
 enablePublishing(this, true)

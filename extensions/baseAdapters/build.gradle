@@ -73,7 +73,7 @@ android.libraryVariants.all { variant ->
 uploadArchives {
     repositories {
         mavenDeployer {
-            pom.artifactId = "adapters"
+            pom.artifactId = "databinding-adapters"
             pom.project {
                 licenses {
                     license {
@@ -86,7 +86,6 @@ uploadArchives {
         }
     }
 }
-
 
 task prebuild(type : Copy) {
     dependsOn uploadArchives
