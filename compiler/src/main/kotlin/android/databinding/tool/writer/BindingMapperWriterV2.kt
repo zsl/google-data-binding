@@ -16,7 +16,7 @@
 
 package android.databinding.tool.writer
 
-import android.databinding.tool.DataBindingCompilerArgs
+import android.databinding.tool.CompilerArguments
 import android.databinding.tool.LibTypes
 import android.databinding.tool.ext.L
 import android.databinding.tool.ext.N
@@ -40,7 +40,7 @@ import javax.annotation.Generated
 import javax.lang.model.element.Modifier
 
 class BindingMapperWriterV2(private val genClassInfoLog: GenClassInfoLog,
-                            compilerArgs: DataBindingCompilerArgs,
+                            compilerArgs: CompilerArguments,
                             libTypes: LibTypes) {
     companion object {
         private val VIEW = ClassName

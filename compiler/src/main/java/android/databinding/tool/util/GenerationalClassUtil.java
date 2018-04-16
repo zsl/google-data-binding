@@ -19,7 +19,7 @@ package android.databinding.tool.util;
 import android.databinding.annotationprocessor.ProcessExpressions;
 import android.databinding.tool.Context;
 import android.databinding.tool.DataBindingBuilder;
-import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.CompilerArguments;
 
 import com.android.annotations.Nullable;
 
@@ -55,7 +55,7 @@ public class GenerationalClassUtil {
 
     private ExtensionFilter[] mEnabledExtensions;
 
-    public static GenerationalClassUtil create(DataBindingCompilerArgs args) {
+    public static GenerationalClassUtil create(CompilerArguments args) {
         return new GenerationalClassUtil(args);
     }
 
@@ -68,17 +68,17 @@ public class GenerationalClassUtil {
         mInputDirs = Collections.singletonList(inputFolder);
     }
 
-    private GenerationalClassUtil(DataBindingCompilerArgs args) {
+    private GenerationalClassUtil(CompilerArguments args) {
         mEnabledExtensions = ExtensionFilter.values();
-        if (StringUtils.isNotBlank(args.getAarOutFolder())) {
-            mIncrementalOutDir = new File(args.getAarOutFolder(),
+        if (StringUtils.isNotBlank(args.getAarOutDir() != null ? args.getAarOutDir().getPath() : null)) {
+            mIncrementalOutDir = new File(args.getAarOutDir(),
                     DataBindingBuilder.INCREMENTAL_BIN_AAR_DIR);
         } else {
             mIncrementalOutDir = null;
         }
         mInputDirs = new ArrayList<>();
-        if (StringUtils.isNotBlank(args.getBuildFolder())) {
-            mInputDirs.add(new File(args.getBuildFolder(),
+        if (StringUtils.isNotBlank(args.getBuildDir().getPath())) {
+            mInputDirs.add(new File(args.getBuildDir(),
                     DataBindingBuilder.ARTIFACT_FILES_DIR_FROM_LIBS));
         }
     }

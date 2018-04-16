@@ -17,7 +17,7 @@ package android.databinding.annotationprocessor;
 
 import android.databinding.tool.BindingAdapterCompat;
 import android.databinding.tool.BindingMethodsCompat;
-import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.CompilerArguments;
 import android.databinding.tool.InverseBindingAdapterCompat;
 import android.databinding.tool.InverseBindingMethodsCompat;
 import android.databinding.tool.InverseMethodCompat;
@@ -53,7 +53,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnv,
                                 ProcessingEnvironment processingEnvironment,
-                                DataBindingCompilerArgs args) {
+                                CompilerArguments args) {
         L.d("processing adapters");
         final ModelAnalyzer modelAnalyzer = ModelAnalyzer.getInstance();
         Preconditions.checkNotNull(modelAnalyzer, "Model analyzer should be"
@@ -84,7 +84,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
     @Override
     public void onProcessingOver(RoundEnvironment roundEnvironment,
                                  ProcessingEnvironment processingEnvironment,
-                                 DataBindingCompilerArgs args) {
+                                 CompilerArguments args) {
 
     }
 

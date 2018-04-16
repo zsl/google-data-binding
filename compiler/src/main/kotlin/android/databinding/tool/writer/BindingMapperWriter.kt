@@ -13,7 +13,7 @@
 
 package android.databinding.tool.writer
 
-import android.databinding.tool.DataBindingCompilerArgs
+import android.databinding.tool.CompilerArguments
 import android.databinding.tool.LayoutBinder
 import android.databinding.tool.LibTypes
 
@@ -21,7 +21,7 @@ class BindingMapperWriter(
         var pkg : String,
         var className: String,
         private val layoutBinders : List<LayoutBinder>,
-        private val compilerArgs: DataBindingCompilerArgs,
+        private val compilerArgs: CompilerArguments,
         val libTypes: LibTypes) {
     private val appClassName : String = className
     private val testClassName = "Test$className"

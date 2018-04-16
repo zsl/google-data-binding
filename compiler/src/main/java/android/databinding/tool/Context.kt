@@ -39,7 +39,7 @@ object Context {
     private val logger : AnnotationLogger = AnnotationLogger()
     @JvmStatic
     fun init(processingEnvironment: ProcessingEnvironment,
-             args : DataBindingCompilerArgs) {
+             args : CompilerArguments) {
         L.setClient(logger)
         val hasAndroidXBinding = discoverAndroidX(processingEnvironment)
         libTypes = LibTypes(hasAndroidXBinding)
@@ -47,7 +47,7 @@ object Context {
         modelAnalyzer = AnnotationAnalyzer(processingEnvironment, libTypes)
         typeUtil = modelAnalyzer!!.createTypeUtil()
         setterStore = SetterStore.create(modelAnalyzer, generationalClassUtil)
-        sdkUtil = SdkUtil.create(File(args.sdkDir), args.minApi)
+        sdkUtil = SdkUtil.create(args.sdkDir, args.minApi)
 
     }
 

@@ -17,7 +17,7 @@
 package android.databinding.annotationprocessor
 
 import android.databinding.tool.CompilerChef
-import android.databinding.tool.DataBindingCompilerArgs
+import android.databinding.tool.CompilerArguments
 import android.databinding.tool.reflection.ModelAnalyzer
 import android.databinding.tool.store.ResourceBundle
 import android.databinding.tool.writer.BindingMapperWriterV2
@@ -31,7 +31,7 @@ import javax.annotation.processing.ProcessingEnvironment
  */
 class ProcessExpressionsFromV1Compat(
     private val processingEnvironment: ProcessingEnvironment,
-    private val args : DataBindingCompilerArgs,
+    private val args : CompilerArguments,
     private val intermediates : List<ProcessExpressions.IntermediateV2>,
     private val writer : JavaFileWriter) {
     /**
@@ -81,7 +81,7 @@ class ProcessExpressionsFromV1Compat(
      */
     private fun writeResourceBundle(
         resourceBundle: ResourceBundle,
-        compilerArgs: DataBindingCompilerArgs): CompilerChef? {
+        compilerArgs: CompilerArguments): CompilerChef? {
         val compilerChef = CompilerChef.createChef(
             resourceBundle,
             writer, compilerArgs

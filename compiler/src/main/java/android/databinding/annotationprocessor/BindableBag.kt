@@ -17,9 +17,9 @@
 package android.databinding.annotationprocessor
 
 import android.databinding.annotationprocessor.ProcessBindable.Intermediate
+import android.databinding.tool.CompilerArguments
 import android.databinding.tool.Context
 import android.databinding.tool.DataBindingBuilder
-import android.databinding.tool.DataBindingCompilerArgs
 import android.databinding.tool.FeaturePackageInfo
 import android.databinding.tool.util.GenerationalClassUtil
 import android.databinding.tool.util.L
@@ -38,7 +38,7 @@ import javax.lang.model.util.ElementFilter
  * the same fields between dependent features.
  */
 class BindableBag(
-        private val compilerArgs: DataBindingCompilerArgs,
+        private val compilerArgs: CompilerArguments,
         // BR fields in curretn module
         moduleProperties: Set<String>,
         private val env: ProcessingEnvironment) {
@@ -54,7 +54,7 @@ class BindableBag(
     // Information about the Feature module. Currently we only use the package offset id assigned
     // by gradle. That id allows us to avoid id conflicts between different features.
     private var featureInfo = if (compilerArgs.isFeature) {
-        loadFeatureInfo(compilerArgs.featureInfoFolder)
+        loadFeatureInfo(compilerArgs.featureInfoDir)
     } else {
         null
     }
@@ -149,7 +149,7 @@ class BindableBag(
      * generate their BR classes.
      */
     private fun loadPreviousBRFilesForFeature(captureValues: Boolean): List<PackageProps> {
-        val inputFolder = File(compilerArgs.featureInfoFolder)
+        val inputFolder = compilerArgs.featureInfoDir
         val util = GenerationalClassUtil(inputFolder, GenerationalClassUtil.ExtensionFilter.BR)
         return loadPreviousBRFiles(util, captureValues)
     }
@@ -180,10 +180,10 @@ class BindableBag(
         /**
          * loads the feature info from build folder to get its id generator offset.
          */
-        fun loadFeatureInfo(path: String?): FeaturePackageInfo {
+        fun loadFeatureInfo(featureInfoDir: File?): FeaturePackageInfo {
             var file: File? = null
-            if (path != null) {
-                file = File(path, DataBindingBuilder.FEATURE_BR_OFFSET_FILE_NAME)
+            if (featureInfoDir != null) {
+                file = File(featureInfoDir, DataBindingBuilder.FEATURE_BR_OFFSET_FILE_NAME)
             }
             if (file == null || !file.exists()) {
                 L.e("DataBinding compiler args must include the feature info json when" +
