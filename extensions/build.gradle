@@ -148,16 +148,18 @@ def getRootDocsTask(p) {
             options.addStringOption("dac_dataname", "DATABINDING_DATA")
             options.addStringOption("toroot", "/")
             options.addStringOption("hdf", "dac")
+            options.addBooleanOption("yamlV2", true)
             options.addBooleanOption("devsite", true)
         }
         title = null
+        def sdkVersion = dataBindingConfig.compileSdkVersionInt
         destinationDir = new File(buildDir, docDir)
         // add baseLibrary sources, not pretty but easy solution.
         source = files('../baseLibrary/src/main/java')
-        classpath = files("${rootDir}/../../../prebuilts/sdk/${dataBindingConfig.compileSdkVersion}/android.jar")
+        classpath = files("${rootDir}/../../../prebuilts/sdk/${sdkVersion}/android.jar")
         options.addStringOption "federate Android", "http://developer.android.com"
         options.addStringOption "federationapi Android",
-                "${rootDir}/../../../prebuilts/sdk/api/${dataBindingConfig.compileSdkVersion}.txt"
+                "${rootDir}/../../../prebuilts/sdk/api/${sdkVersion}.txt"
         options.encoding = "UTF-8"
         options.doclet = "com.google.doclava.Doclava"
         options.docletpath = p.configurations.getByName("doclava").resolve().toList()
