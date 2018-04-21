@@ -22,7 +22,16 @@
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
-    <orderEntry type="library" name="javapoet-1.8.0" level="project" />
+    <orderEntry type="module-library">
+      <library name="javapoet" type="repository">
+        <properties maven-id="com.squareup:javapoet:1.8.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/squareup/javapoet/1.8.0/javapoet-1.8.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
     <orderEntry type="library" name="jetifier-core" level="project" />
     <orderEntry type="library" name="gson" level="project" />
   </component>
