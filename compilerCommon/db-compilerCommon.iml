@@ -17,7 +17,7 @@
     <orderEntry type="module" module-name="db-baseLibrarySupport" exported="" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" />
     <orderEntry type="module-library">
-      <library name="com.googlecode.juniversalchardet:juniversalchardet:1.0.3" type="repository">
+      <library name="juniversalchardet" type="repository">
         <properties maven-id="com.googlecode.juniversalchardet:juniversalchardet:1.0.3" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3.jar!/" />
