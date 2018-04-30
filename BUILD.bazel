@@ -10,11 +10,11 @@ load("//tools/base/bazel:merge_archives.bzl", "merge_archives")
 exports_files(["databinding.properties"])
 
 # TODO: move these to baseLibrary/, once we can use build.bazel
+# managed by go/iml_to_build
 iml_module(
     name = "studio.baseLibrary",
     srcs = ["baseLibrary/src/main/java"],
     iml_files = ["baseLibrary/db-baseLibrary.iml"],
-    tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -23,11 +23,11 @@ iml_module(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "studio.baseLibrarySupport",
     srcs = ["baseLibrarySupport/src/main/java"],
     iml_files = ["baseLibrarySupport/db-baseLibrarySupport.iml"],
-    tags = ["managed"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
@@ -76,6 +76,7 @@ maven_pom(
     source = "//tools/buildSrc/base:build_version",
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "studio.compilerCommon",
     # do not sort: must match IML order
@@ -86,7 +87,6 @@ iml_module(
         "compilerCommon/src/main/grammar-gen",
     ],
     iml_files = ["compilerCommon/db-compilerCommon.iml"],
-    tags = ["managed"],
     test_srcs = ["compilerCommon/src/test/java"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -99,13 +99,13 @@ iml_module(
         "//tools/data-binding:studio.baseLibrary[module]",
         "//tools/data-binding:studio.baseLibrarySupport[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
-        "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
+        "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:jar",
         "//tools/idea/.idea/libraries:JUnit4[test]",
-        "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
+        "//prebuilts/tools/common/m2/repository/org/antlr/antlr4-runtime/4.5.3:jar",
         "//tools/idea/.idea/libraries:commons-io",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
-        "//tools/idea/.idea/libraries:javapoet-1.8.0",
+        "//prebuilts/tools/common/m2/repository/com/squareup/javapoet/1.8.0:jar",
         "//tools/idea/.idea/libraries:jetifier-core",
         "//tools/idea/.idea/libraries:gson",
     ],
@@ -185,6 +185,7 @@ kotlin_test(
     ],
 )
 
+# managed by go/iml_to_build
 iml_module(
     name = "studio.compiler",
     # do not sort: must match IML order
@@ -194,7 +195,6 @@ iml_module(
     ],
     iml_files = ["compiler/db-compiler.iml"],
     resources = ["compiler/src/main/resources"],
-    tags = ["managed"],
     test_data = [
         "//prebuilts/studio/sdk:platforms/android-24",
         "//prebuilts/studio/sdk:platform-tools",
@@ -212,13 +212,13 @@ iml_module(
         "//tools/data-binding:studio.baseLibrarySupport[module]",
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module]",
         "//tools/data-binding:studio.compilerCommon[module]",
-        "//tools/idea/.idea/libraries:antlr4-runtime-4.5.3",
+        "//prebuilts/tools/common/m2/repository/org/antlr/antlr4-runtime/4.5.3:jar",
         "//tools/idea/.idea/libraries:commons-io",
-        "//tools/idea/.idea/libraries:juniversalchardet-1.0.3",
+        "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:jar",
         "//tools/idea/.idea/libraries:commons-lang",
         "//tools/idea/.idea/libraries:Guava",
         "//tools/idea/.idea/libraries:JUnit4[test]",
-        "//tools/idea/.idea/libraries:javapoet-1.8.0",
+        "//prebuilts/tools/common/m2/repository/com/squareup/javapoet/1.8.0:jar",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
     ],
 )
@@ -316,7 +316,6 @@ gradle_build(
     data = [
         "//tools/base/build-system:gradle-distrib",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/sdk:support_latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//tools/buildSrc/base:version.properties",
@@ -348,7 +347,6 @@ gradle_build(
     data = [
         "//tools/base/build-system:gradle-distrib",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//prebuilts/studio/sdk:support_latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//tools/buildSrc/base:version.properties",
