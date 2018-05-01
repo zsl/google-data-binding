@@ -156,10 +156,10 @@ def getRootDocsTask(p) {
         destinationDir = new File(buildDir, docDir)
         // add baseLibrary sources, not pretty but easy solution.
         source = files('../baseLibrary/src/main/java')
-        classpath = files("${rootDir}/../../../prebuilts/sdk/${sdkVersion}/android.jar")
+        classpath = files("${rootDir}/../../../prebuilts/sdk/${sdkVersion}/public/android.jar")
         options.addStringOption "federate Android", "http://developer.android.com"
         options.addStringOption "federationapi Android",
-                "${rootDir}/../../../prebuilts/sdk/api/${sdkVersion}.txt"
+                "${rootDir}/../../../prebuilts/sdk/${sdkVersion}/public/api/android.txt"
         options.encoding = "UTF-8"
         options.doclet = "com.google.doclava.Doclava"
         options.docletpath = p.configurations.getByName("doclava").resolve().toList()
