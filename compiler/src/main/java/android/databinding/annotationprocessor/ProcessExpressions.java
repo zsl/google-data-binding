@@ -18,7 +18,7 @@ package android.databinding.annotationprocessor;
 
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.Context;
-import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.CompilerArguments;
 import android.databinding.tool.LayoutXmlProcessor;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
@@ -72,7 +72,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnvironment,
-            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args)
+            ProcessingEnvironment processingEnvironment, CompilerArguments args)
             throws JAXBException {
         try {
             ResourceBundle resourceBundle;
@@ -85,8 +85,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             CompilerChef v1CompatChef = null;
             if (args.isEnableV2()) {
                 try {
-                    infoLog = ResourceBundle.loadClassInfoFromFolder(
-                            new File(args.getClassLogDir()));
+                    infoLog = ResourceBundle.loadClassInfoFromFolder(args.getClassLogDir());
                 } catch (IOException e) {
                     infoLog = new GenClassInfoLog();
                     Scope.defer(new ScopedException("cannot load the info log from %s",
@@ -114,7 +113,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
                     }
                 }
             }
-            IntermediateV2 mine = createIntermediateFromLayouts(args.getXmlOutDir(),
+            IntermediateV2 mine = createIntermediateFromLayouts(args.getLayoutInfoDir(),
                     intermediateList);
             if (mine != null) {
                 if (!args.isEnableV2()) {
@@ -152,7 +151,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     }
 
     private void saveIntermediate(ProcessingEnvironment processingEnvironment,
-            DataBindingCompilerArgs args, IntermediateV2 intermediate) {
+            CompilerArguments args, IntermediateV2 intermediate) {
         GenerationalClassUtil.get().writeIntermediateFile(args.getModulePackage(),
                 args.getModulePackage() +
                         GenerationalClassUtil.ExtensionFilter.LAYOUT.getExtension(),
@@ -161,22 +160,21 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     @Override
     public void onProcessingOver(RoundEnvironment roundEnvironment,
-            ProcessingEnvironment processingEnvironment, DataBindingCompilerArgs args) {
+            ProcessingEnvironment processingEnvironment, CompilerArguments args) {
     }
 
-    private IntermediateV2 createIntermediateFromLayouts(String layoutInfoFolderPath,
+    private IntermediateV2 createIntermediateFromLayouts(File layoutInfoDir,
             List<IntermediateV2> intermediateList) {
         final Set<String> excludeList = new HashSet<String>();
         for (IntermediateV2 lib : intermediateList) {
             excludeList.addAll(lib.mLayoutInfoMap.keySet());
         }
-        final File layoutInfoFolder = new File(layoutInfoFolderPath);
-        if (!layoutInfoFolder.isDirectory()) {
-            L.d("layout info folder does not exist, skipping for %s", layoutInfoFolderPath);
+        if (!layoutInfoDir.isDirectory()) {
+            L.d("layout info folder does not exist, skipping for %s", layoutInfoDir.getPath());
             return null;
         }
         IntermediateV2 result = new IntermediateV2();
-        for (File layoutFile : layoutInfoFolder.listFiles(new FilenameFilter() {
+        for (File layoutFile : layoutInfoDir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".xml") && !excludeList.contains(name);
@@ -190,7 +188,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         }
 
         // also accept zip files
-        for (File zipFile : layoutInfoFolder.listFiles(new FilenameFilter() {
+        for (File zipFile : layoutInfoDir.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".zip");
@@ -226,7 +224,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
 
     private void writeResourceBundle(
             ResourceBundle resourceBundle,
-            DataBindingCompilerArgs compilerArgs,
+            CompilerArguments compilerArgs,
             @Nullable GenClassInfoLog classInfoLog,
             @NonNull CompilerChef v1CompatChef) {
         final CompilerChef compilerChef = CompilerChef.createChef(resourceBundle,
@@ -251,7 +249,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             }
         }
         if (compilerArgs.isLibrary() && !compilerArgs.isTestVariant() &&
-                compilerArgs.getExportClassListTo() == null) {
+                compilerArgs.getExportClassListOutFile() == null) {
             L.e("When compiling a library module, build info must include exportClassListTo path");
         }
         if (compilerArgs.isLibrary() && !compilerArgs.isTestVariant()) {
@@ -262,10 +260,10 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             }
             String out = Joiner.on(StringUtils.LINE_SEPARATOR).join(classNames);
             L.d("Writing list of classes to %s . \nList:%s",
-                    compilerArgs.getExportClassListTo(), out);
+                    compilerArgs.getExportClassListOutFile(), out);
             try {
                 //noinspection ConstantConditions
-                FileUtils.write(new File(compilerArgs.getExportClassListTo()), out);
+                FileUtils.write(compilerArgs.getExportClassListOutFile(), out);
             } catch (IOException e) {
                 L.e(e, "Cannot create list of written classes");
             }

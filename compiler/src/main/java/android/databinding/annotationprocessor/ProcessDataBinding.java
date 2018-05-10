@@ -18,7 +18,7 @@ package android.databinding.annotationprocessor;
 
 import android.databinding.tool.CompilerChef;
 import android.databinding.tool.Context;
-import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.CompilerArguments;
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
 import android.databinding.tool.store.GenClassInfoLog;
@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
  */
 public class ProcessDataBinding extends AbstractProcessor {
     private List<ProcessingStep> mProcessingSteps;
-    private DataBindingCompilerArgs mCompilerArgs;
+    private CompilerArguments mCompilerArgs;
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
@@ -174,10 +174,9 @@ public class ProcessDataBinding extends AbstractProcessor {
      */
     private synchronized void readArguments() {
         try {
-            mCompilerArgs = DataBindingCompilerArgs
-                    .readFromOptions(processingEnv.getOptions());
-            L.setDebugLog(mCompilerArgs.enableDebugLogs());
-            ScopedException.encodeOutput(mCompilerArgs.shouldPrintEncodedErrorLogs());
+            mCompilerArgs = CompilerArguments.readFromOptions(processingEnv.getOptions());
+            L.setDebugLog(mCompilerArgs.getEnableDebugLogs());
+            ScopedException.encodeOutput(mCompilerArgs.getPrintEncodedErrorLogs());
         } catch (Throwable t) {
             String allParam = processingEnv.getOptions().entrySet().stream().map(
                     (entry) -> entry.getKey() + " : " + entry.getValue())
@@ -189,7 +188,7 @@ public class ProcessDataBinding extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedOptions() {
-        return DataBindingCompilerArgs.ALL_PARAMS;
+        return CompilerArguments.ALL_PARAMS;
     }
 
     /**
@@ -206,7 +205,7 @@ public class ProcessDataBinding extends AbstractProcessor {
 
         private boolean runStep(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
-                DataBindingCompilerArgs args) throws JAXBException {
+                CompilerArguments args) throws JAXBException {
             if (mDone) {
                 return true;
             }
@@ -221,7 +220,7 @@ public class ProcessDataBinding extends AbstractProcessor {
          */
         abstract public boolean onHandleStep(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
-                DataBindingCompilerArgs args) throws JAXBException;
+                CompilerArguments args) throws JAXBException;
 
         /**
          * Invoked when processing is done. A good place to generate the output if the
@@ -229,7 +228,7 @@ public class ProcessDataBinding extends AbstractProcessor {
          */
         abstract public void onProcessingOver(RoundEnvironment roundEnvironment,
                 ProcessingEnvironment processingEnvironment,
-                DataBindingCompilerArgs args);
+                CompilerArguments args);
     }
 
     interface Callback {

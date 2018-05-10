@@ -91,7 +91,7 @@ public class CompilerChef {
     public static CompilerChef createChef(
             ResourceBundle bundle,
             JavaFileWriter fileWriter,
-            DataBindingCompilerArgs compilerArgs) {
+            CompilerArguments compilerArgs) {
         CompilerChef chef = new CompilerChef();
 
         chef.mResourceBundle = bundle;
@@ -178,7 +178,7 @@ public class CompilerChef {
 
     public void writeDataBinderMapper(
             ProcessingEnvironment processingEnv,
-            DataBindingCompilerArgs compilerArgs,
+            CompilerArguments compilerArgs,
             Map<String, Integer> brValueLookup,
             List<String> modulePackages) {
         if (compilerArgs.isEnableV2()) {
@@ -229,7 +229,7 @@ public class CompilerChef {
     }
 
     private void writeMapperForV1Compat(
-            DataBindingCompilerArgs compilerArgs,
+            CompilerArguments compilerArgs,
             Map<String, Integer> brValueLookup) {
         LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
         BindingMapperWriter dbr = new BindingMapperWriter(
@@ -253,7 +253,7 @@ public class CompilerChef {
      */
     private void writeMergedMapper(
             ProcessingEnvironment processingEnv,
-            DataBindingCompilerArgs compilerArgs,
+            CompilerArguments compilerArgs,
             List<String> modulePackages) {
         // figure out which mappers exists as they may not exist for v1 libs.
         List<String> availableDependencyModules = modulePackages.stream()
@@ -290,11 +290,11 @@ public class CompilerChef {
     }
 
     @NonNull
-    private Set<String> loadFeaturePackageIds(DataBindingCompilerArgs compilerArgs) {
-        if (compilerArgs.getBaseFeatureInfoFolder() == null) {
+    private Set<String> loadFeaturePackageIds(CompilerArguments compilerArgs) {
+        if (compilerArgs.getBaseFeatureInfoDir() == null) {
             return Collections.emptySet();
         }
-        File input = new File(compilerArgs.getBaseFeatureInfoFolder(),
+        File input = new File(compilerArgs.getBaseFeatureInfoDir(),
                 DataBindingBuilder.FEATURE_PACKAGE_LIST_FILE_NAME);
         if (!input.exists()) {
             return Collections.emptySet();
@@ -306,12 +306,11 @@ public class CompilerChef {
      * Generates a mapper that knows only about the bindings in this module (excl dependencies).
      */
     private void writeMapperForModule(
-            DataBindingCompilerArgs compilerArgs,
+            CompilerArguments compilerArgs,
             Map<String, Integer> brValueLookup) {
         GenClassInfoLog infoLog;
         try {
-            infoLog = ResourceBundle.loadClassInfoFromFolder(
-                    new File(compilerArgs.getClassLogDir()));
+            infoLog = ResourceBundle.loadClassInfoFromFolder(compilerArgs.getClassLogDir());
         } catch (IOException e) {
             Scope.defer(new ScopedException("Cannot read class info log"));
             infoLog = new GenClassInfoLog();

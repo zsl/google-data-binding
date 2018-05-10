@@ -17,7 +17,7 @@
 package android.databinding.annotationprocessor;
 
 import android.databinding.tool.CompilerChef.BindableHolder;
-import android.databinding.tool.DataBindingCompilerArgs;
+import android.databinding.tool.CompilerArguments;
 import android.databinding.tool.LibTypes;
 import android.databinding.tool.reflection.ModelAnalyzer;
 import android.databinding.tool.util.GenerationalClassUtil;
@@ -50,7 +50,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
 
     @Override
     public boolean onHandleStep(RoundEnvironment roundEnv, ProcessingEnvironment processingEnv,
-            DataBindingCompilerArgs args) {
+            CompilerArguments args) {
         if (mProperties == null) {
             mProperties = new IntermediateV1(args.getModulePackage());
             mergeLayoutVariables();
@@ -108,7 +108,7 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
     @Override
     public void onProcessingOver(RoundEnvironment roundEnvironment,
             ProcessingEnvironment processingEnvironment,
-            DataBindingCompilerArgs args) {
+            CompilerArguments args) {
     }
 
     private String createIntermediateFileName(String appPkg) {
@@ -117,10 +117,10 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
 
     private void generateBRClasses(
             ProcessingEnvironment processingEnv,
-            DataBindingCompilerArgs compilerArgs,
+            CompilerArguments compilerArgs,
             String pkg) {
         try {
-            DataBindingCompilerArgs.Type artifactType = compilerArgs.artifactType();
+            CompilerArguments.Type artifactType = compilerArgs.getArtifactType();
             L.d("************* Generating BR file %s. use final: %s", pkg, artifactType.name());
             HashSet<String> properties = new HashSet<>();
             mProperties.captureProperties(properties);
