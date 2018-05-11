@@ -16,17 +16,17 @@
 
 package android.databinding.tool
 
+import androidx.databinding.Bindable
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import javax.lang.model.element.Element
+import android.databinding.Bindable as LegacyBindable
 
 /**
  * Wrapper class when accessing Bindable annotation that handles both androidx and support namespaces
  */
 class BindableCompat(val dependencies : Array<String>) {
     companion object {
-        private val SUPPORT =  android.databinding.Bindable::class.java
-        private val ANDROID_X = androidx.databinding.Bindable::class.java
         @JvmStatic
         fun extractFrom(element : Element) : BindableCompat? {
             return extractSupport(element) ?: extractAndroidX(element)
@@ -43,31 +43,31 @@ class BindableCompat(val dependencies : Array<String>) {
         }
 
         private fun extractAndroidX(element: Element): BindableCompat? {
-            return element.getAnnotation(ANDROID_X)?.toCompat()
+            return element.getAnnotation(Bindable::class.java)?.toCompat()
         }
 
         private fun extractSupport(element: Element): BindableCompat? {
-            return element.getAnnotation(SUPPORT)?.toCompat()
+            return element.getAnnotation(LegacyBindable::class.java)?.toCompat()
         }
 
         private fun extractAndroidX(method: Method): BindableCompat? {
-            return method.getAnnotation(ANDROID_X)?.toCompat()
+            return method.getAnnotation(Bindable::class.java)?.toCompat()
         }
 
         private fun extractSupport(method : Method): BindableCompat? {
-            return method.getAnnotation(SUPPORT)?.toCompat()
+            return method.getAnnotation(LegacyBindable::class.java)?.toCompat()
         }
 
         private fun extractAndroidX(field: Field): BindableCompat? {
-            return field.getAnnotation(ANDROID_X)?.toCompat()
+            return field.getAnnotation(Bindable::class.java)?.toCompat()
         }
 
         private fun extractSupport(field: Field): BindableCompat? {
-            return field.getAnnotation(SUPPORT)?.toCompat()
+            return field.getAnnotation(LegacyBindable::class.java)?.toCompat()
         }
 
-        private fun android.databinding.Bindable.toCompat() = BindableCompat(value)
+        private fun LegacyBindable.toCompat() = BindableCompat(value)
 
-        private fun androidx.databinding.Bindable.toCompat() = BindableCompat(value)
+        private fun Bindable.toCompat() = BindableCompat(value)
     }
 }
