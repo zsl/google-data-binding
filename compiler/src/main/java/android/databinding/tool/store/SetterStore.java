@@ -179,7 +179,7 @@ public class SetterStore {
     private static SetterStore load(ModelAnalyzer modelAnalyzer,
                                     GenerationalClassUtil generationalClassUtil) {
         IntermediateV3 store = new IntermediateV3();
-        List<Intermediate> previousStores = GenerationalClassUtil.get()
+        List<Intermediate> previousStores = generationalClassUtil
                 .loadObjects(GenerationalClassUtil.ExtensionFilter.SETTER_STORE);
         for (Intermediate intermediate : previousStores) {
             merge(store, intermediate);
@@ -190,11 +190,8 @@ public class SetterStore {
     public void addRenamedMethod(String attribute, String declaringClass, String method,
             TypeElement declaredOn) {
         attribute = stripNamespace(attribute);
-        HashMap<String, MethodDescription> renamed = mStore.renamedMethods.get(attribute);
-        if (renamed == null) {
-            renamed = new HashMap<String, MethodDescription>();
-            mStore.renamedMethods.put(attribute, renamed);
-        }
+        HashMap<String, MethodDescription> renamed = mStore.renamedMethods
+                .computeIfAbsent(attribute, k -> new HashMap<>());
         MethodDescription methodDescription = new MethodDescription(
                 declaredOn.getQualifiedName().toString(), method);
         L.d("STORE addmethod desc %s", methodDescription);
@@ -205,11 +202,8 @@ public class SetterStore {
             String method, TypeElement declaredOn) {
         attribute = stripNamespace(attribute);
         event = stripNamespace(event);
-        HashMap<String, InverseDescription> inverseMethods = mStore.inverseMethods.get(attribute);
-        if (inverseMethods == null) {
-            inverseMethods = new HashMap<String, InverseDescription>();
-            mStore.inverseMethods.put(attribute, inverseMethods);
-        }
+        HashMap<String, InverseDescription> inverseMethods = mStore.inverseMethods
+                .computeIfAbsent(attribute, k -> new HashMap<>());
         InverseDescription methodDescription = new InverseDescription(
                 declaredOn.getQualifiedName().toString(), method, event);
         L.d("STORE addInverseMethod desc %s", methodDescription);
@@ -264,12 +258,9 @@ public class SetterStore {
         attribute = stripNamespace(attribute);
         event = stripNamespace(event);
         L.d("STORE addInverseAdapter %s %s", attribute, bindingMethod);
-        HashMap<AccessorKey, InverseDescription> adapters = mStore.inverseAdapters.get(attribute);
+        HashMap<AccessorKey, InverseDescription> adapters = mStore.inverseAdapters
+                .computeIfAbsent(attribute, k -> new HashMap<>());
 
-        if (adapters == null) {
-            adapters = new HashMap<AccessorKey, InverseDescription>();
-            mStore.inverseAdapters.put(attribute, adapters);
-        }
         List<? extends VariableElement> parameters = bindingMethod.getParameters();
         final int viewIndex = takesComponent ? 1 : 0;
         TypeMirror viewType = eraseType(processingEnv, parameters.get(viewIndex).asType());
@@ -423,16 +414,13 @@ public class SetterStore {
         String fromType = getQualifiedName(parameters.get(0).asType());
         String toType = getQualifiedName(conversionMethod.getReturnType());
         MethodDescription methodDescription = new MethodDescription(conversionMethod, 1, false);
-        HashMap<String, MethodDescription> convertTo = mStore.conversionMethods.get(fromType);
-        if (convertTo == null) {
-            convertTo = new HashMap<String, MethodDescription>();
-            mStore.conversionMethods.put(fromType, convertTo);
-        }
+        HashMap<String, MethodDescription> convertTo = mStore.conversionMethods
+                .computeIfAbsent(fromType, k -> new HashMap<>());
         convertTo.put(toType, methodDescription);
     }
 
     public void clear(Set<String> classes) {
-        ArrayList<AccessorKey> removedAccessorKeys = new ArrayList<AccessorKey>();
+        ArrayList<AccessorKey> removedAccessorKeys = new ArrayList<>();
         for (HashMap<AccessorKey, MethodDescription> adapters : mStore.adapterMethods.values()) {
             for (AccessorKey key : adapters.keySet()) {
                 MethodDescription description = adapters.get(key);
@@ -443,7 +431,7 @@ public class SetterStore {
             removeFromMap(adapters, removedAccessorKeys);
         }
 
-        ArrayList<String> removedRenamed = new ArrayList<String>();
+        ArrayList<String> removedRenamed = new ArrayList<>();
         for (HashMap<String, MethodDescription> renamed : mStore.renamedMethods.values()) {
             for (String key : renamed.keySet()) {
                 if (classes.contains(renamed.get(key).type)) {
@@ -453,7 +441,7 @@ public class SetterStore {
             removeFromMap(renamed, removedRenamed);
         }
 
-        ArrayList<String> removedConversions = new ArrayList<String>();
+        ArrayList<String> removedConversions = new ArrayList<>();
         for (HashMap<String, MethodDescription> convertTos : mStore.conversionMethods.values()) {
             for (String toType : convertTos.keySet()) {
                 MethodDescription methodDescription = convertTos.get(toType);
@@ -464,7 +452,7 @@ public class SetterStore {
             removeFromMap(convertTos, removedConversions);
         }
 
-        ArrayList<String> removedUntaggable = new ArrayList<String>();
+        ArrayList<String> removedUntaggable = new ArrayList<>();
         for (String typeName : mStore.untaggableTypes.keySet()) {
             if (classes.contains(mStore.untaggableTypes.get(typeName))) {
                 removedUntaggable.add(typeName);
@@ -716,14 +704,23 @@ public class SetterStore {
                             L.d("setter parameter type is %s", key.valueType);
                             final ModelClass adapterValueType = eraseType(mClassAnalyzer
                                     .findClass(key.valueType, imports));
+                            MethodDescription adapter = adapters.get(key);
                             L.d("setter %s takes type %s, compared to %s",
-                                    adapters.get(key).method, adapterValueType.toJavaCode(),
+                                    adapter.method, adapterValueType.toJavaCode(),
                                     valueType.toJavaCode());
                             if (isBetterParameter(valueType, adapterViewType, adapterValueType,
                                     bestViewType, bestValueType, imports)) {
+                                final ModelClass adapterClass = mClassAnalyzer
+                                        .findClass(adapter.type, imports);
+                                if (adapterClass == null) {
+                                    // adapter is not in compile classpath, probably in runtime
+                                    // classpath hence we should ignore it.
+                                    L.d("ignoring adapter %s because it is not in the" +
+                                            " compile classpath.", adapter.type);
+                                    continue;
+                                }
                                 bestViewType = adapterViewType;
                                 bestValueType = adapterValueType;
-                                MethodDescription adapter = adapters.get(key);
                                 setterCall = new AdapterSetter(adapter, adapterValueType);
                             }
                         } catch (Exception e) {
@@ -832,7 +829,7 @@ public class SetterStore {
             argumentType = eraseType(argumentType, viewType.getTypeArguments());
             viewType = viewType.erasure();
         }
-        List<String> setterCandidates = new ArrayList<String>();
+        List<String> setterCandidates = new ArrayList<>();
         HashMap<String, MethodDescription> renamed = mStore.renamedMethods.get(attribute);
         if (renamed != null) {
             for (String className : renamed.keySet()) {

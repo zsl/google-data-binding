@@ -17,9 +17,12 @@
 package androidx.databinding;
 
 
+import android.util.Log;
 import android.view.View;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -27,6 +30,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 @SuppressWarnings("unused")
 public class MergedDataBinderMapper extends DataBinderMapper {
+    private static final String TAG = "MergedDataBinderMapper";
+    // we keep set of existing classes so that addMapper can avoid re-adding same class.
+    // usually not necessary as list lookup might be sufficient but if the project has 100+
+    // modules, it might matter, hence we have a fast lookup as well.
+    private Set<Class<? extends DataBinderMapper>> mExistingMappers = new HashSet<>();
     private List<DataBinderMapper> mMappers = new CopyOnWriteArrayList<>();
     /**
      * List of features that have binding mappers. We try to load those classes lazily when we
@@ -34,9 +42,24 @@ public class MergedDataBinderMapper extends DataBinderMapper {
      */
     private List<String> mFeatureBindingMappers = new CopyOnWriteArrayList<>();
 
+    /**
+     * Adds the provided mapper to the list of mappers unless an instance of it already exists
+     * in the list. MergedDataBinderMapper will also call
+     * {@link DataBinderMapper#collectDependencies()} on the provided
+     * mapper.
+     *
+     * @param mapper The new DataBinderMapper to add to the list of mappers.
+     */
     @SuppressWarnings("WeakerAccess")
-    protected void addMapper(DataBinderMapper mapper) {
-        mMappers.add(mapper);
+    public void addMapper(DataBinderMapper mapper) {
+        Class<? extends DataBinderMapper> mapperClass = mapper.getClass();
+        if (mExistingMappers.add(mapperClass)) {
+            mMappers.add(mapper);
+            final List<DataBinderMapper> dependencies = mapper.collectDependencies();
+            for(DataBinderMapper dependency : dependencies) {
+                addMapper(dependency);
+            }
+        }
     }
 
     @SuppressWarnings({"WeakerAccess", "unused"})
@@ -109,17 +132,17 @@ public class MergedDataBinderMapper extends DataBinderMapper {
         boolean found = false;
         for (String mapper : mFeatureBindingMappers) {
             try {
-                Class<?> aClass = Class.forName(mapper);
+                final Class<?> aClass = Class.forName(mapper);
                 if (DataBinderMapper.class.isAssignableFrom(aClass)) {
-                    DataBinderMapper featureMapper = (DataBinderMapper) aClass.newInstance();
-                    addMapper(featureMapper);
+                    addMapper((DataBinderMapper) aClass.newInstance());
                     mFeatureBindingMappers.remove(mapper);
                     found = true;
                 }
-
             } catch (ClassNotFoundException ignored) {
-            } catch (IllegalAccessException ignored) {
-            } catch (InstantiationException ignored) {
+            } catch (IllegalAccessException exception) {
+                Log.e(TAG, "unable to add feature mapper for " + mapper, exception);
+            } catch (InstantiationException exception) {
+                Log.e(TAG, "unable to add feature mapper for " + mapper, exception);
             }
         }
         return found;

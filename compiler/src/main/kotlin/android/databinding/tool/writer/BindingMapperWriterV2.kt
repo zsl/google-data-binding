@@ -42,7 +42,8 @@ import javax.lang.model.element.Modifier
 
 class BindingMapperWriterV2(genClassInfoLog: GenClassInfoLog,
                             compilerArgs: CompilerArguments,
-                            libTypes: LibTypes) {
+                            libTypes: LibTypes,
+                            modulePackages: MutableSet<String>) {
     companion object {
         private val VIEW = ClassName
                 .get("android.view", "View")
@@ -72,7 +73,6 @@ class BindingMapperWriterV2(genClassInfoLog: GenClassInfoLog,
     }
 
     private val rClassMap = mutableMapOf<String, ClassName>()
-
     private val viewDataBinding = ClassName.bestGuess(libTypes.viewDataBinding)
     private val bindingComponent = ClassName.bestGuess(libTypes.dataBindingComponent)
     private val dataBinderMapper: ClassName = ClassName.bestGuess(libTypes.dataBinderMapper)
@@ -137,6 +137,9 @@ class BindingMapperWriterV2(genClassInfoLog: GenClassInfoLog,
     }
 
     val qualifiedName = "$pkg.$className"
+    private val dependencyModulePackages = modulePackages.filter {
+        it != pkg
+    }
 
     private fun getRClass(pkg: String): ClassName {
         return rClassMap.getOrPut(pkg) {
@@ -155,7 +158,8 @@ class BindingMapperWriterV2(genClassInfoLog: GenClassInfoLog,
                                 val genClass: GenClassInfoLog.GenClass)
 
 
-    fun write(brValueLookup: MutableMap<String, Int>) = TypeSpec.classBuilder(className).apply {
+    fun write(brValueLookup: MutableMap<String, Int>): TypeSpec
+            = TypeSpec.classBuilder(className).apply {
         superclass(dataBinderMapper)
         addModifiers(Modifier.PUBLIC)
         if (ModelAnalyzer.getInstance().hasGeneratedAnnotation()) {
@@ -167,6 +171,7 @@ class BindingMapperWriterV2(genClassInfoLog: GenClassInfoLog,
         addMethod(generateGetViewArrayDataBinder())
         addMethod(generateGetLayoutId())
         addMethod(generateConvertBrIdToString())
+        addMethod(generateCollectDependencies())
         addType(generateInnerBrLookup(brValueLookup))
         addType(generateInnerLayoutIdLookup())
         // must write this at the end
@@ -514,4 +519,27 @@ class BindingMapperWriterV2(genClassInfoLog: GenClassInfoLog,
 
                 addStatement("return null")
             }.build()
+
+    // generate the code that will load all dependencies that are possibly not visible to the app
+    private fun generateCollectDependencies() : MethodSpec {
+        return MethodSpec.methodBuilder("collectDependencies").apply {
+            addAnnotation(Override::class.java)
+            addModifiers(Modifier.PUBLIC)
+            val listType = ParameterizedTypeName.get(
+                    ClassName.get(ArrayList::class.java),
+                    dataBinderMapper
+            )
+            returns(ParameterizedTypeName.get(
+                    ClassName.get(List::class.java),
+                    dataBinderMapper
+            ))
+            addStatement("$T result = new $T($L)",
+                    listType, listType, dependencyModulePackages.size)
+            dependencyModulePackages.forEach {
+                val mapperType = ClassName.get(it, IMPL_CLASS_NAME)
+                addStatement("result.add(new $T())", mapperType)
+            }
+            addStatement("return result")
+        }.build()
+    }
 }

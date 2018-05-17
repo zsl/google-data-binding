@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-include ':app', ':testlibrary1', ':testlibrary2'
+include ':app', ':testlibrary1', ':testlibrary2', ':inheritedmodule'

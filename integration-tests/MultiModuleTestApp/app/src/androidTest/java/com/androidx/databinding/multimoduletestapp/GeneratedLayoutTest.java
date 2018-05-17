@@ -19,10 +19,14 @@ package com.androidx.databinding.multimoduletestapp;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.databinding.multimoduletestapp.R;
+import androidx.databinding.testlibrary2.TestObservable;
+import androidx.databinding.testlibrary2.databinding.Layout2Binding;
+
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.TextView;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,6 +65,25 @@ public class GeneratedLayoutTest {
                 ViewDataBinding bind = DataBindingUtil.bind(view);
                 assertEquals("IndependentLibraryBindingSw600dpLandImpl",
                         bind.getClass().getSimpleName());
+            }
+        });
+    }
+
+    @Test
+    public void testInheritedLayout() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                LayoutInflater inflater = LayoutInflater.from(
+                        InstrumentationRegistry.getTargetContext());
+                View view = inflater.inflate(R.layout.layout2, null);
+                Layout2Binding binding = DataBindingUtil.bind(view);
+                TestObservable testObservable = new TestObservable();
+                testObservable.setCat("foo");
+                binding.setVar(testObservable);
+                binding.executePendingBindings();
+                TextView inherited = (TextView) view.findViewById(R.id.inherited_text);
+                assertEquals("foo", inherited.getText());
             }
         });
     }

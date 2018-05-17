@@ -28,11 +28,11 @@ import com.squareup.javapoet.MethodSpec
 import com.squareup.javapoet.TypeSpec
 import javax.lang.model.element.Modifier
 
-class MergedBindingMapperWriter(private val packages: List<String>,
-                                compilerArgs: CompilerArguments,
-                                private val featurePackages : Set<String>,
-                                private val hasV1CompatMapper: Boolean,
-                                private val libTypes: LibTypes) {
+class MergedBindingMapperWriter(
+        compilerArgs: CompilerArguments,
+        private val featurePackages : Set<String>,
+        private val hasV1CompatMapper: Boolean,
+        private val libTypes: LibTypes) {
     private val generateAsTest = compilerArgs.isTestVariant && compilerArgs.isApp
     private val generateTestOverride = !generateAsTest && compilerArgs.isEnabledForTests
     private val overrideField = FieldSpec.builder(ClassName.bestGuess(libTypes.dataBinderMapper),
@@ -47,6 +47,7 @@ class MergedBindingMapperWriter(private val packages: List<String>,
 
     val pkg = libTypes.bindingPackage
     val qualifiedName = "$pkg.$APP_CLASS_NAME"
+    private val appPkg: String = compilerArgs.modulePackage
     private val dataBinderMapper: ClassName = ClassName.bestGuess(libTypes.dataBinderMapper)
 
     private val mergedMapperBase: ClassName = ClassName.get(
@@ -61,10 +62,8 @@ class MergedBindingMapperWriter(private val packages: List<String>,
         superclass(mergedMapperBase)
         addModifiers(Modifier.PUBLIC)
         addMethod(MethodSpec.constructorBuilder().apply {
-            packages.forEach { pkg ->
-                val mapper = ClassName.get(pkg, APP_CLASS_NAME)
-                addStatement("addMapper(new $T())", mapper)
-            }
+            val mapper = ClassName.get(appPkg, APP_CLASS_NAME)
+            addStatement("addMapper(new $T())", mapper)
             if (hasV1CompatMapper) {
                 val compatMapper = ClassName.get(
                     BindingMapperWriter.v1CompatMapperPkg(libTypes.useAndroidX),
