@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
@@ -50,7 +49,6 @@ public class LayoutXmlProcessor {
     private final JavaFileWriter mFileWriter;
     private final ResourceBundle mResourceBundle;
     private boolean mProcessingComplete;
-    private final String mBuildId = UUID.randomUUID().toString();
     private final OriginalFileLookup mOriginalFileLookup;
     private final LayoutFileParser mLayoutFileParser = new LayoutFileParser();
 
@@ -308,7 +306,7 @@ public class LayoutXmlProcessor {
     }
 
     /**
-     * Just writes the file w/ build ID w/o any properties.
+     * Just writes an empty class annotated with @BindingBuildInfo.
      */
     public void writeEmptyInfoClass(boolean useAndroidX) {
         final Class annotation = useAndroidX
@@ -316,7 +314,7 @@ public class LayoutXmlProcessor {
                 : android.databinding.BindingBuildInfo.class;
         String classString = "package " + RESOURCE_BUNDLE_PACKAGE + ";\n\n" +
                 "import " + annotation.getCanonicalName() + ";\n\n" +
-                "@" + annotation.getSimpleName() + "(buildId=\"" + mBuildId + "\")\n" +
+                "@" + annotation.getSimpleName() + "\n" +
                 "public class " + CLASS_NAME + " {}\n";
         mFileWriter.writeToFile(RESOURCE_BUNDLE_PACKAGE + "." + CLASS_NAME, classString);
     }
