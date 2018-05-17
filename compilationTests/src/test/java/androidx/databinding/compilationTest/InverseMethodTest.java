@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest;
+package androidx.databinding.compilationTest;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -76,14 +76,14 @@ public class InverseMethodTest extends BaseCompilationTest {
             throws Throwable {
         prepareProject();
         copyResourceTo(
-                "/android/databinding/compilationTest/badJava/" + className + ".java",
-                "/app/src/main/java/android/databinding/compilationTest/badJava/" + className + ".java");
+                "/androidx/databinding/compilationTest/badJava/" + className + ".java",
+                "/app/src/main/java/androidx/databinding/compilationTest/badJava/" + className + ".java");
         CompilationResult result = runGradle("assembleDebug", "--stacktrace");
         assertNotEquals(0, result.resultCode);
         String error = getErrorLine(result.error);
         assertNotNull("Couldn't find error in \n" + result.error, error);
         File errorFile = new File(testFolder,
-                "/app/src/main/java/android/databinding/compilationTest/badJava/" +
+                "/app/src/main/java/androidx/databinding/compilationTest/badJava/" +
                         className +  ".java");
         assertEquals(errorFile.getCanonicalPath() + ":" + lineNumber + ": error: " + expectedError,
                 error);

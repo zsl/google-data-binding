@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest;
+package androidx.databinding.compilationTest;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -59,6 +59,8 @@ public class BaseCompilationTest {
             = "android.injected.invoked.from.ide";
     private static final String ENABLE_V2_PROPERTY
             = "android.databinding.enableV2";
+    private static final String USE_ANDROID_X_PROPERTY =
+            "android.useAndroidX";
     @Rule
     public TestName name = new TestName();
     static Pattern VARIABLES = Pattern.compile("!@\\{([A-Za-z0-9_-]*)}");
@@ -275,6 +277,7 @@ public class BaseCompilationTest {
         args.add(pathToExecutable.getAbsolutePath());
         args.add("-P" + PRINT_ENCODED_ERRORS_PROPERTY + "=true");
         args.add("-P" + ENABLE_V2_PROPERTY + "=" + mEnableV2);
+        args.add("-P" + USE_ANDROID_X_PROPERTY + "=true");
         args.add("--no-daemon");
         if ("true".equals(System.getProperties().getProperty("useReleaseVersion", "false"))) {
             args.add("-PuseReleaseVersion=true");

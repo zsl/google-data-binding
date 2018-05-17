@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest.badJava;
+package androidx.databinding.compilationTest.badJava;
 
-import androidx.databinding.InverseMethod;
+import android.databinding.BaseObservable;
+import androidx.databinding.Bindable;
 
-public class InverseMethod_NoInverse {
-    @InverseMethod("")
-    public static int noInverseMethod(int i) { return 0; }
+public class MyObservable extends BaseObservable {
+    @Bindable("notExist")
+    public String getField() {
+        return "Hello";
+    }
 }

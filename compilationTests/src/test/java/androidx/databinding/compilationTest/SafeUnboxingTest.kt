@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest
+package androidx.databinding.compilationTest
 
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest;
+package androidx.databinding.compilationTest;
 
 import android.databinding.tool.processing.ScopedErrorReport;
 import android.databinding.tool.processing.ScopedException;

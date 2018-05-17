@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest;
+package androidx.databinding.compilationTest;
 
 import android.databinding.tool.processing.ErrorMessages;
 import android.databinding.tool.processing.ScopedErrorReport;
@@ -25,8 +25,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -34,8 +32,6 @@ import org.junit.runners.Parameterized;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.List;
 
@@ -231,7 +227,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 "/app/src/main/res/layout/broken.xml",
                 "(seekBar, progress) -> obj.length()",
                 String.format(ErrorMessages.CALLBACK_ARGUMENT_COUNT_MISMATCH,
-                        "android.databinding.adapters.SeekBarBindingAdapter.OnProgressChanged",
+                        "androidx.databinding.adapters.SeekBarBindingAdapter.OnProgressChanged",
                         "onProgressChanged", 3, 2));
     }
 
@@ -356,8 +352,8 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         copyResourceTo("/layout/layout_with_dependency.xml",
                 "/app/src/main/res/layout/layout_with_dependency.xml");
         copyResourceTo(
-                "/android/databinding/compilationTest/badJava/ObservableNoDependent.java",
-                "/app/src/main/java/android/databinding/compilationTest/badJava/MyObservable.java");
+                "/androidx/databinding/compilationTest/badJava/ObservableNoDependent.java",
+                "/app/src/main/java/androidx/databinding/compilationTest/badJava/MyObservable.java");
 
         CompilationResult result = runGradle("assembleDebug");
         assertNotEquals(0, result.resultCode);
@@ -373,7 +369,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 errorFile.getCanonicalFile());
         assertEquals("Could not find dependent property 'notExist' referenced in " +
                         "@Bindable annotation on " +
-                        "android.databinding.compilationTest.badJava.MyObservable.getField",
+                        "androidx.databinding.compilationTest.badJava.MyObservable.getField",
                 ex.getBareMessage());
     }
 
@@ -383,8 +379,8 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         copyResourceTo("/layout/layout_with_dependency.xml",
                 "/app/src/main/res/layout/layout_with_dependency.xml");
         copyResourceTo(
-                "/android/databinding/compilationTest/badJava/ObservableNotBindableDependent.java",
-                "/app/src/main/java/android/databinding/compilationTest/badJava/MyObservable.java");
+                "/androidx/databinding/compilationTest/badJava/ObservableNotBindableDependent.java",
+                "/app/src/main/java/androidx/databinding/compilationTest/badJava/MyObservable.java");
 
         CompilationResult result = runGradle("assembleDebug");
         assertNotEquals(0, result.resultCode);
@@ -400,7 +396,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                 errorFile.getCanonicalFile());
         assertEquals("The dependent property 'otherField' referenced in " +
                 "@Bindable annotation on " +
-                "android.databinding.compilationTest.badJava.MyObservable.getField " +
+                "androidx.databinding.compilationTest.badJava.MyObservable.getField " +
                 "must be annotated with @Bindable", ex.getBareMessage());
     }
 
@@ -410,8 +406,8 @@ public class SimpleCompilationTest extends BaseCompilationTest {
         copyResourceTo("/layout/layout_with_dependency.xml",
                 "/app/src/main/res/layout/layout_with_dependency.xml");
         copyResourceTo(
-                "/android/databinding/compilationTest/badJava/ObservableFieldDependent.java",
-                "/app/src/main/java/android/databinding/compilationTest/badJava/MyObservable.java");
+                "/androidx/databinding/compilationTest/badJava/ObservableFieldDependent.java",
+                "/app/src/main/java/androidx/databinding/compilationTest/badJava/MyObservable.java");
 
         CompilationResult result = runGradle("assembleDebug");
         assertNotEquals(0, result.resultCode);
@@ -426,7 +422,7 @@ public class SimpleCompilationTest extends BaseCompilationTest {
                         .getCanonicalFile(),
                 errorFile.getCanonicalFile());
         assertEquals("Bindable annotation with property names is only supported on methods. " +
-                "Field 'android.databinding.compilationTest.badJava.MyObservable.field' has " +
+                "Field 'androidx.databinding.compilationTest.badJava.MyObservable.field' has " +
                 "@Bindable(\"otherField\")", ex.getBareMessage());
     }
 }

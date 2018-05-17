@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest.badJava;
+package androidx.databinding.compilationTest.badJava;
 
-import android.databinding.BaseObservable;
-import androidx.databinding.Bindable;
+import androidx.databinding.InverseMethod;
 
-public class MyObservable extends BaseObservable {
-    @Bindable
-    public String otherField;
-
-    @Bindable("otherField")
-    public String field;
+public class InverseMethod_WrongReturnType {
+    @InverseMethod("wrongReturnType")
+    public static int stringToInt(String s) { return 0; }
+    public static int wrongReturnType(int i) { return 0; }
 }

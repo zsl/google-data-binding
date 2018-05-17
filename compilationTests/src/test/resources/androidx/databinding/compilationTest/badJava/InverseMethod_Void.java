@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest.badJava;
+package androidx.databinding.compilationTest.badJava;
 
 import androidx.databinding.InverseMethod;
 
-public class InverseMethod_NonPublic {
-    @InverseMethod("publicIntToString")
-    static int notPublicStringToInt(String s) { return 0; }
-    public static String publicIntToString(int i) { return null; }
+public class InverseMethod_Void {
+    @InverseMethod("voidReturnInverse")
+    public static void voidReturn(int i) {}
+    public static String voidReturnInverse(int i) { return null; }
 }

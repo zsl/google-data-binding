@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest.badJava;
+package androidx.databinding.compilationTest.badJava;
 
 import android.databinding.BaseObservable;
 import androidx.databinding.Bindable;

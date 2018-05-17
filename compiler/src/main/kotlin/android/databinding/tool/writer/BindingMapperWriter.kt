@@ -159,7 +159,7 @@ class BindingMapperWriter(
             }
 
             block("private static class InnerBrLookup") {
-                nl("static final SparseArray<String> sKeys = new SparseArray();")
+                nl("static final SparseArray<String> sKeys = new SparseArray<>();")
                 block("static") {
                     tab("sKeys.put(0, \"_all\");")
                     brValueLookup.forEach {

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest.badJava;
+package androidx.databinding.compilationTest.badJava;
 
 import androidx.databinding.InverseMethod;
 
-public class InverseMethod_NoArg {
-    @InverseMethod("noArgMethodInv")
-    public static int noArgMethod() { return 0; }
-    public static int noArgMethodInv() { return 0; }
+public class InverseMethod_WrongParameterType {
+    @InverseMethod("wrongParameterType")
+    public static String intToString(int i) { return null; }
+    public static int wrongParamterType(int i) { return 0; }
 }

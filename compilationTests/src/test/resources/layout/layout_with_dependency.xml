@@ -17,7 +17,7 @@
 
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
     <data>
-        <variable name="obj" type="android.databinding.compilationTest.badJava.MyObservable"/>
+        <variable name="obj" type="androidx.databinding.compilationTest.badJava.MyObservable"/>
     </data>
     <TextView android:layout_width="wrap_content"
               android:layout_height="wrap_content"

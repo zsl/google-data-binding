@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package android.databinding.compilationTest;
+package androidx.databinding.compilationTest;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.rules.TestWatcher;
