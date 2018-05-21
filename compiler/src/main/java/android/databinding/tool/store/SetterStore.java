@@ -241,12 +241,9 @@ public class SetterStore {
             ExecutableElement bindingMethod, boolean takesComponent) {
         attribute = stripNamespace(attribute);
         L.d("STORE addBindingAdapter %s %s", attribute, bindingMethod);
-        HashMap<AccessorKey, MethodDescription> adapters = mStore.adapterMethods.get(attribute);
+        HashMap<AccessorKey, MethodDescription> adapters = mStore.adapterMethods
+                .computeIfAbsent(attribute, k -> new HashMap<>());
 
-        if (adapters == null) {
-            adapters = new HashMap<AccessorKey, MethodDescription>();
-            mStore.adapterMethods.put(attribute, adapters);
-        }
         List<? extends VariableElement> parameters = bindingMethod.getParameters();
         final int viewIndex = takesComponent ? 1 : 0;
         TypeMirror viewType = eraseType(processingEnv, parameters.get(viewIndex).asType());
