@@ -36,7 +36,9 @@ class SimpleBindingTest {
 
     @Test
     fun textBinding() {
-        rule.binding.foo = "blah"
+        rule.runOnUiThread {
+            rule.binding.foo = "blah"
+        }
         rule.executePendingBindings()
         onView(withId(R.id.text1)).check(matches(withText("blah")))
     }

@@ -40,7 +40,9 @@ class TwoWayBindingTest {
     fun editText() {
         val model = TwoWayBindingModel()
         model.username.set("foo")
-        rule.binding.model = model
+        rule.runOnUiThread {
+            rule.binding.model = model
+        }
         rule.executePendingBindings()
         onView(withId(R.id.userNameInput)).check(matches(withText("foo")))
         onView(withId(R.id.userNameInput)).perform(ViewActions.clearText())

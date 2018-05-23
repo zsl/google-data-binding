@@ -38,15 +38,19 @@ class KotlinFunctionAdapterTest {
     @Test
     fun methodReference() {
         val model = FunctionAdapterBindingModel()
-        rule.binding.model = model
+        rule.runOnUiThread {
+            rule.binding.model = model
+        }
         rule.executePendingBindings()
-        assertThat(model.refenceMethodCallCnt, `is`(1))
+        assertThat(model.referenceMethodCallCnt, `is`(1))
     }
 
     @Test
     fun lambdaMethod() {
         val model = FunctionAdapterBindingModel()
-        rule.binding.model = model
+        rule.runOnUiThread {
+            rule.binding.model = model
+        }
         rule.executePendingBindings()
         assertThat(model.lambdaMethodCallCnt, `is`(1))
     }
@@ -54,7 +58,9 @@ class KotlinFunctionAdapterTest {
     @Test
     fun methodRefenceWithParameter() {
         val model = FunctionAdapterBindingModel()
-        rule.binding.model = model
+        rule.runOnUiThread {
+            rule.binding.model = model
+        }
         rule.executePendingBindings()
         assertThat(model.longClickCallbackCount, `is`(0))
         onView(withId(R.id.textView1)).perform(longClick())
@@ -65,7 +71,9 @@ class KotlinFunctionAdapterTest {
     @Test
     fun lambdaFunction() {
         val model = FunctionAdapterBindingModel()
-        rule.binding.model = model
+        rule.runOnUiThread {
+            rule.binding.model = model
+        }
         rule.executePendingBindings()
         assertThat(model.longClickCallbackCount, `is`(0))
         onView(withId(R.id.textView2)).perform(longClick())

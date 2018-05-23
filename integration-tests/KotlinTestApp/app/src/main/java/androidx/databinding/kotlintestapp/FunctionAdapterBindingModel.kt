@@ -19,13 +19,13 @@ package androidx.databinding.kotlintestapp
 import android.view.View
 
 class FunctionAdapterBindingModel {
-    var refenceMethodCallCnt = 0
+    var referenceMethodCallCnt = 0
     var lambdaMethodCallCnt = 0
     var longClickCallbackCount = 0
     var someValue: String = "val"
 
     fun referencedMethod() {
-        refenceMethodCallCnt++
+        referenceMethodCallCnt++
     }
 
     fun lambdaMethod() {
