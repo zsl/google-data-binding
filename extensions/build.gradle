@@ -1,5 +1,49 @@
 import com.android.build.gradle.LibraryExtension
 
+class VersionFileWriterTask extends DefaultTask {
+    static final String RESOURCE_DIRECTORY = "generatedResources"
+    static final VERSION_FILE_PATH = RESOURCE_DIRECTORY + "/META-INF/%s_%s.version"
+    @Input
+    String version
+    @OutputFile
+    File outputFile
+
+    @TaskAction
+    void write() {
+        outputFile.write(version)
+    }
+
+    /**
+     * Sets up Android Library project to have a task that generates a version file.
+     * It must be called after [LibraryExtension] has been resolved.
+     *
+     * @param project an Android Library project.
+     */
+    static void setUpAndroidLibrary(Project project, LibraryExtension library) {
+        def group = project.properties["group"] as String
+        def artifactId = project.properties["name"] as String
+        def version = project.properties["version"] as String
+
+        // Add a java resource file to the library jar for version tracking purposes.
+        def artifactName = new File(
+                project.buildDir,
+                String.format(VERSION_FILE_PATH, group, artifactId))
+
+        def writeVersionFile = project.tasks.create("writeVersionFile",
+                VersionFileWriterTask.class)
+        writeVersionFile.version = version
+        writeVersionFile.outputFile = artifactName
+
+        library.libraryVariants.all {
+            it.processJavaResources.dependsOn(writeVersionFile)
+        }
+
+        library.sourceSets.getByName("main").resources.srcDir(
+                new File(project.buildDir, RESOURCE_DIRECTORY)
+        )
+    }
+}
+
 buildscript {
     def ENV = System.getenv()
 
@@ -131,6 +175,10 @@ subprojects {
             force 'androidx.lifecycle:lifecycle-livedata-core:2.0.0-alpha1'
             force 'androidx.fragment:fragment:1.0.0-alpha1'
         }
+    }
+    project.afterEvaluate {
+        VersionFileWriterTask.setUpAndroidLibrary(project,
+                project.extensions.findByType(LibraryExtension.class))
     }
 }
 
