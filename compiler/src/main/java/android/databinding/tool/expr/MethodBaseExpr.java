@@ -83,9 +83,20 @@ public abstract class MethodBaseExpr extends Expr {
         final ModelClass[] listenerParameters = listenerMethod.getParameterTypes();
         boolean isStatic = getTarget() instanceof StaticIdentifierExpr;
         List<ModelMethod> methods = childType.findMethods(mName, isStatic);
+
+        final ModelClass listenerMethodReturnType = listenerMethod.getReturnType(null);
+        final boolean listenerIsKotlinUnit = listenerMethodReturnType.isKotlinUnit();
         for (ModelMethod method : methods) {
-            if (acceptsParameters(method, listenerParameters) &&
-                    method.getReturnType(null).equals(listenerMethod.getReturnType(null))) {
+            final boolean parametersMatch = acceptsParameters(method, listenerParameters);
+            if (!parametersMatch) {
+                // no need to check return types.
+                continue;
+            }
+            final ModelClass methodReturnType = method.getReturnType(null);
+            // accept kotlin.Unit vs void. b/78662035
+            final boolean returnTypesMatch = methodReturnType.equals(listenerMethodReturnType)
+                    || (listenerIsKotlinUnit && methodReturnType.isVoid());
+            if (returnTypesMatch) {
                 target.getParents().remove(this);
                 resetResolvedType();
                 // replace this with ListenerExpr in parent

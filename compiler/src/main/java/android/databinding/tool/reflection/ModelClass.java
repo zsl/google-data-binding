@@ -698,4 +698,8 @@ public abstract class ModelClass {
         }
         return false;
     }
+
+    public boolean isKotlinUnit() {
+        return "kotlin.Unit".equals(getTypeName().toString());
+    }
 }

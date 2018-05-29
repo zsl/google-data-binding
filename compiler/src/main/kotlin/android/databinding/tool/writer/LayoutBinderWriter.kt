@@ -607,7 +607,9 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes
         callbacks.groupBy { it.callbackWrapper }.forEach {
             val wrapper = it.key
             val lambdas = it.value
-            val shouldReturn = !wrapper.method.returnType.isVoid
+            // special case kotlin unit. b/78662035
+            val returnKotlinUnit = wrapper.method.returnType.isKotlinUnit
+            val shouldReturn = !wrapper.method.returnType.isVoid && !returnKotlinUnit
             if (shouldReturn) {
                 lambdas.forEach {
                     it.callbackExprModel.ext.forceLocalize.add(it.expr)
@@ -621,6 +623,8 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes
                     nl(lambda.executionPath.toCode())
                     if (shouldReturn) {
                         nl("return ${lambda.expr.scopedName()};")
+                    } else if (returnKotlinUnit) {
+                        nl("return null;")
                     }
                 } else {
                     block("switch(${CallbackWrapper.SOURCE_ID})") {
@@ -628,10 +632,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes
                             block("case ${lambda.callbackId}:") {
                                 nl(lambda.callbackExprModel.localizeGlobalVariables(lambda))
                                 nl(lambda.executionPath.toCode())
-                                if (shouldReturn) {
-                                    nl("return ${lambda.expr.scopedName()};")
-                                } else {
-                                    nl("break;")
+                                when {
+                                    shouldReturn -> nl("return ${lambda.expr.scopedName()};")
+                                    returnKotlinUnit -> nl("return null;")
+                                    else -> nl("break;")
                                 }
                             }
                         }
@@ -1191,7 +1195,7 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes
             } else {
                 extendsImplements = "extends"
             }
-            nl("public static class ${expr.listenerClassName} $extendsImplements ${listenerType.canonicalName}{") {
+            nl("public static class ${expr.listenerClassName} $extendsImplements $listenerType{") {
                 if (expr.target.isDynamic) {
                     tab("private ${expr.target.resolvedType.toJavaCode()} value;")
                     tab("public ${expr.listenerClassName} setValue(${expr.target.resolvedType.toJavaCode()} value) {") {
@@ -1209,22 +1213,25 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes
                     "${it.value.toJavaCode()} arg${it.index}"
                 }.joinToString(", ")
                 }) {") {
-                    val obj: String
-                    if (expr.target.isDynamic) {
-                        obj = "this.value"
+                    val obj = if (expr.target.isDynamic) {
+                        "this.value"
                     } else {
-                        obj = expr.target.toCode().generate();
+                        expr.target.toCode().generate()
                     }
-                    val returnStr: String
-                    if (!returnType.isVoid) {
-                        returnStr = "return "
+                    val returnSuffix = if(returnType.isKotlinUnit) {
+                        "return null;"
                     } else {
-                        returnStr = ""
+                        ""
                     }
-                    val args = parameterTypes.withIndex().map {
+                    val returnPrefix = if (!returnType.isVoid && !returnType.isKotlinUnit) {
+                        "return "
+                    } else {
+                        ""
+                    }
+                    val args = parameterTypes.withIndex().joinToString(", ") {
                         "arg${it.index}"
-                    }.joinToString(", ")
-                    tab("$returnStr$obj.${expr.name}($args);")
+                    }
+                    tab("$returnPrefix$obj.${expr.name}($args); $returnSuffix")
                 }
                 tab("}")
             }
