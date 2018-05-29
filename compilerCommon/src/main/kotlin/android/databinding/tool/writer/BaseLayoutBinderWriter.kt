@@ -103,7 +103,7 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel, val libTypes: LibTypes)
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     addParameter(inflaterParam)
                     returns(binderTypeName)
-                    addAnnotation(nullable)
+                    addAnnotation(nonNull)
                     addStatement("return inflate($N, $T.getDefaultComponent())",
                             inflaterParam, dataBindingUtil)
                 }.build(),
@@ -123,7 +123,6 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel, val libTypes: LibTypes)
                     addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                     addParameter(viewParam)
                     returns(binderTypeName)
-                    addAnnotation(nonNull)
                     addStatement("return bind($N, $T.getDefaultComponent())",
                             viewParam, dataBindingUtil)
                 }.build(),
@@ -132,7 +131,6 @@ class BaseLayoutBinderWriter(val model: BaseLayoutModel, val libTypes: LibTypes)
                     addParameter(viewParam)
                     addParameter(componentParam)
                     returns(binderTypeName)
-                    addAnnotation(nonNull)
                     addStatement("return ($T)bind($N, $N, $L)",
                             binderTypeName, componentParam, viewParam, rLayoutFile)
                 }.build()
