@@ -54,9 +54,9 @@
     </orderEntry>
     <orderEntry type="module-library">
       <library name="jetifier-core" type="repository">
-        <properties maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-alpha05" />
+        <properties maven-id="com.android.tools.build.jetifier:jetifier-core:1.0.0-alpha07" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/jetifier/jetifier-core/1.0.0-alpha05/jetifier-core-1.0.0-alpha05.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/build/jetifier/jetifier-core/1.0.0-alpha07/jetifier-core-1.0.0-alpha07.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

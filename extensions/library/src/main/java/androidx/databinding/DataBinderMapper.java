@@ -16,8 +16,14 @@
 
 package androidx.databinding;
 
-import androidx.annotation.RestrictTo;
 import android.view.View;
+
+import java.util.Collections;
+import java.util.List;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RestrictTo;
+
 /**
  * @hide
  */
@@ -30,4 +36,9 @@ public abstract class DataBinderMapper {
             View[] view, int layoutId);
     public abstract int getLayoutId(String tag);
     public abstract String convertBrIdToString(int id);
+    @NonNull
+    public List<DataBinderMapper> collectDependencies() {
+        // default implementation for backwards compatibility.
+        return Collections.emptyList();
+    }
 }

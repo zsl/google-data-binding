@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -182,6 +183,19 @@ public class CompilerChef {
             Map<String, Integer> brValueLookup,
             List<String> modulePackages) {
         if (compilerArgs.isEnableV2()) {
+            // figure out which mappers exists as they may not exist for v1 libs.
+            Set<String> availableDependencyModules = modulePackages.stream()
+                    .filter(modulePackage -> {
+                        if (modulePackage.equals(compilerArgs.getModulePackage())) {
+                            // I'm not a dependency
+                            return false;
+                        }
+                        String mapper = BindingMapperWriterV2.createMapperQName(modulePackage);
+                        TypeElement impl = processingEnv
+                                .getElementUtils()
+                                .getTypeElement(mapper);
+                        return impl != null;
+                    }).distinct().collect(Collectors.toCollection(TreeSet::new));
             final boolean generateMapper;
             if (compilerArgs.isApp()) {
                 // generate mapper for apps only if it is not test or enabled for tests.
@@ -191,7 +205,7 @@ public class CompilerChef {
                 generateMapper = true;
             }
             if (generateMapper) {
-                writeMapperForModule(compilerArgs, brValueLookup);
+                writeMapperForModule(compilerArgs, brValueLookup, availableDependencyModules);
             }
             if (mV1CompatChef != null) {
                 writeMapperForV1Compat(compilerArgs, brValueLookup);
@@ -208,7 +222,7 @@ public class CompilerChef {
                 generateMergedMapper = false;
             }
             if (generateMergedMapper) {
-                writeMergedMapper(processingEnv, compilerArgs, modulePackages);
+                writeMergedMapper(compilerArgs);
             }
         } else {
             final String pkg = ModelAnalyzer.getInstance().libTypes.getBindingPackage();
@@ -251,29 +265,13 @@ public class CompilerChef {
      * Writes the mapper android.databinding.DataBinderMapperImpl which is a merged mapper
      * that includes all mappers from dependencies.
      */
-    private void writeMergedMapper(
-            ProcessingEnvironment processingEnv,
-            CompilerArguments compilerArgs,
-            List<String> modulePackages) {
-        // figure out which mappers exists as they may not exist for v1 libs.
-        List<String> availableDependencyModules = modulePackages.stream()
-                .filter(modulePackage -> {
-                    if (modulePackage.equals(compilerArgs.getModulePackage())) {
-                        // mine will be generated
-                        return true;
-                    }
-                    String mapper = BindingMapperWriterV2.createMapperQName(modulePackage);
-                    TypeElement impl = processingEnv
-                            .getElementUtils()
-                            .getTypeElement(mapper);
-                    return impl != null;
-                }).collect(Collectors.toList());
+    private void writeMergedMapper(CompilerArguments compilerArgs) {
+
         Set<String> featurePackageIds = loadFeaturePackageIds(compilerArgs);
         StringBuilder sb = new StringBuilder();
         LibTypes libTypes = ModelAnalyzer.getInstance().libTypes;
         MergedBindingMapperWriter mergedBindingMapperWriter =
                 new MergedBindingMapperWriter(
-                        availableDependencyModules,
                         compilerArgs,
                         featurePackageIds,
                         mV1CompatChef != null,
@@ -307,7 +305,8 @@ public class CompilerChef {
      */
     private void writeMapperForModule(
             CompilerArguments compilerArgs,
-            Map<String, Integer> brValueLookup) {
+            Map<String, Integer> brValueLookup,
+            Set<String> availableDependencyModules) {
         GenClassInfoLog infoLog;
         try {
             infoLog = ResourceBundle.loadClassInfoFromFolder(compilerArgs.getClassLogDir());
@@ -321,7 +320,8 @@ public class CompilerChef {
         BindingMapperWriterV2 v2 = new BindingMapperWriterV2(
                 infoLogInThisModule,
                 compilerArgs,
-                libTypes);
+                libTypes,
+                availableDependencyModules);
         TypeSpec spec = v2.write(brValueLookup);
         StringBuilder sb = new StringBuilder();
         try {

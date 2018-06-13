@@ -20,4 +20,8 @@ rootProject.subprojects {
         maven { url "file://${rootProject.ext.checkoutDir}/out/repo/" }
         maven { url "file://${rootProject.ext.checkoutDir}/prebuilts/tools/common/m2/repository/" }
     }
+
+    if (!project.hasProperty('test_maven_repo')) {
+        project.ext["test_maven_repo"] = new File(project.rootProject.getProjectDir(), "../test-local-repo").getCanonicalPath()
+    }
 }
