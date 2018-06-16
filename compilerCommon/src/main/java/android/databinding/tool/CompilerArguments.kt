@@ -35,8 +35,8 @@ class CompilerArguments constructor(
     // the SDK directory
     val sdkDir: File,
 
-    // the folder used by data binding to read data about the build process.
-    val buildDir: File,
+    // the directory containing artifacts from library dependencies
+    val dependencyArtifactsDir: File,
 
     // output of the process layouts task
     val layoutInfoDir: File,
@@ -106,7 +106,7 @@ class CompilerArguments constructor(
         args[PARAM_MODULE_PACKAGE] = modulePackage
         args[PARAM_MIN_API] = minApi.toString()
         args[PARAM_SDK_DIR] = sdkDir.path
-        args[PARAM_BUILD_DIR] = buildDir.path
+        args[PARAM_DEPENDENCY_ARTIFACTS_DIR] = dependencyArtifactsDir.path
         args[PARAM_LAYOUT_INFO_DIR] = layoutInfoDir.path
         args[PARAM_CLASS_LOG_DIR] = classLogDir.path
         baseFeatureInfoDir?.let { args[PARAM_BASE_FEATURE_INFO_DIR] = it.path }
@@ -133,7 +133,7 @@ class CompilerArguments constructor(
         private const val PARAM_MODULE_PACKAGE = PREFIX + "modulePackage"
         private const val PARAM_MIN_API = PREFIX + "minApi"
         private const val PARAM_SDK_DIR = PREFIX + "sdkDir"
-        private const val PARAM_BUILD_DIR = PREFIX + "buildDir"
+        private const val PARAM_DEPENDENCY_ARTIFACTS_DIR = PREFIX + "dependencyArtifactsDir"
         private const val PARAM_LAYOUT_INFO_DIR = PREFIX + "layoutInfoDir"
         private const val PARAM_CLASS_LOG_DIR = PREFIX + "classLogDir"
         private const val PARAM_BASE_FEATURE_INFO_DIR = PREFIX + "baseFeatureInfoDir"
@@ -152,7 +152,7 @@ class CompilerArguments constructor(
             PARAM_MODULE_PACKAGE,
             PARAM_MIN_API,
             PARAM_SDK_DIR,
-            PARAM_BUILD_DIR,
+            PARAM_DEPENDENCY_ARTIFACTS_DIR,
             PARAM_LAYOUT_INFO_DIR,
             PARAM_CLASS_LOG_DIR,
             PARAM_BASE_FEATURE_INFO_DIR,
@@ -173,7 +173,7 @@ class CompilerArguments constructor(
                 modulePackage = options[PARAM_MODULE_PACKAGE]!!,
                 minApi = Integer.parseInt(options[PARAM_MIN_API]!!),
                 sdkDir = File(options[PARAM_SDK_DIR]!!),
-                buildDir = File(options[PARAM_BUILD_DIR]!!),
+                dependencyArtifactsDir = File(options[PARAM_DEPENDENCY_ARTIFACTS_DIR]!!),
                 layoutInfoDir = File(options[PARAM_LAYOUT_INFO_DIR]!!),
                 classLogDir = File(options[PARAM_CLASS_LOG_DIR]!!),
                 baseFeatureInfoDir = options[PARAM_BASE_FEATURE_INFO_DIR]?.let { File(it) },

@@ -54,7 +54,6 @@ public class DataBindingBuilder {
     public static final String PROCESSOR_NAME =
             "android.databinding.annotationprocessor.ProcessDataBinding";
 
-    public static final String ARTIFACT_FILES_DIR_FROM_LIBS = "dependent-lib-artifacts";
     public static final String ARTIFACT_BASE_CLASSES_DIR_FROM_LIBS = "dependent-lib-base-classes";
     public static final String INCREMENTAL_BIN_AAR_DIR = "bin-files";
     public static final String INCREMENTAL_BINDING_CLASSES_LIST_DIR = "binding-class-list";
@@ -150,10 +149,10 @@ public class DataBindingBuilder {
         return excludes;
     }
 
-    private static List<String> getBRFilePackages(File dataBindingCompilerBuildFolder) {
-        File dir = new File(dataBindingCompilerBuildFolder, ARTIFACT_FILES_DIR_FROM_LIBS);
+    private static List<String> getBRFilePackages(File dependencyArtifactsDir) {
         List<String> packages = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(dir.toPath())) {
+        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(
+                dependencyArtifactsDir.toPath())) {
             for (Path path : directoryStream) {
                 String filename = path.getFileName().toString();
                 if (filename.endsWith("-br.bin")) {
@@ -161,7 +160,7 @@ public class DataBindingBuilder {
                 }
             }
         } catch (IOException e) {
-            L.e(e, "Error reading contents of %s directory", dir);
+            L.e(e, "Error reading contents of %s directory", dependencyArtifactsDir);
         }
         return packages;
     }
