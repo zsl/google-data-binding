@@ -77,9 +77,8 @@ public class GenerationalClassUtil {
             mIncrementalOutDir = null;
         }
         mInputDirs = new ArrayList<>();
-        if (StringUtils.isNotBlank(args.getBuildDir().getPath())) {
-            mInputDirs.add(new File(args.getBuildDir(),
-                    DataBindingBuilder.ARTIFACT_FILES_DIR_FROM_LIBS));
+        if (StringUtils.isNotBlank(args.getDependencyArtifactsDir().getPath())) {
+            mInputDirs.add(args.getDependencyArtifactsDir());
         }
     }
 
