@@ -17,7 +17,6 @@
 package android.databinding.annotationprocessor;
 
 import android.databinding.tool.CompilerChef;
-import android.databinding.tool.Context;
 import android.databinding.tool.CompilerArguments;
 import android.databinding.tool.LayoutXmlProcessor;
 import android.databinding.tool.processing.Scope;
@@ -31,12 +30,10 @@ import android.databinding.tool.util.LoggedErrorException;
 import android.databinding.tool.util.Preconditions;
 import android.databinding.tool.util.StringUtils;
 import android.databinding.tool.writer.BindingMapperWriter;
-import android.databinding.tool.writer.BindingMapperWriterV2;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicate;
 
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
@@ -55,16 +52,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
-import javax.lang.model.element.TypeElement;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     public ProcessExpressions() {
@@ -119,7 +112,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
                 if (!args.isEnableV2()) {
                     mine.updateOverridden(resourceBundle);
                     intermediateList.add(mine);
-                    saveIntermediate(processingEnvironment, args, mine);
+                    saveIntermediate(args, mine);
                 }
                 mine.appendTo(resourceBundle, true);
             }
@@ -136,9 +129,9 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
     }
 
     private List<IntermediateV2> loadDependencyIntermediates() {
-        final List<Intermediate> original = GenerationalClassUtil.get().loadObjects(
-                GenerationalClassUtil.ExtensionFilter.LAYOUT);
-        final List<IntermediateV2> upgraded = new ArrayList<IntermediateV2>(original.size());
+        final List<Intermediate> original = GenerationalClassUtil.get().load(
+                GenerationalClassUtil.ExtensionFilter.LAYOUT, Intermediate.class);
+        final List<IntermediateV2> upgraded = new ArrayList<>(original.size());
         for (Intermediate intermediate : original) {
             final Intermediate updatedIntermediate = intermediate.upgrade();
             Preconditions.check(updatedIntermediate instanceof IntermediateV2, "Incompatible data"
@@ -150,12 +143,9 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
         return upgraded;
     }
 
-    private void saveIntermediate(ProcessingEnvironment processingEnvironment,
-            CompilerArguments args, IntermediateV2 intermediate) {
-        GenerationalClassUtil.get().writeIntermediateFile(args.getModulePackage(),
-                args.getModulePackage() +
-                        GenerationalClassUtil.ExtensionFilter.LAYOUT.getExtension(),
-                intermediate);
+    private void saveIntermediate(CompilerArguments args, IntermediateV2 intermediate) {
+        GenerationalClassUtil.get().write(args.getModulePackage(),
+                        GenerationalClassUtil.ExtensionFilter.LAYOUT, intermediate);
     }
 
     @Override

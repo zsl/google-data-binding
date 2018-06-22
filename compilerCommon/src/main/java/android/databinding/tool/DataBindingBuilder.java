@@ -62,9 +62,11 @@ public class DataBindingBuilder {
             "data-binding-base-class-log";
     public static final String BR_FILE_EXT = "-br.bin";
     public static final String LAYOUT_INFO_FILE_EXT = "-layoutinfo.bin";
-    public static final String SETTER_STORE_FILE_EXT = "-setter_store.bin";
+    private static final String SETTER_STORE_FILE_EXT = "-setter_store.bin";
+    private static final String SETTER_STORE_JSON_FILE_EXT = "-setter_store.json";
     public static final List<String> RESOURCE_FILE_EXTENSIONS =
-            ImmutableList.of(BR_FILE_EXT, LAYOUT_INFO_FILE_EXT, SETTER_STORE_FILE_EXT);
+            ImmutableList.of(BR_FILE_EXT, LAYOUT_INFO_FILE_EXT, SETTER_STORE_FILE_EXT,
+                    SETTER_STORE_JSON_FILE_EXT);
     public static final String BINDING_CLASS_LIST_SUFFIX = "-binding_classes.json";
     public static final String FEATURE_PACKAGE_LIST_FILE_NAME = "all_features.json";
     public static final String FEATURE_BR_OFFSET_FILE_NAME = "feature_data.json";
