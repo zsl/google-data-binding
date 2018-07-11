@@ -71,7 +71,7 @@ public class ProcessMethodAdapters extends ProcessDataBinding.ProcessingStep {
 
         try {
             try {
-                store.write(args.getModulePackage(), processingEnvironment);
+                store.write(args.getModulePackage());
             } catch (IOException e) {
                 L.e(e, "Could not write BindingAdapter intermediate file.");
             }

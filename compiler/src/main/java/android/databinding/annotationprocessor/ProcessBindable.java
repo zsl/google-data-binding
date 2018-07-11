@@ -87,8 +87,8 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
                     // We'll get them later when we do the messages
                 }
             }
-            GenerationalClassUtil.get().writeIntermediateFile(mProperties.getPackage(),
-                    createIntermediateFileName(mProperties.getPackage()), mProperties);
+            GenerationalClassUtil.get().write(mProperties.getPackage(),
+                    GenerationalClassUtil.ExtensionFilter.BR, mProperties);
             generateBRClasses(processingEnv, args, mProperties.getPackage());
             return true;
         }
@@ -109,10 +109,6 @@ public class ProcessBindable extends ProcessDataBinding.ProcessingStep implement
     public void onProcessingOver(RoundEnvironment roundEnvironment,
             ProcessingEnvironment processingEnvironment,
             CompilerArguments args) {
-    }
-
-    private String createIntermediateFileName(String appPkg) {
-        return appPkg + GenerationalClassUtil.ExtensionFilter.BR.getExtension();
     }
 
     private void generateBRClasses(

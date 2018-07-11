@@ -149,8 +149,8 @@ class BindableBag(
      * generate their BR classes.
      */
     private fun loadPreviousBRFilesForFeature(captureValues: Boolean): List<PackageProps> {
-        val inputFolder = compilerArgs.featureInfoDir
-        val util = GenerationalClassUtil(inputFolder, GenerationalClassUtil.ExtensionFilter.BR)
+        val inputFolder = compilerArgs.featureInfoDir ?: return emptyList()
+        val util = GenerationalClassUtil(inputFolder, null)
         return loadPreviousBRFiles(util, captureValues)
     }
 
@@ -164,7 +164,7 @@ class BindableBag(
             captureValues: Boolean)
             : List<PackageProps> {
         val brFiles = generationalClassUtil
-                .loadObjects<Intermediate>(GenerationalClassUtil.ExtensionFilter.BR)
+                .load(GenerationalClassUtil.ExtensionFilter.BR, Intermediate::class.java)
         return brFiles
                 .filter { compilerArgs.modulePackage != it.`package` }
                 .map {
