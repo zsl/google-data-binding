@@ -217,6 +217,7 @@ iml_module(
         "//prebuilts/tools/common/m2/repository/com/googlecode/juniversalchardet/juniversalchardet/1.0.3:jar",
         "//prebuilts/tools/common/m2/repository/commons-lang/commons-lang/2.6:jar",
         "//tools/idea/.idea/libraries:Guava",
+        "//tools/idea/.idea/libraries:gson",
         "//tools/idea/.idea/libraries:JUnit4[test]",
         "//prebuilts/tools/common/m2/repository/com/squareup/javapoet/1.8.0:jar",
         "//tools/idea/.idea/libraries:KotlinJavaRuntime",
