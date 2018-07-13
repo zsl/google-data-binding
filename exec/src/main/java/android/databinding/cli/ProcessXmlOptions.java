@@ -64,7 +64,7 @@ public class ProcessXmlOptions {
     @Parameter(names = "-useAndroidX",
             required = false,
             description = "Specifies whether data binding should use androidX packages or not")
-    private boolean useAndroidX = true;
+    private boolean useAndroidX = false;
 
     public String getAppId() {
         return appId;
