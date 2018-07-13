@@ -214,7 +214,7 @@ public class ProcessExpressions extends ProcessDataBinding.ProcessingStep {
             }
             try {
                 result.addEntry(entry.getName(), IOUtils.toString(zf.getInputStream(entry),
-                        Charsets.UTF_16));
+                        Charsets.UTF_8));
             } catch (IOException e) {
                 L.e(e, "cannot load layout file information. Try a clean build");
             }
