@@ -128,18 +128,26 @@ class CompilerArguments constructor(
     }
 
     companion object {
+        /**
+         * legacy arguments are used by blaze, will be removed once blaze is updated.
+         * it cannot happen in lock step.
+         */
         private const val PREFIX = "android.databinding."
         private const val PARAM_ARTIFACT_TYPE = PREFIX + "artifactType"
         private const val PARAM_MODULE_PACKAGE = PREFIX + "modulePackage"
         private const val PARAM_MIN_API = PREFIX + "minApi"
         private const val PARAM_SDK_DIR = PREFIX + "sdkDir"
         private const val PARAM_DEPENDENCY_ARTIFACTS_DIR = PREFIX + "dependencyArtifactsDir"
+        private const val LEGACY_PARAM_DEPENDENCY_ARTIFACTS_DIR = PREFIX + "bindingBuildFolder"
         private const val PARAM_LAYOUT_INFO_DIR = PREFIX + "layoutInfoDir"
+        private const val LEGACY_PARAM_LAYOUT_INFO_DIR = PREFIX + "xmlOutDir"
         private const val PARAM_CLASS_LOG_DIR = PREFIX + "classLogDir"
         private const val PARAM_BASE_FEATURE_INFO_DIR = PREFIX + "baseFeatureInfoDir"
         private const val PARAM_FEATURE_INFO_DIR = PREFIX + "featureInfoDir"
         private const val PARAM_AAR_OUT_DIR = PREFIX + "aarOutDir"
+        private const val LEGACY_PARAM_AAR_OUT_DIR = PREFIX + "generationalFileOutDir"
         private const val PARAM_EXPORT_CLASS_LIST_OUT_FILE = PREFIX + "exportClassListOutFile"
+        private const val LEGACY_PARAM_EXPORT_CLASS_LIST_OUT_FILE = PREFIX + "exportClassListTo"
         private const val PARAM_ENABLE_DEBUG_LOGS = PREFIX + "enableDebugLogs"
         private const val PARAM_PRINT_ENCODED_ERROR_LOGS = PREFIX + "printEncodedErrorLogs"
         private const val PARAM_IS_TEST_VARIANT = PREFIX + "isTestVariant"
@@ -173,13 +181,23 @@ class CompilerArguments constructor(
                 modulePackage = options[PARAM_MODULE_PACKAGE]!!,
                 minApi = Integer.parseInt(options[PARAM_MIN_API]!!),
                 sdkDir = File(options[PARAM_SDK_DIR]!!),
-                dependencyArtifactsDir = File(options[PARAM_DEPENDENCY_ARTIFACTS_DIR]!!),
-                layoutInfoDir = File(options[PARAM_LAYOUT_INFO_DIR]!!),
-                classLogDir = File(options[PARAM_CLASS_LOG_DIR]!!),
+                dependencyArtifactsDir = File(
+                        (options[PARAM_DEPENDENCY_ARTIFACTS_DIR] ?:
+                        options[LEGACY_PARAM_DEPENDENCY_ARTIFACTS_DIR])!!),
+                layoutInfoDir = File(
+                        (options[PARAM_LAYOUT_INFO_DIR] ?:
+                        options[LEGACY_PARAM_LAYOUT_INFO_DIR])!!),
+                // class log dir is not passed by bazel but we don't want early failure
+                classLogDir = File(options[PARAM_CLASS_LOG_DIR] ?: ""),
                 baseFeatureInfoDir = options[PARAM_BASE_FEATURE_INFO_DIR]?.let { File(it) },
                 featureInfoDir = options[PARAM_FEATURE_INFO_DIR]?.let { File(it) },
-                aarOutDir = options[PARAM_AAR_OUT_DIR]?.let { File(it) },
-                exportClassListOutFile = options[PARAM_EXPORT_CLASS_LIST_OUT_FILE]?.let { File(it) },
+                aarOutDir = (options[PARAM_AAR_OUT_DIR] ?: options[LEGACY_PARAM_AAR_OUT_DIR])?.let {
+                    File(it)
+                },
+                exportClassListOutFile = (options[PARAM_EXPORT_CLASS_LIST_OUT_FILE] ?:
+                        options[LEGACY_PARAM_EXPORT_CLASS_LIST_OUT_FILE])?.let {
+                    File(it)
+                },
                 enableDebugLogs = stringToBoolean(options[PARAM_ENABLE_DEBUG_LOGS]),
                 printEncodedErrorLogs =
                 stringToBoolean(options[PARAM_PRINT_ENCODED_ERROR_LOGS]),
