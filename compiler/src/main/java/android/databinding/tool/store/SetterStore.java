@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -1246,23 +1247,29 @@ public class SetterStore {
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof MethodDescription) {
-                MethodDescription that = (MethodDescription) obj;
-                return that.type.equals(this.type) && that.method.equals(this.method);
-            } else {
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof MethodDescription)) {
                 return false;
             }
+            MethodDescription that = (MethodDescription) o;
+            return requiresOldValue == that.requiresOldValue &&
+                isStatic == that.isStatic &&
+                Objects.equals(type, that.type) &&
+                Objects.equals(method, that.method) &&
+                Objects.equals(componentClass, that.componentClass);
         }
 
         @Override
         public int hashCode() {
-            return mergedHashCode(type, method);
+            return Objects.hash(type, method, requiresOldValue, isStatic, componentClass);
         }
 
         @Override
         public String toString() {
-            return type + "." + method + "()";
+            return type + "#" + method;
         }
 
         @Override
@@ -1305,16 +1312,29 @@ public class SetterStore {
         }
 
         @Override
-        public boolean equals(Object obj) {
-            if (!super.equals(obj) || !(obj instanceof InverseDescription)) {
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof InverseDescription)) {
                 return false;
             }
-            return event.equals(((InverseDescription) obj).event);
+            if (!super.equals(o)) {
+                return false;
+            }
+            InverseDescription that = (InverseDescription) o;
+            return Objects.equals(event, that.event);
+        }
+
+        @Override
+        public String toString() {
+            return type + "#" + method;
         }
 
         @Override
         public int hashCode() {
-            return mergedHashCode(type, method, event);
+
+            return Objects.hash(super.hashCode(), event);
         }
 
         @Override

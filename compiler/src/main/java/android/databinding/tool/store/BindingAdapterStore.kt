@@ -147,7 +147,7 @@ internal class BindingAdapterStore : Intermediate {
             declaringClass: String,
             desc: MethodDescription) {
         renamedMethods
-                .getOrPut(attribute, { TreeMap() })
+                .getOrPut(attribute) { TreeMap() }
                 .put(declaringClass, desc)
         currentModuleStore?.addRenamedMethod(attribute, declaringClass, desc)
         L.d("STORE addmethod desc %s", desc)
@@ -158,7 +158,7 @@ internal class BindingAdapterStore : Intermediate {
             declaringClass: String,
             desc: InverseDescription) {
         inverseMethods
-                .getOrPut(attribute, { TreeMap() })
+                .getOrPut(attribute) { TreeMap() }
                 .put(declaringClass, desc)
         currentModuleStore?.addInverseBindingMethod(attribute, declaringClass, desc)
         L.d("STORE addInverseMethod desc %s", desc)
@@ -190,10 +190,13 @@ internal class BindingAdapterStore : Intermediate {
             key: AccessorKey,
             desc: MethodDescription) {
         adapterMethods
-                .getOrPut(attribute, { TreeMap() })
+                .getOrPut(attribute) { TreeMap() }
                 .also {
-                    if (it.containsKey(key)) {
-                        L.e("%s already exists for %s!", key, attribute)
+                    it[key]?.let { existing ->
+                        if (existing != desc) {
+                            L.w("Binding adapter %s already exists for %s! Overriding %s" +
+                                    " with %s", key, attribute, existing, desc)
+                        }
                     }
                 }
                 .put(key, desc)
@@ -205,10 +208,13 @@ internal class BindingAdapterStore : Intermediate {
             key: AccessorKey,
             desc: InverseDescription) {
         inverseAdapters
-                .getOrPut(attribute, { TreeMap() })
+                .getOrPut(attribute) { TreeMap() }
                 .also {
-                    if (it.containsKey(key)) {
-                        L.e("%s already exists for %s!", key, attribute)
+                    it[key]?.let { existing ->
+                        if (existing != desc) {
+                            L.w("Inverse adapter %s already exists for %s! Overriding %s" +
+                                    " with %s", key, attribute, existing, desc)
+                        }
                     }
                 }
                 .put(key, desc)
@@ -237,7 +243,7 @@ internal class BindingAdapterStore : Intermediate {
             toType: String,
             methodDescription: MethodDescription) {
         conversionMethods
-                .getOrPut(fromType, { TreeMap() })
+                .getOrPut(fromType) { TreeMap() }
                 .put(toType, methodDescription)
         currentModuleStore?.addConversionMethod(fromType, toType, methodDescription)
     }
@@ -253,7 +259,7 @@ internal class BindingAdapterStore : Intermediate {
         val removedAccessorKeys = ArrayList<AccessorKey>()
         for (adapters in adapterMethods.values) {
             for (key in adapters.keys) {
-                val description = adapters.get(key)
+                val description = adapters[key]
                 if (classes.contains(description?.type)) {
                     removedAccessorKeys.add(key)
                 }
@@ -454,7 +460,7 @@ internal class BindingAdapterStore : Intermediate {
             second.forEach { key, values ->
                 values.let { secondItems ->
                     val firstVals = first
-                            .getOrPut(key, { TreeMap() })
+                            .getOrPut(key) { TreeMap() }
                     secondItems.forEach { v, d ->
                         firstVals.putIfAbsent(v, d)
                     }
