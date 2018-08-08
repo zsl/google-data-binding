@@ -5,7 +5,8 @@ readonly dist_dir="$1"
 
 export JAVA_HOME="$(realpath "${script_dir}"/../../prebuilts/studio/jdk/linux)"
 
-(cd "${script_dir}"/.. && ./gradlew :publishLocal)
+(cd "${script_dir}"/.. && ./gradlew :publishLocal) || exit $?
+(cd "${script_dir}" && ./gradlew :dataBinding:compilationTests:testClasses) || exit $?
 (cd "${script_dir}" && ./gradlew :dataBinding:compilationTests:test)
 
 if [[ -d "${dist_dir}" ]]; then
