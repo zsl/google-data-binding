@@ -10,7 +10,7 @@ export JAVA_HOME="$(realpath "${script_dir}"/../../prebuilts/studio/jdk/linux)"
 (cd "${script_dir}" && ./gradlew :dataBinding:compilationTests:test)
 
 if [[ -d "${dist_dir}" ]]; then
-  # on AB/ATP, follow conventions to use gtest-testlog-forwarding
-  mkdir "${dist_dir}"/gtest
-  cp -av "${script_dir}"/compilationTests/build/test-results/test/*.xml "${dist_dir}"/gtest
+  # on AB/ATP, follow conventions to use gradle-testlog-forwarding
+  mkdir "${dist_dir}"/host-test-reports
+  zip -j "${dist_dir}"/host-test-reports/compilationTests.zip "${script_dir}"/compilationTests/build/test-results/test/*.xml
 fi
