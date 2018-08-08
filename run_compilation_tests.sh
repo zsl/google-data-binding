@@ -3,6 +3,8 @@
 readonly script_dir="$(dirname $0)"
 readonly dist_dir="$1"
 
+export JAVA_HOME="$(realpath "${script_dir}"/../../prebuilts/studio/jdk/linux)"
+
 (cd "${script_dir}"/.. && ./gradlew :publishLocal)
 (cd "${script_dir}" && ./gradlew :dataBinding:compilationTests:test)
 
