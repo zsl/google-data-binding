@@ -19,6 +19,7 @@ package com.androidx.databinding.multimoduletestapp;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.databinding.multimoduletestapp.R;
+import androidx.databinding.multimoduletestapp.databinding.ActivityMainBinding;
 import androidx.databinding.testlibrary2.TestObservable;
 import androidx.databinding.testlibrary2.databinding.Layout2Binding;
 
@@ -84,6 +85,26 @@ public class GeneratedLayoutTest {
                 binding.executePendingBindings();
                 TextView inherited = (TextView) view.findViewById(R.id.inherited_text);
                 assertEquals("foo", inherited.getText());
+            }
+        });
+    }
+
+    @Test
+    public void testOverriddenAdapters() {
+        InstrumentationRegistry.getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
+                LayoutInflater inflater = LayoutInflater.from(
+                        InstrumentationRegistry.getTargetContext());
+                View view = inflater.inflate(R.layout.activity_main, null);
+                ActivityMainBinding binding = DataBindingUtil.bind(view);
+                binding.setFoo("xx");
+                binding.executePendingBindings();
+                TextView module = view.findViewById(R.id.overriddenModulePropText);
+                assertEquals("app-module: xx", module.getText());
+
+                TextView library = view.findViewById(R.id.overriddenLibraryPropText);
+                assertEquals("app-library: xx", library.getText());
             }
         });
     }
