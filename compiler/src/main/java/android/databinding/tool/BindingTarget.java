@@ -31,6 +31,7 @@ import android.databinding.tool.store.SetterStore.BindingGetterCall;
 import android.databinding.tool.util.L;
 import android.databinding.tool.util.Preconditions;
 
+import com.android.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -115,6 +116,11 @@ public class BindingTarget implements LocationScopeProvider {
 
     public String getIncludedLayout() {
         return mBundle.getIncludedLayout();
+    }
+
+    @Nullable
+    public String getIncludedLayoutPackage() {
+        return mBundle.getModulePackage();
     }
 
     public boolean isBinder() {

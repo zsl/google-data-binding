@@ -23,6 +23,7 @@ import android.databinding.tool.util.L;
 import android.databinding.tool.util.ParserHelper;
 import android.databinding.tool.util.Preconditions;
 
+import com.android.annotations.Nullable;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
@@ -69,7 +70,7 @@ public class ResourceBundle implements Serializable {
 
     private Set<LayoutFileBundle> mLayoutFileBundlesInSource = new HashSet<>();
 
-    private Map<String, String> mDependencyBinders = new HashMap<>();
+    private Map<String, IncludedLayout> mDependencyBinders = new HashMap<>();
 
     private List<File> mRemovedFiles = new ArrayList<File>();
 
@@ -112,7 +113,12 @@ public class ResourceBundle implements Serializable {
 
     public void addDependencyLayouts(GenClassInfoLog genClassInfoLog) {
         genClassInfoLog.mappings().forEach(
-                (key, value) -> mDependencyBinders.put(key, value.getQName()));
+                (key, value) -> mDependencyBinders.put(key,
+                    new IncludedLayout.Builder()
+                        .layoutName(key)
+                        .modulePackage(value.getModulePackage())
+                        .interfaceQName(value.getQName())
+                    .build()));
     }
 
     public Set<LayoutFileBundle> getLayoutFileBundlesInSource() {
@@ -171,12 +177,18 @@ public class ResourceBundle implements Serializable {
                     if (target.isBinder()) {
                         List<LayoutFileBundle> boundTo =
                                 mLayoutBundles.get(target.getIncludedLayout());
-                        final String targetBinding;
+                        String targetBinding = null;
+                        String targetBindingPackage = null;
                         if (boundTo != null && !boundTo.isEmpty()) {
                             targetBinding = boundTo.get(0).getFullBindingClass();
+                            targetBindingPackage = boundTo.get(0).getModulePackage();
                         } else {
-                            targetBinding = mDependencyBinders.getOrDefault(
+                            IncludedLayout included = mDependencyBinders.getOrDefault(
                                     target.getIncludedLayout(), null);
+                            if (included != null) {
+                                targetBinding = included.interfaceQName;
+                                targetBindingPackage = included.modulePackage;
+                            }
                         }
                         if (targetBinding == null) {
                             L.d("There is no binding for %s, reverting to plain layout",
@@ -188,7 +200,7 @@ public class ResourceBundle implements Serializable {
                                 target.mViewName = "android.view.View";
                             }
                         } else {
-                            target.setInterfaceType(targetBinding);
+                            target.setInterfaceType(targetBinding, targetBindingPackage);
                         }
                     }
                 }
@@ -848,6 +860,7 @@ public class ResourceBundle implements Serializable {
         @XmlElement(name = "location")
         public Location mLocation;
         private String mInterfaceType;
+        private String mModulePackage;
 
         // For XML serialization
         public BindingTargetBundle() {
@@ -883,7 +896,20 @@ public class ResourceBundle implements Serializable {
         }
 
         public void setInterfaceType(String interfaceType) {
+            setInterfaceType(interfaceType, null);
+        }
+
+        public void setInterfaceType(String interfaceType, @Nullable String modulePackage) {
             mInterfaceType = interfaceType;
+            mModulePackage = modulePackage;
+        }
+
+        /**
+         * where this binding target is coming from, if it is a binding
+         */
+        @Nullable
+        public String getModulePackage() {
+            return mModulePackage;
         }
 
         public void setLocation(Location location) {
@@ -1019,5 +1045,51 @@ public class ResourceBundle implements Serializable {
      */
     private interface ValidateAndFilterCallback {
         List<? extends NameTypeLocation> get(LayoutFileBundle bundle);
+    }
+
+    /**
+     * Information about an included layout.
+     */
+    public static class IncludedLayout {
+        public final String layoutName;
+        public final String modulePackage;
+        public final String interfaceQName;
+
+
+        private IncludedLayout(String layoutName, String modulePackage,
+            String interfaceQName) {
+            this.layoutName = layoutName;
+            this.modulePackage = modulePackage;
+            this.interfaceQName = interfaceQName;
+        }
+
+        private static class Builder {
+            private String mLayoutName;
+            private String mModulePackage;
+            private String mInterfaceQName;
+
+            Builder layoutName(String layoutName) {
+                mLayoutName = layoutName;
+                return this;
+            }
+
+            Builder modulePackage(String modulePackage) {
+                mModulePackage = modulePackage;
+                return this;
+            }
+
+            Builder interfaceQName(String interfaceQName) {
+                mInterfaceQName = interfaceQName;
+                return this;
+            }
+
+            public IncludedLayout build() {
+                return new IncludedLayout(
+                    mLayoutName,
+                    mModulePackage,
+                    mInterfaceQName
+                );
+            }
+        }
     }
 }

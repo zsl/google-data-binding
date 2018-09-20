@@ -473,8 +473,10 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes
                         }},")
                         tab("new int[] {${
                         includeMap[it]!!.map {
-                            "R.layout.${it.includedLayout}"
-                        }.joinToString(", ")
+                            (it.includedLayoutPackage ?: layoutBinder.modulePackage).let { pkg ->
+                                "$pkg.R.layout.${it.includedLayout}"
+                            }
+                        }.joinToString(",\n                ")
                         }});")
                     }
                 }
