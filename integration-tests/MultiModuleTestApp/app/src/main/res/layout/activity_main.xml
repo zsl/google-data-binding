@@ -24,6 +24,9 @@
         <variable
             name="foo"
             type="String" />
+        <variable
+            name="twoWayVM"
+            type="androidx.databinding.multimoduletestapp.TwoWayVM"/>
     </data>
 
     <RelativeLayout
@@ -51,6 +54,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:overriddenLibraryProp="@{foo}" />
+
+        <EditText
+            android:text="@={twoWayVM.text }"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
 
     </RelativeLayout>
 </layout>

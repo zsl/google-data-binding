@@ -495,6 +495,9 @@ public class SetterStore {
                 return null;
             }
             ModelClass viewClass = mClassAnalyzer.findClass(adapter.viewType, null);
+            if (viewClass == null) {
+                return null;
+            }
             if (viewClass.isGeneric()) {
                 viewClass = viewClass.erasure();
             }
@@ -518,8 +521,11 @@ public class SetterStore {
                 supplied[index] = true;
                 matchingAttributes++;
                 final String parameterTypeStr = adapter.parameterTypes[index];
-                final ModelClass parameterType = eraseType(
-                        mClassAnalyzer.findClass(parameterTypeStr, null));
+                ModelClass paramClass = mClassAnalyzer.findClass(parameterTypeStr, null);
+                if (paramClass == null) {
+                    return null;
+                }
+                final ModelClass parameterType = eraseType(paramClass);
                 final ModelClass attributeType = attributeValues[i];
                 if (!parameterType.isAssignableFrom(attributeType)) {
                     if (ModelMethod.isBoxingConversion(parameterType, attributeType)) {
@@ -713,6 +719,9 @@ public class SetterStore {
         List<String> setterCandidates = mStore.findRenamed(attribute, className -> {
             try {
                 ModelClass renamedViewType = mClassAnalyzer.findClass(className, imports);
+                if (renamedViewType == null) {
+                    return false;
+                }
                 return renamedViewType.erasure().isAssignableFrom(finalViewType);
             } catch (Exception e) {
                 //printMessage(Diagnostic.Kind.NOTE, "Unknown class: " + className);
@@ -769,7 +778,8 @@ public class SetterStore {
         mStore.forEachInverseMethod(attribute, (className, inverseDescription) -> {
             try {
                 ModelClass methodViewType = mClassAnalyzer.findClass(className, imports);
-                if (methodViewType.erasure().isAssignableFrom(finalViewType)) {
+                if (methodViewType != null
+                        && methodViewType.erasure().isAssignableFrom(finalViewType)) {
                     final String name = inverseDescription.method.isEmpty() ?
                             trimAttributeNamespace(attribute) : inverseDescription.method;
                     ModelMethod method = methodViewType.findInstanceGetter(name);
@@ -1008,12 +1018,13 @@ public class SetterStore {
             return mStore.findFirstConversionMethod((fromClassName, conversion) -> {
                 try {
                     ModelClass convertFrom = mClassAnalyzer.findClass(fromClassName, imports);
-                    if (canUseForConversion(from, convertFrom)) {
+                    if (convertFrom != null && canUseForConversion(from, convertFrom)) {
                         for (String toClassName : conversion.keySet()) {
                             try {
-                                ModelClass convertTo = mClassAnalyzer.findClass(toClassName,
-                                        imports);
-                                if (canUseForConversion(convertTo, to)) {
+                                ModelClass convertTo = mClassAnalyzer
+                                        .findClass(toClassName, imports);
+                                if (convertTo != null
+                                        && canUseForConversion(convertTo, to)) {
                                     return conversion.get(toClassName);
                                 }
                             } catch (Exception e) {
