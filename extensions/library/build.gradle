@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import java.nio.file.StandardCopyOption;
+import java.nio.file.Files;
+
 import com.android.build.api.transform.Format;
 import com.android.build.api.transform.QualifiedContent;
 import com.android.build.api.transform.QualifiedContent.ContentType;
@@ -144,8 +147,12 @@ class ExcludeShimTransform extends Transform {
                 tree.include '**/*.class'
                 tree.exclude 'androidx/databinding/DataBindingComponent.*'
                 tree.exclude 'androidx/databinding/DataBinderMapperImpl.*'
-                tree.copy {
-                    into outputDir
+                java.nio.file.Path sourcePath = it.getFile().toPath()
+                java.nio.file.Path outputPath = outputDir.toPath()
+                tree.each { file ->
+                        java.nio.file.Path fileOutputPath = outputPath.resolve(sourcePath.relativize(file.toPath()))
+                        fileOutputPath.toFile().getParentFile().mkdirs()
+                        Files.copy(file.toPath(), fileOutputPath , StandardCopyOption.REPLACE_EXISTING)
                 }
             }
         }
