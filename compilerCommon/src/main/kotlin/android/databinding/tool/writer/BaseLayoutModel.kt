@@ -108,19 +108,19 @@ class BaseLayoutModel(private val variations: List<LayoutFileBundle>) {
 
     fun fieldName(variable: ResourceBundle.VariableDeclaration): String {
         return getScopeNames(JavaScope.FIELD).getOrPut(variable) {
-            getUniqueName(JavaScope.FIELD, "m${variable.name.capitalize()}")
+            getUniqueName(JavaScope.FIELD, "m${readableName(variable)}")
         }
     }
 
     fun setterName(variable: ResourceBundle.VariableDeclaration): String {
         return getScopeNames(JavaScope.SETTER).getOrPut(variable) {
-            "set${variable.name.capitalize()}"
+            "set${readableName(variable)}"
         }
     }
 
     fun getterName(variable: ResourceBundle.VariableDeclaration): String {
         return getScopeNames(JavaScope.GETTER).getOrPut(variable) {
-            "get${variable.name.capitalize()}"
+            "get${readableName(variable)}"
         }
     }
 
@@ -130,6 +130,10 @@ class BaseLayoutModel(private val variations: List<LayoutFileBundle>) {
         } else {
             target.id.androidId().stripNonJava()
         }
+    }
+
+    private fun readableName(variable: ResourceBundle.VariableDeclaration) : String {
+        return variable.name.stripNonJava().capitalize()
     }
 
     private fun indexFromTag(tag: String): kotlin.Int {
