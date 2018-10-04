@@ -20,7 +20,8 @@ import android.support.v7.widget.CardView;
 
 @SuppressWarnings("unused")
 public class DeprecatedBindingAdapter {
-    @BindingAdapter("unused")
-    public static void setOnSupportCardView(CardView cardView, String value) {
+    @BindingAdapter("custom_compat_padding")
+    public static void setOnSupportCardView(CardView cardView, Boolean value) {
+        cardView.setUseCompatPadding(value);
     }
 }

@@ -176,7 +176,8 @@ public class SetterStore {
         List<BindingAdapterStore> gsonIntermediates = generationalClassUtil
                 .load(GenerationalClassUtil.ExtensionFilter.SETTER_STORE_JSON,
                         BindingAdapterStore.class);
-        BindingAdapterStore store = new BindingAdapterStore(previousStores, gsonIntermediates);
+        BindingAdapterStore store = new BindingAdapterStore(previousStores, gsonIntermediates,
+                modelAnalyzer.libTypes.getUseAndroidX());
         return new SetterStore(modelAnalyzer, store);
     }
 
@@ -381,13 +382,6 @@ public class SetterStore {
 
     public void clear(Set<String> classes) {
         mStore.clear(classes);
-    }
-
-    private static <K, V> void removeFromMap(Map<K, V> map, List<K> keys) {
-        for (K key : keys) {
-            map.remove(key);
-        }
-        keys.clear();
     }
 
     public void write(String projectPackage)
