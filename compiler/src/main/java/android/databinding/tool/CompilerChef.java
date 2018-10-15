@@ -207,9 +207,6 @@ public class CompilerChef {
             if (generateMapper) {
                 writeMapperForModule(compilerArgs, brValueLookup, availableDependencyModules);
             }
-            if (mV1CompatChef != null) {
-                writeMapperForV1Compat(compilerArgs, brValueLookup);
-            }
 
             // merged mapper is the one generated for the whole app that includes the mappers
             // generated for individual modules.
@@ -222,6 +219,10 @@ public class CompilerChef {
                 generateMergedMapper = false;
             }
             if (generateMergedMapper) {
+                if (mV1CompatChef != null) {
+                    // only generate v1 compat if we are generating the merged
+                    writeMapperForV1Compat(compilerArgs, brValueLookup);
+                }
                 writeMergedMapper(compilerArgs);
             }
         } else {
