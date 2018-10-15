@@ -175,6 +175,15 @@ public class TestActivityTestBase<T extends ViewDataBinding, U extends TestActiv
         assertNotNull(ex[0]);
     }
 
+    protected void executePendingBindings() {
+        runTestOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mBinder.executePendingBindings();
+            }
+        });
+    }
+
     protected void waitForUISync() {
         try {
             final CountDownLatch latch = new CountDownLatch(1);

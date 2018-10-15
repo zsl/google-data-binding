@@ -319,7 +319,8 @@ public class FieldAccessExpr extends MethodBaseExpr {
     public Expr resolveTwoWayExpressions(Expr parent) {
         final Expr child = getTarget();
         if (!(child instanceof ViewFieldExpr)) {
-            return this;
+            // fallback to default logic to check sub expressions
+            return super.resolveTwoWayExpressions(parent);
         }
         final ViewFieldExpr expr = (ViewFieldExpr) child;
         final BindingTarget bindingTarget = expr.getBindingTarget();
