@@ -15,8 +15,10 @@ package android.databinding.tool;
 
 import android.databinding.tool.processing.Scope;
 import android.databinding.tool.processing.ScopedException;
+import android.databinding.tool.reflection.ImportBag;
 import android.databinding.tool.reflection.InjectedClass;
 import android.databinding.tool.reflection.ModelAnalyzer;
+import android.databinding.tool.reflection.MutableImportBag;
 import android.databinding.tool.store.FeatureInfoList;
 import android.databinding.tool.store.GenClassInfoLog;
 import android.databinding.tool.store.ResourceBundle;
@@ -143,7 +145,7 @@ public class CompilerChef {
             analyzer.injectClass(bindingClass);
 
             for (ResourceBundle.LayoutFileBundle layoutFileBundle : bundles) {
-                final HashMap<String, String> imports = new HashMap<String, String>();
+                final MutableImportBag imports = new MutableImportBag();
                 for (ResourceBundle.NameTypeLocation imp : layoutFileBundle.getImports()) {
                     imports.put(imp.name, imp.type);
                 }
