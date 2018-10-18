@@ -224,7 +224,7 @@ public class JavaClass extends ModelClass {
     }
 
     @Override
-    protected ModelField[] getDeclaredFields() {
+    public ModelField[] getDeclaredFields() {
         Field[] fields = mClass.getDeclaredFields();
         ModelField[] modelFields;
         if (fields == null) {
@@ -239,7 +239,7 @@ public class JavaClass extends ModelClass {
     }
 
     @Override
-    protected ModelMethod[] getDeclaredMethods() {
+    public ModelMethod[] getDeclaredMethods() {
         Method[] methods = mClass.getDeclaredMethods();
         if (methods == null) {
             return new ModelMethod[0];

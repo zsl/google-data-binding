@@ -15,25 +15,14 @@
  */
 package android.databinding.tool.reflection.annotation
 
-import android.databinding.tool.reflection.ModelAnalyzer
-import android.databinding.tool.reflection.ModelClass
-import android.databinding.tool.reflection.ModelField
-import android.databinding.tool.reflection.ModelMethod
-import android.databinding.tool.reflection.TypeUtil
+import android.databinding.tool.reflection.*
 import android.databinding.tool.util.L
-
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.TypeName
-
-import java.util.ArrayList
-
+import java.util.*
 import javax.lang.model.element.ElementKind
 import javax.lang.model.element.TypeElement
-import javax.lang.model.type.ArrayType
-import javax.lang.model.type.DeclaredType
-import javax.lang.model.type.PrimitiveType
-import javax.lang.model.type.TypeKind
-import javax.lang.model.type.TypeMirror
+import javax.lang.model.type.*
 import javax.lang.model.util.ElementFilter
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
@@ -61,7 +50,11 @@ class AnnotationClass(
         }
     }
 
-    override fun getComponentType(): AnnotationClass? {
+    override val componentType by lazy(LazyThreadSafetyMode.NONE) {
+        computeComponentType() as ModelClass?
+    }
+
+    private fun computeComponentType(): AnnotationClass? {
         val component: TypeMirror?
         when {
             isArray -> component = (typeMirror as ArrayType).componentType
@@ -118,59 +111,56 @@ class AnnotationClass(
         return foundInterface as DeclaredType?
     }
 
-    override fun isNullable(): Boolean {
-        return when (typeMirror.kind) {
+    override val isNullable: Boolean
+        get() = when (typeMirror.kind) {
             TypeKind.ARRAY, TypeKind.DECLARED, TypeKind.NULL -> true
             else -> false
         }
-    }
 
-    override fun isPrimitive(): Boolean {
-        return when (typeMirror.kind) {
+    override val isPrimitive: Boolean
+        get() = when (typeMirror.kind) {
             TypeKind.BOOLEAN, TypeKind.BYTE, TypeKind.SHORT, TypeKind.INT,
             TypeKind.LONG, TypeKind.CHAR, TypeKind.FLOAT, TypeKind.DOUBLE -> true
             else -> false
         }
+
+    override val isArray = typeMirror.kind == TypeKind.ARRAY
+
+    override val isBoolean = typeMirror.kind == TypeKind.BOOLEAN
+
+    override val isChar = typeMirror.kind == TypeKind.CHAR
+
+    override val isByte = typeMirror.kind == TypeKind.BYTE
+
+    override val isShort = typeMirror.kind == TypeKind.SHORT
+
+    override val isInt = typeMirror.kind == TypeKind.INT
+
+    override val isLong = typeMirror.kind == TypeKind.LONG
+
+    override val isFloat = typeMirror.kind == TypeKind.FLOAT
+
+    override val isDouble = typeMirror.kind == TypeKind.DOUBLE
+
+    override val isTypeVar = typeMirror.kind == TypeKind.TYPEVAR
+
+    override val isWildcard = typeMirror.kind == TypeKind.WILDCARD
+
+    override val isVoid = typeMirror.kind == TypeKind.VOID
+
+    override val isInterface by lazy(LazyThreadSafetyMode.NONE) {
+        typeMirror.kind == TypeKind.DECLARED &&
+                (typeMirror as DeclaredType).asElement().kind == ElementKind.INTERFACE
     }
 
-    override fun isArray() = typeMirror.kind == TypeKind.ARRAY
-
-    override fun isBoolean()= typeMirror.kind == TypeKind.BOOLEAN
-
-    override fun isChar() = typeMirror.kind == TypeKind.CHAR
-
-    override fun isByte() = typeMirror.kind == TypeKind.BYTE
-
-    override fun isShort() = typeMirror.kind == TypeKind.SHORT
-
-    override fun isInt() = typeMirror.kind == TypeKind.INT
-
-    override fun isLong() = typeMirror.kind == TypeKind.LONG
-
-    override fun isFloat() = typeMirror.kind == TypeKind.FLOAT
-
-    override fun isDouble() = typeMirror.kind == TypeKind.DOUBLE
-
-    override fun isTypeVar() = typeMirror.kind == TypeKind.TYPEVAR
-
-    override fun isWildcard() = typeMirror.kind == TypeKind.WILDCARD
-
-    override fun isInterface() = typeMirror.kind == TypeKind.DECLARED &&
-            (typeMirror as DeclaredType).asElement().kind == ElementKind.INTERFACE
-
-    override fun isVoid() = typeMirror.kind == TypeKind.VOID
-
-    override fun isGeneric(): Boolean {
-        var isGeneric = false
-        if (typeMirror.kind == TypeKind.DECLARED) {
-            val declaredType = typeMirror as DeclaredType
-            val typeArguments = declaredType.typeArguments
-            isGeneric = typeArguments != null && !typeArguments.isEmpty()
-        }
-        return isGeneric
+    override val isGeneric by lazy(LazyThreadSafetyMode.NONE) {
+        typeMirror.kind == TypeKind.DECLARED &&
+            (typeMirror as DeclaredType)
+                    .typeArguments
+                    .isNotEmpty()
     }
 
-    override fun getMinApi(): Int {
+    private fun extractTargetApi(): Int? {
         if (typeMirror.kind == TypeKind.DECLARED) {
             val declaredType = typeMirror as DeclaredType
             val annotations = elementUtils.getAllAnnotationMirrors(declaredType.asElement())
@@ -186,44 +176,53 @@ class AnnotationClass(
                 }
             }
         }
-        return super.getMinApi()
+        return null
     }
 
-    override fun getTypeArguments(): List<ModelClass>? {
-        var types: MutableList<ModelClass>? = null
+    override val minApi by lazy(LazyThreadSafetyMode.NONE) {
+        extractTargetApi() ?: super.minApi
+    }
+
+    override val typeArguments by lazy(LazyThreadSafetyMode.NONE) {
         if (typeMirror.kind == TypeKind.DECLARED) {
-            val declaredType = typeMirror as DeclaredType
-            val typeArguments = declaredType.typeArguments
-            if (typeArguments != null && !typeArguments.isEmpty()) {
-                types = ArrayList()
-                for (typeMirror in typeArguments) {
-                    types.add(AnnotationClass(typeMirror))
+            (typeMirror as? DeclaredType)?.typeArguments?.map {
+                AnnotationClass(it)
+            }?.let {
+                if (it.isEmpty()) {
+                    null
+                } else {
+                    it
                 }
             }
+        } else {
+            null
         }
-        return types
     }
 
-    override fun unbox(): AnnotationClass {
+    private val computedUnbox by lazy(LazyThreadSafetyMode.NONE) {
         if (!isNullable) {
-            return this
-        }
-        return try {
-            AnnotationClass(typeUtils.unboxedType(typeMirror))
-        } catch (e: IllegalArgumentException) {
-            // I'm being lazy. This is much easier than checking every type.
             this
+        } else {
+            try {
+                AnnotationClass(typeUtils.unboxedType(typeMirror))
+            } catch (e: IllegalArgumentException) {
+                // I'm being lazy. This is much easier than checking every type.
+                this
+            }
         }
-
     }
 
-    override fun box(): AnnotationClass {
-        return if (!isPrimitive) {
+    override fun unbox() = computedUnbox
+
+    private val computedBox by lazy(LazyThreadSafetyMode.NONE) {
+        if (!isPrimitive) {
             this
         } else {
             AnnotationClass(typeUtils.boxedClass(typeMirror as PrimitiveType).asType())
         }
     }
+
+    override fun box() = computedBox
 
     override fun isAssignableFrom(that: ModelClass?): Boolean {
         var other: ModelClass? = that
@@ -240,78 +239,88 @@ class AnnotationClass(
         return typeUtils.isAssignable(thatAnnotationClass.typeMirror, this.typeMirror)
     }
 
-    public override fun getDeclaredMethods(): Array<ModelMethod> {
-        return if (typeMirror.kind == TypeKind.DECLARED) {
+    override val declaredMethods by lazy(LazyThreadSafetyMode.NONE) {
+        if (typeMirror.kind == TypeKind.DECLARED) {
             val declaredType = typeMirror as DeclaredType
             val elementUtils = elementUtils
             val typeElement = declaredType.asElement() as TypeElement
             val members = elementUtils.getAllMembers(typeElement)
             val methods = ElementFilter.methodsIn(members)
             Array(methods.size) {
-                AnnotationMethod(declaredType, methods[it])
+                AnnotationMethod(declaredType, methods[it]) as ModelMethod
             }
         } else {
             emptyArray()
         }
     }
 
-    override fun getSuperclass(): AnnotationClass? {
-        if (typeMirror.kind == TypeKind.DECLARED) {
-            val declaredType = typeMirror as DeclaredType
-            val typeElement = declaredType.asElement() as TypeElement
-            val superClass = typeElement.superclass
-            if (superClass.kind == TypeKind.DECLARED) {
-                return AnnotationClass(superClass)
-            }
+    override val superclass by lazy(LazyThreadSafetyMode.NONE) {
+        val superClass = if (typeMirror.kind == TypeKind.DECLARED) {
+            ((typeMirror as DeclaredType).asElement() as? TypeElement)?.superclass
+        } else {
+            null
         }
-        return null
+        if (superClass?.kind == TypeKind.DECLARED) {
+            AnnotationClass(superClass)
+        } else {
+            null
+        }
     }
 
-    override fun getCanonicalName(): String {
-        return AnnotationTypeUtil.getInstance().toJava(typeUtils.erasure(typeMirror))
+    private val computedCanonicalName by lazy(LazyThreadSafetyMode.NONE) {
+        AnnotationTypeUtil.getInstance().toJava(typeUtils.erasure(typeMirror))
     }
 
-    override fun erasure(): ModelClass {
+    override val canonicalName: String = computedCanonicalName
+
+    private val computedErasure by lazy(LazyThreadSafetyMode.NONE) {
         val erasure = typeUtils.erasure(typeMirror)
-        return if (erasure === typeMirror) {
+        if (erasure === typeMirror) {
             this
         } else {
             AnnotationClass(erasure)
         }
     }
 
-    override fun getJniDescription(): String {
-        return TypeUtil.getInstance().getDescription(this)
+    override fun erasure(): ModelClass = computedErasure
+
+    private val computedJniDescription by lazy(LazyThreadSafetyMode.NONE) {
+        TypeUtil.getInstance().getDescription(this)
     }
 
-    override fun getDeclaredFields(): Array<ModelField> {
-        val declaredFields: Array<ModelField>
-        declaredFields = if (typeMirror.kind == TypeKind.DECLARED) {
+    override val jniDescription: String
+        get() = computedJniDescription
+
+    override val declaredFields by lazy(LazyThreadSafetyMode.NONE) {
+        if (typeMirror.kind == TypeKind.DECLARED) {
             val declaredType = typeMirror as DeclaredType
             val elementUtils = elementUtils
             val typeElement = declaredType.asElement() as TypeElement
             val members = elementUtils.getAllMembers(typeElement)
             val fields = ElementFilter.fieldsIn(members)
             Array(fields.size) {
-                AnnotationField(declaredType, fields[it])
+                AnnotationField(declaredType, fields[it]) as ModelField
             }
         } else {
             emptyArray()
         }
-        return declaredFields
     }
 
-    override fun toString(): String {
-        return AnnotationTypeUtil.getInstance().toJava(typeMirror)
+    private val javaCodeRepresentation by lazy(LazyThreadSafetyMode.NONE) {
+        AnnotationTypeUtil.getInstance().toJava(typeMirror)
     }
 
-    override fun getTypeName(): TypeName {
-        return ClassName.get(typeMirror)
+    override fun toString() = javaCodeRepresentation
+
+    private val computedTypeName by lazy(LazyThreadSafetyMode.NONE) {
+        ClassName.get(typeMirror)
     }
 
-    override fun hashCode(): Int {
-        return AnnotationTypeUtil.getInstance().toJava(typeMirror).hashCode()
-    }
+    override val typeName: TypeName
+        get() = computedTypeName
+
+    override fun hashCode() = javaCodeRepresentation.hashCode()
+
 
     @Suppress("RedundantOverride")
     override fun equals(other: Any?): Boolean {

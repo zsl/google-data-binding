@@ -28,24 +28,24 @@ import java.util.*
 abstract class ModelAnalyzer protected constructor(@JvmField val libTypes: LibTypes) {
 
     val mapType by lazy(LazyThreadSafetyMode.NONE) {
-        loadClassErasure(MAP_CLASS_NAME)
+        loadClassErasure(MAP_CLASS_NAME)!!
     }
 
     val stringType by lazy(LazyThreadSafetyMode.NONE) {
-        findClass(STRING_CLASS_NAME, null)
+        findClass(STRING_CLASS_NAME, null)!!
     }
     val objectType  by lazy(LazyThreadSafetyMode.NONE) {
-        findClass(OBJECT_CLASS_NAME, null)
+        findClass(OBJECT_CLASS_NAME, null)!!
     }
 
-    val observableType  by lazy(LazyThreadSafetyMode.NONE) {
-        findClass(libTypes.observable, null)
+    val observableType by lazy(LazyThreadSafetyMode.NONE) {
+        findClass(libTypes.observable, null)!!
     }
     val observableListType  by lazy(LazyThreadSafetyMode.NONE) {
-        loadClassErasure(libTypes.observableList)
+        loadClassErasure(libTypes.observableList)!!
     }
     val observableMapType  by lazy(LazyThreadSafetyMode.NONE) {
-        loadClassErasure(libTypes.observableMap)
+        loadClassErasure(libTypes.observableMap)!!
     }
     val liveDataType  by lazy(LazyThreadSafetyMode.NONE) {
         loadClassErasure(libTypes.liveData)
@@ -70,7 +70,7 @@ abstract class ModelAnalyzer protected constructor(@JvmField val libTypes: LibTy
     /**
      * If it is present, we annotate generated classes with @Generated.
      */
-    val hasGeneratedAnnotation by lazy {
+    val hasGeneratedAnnotation by lazy(LazyThreadSafetyMode.NONE) {
         findGeneratedAnnotation()
     }
 
@@ -81,7 +81,7 @@ abstract class ModelAnalyzer protected constructor(@JvmField val libTypes: LibTy
                 .mapNotNull(this::loadClassErasure)
     }
 
-    protected val observableFieldTypes by lazy {
+    val observableFieldTypes by lazy(LazyThreadSafetyMode.NONE) {
         libTypes.observableFields
                 .mapNotNull(this::loadClassErasure)
     }

@@ -204,7 +204,7 @@ public class InjectedClass extends ModelClass {
     }
 
     @Override
-    protected ModelField[] getDeclaredFields() {
+    public ModelField[] getDeclaredFields() {
         ModelClass superClass = getSuperclass();
         final ModelField[] superFields = superClass.getDeclaredFields();
         final int initialCount = superFields.length;
@@ -217,7 +217,7 @@ public class InjectedClass extends ModelClass {
     }
 
     @Override
-    protected ModelMethod[] getDeclaredMethods() {
+    public ModelMethod[] getDeclaredMethods() {
         ModelClass superClass = getSuperclass();
         final ModelMethod[] superMethods = superClass.getDeclaredMethods();
         final int initialCount = superMethods.length;
