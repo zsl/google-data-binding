@@ -297,9 +297,9 @@ abstract class ModelClass {
             return false
         }
 
-    abstract val declaredFields: Array<ModelField>
+    abstract val declaredFields: List<ModelField>
 
-    abstract val declaredMethods: Array<ModelMethod>
+    abstract val declaredMethods: List<ModelMethod>
 
     // implementation only so that PSI model doesn't break
     open val typeName: TypeName
@@ -365,13 +365,13 @@ abstract class ModelClass {
      * `args` parameters.
      */
     private fun getMethods(name: String, args: List<ModelClass>, staticOnly: Boolean,
-                           allowProtected: Boolean, unwrapObservableFields: Boolean): Array<ModelMethod> {
+                           allowProtected: Boolean, unwrapObservableFields: Boolean): List<ModelMethod> {
         return declaredMethods.filter { method ->
             (method.isPublic || (allowProtected && method.isProtected))
                     && (!staticOnly || method.isStatic)
                     && name == method.name
                     && method.acceptsArguments(args, unwrapObservableFields)
-        }.toTypedArray()
+        }
     }
 
     /**
@@ -381,13 +381,13 @@ abstract class ModelClass {
      * @param numParameters The number of parameters that the method should take
      * @return An array containing all public methods with the given name and number of parameters.
      */
-    fun getMethods(name: String, numParameters: Int): Array<ModelMethod> {
+    fun getMethods(name: String, numParameters: Int): List<ModelMethod> {
         return declaredMethods.filter { method ->
             method.isPublic &&
                     !method.isStatic &&
                     name == method.name &&
                     method.parameterTypes.size == numParameters
-        }.toTypedArray()
+        }
     }
 
     /**
@@ -574,15 +574,11 @@ abstract class ModelClass {
      * listener methods during Expr.resolveListeners.
      */
     fun findMethods(name: String, staticOnly: Boolean): List<ModelMethod> {
-        val methods = declaredMethods
-        val matching = ArrayList<ModelMethod>()
-        for (method in methods) {
-            if (method.name == name && (!staticOnly || method.isStatic) &&
-                    method.isPublic) {
-                matching.add(method)
-            }
+        return declaredMethods.filter { method ->
+            method.isPublic &&
+                    method.name == name &&
+                    (!staticOnly || method.isStatic)
         }
-        return matching
     }
 
     override fun equals(other: Any?): Boolean {

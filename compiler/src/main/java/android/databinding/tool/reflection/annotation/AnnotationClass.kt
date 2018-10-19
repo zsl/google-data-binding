@@ -245,12 +245,11 @@ class AnnotationClass(
             val elementUtils = elementUtils
             val typeElement = declaredType.asElement() as TypeElement
             val members = elementUtils.getAllMembers(typeElement)
-            val methods = ElementFilter.methodsIn(members)
-            Array(methods.size) {
-                AnnotationMethod(declaredType, methods[it]) as ModelMethod
+            ElementFilter.methodsIn(members).map {
+                AnnotationMethod(declaredType, it) as ModelMethod
             }
         } else {
-            emptyArray()
+            emptyList()
         }
     }
 
@@ -297,12 +296,11 @@ class AnnotationClass(
             val elementUtils = elementUtils
             val typeElement = declaredType.asElement() as TypeElement
             val members = elementUtils.getAllMembers(typeElement)
-            val fields = ElementFilter.fieldsIn(members)
-            Array(fields.size) {
-                AnnotationField(declaredType, fields[it]) as ModelField
+            ElementFilter.fieldsIn(members).map {
+                AnnotationField(declaredType, it) as ModelField
             }
         } else {
-            emptyArray()
+            emptyList()
         }
     }
 
