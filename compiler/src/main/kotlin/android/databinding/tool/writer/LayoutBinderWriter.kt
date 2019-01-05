@@ -956,17 +956,17 @@ class LayoutBinderWriter(val layoutBinder : LayoutBinder, val libTypes: LibTypes
         block("protected void executeBindings()") {
             val tmpDirtyFlags = FlagSet(mDirtyFlags.buckets)
             tmpDirtyFlags.localName = "dirtyFlags";
-            for (i in (0..mDirtyFlags.buckets.size - 1)) {
+            for (i in (0 until mDirtyFlags.buckets.size)) {
                 nl("${tmpDirtyFlags.type} ${tmpDirtyFlags.localValue(i)} = 0;")
             }
             block("synchronized(this)") {
-                for (i in (0..mDirtyFlags.buckets.size - 1)) {
+                for (i in (0 until mDirtyFlags.buckets.size)) {
                     nl("${tmpDirtyFlags.localValue(i)} = ${mDirtyFlags.localValue(i)};")
                     nl("${mDirtyFlags.localValue(i)} = 0;")
                 }
             }
             model.pendingExpressions.filter { it.needsLocalField }.forEach {
-                nl("${it.resolvedType.toJavaCode()} ${it.executePendingLocalName} = ${if (it.isVariable()) it.fieldName else it.defaultValue};")
+                nl("${it.resolvedType.typeName} ${it.executePendingLocalName} = ${if (it.isVariable()) it.fieldName else it.defaultValue};")
             }
             L.d("writing executePendingBindings for %s", className)
             do {
